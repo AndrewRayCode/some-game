@@ -24,7 +24,7 @@ try {
 }
 
 var babelrcObjectDevelopment = babelrcObject.env && babelrcObject.env.development || {};
-var babelLoaderQuery = Object.assign({}, babelrcObject, babelrcObjectDevelopment);
+var babelLoaderQuery = Object.assign({optional: 'runtime'}, babelrcObject, babelrcObjectDevelopment);
 delete babelLoaderQuery.env;
 
 babelLoaderQuery.plugins = babelLoaderQuery.plugins || [];

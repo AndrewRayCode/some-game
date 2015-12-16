@@ -1,9 +1,8 @@
+import 'babel/polyfill';
 import React, { Component } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three.js';
 import CANNON from 'cannon/src/Cannon';
-
-let Mousetrap = typeof global.window !== 'undefined' ? require( 'mousetrap' ) : function() {};
 
 const radius = 20;
 const speed = 0.1;
@@ -15,15 +14,36 @@ const width = 400;
 const shadowD = 20;
 const boxes = 10;
 
+const timeStep = 1 / 60;
+
+const KeyCodes = {
+  LEFT: 37,
+  RIGHT: 39,
+  UP: 38,
+  DOWN: 40
+};
+
+function without( obj, ...keys ) {
+
+  return Object.keys( obj ).reduce( ( memo, key ) => {
+    if( keys.indexOf( parseFloat( key ) ) === -1 ) {
+      memo[ key ] = obj[ key ];
+    }
+    return memo;
+  }, {} );
+
+}
+
 export default class Game extends Component {
 
   constructor(props, context) {
     super(props, context);
 
+    this.keysDown = {};
 
     this.state = {
       cameraTarget: new THREE.Vector3(0, 0, 0),
-      cameraPosition: new THREE.Vector3(0, 2, 0),
+      cameraPosition: new THREE.Vector3(0, 10, 0),
       cameraQuaternion: new THREE.Quaternion()
           .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2),
       cubeRotation: new THREE.Euler(),
@@ -31,101 +51,164 @@ export default class Game extends Component {
       meshStates: []
     };
 
-    const world = new CANNON.World();
+    this.world = new CANNON.World();
+    const world = this.world;
 
-    const bodies = [];
+    this.bodies = [];
+    const bodies = this.bodies;
 
-    const initCannon = () => {
-      world.quatNormalizeSkip = 0;
-      world.quatNormalizeFast = false;
+    world.quatNormalizeSkip = 0;
+    world.quatNormalizeFast = false;
 
-      world.gravity.set(0, -10, 0);
-      world.broadphase = new CANNON.NaiveBroadphase();
+    world.gravity.set(0, -10, 0);
+    world.broadphase = new CANNON.NaiveBroadphase();
 
-      const mass = 5;
+    const mass = 5;
 
-      const playerBody = new CANNON.Body({ mass });
-      const playerShape = new CANNON.Sphere( 0.25 );
+    const playerBody = new CANNON.Body({ mass });
+    this.playerBody = playerBody;
 
-      playerBody.addShape(playerShape);
-      playerBody.position.set( 0, 0, 0 );
-      world.addBody(playerBody);
+    const playerShape = new CANNON.Sphere( 0.25 );
+    this.playerShape = playerShape;
+
+    playerBody.addShape(playerShape);
+    playerBody.position.set( 0, 0, 0 );
+    world.addBody(playerBody);
+    bodies.push({
+      geometry: 'playerGeometry',
+      body: playerBody
+    });
+
+    const boxShape = new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.25));
+
+    for( let i = 0; i < boxes; ++i ) {
+      const boxBody = new CANNON.Body({ mass });
+
+      boxBody.addShape(boxShape);
+      boxBody.position.set(-2.5 + Math.random() * 5, 2.5 + Math.random() * 5, -2.5 + Math.random() * 5);
+      world.addBody(boxBody);
       bodies.push({
-        geometry: 'playerGeometry',
-        body: playerBody
+        geometry: 'cubeGeo',
+        body: boxBody
       });
 
-      const boxShape = new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.25));
+    }
 
-      for( let i = 0; i < boxes; ++i ) {
-        const boxBody = new CANNON.Body({ mass });
+    const groundShape = new CANNON.Plane();
+    const groundBody = new CANNON.Body({mass: 0});
 
-        boxBody.addShape(boxShape);
-        boxBody.position.set(-2.5 + Math.random() * 5, 2.5 + Math.random() * 5, -2.5 + Math.random() * 5);
-        world.addBody(boxBody);
-        bodies.push({
-          geometry: 'cubeGeo',
-          body: boxBody
-        });
+    groundBody.addShape(groundShape);
+    groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
 
-      }
+    world.addBody(groundBody);
 
-      const groundShape = new CANNON.Plane();
-      const groundBody = new CANNON.Body({mass: 0});
+    const shape = new CANNON.Sphere(0.1);
+    const jointBody = new CANNON.Body({mass: 0});
+    jointBody.addShape(shape);
+    jointBody.collisionFilterGroup = 0;
+    jointBody.collisionFilterMask = 0;
 
-      groundBody.addShape(groundShape);
-      groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+    world.addBody(jointBody);
 
-      world.addBody(groundBody);
+    this.jointBody = jointBody;
 
-      const shape = new CANNON.Sphere(0.1);
-      const jointBody = new CANNON.Body({mass: 0});
-      jointBody.addShape(shape);
-      jointBody.collisionFilterGroup = 0;
-      jointBody.collisionFilterMask = 0;
+    this.onKeyDown = this.onKeyDown.bind( this );
+    this.onKeyUp = this.onKeyUp.bind( this );
+    this.updatePhysics = this.updatePhysics.bind( this );
+    this._onAnimate = this._onAnimate.bind( this );
+    this._getMeshStates = this._getMeshStates.bind( this );
 
-      world.addBody(jointBody);
+  }
 
-      this.jointBody = jointBody;
-    };
+  componentDidMount() {
 
-    initCannon();
+    if( typeof window !== 'undefined' ) {
 
-    const timeStep = 1 / 60;
-    const updatePhysics = () => {
-      // Step the physics world
-      world.step(timeStep);
-    };
+      window.addEventListener( 'keydown', this.onKeyDown );
+      window.addEventListener( 'keyup', this.onKeyUp );
 
-    const _getMeshStates = () => {
-      return bodies.map( ( { geometry, body }, bodyIndex) => {
-        const { position, quaternion } = body;
-        return {
-          geometry,
-          position: new THREE.Vector3().copy(position),
-          quaternion: new THREE.Quaternion().copy(quaternion)
-        };
-      });
-    };
+    }
 
-    this._onAnimate = () => {
+  }
 
-      updatePhysics();
+  componentWillUnmount() {
 
-      this.setState({
-        meshStates: _getMeshStates(),
-        lightPosition: new THREE.Vector3(
-          radius * Math.sin( clock.getElapsedTime() * speed ),
-          -10,
-          radius * Math.sin( clock.getElapsedTime() * speed )
-        ),
-        cubeRotation: new THREE.Euler(
-          this.state.cubeRotation.x + 0.01,
-          this.state.cubeRotation.y + 0.01,
-          0
-        )
-      });
-    };
+    if( typeof window !== 'undefined' ) {
+
+      window.removeEventListener( 'keydown', this.onKeyDown );
+      window.removeEventListener( 'keyup', this.onKeyUp );
+
+    }
+
+  }
+
+  updatePhysics() {
+
+    let forceX = 0;
+    const forceY = 0;
+    let forceZ = 0;
+
+    if( KeyCodes.LEFT in this.keysDown ) {
+      forceZ += 1;
+    }
+    if( KeyCodes.RIGHT in this.keysDown ) {
+      forceZ -= 1;
+    }
+    if( KeyCodes.UP in this.keysDown ) {
+      forceX -= 1;
+    }
+    if( KeyCodes.DOWN in this.keysDown ) {
+      forceX += 1;
+    }
+
+    this.playerBody.applyImpulse( new CANNON.Vec3( forceX, forceY, forceZ ), this.playerBody.position );
+
+    // Step the physics world
+    this.world.step(timeStep);
+
+  }
+
+  _getMeshStates() {
+    return this.bodies.map( ( { geometry, body }, bodyIndex) => {
+      const { position, quaternion } = body;
+      return {
+        geometry,
+        position: new THREE.Vector3().copy(position),
+        quaternion: new THREE.Quaternion().copy(quaternion)
+      };
+    });
+  }
+
+  _onAnimate() {
+
+    this.updatePhysics();
+
+    this.setState({
+      meshStates: this._getMeshStates(),
+      lightPosition: new THREE.Vector3(
+        radius * Math.sin( clock.getElapsedTime() * speed ),
+        10,
+        radius * Math.cos( clock.getElapsedTime() * speed )
+      ),
+      cubeRotation: new THREE.Euler(
+        this.state.cubeRotation.x + 0.01,
+        this.state.cubeRotation.y + 0.01,
+        0
+      )
+    });
+  }
+
+  onKeyDown( event ) {
+
+    const which = { [ event.which ]: true };
+    this.keysDown = Object.assign( {}, this.keysDown, which );
+
+  }
+
+  onKeyUp( event ) {
+
+    this.keysDown = without( this.keysDown, event.which );
+
   }
 
   render() {
