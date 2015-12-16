@@ -5,13 +5,14 @@ import {
     App,
     Chat,
     Home,
+    Game,
     Widgets,
     About,
     Login,
     LoginSuccess,
     Survey,
     NotFound,
-  } from 'containers';
+} from 'containers';
 
 export default (store) => {
   const requireLogin = (nextState, replaceState, cb) => {
@@ -47,6 +48,7 @@ export default (store) => {
 
       { /* Routes */ }
       <Route path="about" component={About}/>
+      <Route path="game" component={Game}/>
       <Route path="login" component={Login}/>
       <Route path="survey" component={Survey}/>
       <Route path="widgets" component={Widgets}/>
