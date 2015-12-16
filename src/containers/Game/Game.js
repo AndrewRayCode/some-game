@@ -3,15 +3,11 @@ import React3 from 'react-three-renderer';
 import THREE from 'three.js';
 import CANNON from 'cannon/src/Cannon';
 
-import physijs from 'physijs-browserify';
-const Physijs = physijs( THREE );
+let Mousetrap = typeof global.window !== 'undefined' ? require( 'mousetrap' ) : function() {};
 
 const radius = 20;
 const speed = 0.1;
 const clock = new THREE.Clock();
-
-Physijs.scripts.worker = '/libs/physi-worker.js';
-Physijs.scripts.ammo = '/libs/ammo.js';
 
 const height = 400;
 const width = 400;
@@ -26,7 +22,8 @@ export default class Game extends Component {
 
 
     this.state = {
-      cameraPosition: new THREE.Vector3(10, 2, 0),
+      cameraTarget: new THREE.Vector3(0, 0, 0),
+      cameraPosition: new THREE.Vector3(0, 2, 0),
       cameraQuaternion: new THREE.Quaternion()
           .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2),
       cubeRotation: new THREE.Euler(),
@@ -37,10 +34,6 @@ export default class Game extends Component {
     const world = new CANNON.World();
 
     const bodies = [];
-    const meshRefs = [];
-
-    let constrainedBody;
-    let pivot;
 
     const initCannon = () => {
       world.quatNormalizeSkip = 0;
@@ -51,6 +44,17 @@ export default class Game extends Component {
 
       const mass = 5;
 
+      const playerBody = new CANNON.Body({ mass });
+      const playerShape = new CANNON.Sphere( 0.25 );
+
+      playerBody.addShape(playerShape);
+      playerBody.position.set( 0, 0, 0 );
+      world.addBody(playerBody);
+      bodies.push({
+        geometry: 'playerGeometry',
+        body: playerBody
+      });
+
       const boxShape = new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.25));
 
       for( let i = 0; i < boxes; ++i ) {
@@ -59,15 +63,11 @@ export default class Game extends Component {
         boxBody.addShape(boxShape);
         boxBody.position.set(-2.5 + Math.random() * 5, 2.5 + Math.random() * 5, -2.5 + Math.random() * 5);
         world.addBody(boxBody);
-        bodies.push(boxBody);
-
-        meshRefs.push((mesh) => {
-          if (mesh) {
-            mesh.userData._bodyIndex = i;
-
-            this.meshes.push(mesh);
-          }
+        bodies.push({
+          geometry: 'cubeGeo',
+          body: boxBody
         });
+
       }
 
       const groundShape = new CANNON.Plane();
@@ -98,11 +98,12 @@ export default class Game extends Component {
     };
 
     const _getMeshStates = () => {
-      return bodies.map(({position, quaternion}, bodyIndex) => {
+      return bodies.map( ( { geometry, body }, bodyIndex) => {
+        const { position, quaternion } = body;
         return {
+          geometry,
           position: new THREE.Vector3().copy(position),
-          quaternion: new THREE.Quaternion().copy(quaternion),
-          ref: meshRefs[bodyIndex]
+          quaternion: new THREE.Quaternion().copy(quaternion)
         };
       });
     };
@@ -115,7 +116,7 @@ export default class Game extends Component {
         meshStates: _getMeshStates(),
         lightPosition: new THREE.Vector3(
           radius * Math.sin( clock.getElapsedTime() * speed ),
-          radius * Math.cos( clock.getElapsedTime() * speed ),
+          -10,
           radius * Math.sin( clock.getElapsedTime() * speed )
         ),
         cubeRotation: new THREE.Euler(
@@ -135,7 +136,7 @@ export default class Game extends Component {
 
     const { meshStates } = this.state;
 
-    const cubeMeshes = meshStates.map(({position, quaternion}, i) => {
+    const cubeMeshes = meshStates.map( ( { geometry, position, quaternion }, i ) => {
         return <mesh
             key={i}
             position={position}
@@ -143,7 +144,7 @@ export default class Game extends Component {
             castShadow
         >
             <geometryResource
-                resourceId="cubeGeo"
+                resourceId={ geometry }
             />
             <materialResource
                 resourceId="cubeMaterial"
@@ -165,12 +166,21 @@ export default class Game extends Component {
           aspect={width / height}
           near={0.1}
           far={1000}
+          lookAt={this.state.cameraTarget}
           position={this.state.cameraPosition}
           quaternion={this.state.cameraQuaternion}
           ref="camera"
         />
 
         <resources>
+          <sphereGeometry
+            resourceId="playerGeometry"
+
+            radius={0.5}
+
+            widthSegments={10}
+            heightSegments={10}
+          />
           <boxGeometry
             resourceId="cubeGeo"
 
@@ -213,6 +223,7 @@ export default class Game extends Component {
 
         <mesh
           rotation={this.state.cubeRotation}
+          position={ new THREE.Vector3( 5, 0, 0 ) }
         >
           <boxGeometry
             width={1}

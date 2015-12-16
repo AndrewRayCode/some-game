@@ -19,6 +19,7 @@
     "padded-blocks": 0,
     "comma-dangle": 0,  // not sure why airbnb turned this on. gross!
     "indent": 0,
+    "spaced-comment": 0,
     "no-console": 0,
     "no-alert": 0,
     "no-unused-vars": 0,
