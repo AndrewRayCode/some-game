@@ -5,6 +5,7 @@
     "mocha": true
   },
   "rules": {
+    "react/no-did-mount-set-state": 0,
     "react/sort-comp": 0,
     "react/no-multi-comp": 0,
     "react/wrap-multilines": 0,
