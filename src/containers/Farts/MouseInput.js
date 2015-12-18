@@ -107,6 +107,7 @@ class MouseInput extends Module {
     };
 
     this._containerRect = this._container.getBoundingClientRect();
+    console.log('setting rect to ',this._containerRect);
 
     this._hoverObjectMap = {};
 

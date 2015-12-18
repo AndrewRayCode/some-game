@@ -14,6 +14,9 @@ import MouseInput from './MouseInput';
 
 import AllCubes from './AllCubes';
 
+const width = 400;
+const height = 400;
+
 class Farts extends Component {
   constructor(props, context) {
     super(props, context);
@@ -47,7 +50,8 @@ class Farts extends Component {
         this.setState({ isClient: true }, () => {
             const {
                 container,
-                camera
+                camera,
+                mouseInput
             } = this.refs;
 
             const controls = new OrbitControlsThree(camera);
@@ -101,15 +105,6 @@ class Farts extends Component {
     const {
       mouseInput,
       } = this.refs;
-
-    const {
-      width,
-      height,
-      } = this.props;
-
-    if (width !== newProps.width || height !== newProps.height) {
-      mouseInput.containerResized();
-    }
   }
 
   _onOrbitChange = () => {
@@ -137,10 +132,11 @@ class Farts extends Component {
       const {
         scene,
         container,
-        } = this.refs;
+      } = this.refs;
 
       mouseInput.ready(scene, container, camera);
       mouseInput.restrictIntersections(this.cubes);
+      mouseInput.containerResized();
       mouseInput.setActive(false);
     }
 
@@ -165,9 +161,6 @@ class Farts extends Component {
           return <div />;
       }
 
-      const width = 400;
-      const height = 400;
-
     const {
       cameraPosition,
       cameraRotation,
@@ -179,7 +172,7 @@ class Farts extends Component {
       dragging,
       } = this.state;
 
-    const style = {};
+    const style = { width, height };
 
     if (dragging) {
       style.cursor = 'move';

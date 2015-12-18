@@ -5,6 +5,7 @@
     "mocha": true
   },
   "rules": {
+    "comma-spacing": 0,
     "new-cap": 0,
     "react/prop-types": 0,
     "react/no-did-mount-set-state": 0,
