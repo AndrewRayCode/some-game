@@ -16,7 +16,7 @@ const height = 400;
 const width = 400;
 
 const shadowD = 20;
-const boxes = 50;
+const boxes = 5;
 
 const playerRadius = 1.0;
 
@@ -32,6 +32,8 @@ const KeyCodes = {
   Z: 90
 };
 
+const textureCache = {};
+
 function without( obj, ...keys ) {
 
   return Object.keys( obj ).reduce( ( memo, key ) => {
@@ -40,6 +42,41 @@ function without( obj, ...keys ) {
     }
     return memo;
   }, {} );
+
+}
+
+function makeWall( size, position ) {
+
+  const wallBody = new CANNON.Body({ mass: 0 });
+  const wallShape = new CANNON.Box( size.scale( 0.5 ) );
+
+  wallBody.addShape( wallShape );
+  wallBody.position.copy( position );
+
+  const resourceId = `ornateBrick${size.x}x${size.z}`;
+  const texture = textureCache[ resourceId ] || <meshPhongMaterial
+      key={ resourceId }
+      resourceId={ resourceId }
+      color={ 0xffffff }
+    >
+      <texture
+        url={ require( './brick-pattern-ornate.png' ) }
+        wrapS={ THREE.RepeatWrapping }
+        wrapT={ THREE.RepeatWrapping }
+        anisotropy={16}
+        repeat={ new THREE.Vector2( size.x / 2.5, size.z / 2.5 ) }
+      />
+    </meshPhongMaterial>;
+
+  textureCache[ resourceId ] = texture;
+
+  return {
+    scale: new THREE.Vector3( size.x, size.y, size.z ),
+    geometry: 'wallGeometry',
+    body: wallBody,
+    resourceId,
+    texture
+  };
 
 }
 
@@ -52,16 +89,20 @@ export default class Game extends Component {
 
     this.state = {
       cameraTarget: new THREE.Vector3(0, 0, 0),
-      cameraPosition: new THREE.Vector3(0, 6, 0),
+      cameraPosition: new THREE.Vector3(0, 7, 0),
       cameraQuaternion: new THREE.Quaternion()
           .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2),
       cubeRotation: new THREE.Euler(),
       lightPosition: new THREE.Vector3(),
-      meshStates: []
+      meshStates: [],
+      wallMeshStates: []
     };
 
     this.world = new CANNON.World();
     const world = this.world;
+
+    const walls = [];
+    this.walls = walls;
 
     this.bodies = [];
     const bodies = this.bodies;
@@ -69,13 +110,17 @@ export default class Game extends Component {
     world.quatNormalizeSkip = 0;
     world.quatNormalizeFast = false;
 
-    world.gravity.set(0, -10, 0);
+    world.gravity.set(10, 0, 0);
     world.broadphase = new CANNON.NaiveBroadphase();
 
     const mass = 5;
 
     const playerBody = new CANNON.Body({ mass });
     this.playerBody = playerBody;
+
+    playerBody.addEventListener( 'beginContact', () => {
+      console.log('collision', arguments);
+    });
 
     const playerShape = new CANNON.Sphere( playerRadius );
     this.playerShape = playerShape;
@@ -110,13 +155,47 @@ export default class Game extends Component {
 
     }
 
-    const groundShape = new CANNON.Plane();
-    const groundBody = new CANNON.Body({mass: 0});
+    // groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
 
-    groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+    const floor = makeWall(
+      new CANNON.Vec3( 10, 2, 10 ),
+      new CANNON.Vec3( 0, -2, 0 )
+    );
 
-    world.addBody(groundBody);
+    world.addBody( floor.body );
+    walls.push( floor );
+
+    const wallLeft = makeWall(
+      new CANNON.Vec3( 10, 2, 2 ),
+      new CANNON.Vec3( 0, 0, -5.75 )
+    );
+
+    world.addBody( wallLeft.body );
+    walls.push( wallLeft );
+
+    const wallRight = makeWall(
+      new CANNON.Vec3( 10, 2, 2 ),
+      new CANNON.Vec3( 0, 0, 5.75 )
+    );
+
+    world.addBody( wallRight.body );
+    walls.push( wallRight );
+
+    const wallTop = makeWall(
+      new CANNON.Vec3( 2, 2, 110 ),
+      new CANNON.Vec3( -5.75, 0, 0 )
+    );
+
+    world.addBody( wallTop.body );
+    walls.push( wallTop );
+
+    const wallBottom = makeWall(
+      new CANNON.Vec3( 2, 2, 10 ),
+      new CANNON.Vec3( 5.75, 0, 0 )
+    );
+
+    world.addBody( wallBottom.body );
+    walls.push( wallBottom );
 
     const shape = new CANNON.Sphere(0.1);
     const jointBody = new CANNON.Body({mass: 0});
@@ -186,12 +265,13 @@ export default class Game extends Component {
 
   }
 
-  _getMeshStates() {
-    return this.bodies.map( ( { scale, geometry, body }, bodyIndex) => {
+  _getMeshStates( bodies ) {
+    return bodies.map( ( { resourceId, scale, geometry, body }, bodyIndex) => {
       const { position, quaternion } = body;
       return {
         scale,
         geometry,
+        resourceId,
         position: new THREE.Vector3().copy(position),
         quaternion: new THREE.Quaternion().copy(quaternion)
       };
@@ -203,7 +283,9 @@ export default class Game extends Component {
     this.updatePhysics();
 
     const state = {
-      meshStates: this._getMeshStates(),
+      wallTextures: Object.values( textureCache ),
+      meshStates: this._getMeshStates( this.bodies ),
+      wallMeshStates: this._getMeshStates( this.walls ),
       lightPosition: new THREE.Vector3(
         radius * Math.sin( clock.getElapsedTime() * speed ),
         10,
@@ -224,7 +306,7 @@ export default class Game extends Component {
     }
     if( cameraDelta ) {
       state.cameraPosition = new THREE.Vector3(
-        this.state.cameraPosition.x,
+        this.state.cameraPosition.x + cameraDelta * 0.5,
         this.state.cameraPosition.y + cameraDelta,
         this.state.cameraPosition.z
       );
@@ -252,7 +334,7 @@ export default class Game extends Component {
       return <div />;
     }
 
-    const { meshStates } = this.state;
+    const { wallTextures, meshStates, wallMeshStates } = this.state;
 
     const cubeMeshes = meshStates.map( ( { scale, geometry, position, quaternion }, i ) => {
         return <mesh
@@ -269,6 +351,23 @@ export default class Game extends Component {
                 resourceId="cubeMaterial"
             />
         </mesh>;
+    });
+
+    const wallMeshes = wallMeshStates.map( ( { resourceId, scale, geometry, position, quaternion }, i ) => {
+      return <mesh
+        key={i}
+        position={position}
+        quaternion={quaternion}
+        scale={scale}
+        castShadow
+      >
+        <geometryResource
+          resourceId={ geometry }
+        />
+        <materialResource
+          resourceId={ resourceId }
+        />
+      </mesh>;
     });
 
     return <React3
@@ -299,6 +398,14 @@ export default class Game extends Component {
             heightSegments={20}
           />
           <boxGeometry
+            resourceId="wallGeometry"
+            width={1}
+            height={1}
+            depth={1}
+            widthSegments={1}
+            heightSegments={1}
+          />
+          <boxGeometry
             resourceId="cubeGeo"
 
             width={1}
@@ -308,21 +415,15 @@ export default class Game extends Component {
             widthSegments={1}
             heightSegments={1}
           />
-          <texture
-            resourceId="ornateBrick"
-            url={ require( './brick-pattern-ornate.png' ) }
-            wrapS={ THREE.RepeatWrapping }
-            wrapT={ THREE.RepeatWrapping }
-            anisotropy={16}
-          />
           <meshPhongMaterial
             resourceId="cubeMaterial"
-            color={0x888888}
+            color={0xffffff}
           >
               <textureResource
                 resourceId="ornateBrick"
               />
           </meshPhongMaterial>
+          { wallTextures }
         </resources>
 
         <ambientLight
@@ -350,7 +451,8 @@ export default class Game extends Component {
           position={this.state.lightPosition}
         />
 
-        {cubeMeshes}
+        { cubeMeshes }
+        { wallMeshes }
 
         <mesh
           rotation={this.state.cubeRotation}
