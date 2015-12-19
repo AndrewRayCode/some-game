@@ -2,6 +2,7 @@ import 'babel/polyfill';
 import React, { Component } from 'react';
 import THREE from 'three.js';
 import React3 from 'react-three-renderer';
+import PureRenderMixin from 'react/lib/ReactComponentWithPureRenderMixin';
 
 export default class Grid extends Component {
 
@@ -10,6 +11,8 @@ export default class Grid extends Component {
         super(props, context);
 
     }
+
+    shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate;
 
     render() {
 
@@ -82,7 +85,7 @@ export default class Grid extends Component {
                 </shape>
                 <lineBasicMaterial
                     resourceId="gridLineMaterialDark"
-                    color={0x666666}
+                    color={0x222222}
                     linewidth={0.5}
                 />
                 <lineBasicMaterial

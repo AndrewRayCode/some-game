@@ -4,6 +4,12 @@ import React3 from 'react-three-renderer';
 import THREE from 'three.js';
 import CANNON from 'cannon/src/Cannon';
 import Grid from './Grid';
+import {connect} from 'react-redux';
+import {addWall} from '../../redux/modules/game';
+import {bindActionCreators} from 'redux';
+import classNames from 'classnames/bind';
+import styles from './Dung.scss';
+const cx = classNames.bind( styles );
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
 THREE.ImageUtils.crossOrigin = '';
@@ -34,7 +40,9 @@ const KeyCodes = {
     DOWN: 40,
     X: 88,
     Y: 89,
-    Z: 90
+    Z: 90,
+    CTRL: 17,
+    ALT: 18,
 };
 
 const textureCache = {};
@@ -56,7 +64,11 @@ function snapTo( number, interval ) {
 
 }
 
-export default class Game extends Component {
+@connect(
+    state => ({ walls: state.game }),
+    dispatch => bindActionCreators({addWall}, dispatch)
+)
+export default class Dung extends Component {
 
     constructor(props, context) {
         super(props, context);
@@ -173,7 +185,6 @@ export default class Game extends Component {
         this.onKeyUp = this.onKeyUp.bind( this );
         this.updatePhysics = this.updatePhysics.bind( this );
         this._onAnimate = this._onAnimate.bind( this );
-        this._getMeshStates = this._getMeshStates.bind( this );
         this.onMouseMove = this.onMouseMove.bind( this );
         this.onMouseDown = this.onMouseDown.bind( this );
         this.onMouseUp = this.onMouseUp.bind( this );
@@ -228,10 +239,12 @@ export default class Game extends Component {
     }
 
     _onOrbitChange() {
+
         this.setState({
             cameraPosition: this.refs.camera.position.clone(),
             cameraRotation: this.refs.camera.rotation.clone()
         });
+
     }
 
     updatePhysics() {
@@ -260,27 +273,22 @@ export default class Game extends Component {
 
     }
 
-    _getMeshStates( bodies ) {
-        return bodies.map( ( { resourceId, scale, geometry, body }, bodyIndex) => {
-            const { position, quaternion } = body;
-            return {
-                scale,
-                geometry,
-                resourceId,
-                position: new THREE.Vector3().copy(position),
-                quaternion: new THREE.Quaternion().copy(quaternion)
-            };
-        });
-    }
-
     _onAnimate() {
 
         this.updatePhysics();
 
+        const rotateable = ( KeyCodes.CTRL in this.keysDown ) ||
+            ( KeyCodes.ALT in this.keysDown );
+
+        if( rotateable ) {
+            this.controls.enabled = true;
+        } else {
+            this.controls.false = true;
+        }
+
         const state = {
+            rotateable,
             wallTextures: Object.values( textureCache ),
-            meshStates: this._getMeshStates( this.bodies ),
-            //wallMeshStates: this._getMeshStates( this.walls ),
             lightPosition: new THREE.Vector3(
                 radius * Math.sin( clock.getElapsedTime() * speed ),
                 10,
@@ -325,11 +333,10 @@ export default class Game extends Component {
 
     onMouseMove( event ) {
         
-        // calculate mouse position in normalized device coordinates
-        // (-1 to +1) for both components
-        //
         const bounds = this.refs.container.getBoundingClientRect();
 
+        // calculate mouse position in normalized device coordinates
+        // (-1 to +1) for both components
         const mouse = {
             x: ( ( event.clientX - bounds.left ) / width ) * 2 - 1,
             y: -( ( event.clientY - bounds.top ) / height ) * 2 + 1
@@ -338,10 +345,14 @@ export default class Game extends Component {
         raycaster.setFromCamera( mouse, this.refs.camera );
 
         const intersections = raycaster
-            .intersectObjects( this.refs.scene.children )
+            .intersectObjects( this.refs.scene.children, true )
             .filter( ( intersection ) => {
                 return intersection.object !== this.refs.previewPosition &&
-                    intersection.object !== this.refs.createPreview;
+                    intersection.object !== this.refs.createPreview &&
+                    !( intersection.object instanceof THREE.Line );
+            })
+            .sort( ( a, b ) => {
+                return a.distance - b.distance;
             });
 
         if ( intersections.length > 0 ) {
@@ -365,11 +376,11 @@ export default class Game extends Component {
                         .clone()
                         .add( this.state.createPreviewStart )
                         .multiplyScalar( 0.5 )
-                        .setY( this.state.createPreviewStart.y ),
+                        .setY( point.y + gridSnap / 2 ),
                     createPreviewScale: new THREE.Vector3(
-                        Math.max( Math.abs( vectorDiff.x ), gridSnap ),
+                        Math.max( Math.abs( vectorDiff.x ) + 1, gridSnap ),
                         1,
-                        Math.max( Math.abs( vectorDiff.z ), gridSnap )
+                        Math.max( Math.abs( vectorDiff.z ) + 1, gridSnap )
                     ),
                     createPreviewEnd: snapEndPoint
                 });
@@ -390,7 +401,13 @@ export default class Game extends Component {
 
     onMouseDown( event ) {
 
-        if( this.state.gridPreviewPosition ) {
+        if( this.state.rotateable ) {
+
+            this.setState({
+                rotating: true
+            });
+
+        } else if( this.state.gridPreviewPosition ) {
 
             this.controls.enabled = false;
             event.stopPropagation();
@@ -408,7 +425,19 @@ export default class Game extends Component {
 
     onMouseUp( event ) {
 
+        if( this.state.rotateable ) {
+
+            this.setState({
+                rotating: false
+            });
+
+        }
+
         if( this.state.dragCreating ) {
+
+            this.props.addWall(
+                this.state.createPreviewPosition, this.state.createPreviewScale
+            );
 
             this.controls.enabled = true;
             this.setState({
@@ -426,6 +455,7 @@ export default class Game extends Component {
             return <div />;
         }
 
+        const { walls } = this.props;
         const { wallTextures, meshStates } = this.state;
 
         //const wallMeshes = wallMeshStates.map( ( { resourceId, scale, geometry, position, quaternion }, i ) => {
@@ -450,6 +480,11 @@ export default class Game extends Component {
             onMouseDown={ this.onMouseDown }
             onMouseUp={ this.onMouseUp }
             style={{ width, height }}
+            className={ cx({
+                rotateable: this.state.rotateable,
+                rotating: this.state.rotating,
+                creating: this.state.creating
+            }) }
             ref="container"
         >
             <React3
@@ -497,34 +532,29 @@ export default class Game extends Component {
                             widthSegments={1}
                             heightSegments={1}
                         />
-                        <meshPhongMaterial
-                            resourceId="cubeMaterial"
-                            color={0xffffff}
-                            >
-                            <textureResource
-                                resourceId="ornateBrick"
-                            />
-                        </meshPhongMaterial>
                         <meshBasicMaterial
                             resourceId="transparentMaterial"
                             color={0xffffff}
                             opacity={0.2}
                             transparent
-                            >
-                            <textureResource
-                                resourceId="ornateBrick"
-                            />
-                        </meshBasicMaterial>
+                        />
                         <meshBasicMaterial
                             resourceId="previewBox"
                             color={0xff0000}
                             opacity={0.5}
                             transparent
-                            >
-                            <textureResource
-                                resourceId="ornateBrick"
+                        />
+                        <meshPhongMaterial
+                            resourceId="ornateWall"
+                            color={ 0xffffff }
+                        >
+                            <texture
+                                url={ require( './brick-pattern-ornate.png' ) }
+                                wrapS={ THREE.RepeatWrapping }
+                                wrapT={ THREE.RepeatWrapping }
+                                anisotropy={16}
                             />
-                        </meshBasicMaterial>
+                        </meshPhongMaterial>
                     </resources>
 
                     <ambientLight
@@ -578,7 +608,7 @@ export default class Game extends Component {
                             resourceId="previewBox"
                         />
                     </mesh> : (
-                        this.state.gridPreviewPosition && <mesh
+                        !( this.state.rotateable ) && this.state.gridPreviewPosition && <mesh
                         scale={ this.state.gridScale }
                         position={ this.state.gridPreviewPosition }
                         ref="previewPosition"
@@ -590,6 +620,21 @@ export default class Game extends Component {
                             resourceId="previewBox"
                         />
                     </mesh> ) }
+
+                    { this.props.walls.map( ( wall ) => {
+                        return <mesh
+                            key={ wall.id }
+                            position={ wall.position }
+                            scale={ wall.scale }
+                        >
+                            <geometryResource
+                                resourceId="1x1box"
+                            />
+                            <materialResource
+                                resourceId="ornateWall"
+                            />
+                        </mesh>;
+                    }) }
 
                     <Grid
                         rows={ 20 }
