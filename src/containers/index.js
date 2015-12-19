@@ -9,3 +9,4 @@ export Survey from './Survey/Survey';
 export NotFound from './NotFound/NotFound';
 export Game from './Game/Game';
 export Farts from './Farts/Farts';
+export Dung from './Dung/Dung';

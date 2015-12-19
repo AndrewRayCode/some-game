@@ -16,6 +16,7 @@ const listenerCallbackNames = {
 };
 
 const mouseEvents = [
+  'onMouseMove',
   'onMouseEnter',
   'onMouseLeave',
   'onMouseDown',
@@ -98,16 +99,22 @@ class MouseInput extends Module {
     this._raycaster = new THREE.Raycaster();
     this._mouse = new THREE.Vector2();
 
-    this._onMouseMove = (event) => {
-      this._mouse.set(event.clientX, event.clientY);
+    //this._onMouseMove = (event) => {
+      //this._mouse.set(event.clientX, event.clientY);
 
-      if (!this._active) {
-        this._updateEnterLeave();
-      }
-    };
+      //if (!this._active) {
+        //this._updateEnterLeave();
+      //}
+
+        //const mouseMoveEvent = this._createSyntheticMouseEvent('mouseMove', {
+            //target: this._container,
+            //clientX: this._mouse.x,
+            //clientY: this._mouse.y,
+        //});
+      //React3.eventDispatcher.dispatchEvent(object, 'onMouseEnter', mouseMoveEvent, intersection, depth);
+    //};
 
     this._containerRect = this._container.getBoundingClientRect();
-    console.log('setting rect to ',this._containerRect);
 
     this._hoverObjectMap = {};
 
@@ -142,7 +149,7 @@ class MouseInput extends Module {
     });
   }
 
-  _onMouseDown = (callbackName, mouseEvent) => {
+  _onMouseMove = (callbackName, mouseEvent) => {
     ReactUpdates.batchedUpdates(() => {
       const {
         event,

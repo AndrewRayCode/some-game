@@ -13,222 +13,216 @@ const dragPlane = new THREE.Plane();
 const backVector = new THREE.Vector3(0, 0, -1);
 
 class DraggableCube extends React.Component {
-  static propTypes = {
-    initialPosition: PropTypes.instanceOf(THREE.Vector3).isRequired,
+    static propTypes = {
+        initialPosition: PropTypes.instanceOf(THREE.Vector3).isRequired,
 
-    mouseInput: PropTypes.instanceOf(MouseInput),
-    camera: PropTypes.instanceOf(THREE.PerspectiveCamera),
+        mouseInput: PropTypes.instanceOf(MouseInput),
+        camera: PropTypes.instanceOf(THREE.PerspectiveCamera),
 
-    onCreate: PropTypes.func.isRequired,
+        onCreate: PropTypes.func.isRequired,
 
-    onMouseEnter: PropTypes.func.isRequired,
-    onMouseLeave: PropTypes.func.isRequired,
-    onDragStart: PropTypes.func.isRequired,
-    onDragEnd: PropTypes.func.isRequired,
+        onMouseEnter: PropTypes.func.isRequired,
+        onMouseMove: PropTypes.func.isRequired,
+        onMouseLeave: PropTypes.func.isRequired,
+        onDragStart: PropTypes.func.isRequired,
+        onDragEnd: PropTypes.func.isRequired,
 
-    cursor: PropTypes.any,
-  };
-
-  constructor(props, context) {
-    super(props, context);
-
-    this.rotation = new THREE.Euler(
-      Math.random() * 2 * Math.PI,
-      Math.random() * 2 * Math.PI,
-      Math.random() * 2 * Math.PI
-    );
-
-    this.scale = new THREE.Vector3(
-      Math.random() * 2 + 1,
-      Math.random() * 2 + 1,
-      Math.random() * 2 + 1
-    );
-
-    this.color = new THREE.Color(Math.random() * 0xffffff);
-
-    const hsl = this.color.getHSL();
-
-    hsl.s = Math.min(1, hsl.s * 1.1);
-    hsl.l = Math.min(1, hsl.l * 1.1);
-
-    const {h, s, l} = hsl;
-
-    this.hoverColor = new THREE.Color().setHSL(h, s, l);
-    this.pressedColor = 0xff0000;
-
-    const {
-      initialPosition,
-      } = props;
-
-    this.state = {
-      hovered: false,
-      pressed: false,
-      position: initialPosition,
+        cursor: PropTypes.any,
     };
-  }
 
-  shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate;
+    constructor(props, context) {
+        super(props, context);
 
-  componentWillUnmount() {
-    document.removeEventListener('mouseup', this._onDocumentMouseUp);
-  }
+        this.scale = new THREE.Vector3(
+            100,
+            0.5,
+            100
+        );
 
-  _onMouseEnter = () => {
-    this.setState({
-      'hovered': true,
-    });
+        this.color = new THREE.Color(Math.random() * 0xffffff);
 
-    const {onMouseEnter} = this.props;
+        const hsl = this.color.getHSL();
 
-    onMouseEnter();
-  };
+        hsl.s = Math.min(1, hsl.s * 1.1);
+        hsl.l = Math.min(1, hsl.l * 1.1);
 
-  _onMouseDown = (event, intersection) => {
-    event.preventDefault();
-    event.stopPropagation();
+        const {h, s, l} = hsl;
 
-    const {
-      position,
-      } = this.state;
+        this.hoverColor = new THREE.Color().setHSL(h, s, l);
+        this.pressedColor = 0xff0000;
 
-    const {
-      onDragStart,
-      camera,
-      } = this.props;
+        const {
+            initialPosition,
+        } = props;
 
-    dragPlane.setFromNormalAndCoplanarPoint(backVector.clone().applyQuaternion(camera.quaternion), intersection.point);
-
-    this._offset = intersection.point.clone().sub(position);
-
-    document.addEventListener('mouseup', this._onDocumentMouseUp);
-    document.addEventListener('mousemove', this._onDocumentMouseMove);
-
-    this.setState({
-      'pressed': true,
-    });
-
-    onDragStart();
-  };
-
-  _onDocumentMouseMove = (event) => {
-    event.preventDefault();
-
-    const {
-      mouseInput,
-      } = this.props;
-
-    const ray:THREE.Ray = mouseInput.getCameraRay(new THREE.Vector2(event.clientX, event.clientY));
-
-    const intersection = dragPlane.intersectLine(new THREE.Line3(ray.origin, ray.origin.clone().add(ray.direction.clone().multiplyScalar(10000))));
-    if (intersection) {
-      this.setState({
-        position: intersection.sub(this._offset),
-      });
-    }
-  };
-
-  _onDocumentMouseUp = (event) => {
-    event.preventDefault();
-
-    document.removeEventListener('mouseup', this._onDocumentMouseUp);
-    document.removeEventListener('mousemove', this._onDocumentMouseMove);
-
-    const {
-      onDragEnd,
-      } = this.props;
-
-    onDragEnd();
-
-    this.setState({
-      pressed: false,
-    });
-  };
-
-  _onMouseLeave = () => {
-    if (this.state.hovered) {
-      this.setState({
-        'hovered': false,
-      });
+        this.state = {
+            hovered: false,
+            pressed: false,
+            position: initialPosition
+        };
     }
 
-    const {
-      onMouseLeave,
-      } = this.props;
+    shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate;
 
-    onMouseLeave();
-  };
-
-  _ref = (mesh) => {
-    const {
-      onCreate,
-      } = this.props;
-
-    onCreate(mesh);
-  };
-
-  render() {
-    const {
-      rotation,
-      scale,
-      } = this;
-
-    const {
-      cursor: {
-        dragging,
-        },
-      } = this.props;
-
-    const {
-      hovered,
-      pressed,
-      position,
-      } = this.state;
-
-    let color;
-
-    const hoverHighlight = (hovered && !dragging);
-    if (pressed) {
-      color = this.pressedColor;
-    } else if (hoverHighlight) {
-      color = this.hoverColor;
-    } else {
-      color = this.color;
+    componentDidMount() {
+        document.addEventListener('mouseup', this._onDocumentMouseUp);
+        document.addEventListener('mousemove', this._onDocumentMouseMove);
     }
 
-    return (<group
-      position={position}
-      rotation={rotation}
-      scale={scale}
-    >
-      <mesh
-        castShadow
-        receiveShadow
+    componentWillUnmount() {
+        document.removeEventListener('mouseup', this._onDocumentMouseUp);
+        document.removeEventListener('mousemove', this._onDocumentMouseMove);
+    }
 
-        onMouseEnter={this._onMouseEnter}
-        onMouseDown={this._onMouseDown}
-        onMouseLeave={this._onMouseLeave}
+    _onMouseEnter = () => {
+        this.setState({
+            hovered: true,
+        });
 
-        ref={this._ref}
-      >
-        <geometryResource
-          resourceId="boxGeometry"
-        />
-        <meshLambertMaterial
-          color={color}
-        />
-      </mesh>
-      {hoverHighlight ? <mesh
-        ignorePointerEvents
-      >
-        <geometryResource
-          resourceId="boxGeometry"
-        />
-        <materialResource
-          resourceId="highlightMaterial"
-        />
-      </mesh> : null}
-    </group>);
-  }
+        const {onMouseEnter} = this.props;
+
+        onMouseEnter();
+    };
+
+    _onMouseDown = (event, intersection) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+
+        const {
+            onDragStart,
+            camera,
+        } = this.props;
+
+        dragPlane.setFromNormalAndCoplanarPoint(backVector.clone().applyQuaternion(camera.quaternion), intersection.point);
+
+        this.setState({
+            'pressed': true,
+        });
+
+        onDragStart();
+    };
+
+    _onDocumentMouseMove = (event) => {
+        event.preventDefault();
+
+        const {
+            mouseInput,
+        } = this.props;
+
+        //if( this.state.hovered ) {
+            //this.props.onMouseMove(event, intersection.clone());
+        //}
+
+        //const ray:THREE.Ray = mouseInput.getCameraRay(new THREE.Vector2(event.clientX, event.clientY));
+        //const intersection = dragPlane.intersectLine(
+            //new THREE.Line3(
+                //ray.origin,
+                //ray.origin.clone().add(ray.direction.clone().multiplyScalar(10000))
+            //)
+        //);
+        //if (intersection) {
+            //this.props.onMouseMove(event, intersection.clone());
+        //}
+    };
+
+    _onDocumentMouseUp = (event) => {
+        event.preventDefault();
+
+        const {
+            onDragEnd,
+        } = this.props;
+
+        onDragEnd();
+
+        this.setState({
+            pressed: false,
+        });
+    };
+
+    _onMouseLeave = () => {
+        if (this.state.hovered) {
+            this.setState({
+                'hovered': false,
+            });
+        }
+
+        const {
+            onMouseLeave,
+        } = this.props;
+
+        onMouseLeave();
+    };
+
+    _ref = (mesh) => {
+        const {
+            onCreate,
+        } = this.props;
+
+        onCreate(mesh);
+    };
+
+    render() {
+        const {
+            scale,
+        } = this;
+
+        const {
+            cursor: {
+                dragging,
+            },
+        } = this.props;
+
+        const {
+            hovered,
+            pressed,
+            position,
+        } = this.state;
+
+        let color;
+
+        const hoverHighlight = (hovered && !dragging);
+        if (pressed) {
+            color = this.pressedColor;
+        } else if (hoverHighlight) {
+            color = this.hoverColor;
+        } else {
+            color = this.color;
+        }
+
+        return (<group
+            position={position}
+            scale={scale}
+            >
+            <mesh
+                castShadow
+                receiveShadow
+
+                onMouseEnter={this._onMouseEnter}
+                onMouseDown={this._onMouseDown}
+                onMouseLeave={this._onMouseLeave}
+
+                ref={this._ref}
+                >
+                <geometryResource
+                    resourceId="boxGeometry"
+                />
+                <meshLambertMaterial
+                    color={color}
+                />
+            </mesh>
+            {hoverHighlight ? <mesh
+                ignorePointerEvents
+            >
+                <geometryResource
+                    resourceId="boxGeometry"
+                />
+                <materialResource
+                    resourceId="highlightMaterial"
+                />
+            </mesh> : null}
+        </group>);
+    }
 }
 
 export default DraggableCube;

@@ -25,22 +25,9 @@ class AllCubes extends React.Component {
   constructor(props, context) {
     super(props, context);
 
-    const cubePositions = [];
-    cubePositions.length = 200;
-
-    for (let i = 0; i < 200; ++i) {
-      cubePositions[i] = new THREE.Vector3(
-        Math.random() * 1000 - 500,
-        Math.random() * 600 - 300,
-        Math.random() * 800 - 400
-      );
-    }
-
-    const cubes = [];
-    cubes.length = cubePositions.length;
-    this.cubes = cubes;
-
-    this.cubePositions = cubePositions;
+    const gridPosition = new THREE.Vector3( 0, 0, 0 );
+    this.gridPosition = gridPosition;
+    this.cubes = [];
 
     this.mouse = new THREE.Vector2();
     this.offset = new THREE.Vector3();
@@ -53,15 +40,15 @@ class AllCubes extends React.Component {
   componentDidMount() {
     const {
       onCubesMounted,
-      } = this.props;
+    } = this.props;
 
-    onCubesMounted(this.cubes);
+    onCubesMounted( this.cubes );
   }
 
   shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate;
 
-  _onCubeCreate = (index, cube) => {
-    this.cubes[index] = cube;
+  _onCubeMouseMove = (a,b) => {
+      console.log(b);
   };
 
   _onCubeMouseEnter = () => {
@@ -112,6 +99,9 @@ class AllCubes extends React.Component {
     }
   };
 
+  _onCubeCreate = (index, cube) => {
+    this.cubes = [ cube ];
+  };
 
   render() {
     const {
@@ -121,25 +111,22 @@ class AllCubes extends React.Component {
       cursor,
       } = this.props;
 
-    return (<group>
-      {this.cubePositions.map((cubePosition, index) => {
-        return (<DraggableCube
-          key={index}
-
+    return <group>
+        <DraggableCube
           mouseInput={mouseInput}
           camera={camera}
 
-          initialPosition={cubePosition}
-          onCreate={this._onCubeCreate.bind(this, index)}
+          onCreate={this._onCubeCreate.bind(this, 0)}
+          initialPosition={this.gridPosition}
           onMouseEnter={this._onCubeMouseEnter}
+          onMouseMove={this._onCubeMouseMove}
           onMouseLeave={this._onCubeMouseLeave}
           onDragStart={this._onCubeDragStart}
           onDragEnd={this._onCubeDragEnd}
 
           cursor={cursor}
-        />);
-      })}
-    </group>);
+        />
+    </group>;
   }
 }
 

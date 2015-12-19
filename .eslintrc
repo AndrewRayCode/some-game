@@ -5,6 +5,7 @@
     "mocha": true
   },
   "rules": {
+    "no-trailing-spaces": 0,
     "comma-spacing": 0,
     "new-cap": 0,
     "react/prop-types": 0,

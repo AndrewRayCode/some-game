@@ -21,6 +21,7 @@ const boxes = 5;
 const playerRadius = 1.0;
 
 const timeStep = 1 / 60;
+const raycaster = new THREE.Raycaster();
 
 const KeyCodes = {
   LEFT: 37,
@@ -88,6 +89,7 @@ export default class Game extends Component {
     this.keysDown = {};
 
     this.state = {
+      isEditing: true,
       cameraTarget: new THREE.Vector3(0, 0, 0),
       cameraPosition: new THREE.Vector3(0, 7, 0),
       cameraQuaternion: new THREE.Quaternion()
@@ -212,6 +214,7 @@ export default class Game extends Component {
     this.updatePhysics = this.updatePhysics.bind( this );
     this._onAnimate = this._onAnimate.bind( this );
     this._getMeshStates = this._getMeshStates.bind( this );
+    this.onWallMouseMove = this.onWallMouseMove.bind( this );
 
   }
 
@@ -326,6 +329,10 @@ export default class Game extends Component {
 
     this.keysDown = without( this.keysDown, event.which );
 
+  }
+
+  onWallMouseMove( event ) {
+      console.log(arguments);
   }
 
   render() {
