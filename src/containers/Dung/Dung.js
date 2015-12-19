@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three.js';
 import CANNON from 'cannon/src/Cannon';
+import Grid from './Grid';
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
 THREE.ImageUtils.crossOrigin = '';
@@ -46,6 +47,12 @@ function without( obj, ...keys ) {
         }
         return memo;
     }, {} );
+
+}
+
+function snapTo( number, interval ) {
+
+    return ( interval * Math.ceil( number / interval ) ) - ( interval / 2 );
 
 }
 
@@ -177,6 +184,7 @@ export default class Game extends Component {
     componentDidMount() {
 
         if( typeof window !== 'undefined' ) {
+
             this.setState({ isClient: true }, () => {
                 window.addEventListener( 'keydown', this.onKeyDown );
                 window.addEventListener( 'keyup', this.onKeyUp );
@@ -202,6 +210,7 @@ export default class Game extends Component {
                 this.controls.addEventListener('change', this._onOrbitChange);
 
             });
+
         }
 
     }
@@ -331,32 +340,44 @@ export default class Game extends Component {
         const intersections = raycaster
             .intersectObjects( this.refs.scene.children )
             .filter( ( intersection ) => {
-                return intersection.object !== this.refs.previewPosition;
+                return intersection.object !== this.refs.previewPosition &&
+                    intersection.object !== this.refs.createPreview;
             });
-
 
         if ( intersections.length > 0 ) {
 
             const point = intersections[ 0 ].point;
             const { gridSnap } = this.state;
             const snapEndPoint = new THREE.Vector3(
-                ( gridSnap * Math.ceil( point.x / gridSnap ) ) - ( gridSnap / 2 ),
-                ( gridSnap * Math.ceil( point.y / gridSnap ) ) - ( gridSnap / 2 ),
-                ( gridSnap * Math.ceil( point.z / gridSnap ) ) - ( gridSnap / 2 )
+                snapTo( point.x, gridSnap ),
+                snapTo( point.y, gridSnap ),
+                snapTo( point.z, gridSnap )
             );
 
             if( this.state.dragCreating ) {
 
+                const vectorDiff = snapEndPoint
+                    .clone()
+                    .sub( this.state.createPreviewStart );
+
                 this.setState({
                     createPreviewPosition: snapEndPoint
                         .clone()
-                        .sub( this.state.createPreviewStart )
-                        .multiplyScalar( 0.5 ),
+                        .add( this.state.createPreviewStart )
+                        .multiplyScalar( 0.5 )
+                        .setY( this.state.createPreviewStart.y ),
+                    createPreviewScale: new THREE.Vector3(
+                        Math.max( Math.abs( vectorDiff.x ), gridSnap ),
+                        1,
+                        Math.max( Math.abs( vectorDiff.z ), gridSnap )
+                    ),
                     createPreviewEnd: snapEndPoint
                 });
 
             } else {
+
                 this.setState({ gridPreviewPosition: snapEndPoint });
+
             }
 
         } else {
@@ -371,11 +392,14 @@ export default class Game extends Component {
 
         if( this.state.gridPreviewPosition ) {
 
+            this.controls.enabled = false;
             event.stopPropagation();
 
             this.setState({
                 dragCreating: true,
-                createPreviewStart: this.state.gridPreviewPosition
+                createPreviewStart: this.state.gridPreviewPosition.clone(),
+                createPreviewScale: new THREE.Vector3( 1, 1, 1 ),
+                createPreviewPosition: this.state.gridPreviewPosition.clone()
             });
 
         }
@@ -386,6 +410,7 @@ export default class Game extends Component {
 
         if( this.state.dragCreating ) {
 
+            this.controls.enabled = true;
             this.setState({
                 dragCreating: false,
                 dragStart: null
@@ -483,7 +508,7 @@ export default class Game extends Component {
                         <meshBasicMaterial
                             resourceId="transparentMaterial"
                             color={0xffffff}
-                            opacity={0.5}
+                            opacity={0.2}
                             transparent
                             >
                             <textureResource
@@ -531,7 +556,7 @@ export default class Game extends Component {
                         ref="grid"
                         position={ new THREE.Vector3( 0, 0, 0 ) }
                         rotation={ new THREE.Euler( 0, Math.PI / 2, 0 ) }
-                        scale={ new THREE.Vector3( 10, 0.01, 10 ) }
+                        scale={ new THREE.Vector3( 20, 0.01, 20 ) }
                     >
                         <geometryResource
                             resourceId="1x1box"
@@ -543,6 +568,8 @@ export default class Game extends Component {
 
                     { this.state.dragCreating ? <mesh
                         position={ this.state.createPreviewPosition }
+                        scale={ this.state.createPreviewScale }
+                        ref="createPreview"
                     >
                         <geometryResource
                             resourceId="1x1box"
@@ -563,6 +590,12 @@ export default class Game extends Component {
                             resourceId="previewBox"
                         />
                     </mesh> ) }
+
+                    <Grid
+                        rows={ 20 }
+                        columns={ 20 }
+                        spacing={ this.state.gridSnap }
+                    />
 
                 </scene>
             </React3>
