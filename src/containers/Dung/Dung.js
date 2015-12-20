@@ -26,6 +26,32 @@ const width = 400;
 
 const shadowD = 20;
 
+
+const randomPoints = [];
+
+for ( let i = 0; i < 10; i ++ ) {
+
+    randomPoints.push( new THREE.Vector3(
+        ( i - 1.5 ) * 2,
+        THREE.Math.randFloat( -2, 2 ),
+        THREE.Math.randFloat( -2, 2 )
+    ) );
+
+}
+
+const randomSpline =  new THREE.CatmullRomCurve3( randomPoints );
+
+const extrudeSettings = {
+    amount: 8,
+    bevelEnabled: false,
+    bevelSegments: 0,
+    steps: 18,
+    bevelSize: 0,
+    closed: false,
+    extrudePath: randomSpline,
+    bevelThickness: 0
+};
+
 const raycaster = new THREE.Raycaster();
 
 const KeyCodes = {
@@ -531,6 +557,26 @@ export default class Dung extends Component {
                                         anisotropy={16}
                                     />
                                 </meshPhongMaterial>
+                                <shape resourceId="arc">
+                                    <absArc
+                                        x={0}
+                                        y={0}
+                                        radius={0.5}
+                                        startAngle={0}
+                                        endAngle={Math.PI * 2}
+                                        clockwise={false}
+                                    />
+                                    <hole>
+                                        <absArc
+                                            x={0}
+                                            y={0}
+                                            radius={0.4}
+                                            startAngle={0}
+                                            endAngle={Math.PI * 2}
+                                            clockwise
+                                        />
+                                    </hole>
+                                </shape>
                             </resources>
 
                             <ambientLight
@@ -622,7 +668,23 @@ export default class Dung extends Component {
                                 spacing={ this.state.gridSnap }
                             />
 
+                            <mesh
+                                position={new THREE.Vector3(0, 0, 0)}
+                            >
+                                <extrudeGeometry
+                                    settings={extrudeSettings}
+                                >
+                                    <shapeResource
+                                        resourceId="arc"
+                                    />
+                                </extrudeGeometry>
+                                <meshPhongMaterial
+                                    color={0x00ff00}
+                                />
+                            </mesh>
+
                         </scene>
+
                     </React3>
                 </div>
                 <div className={ cx({ sidebar: true }) }>
