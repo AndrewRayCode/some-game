@@ -4,7 +4,7 @@ import React3 from 'react-three-renderer';
 import THREE from 'three.js';
 import Grid from './Grid';
 import {connect} from 'react-redux';
-import {addWall} from '../../redux/modules/game';
+import {addWall, removeWall} from '../../redux/modules/game';
 import {bindActionCreators} from 'redux';
 import classNames from 'classnames/bind';
 import styles from './Dung.scss';
@@ -37,11 +37,15 @@ const KeyCodes = {
     ALT: 18,
     CTRL: 17,
     ESC: 27,
+    DEL: 8,
 
     '[': 219,
     ']': 221,
+    ',': 188,
+    '.': 190,
 
     C: 67,
+    S: 83,
     X: 88,
     Y: 89,
     Z: 90
@@ -66,7 +70,7 @@ function snapTo( number, interval ) {
 
 @connect(
     state => ({ walls: state.game }),
-    dispatch => bindActionCreators({addWall}, dispatch)
+    dispatch => bindActionCreators({addWall, removeWall}, dispatch)
 )
 export default class Dung extends Component {
 
@@ -80,8 +84,7 @@ export default class Dung extends Component {
         this.state = {
             gridSnap,
             gridScale: new THREE.Vector3( gridSnap, gridSnap, gridSnap ),
-            isEditing: true,
-            cameraTarget: new THREE.Vector3(0, 0, 0),
+            selecting: true,
             cameraPosition: new THREE.Vector3(0, 7, 0),
             cameraRotation: new THREE.Euler(),
             cubeRotation: new THREE.Euler(),
@@ -164,10 +167,15 @@ export default class Dung extends Component {
     _setStateFromKey( state, keys ) {
 
         let stateKey;
+
         if( KeyCodes.C in keys ) {
+
             stateKey = 'creating';
-        } else if( KeyCodes.ESC in keys ) {
+
+        } else if( ( KeyCodes.ESC in keys ) || ( KeyCodes.S in keys ) ) {
+
             stateKey = 'selecting';
+
         }
 
         if( stateKey ) {
@@ -237,21 +245,26 @@ export default class Dung extends Component {
 
         state = this._setStateFromKey( state, this.keysPressed );
 
-        let cameraDelta = 0;
+        if( this.state.selecting && ( KeyCodes.X in this.keysPressed ) && this.state.selectedObject ) {
 
-        if( KeyCodes.Z in this.keysPressed ) {
+            this.setState({ selectedObject: null });
+            this.props.removeWall( this.state.selectedObject.id );
+            
+        }
+
+        let cameraDelta = 0;
+        if( KeyCodes[ '.' ] in this.keysPressed ) {
 
             cameraDelta = -0.1;
 
-        } else if( KeyCodes.X in this.keysPressed ) {
+        } else if( KeyCodes[ ',' ] in this.keysPressed ) {
 
             cameraDelta = 0.1;
 
         }
-
         if( cameraDelta ) {
             state.cameraPosition = new THREE.Vector3(
-                this.state.cameraPosition.x + cameraDelta * 0.5,
+                this.state.cameraPosition.x,
                 this.state.cameraPosition.y + cameraDelta,
                 this.state.cameraPosition.z
             );
@@ -301,7 +314,20 @@ export default class Dung extends Component {
                 return a.distance - b.distance;
             });
 
-        if ( intersections.length > 0 ) {
+        if ( this.state.selecting ) {
+
+            this.setState({
+                objectUnderCursor: intersections.length ?
+                    this.props.walls.find( ( wall ) => {
+
+                        return this.refs[ wall.id ] === intersections[ 0 ].object;
+
+                    }) : null
+            });
+
+        }
+
+        if ( this.state.creating && intersections.length ) {
 
             const { gridSnap } = this.state;
             const faceNormal = intersections[ 0 ].face.normal.clone().normalize();
@@ -350,13 +376,17 @@ export default class Dung extends Component {
 
     onMouseDown( event ) {
 
-        const { gridSnap, rotateable, gridPreviewPosition, creating } = this.state;
+        const { gridSnap, rotateable, gridPreviewPosition, creating, selecting, objectUnderCursor } = this.state;
 
         if( rotateable ) {
 
             this.setState({
                 rotating: true
             });
+
+        } else if( selecting && objectUnderCursor ) {
+
+            this.setState({ selectedObject: objectUnderCursor });
 
         } else if( creating && gridPreviewPosition ) {
 
@@ -422,7 +452,7 @@ export default class Dung extends Component {
         }
 
         const { walls } = this.props;
-        const { meshStates } = this.state;
+        const { meshStates, selectedObject } = this.state;
 
         return <div>
             <div className="clearfix">
@@ -569,6 +599,7 @@ export default class Dung extends Component {
 
                             { this.props.walls.map( ( wall ) => {
                                 return <mesh
+                                    ref={ wall.id }
                                     key={ wall.id }
                                     position={ wall.position }
                                     scale={ wall.scale }
@@ -595,7 +626,15 @@ export default class Dung extends Component {
                     </React3>
                 </div>
                 <div className={ cx({ sidebar: true }) }>
-                    sidebar
+                    { selectedObject ? (<div>
+                        <b>Selected Object</b>
+                        <br />
+                        <b>id</b>: {selectedObject.id}
+                        <br />
+                        <b>scale</b>: {selectedObject.scale.x} {selectedObject.scale.y} {selectedObject.scale.z}
+                        <br />
+                        <b>position</b>: {selectedObject.position.x} {selectedObject.position.y} {selectedObject.position.z}
+                    </div>) : null }
                 </div>
             </div>
             <div>
