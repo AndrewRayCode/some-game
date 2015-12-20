@@ -2,7 +2,6 @@ import 'babel/polyfill';
 import React, { Component } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three.js';
-import CANNON from 'cannon/src/Cannon';
 import Grid from './Grid';
 import {connect} from 'react-redux';
 import {addWall} from '../../redux/modules/game';
@@ -27,10 +26,6 @@ const width = 400;
 
 const shadowD = 20;
 
-const playerRadius = 1.0;
-
-const timeStep = 1 / 60;
-
 const raycaster = new THREE.Raycaster();
 
 const KeyCodes = {
@@ -43,9 +38,9 @@ const KeyCodes = {
     Z: 90,
     CTRL: 17,
     ALT: 18,
+    '[': 219,
+    ']': 221
 };
-
-const textureCache = {};
 
 function without( obj, ...keys ) {
 
@@ -60,7 +55,7 @@ function without( obj, ...keys ) {
 
 function snapTo( number, interval ) {
 
-    return ( interval * Math.ceil( number / interval ) ) - ( interval / 2 );
+    return interval * Math.ceil( number / interval );
 
 }
 
@@ -73,7 +68,7 @@ export default class Dung extends Component {
     constructor(props, context) {
         super(props, context);
 
-        this.keysDown = {};
+        this.keysPressed = {};
 
         const gridSnap = 1;
 
@@ -87,103 +82,17 @@ export default class Dung extends Component {
             cubeRotation: new THREE.Euler(),
             lightPosition: new THREE.Vector3(),
             meshStates: [],
-            wallMeshStates: []
+            wallMeshStates: [],
+
+            gridBasePosition: new THREE.Vector3( 0, 0, 0 ),
+            gridBaseRotation: new THREE.Euler( 0, Math.PI / 2, 0 ),
+            gridBaseScale: new THREE.Vector3( 200, 0.00001, 200 ),
+
+            gridPosition: new THREE.Vector3( 0, 0, 0 )
         };
-
-        this.world = new CANNON.World();
-        const world = this.world;
-
-        //const walls = [];
-        //this.walls = walls;
-
-        this.bodies = [];
-        const bodies = this.bodies;
-
-        world.quatNormalizeSkip = 0;
-        world.quatNormalizeFast = false;
-
-        world.gravity.set(10, 0, 0);
-        world.broadphase = new CANNON.NaiveBroadphase();
-
-        const mass = 5;
-
-        const playerBody = new CANNON.Body({ mass });
-        this.playerBody = playerBody;
-
-        playerBody.addEventListener( 'beginContact', () => {
-            console.log('collision', arguments);
-        });
-
-        const playerShape = new CANNON.Sphere( playerRadius );
-        this.playerShape = playerShape;
-
-        playerBody.addShape(playerShape);
-        playerBody.position.set( 0, 0, 0 );
-        world.addBody(playerBody);
-        bodies.push({
-            scale: new THREE.Vector3( 1, 1, 1 ),
-            geometry: 'playerGeometry',
-            body: playerBody
-        });
-
-        const boxSize = 1.0;
-        const boxShape = new CANNON.Box( new CANNON.Vec3( boxSize / 2, boxSize / 2, boxSize / 2 ) );
-
-        // groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
-
-        //const floor = makeWall(
-        //new CANNON.Vec3( 10, 2, 10 ),
-        //new CANNON.Vec3( 0, -2, 0 )
-        //);
-
-        //world.addBody( floor.body );
-        //walls.push( floor );
-
-        //const wallLeft = makeWall(
-        //new CANNON.Vec3( 10, 2, 2 ),
-        //new CANNON.Vec3( 0, 0, -5.75 )
-        //);
-
-        //world.addBody( wallLeft.body );
-        //walls.push( wallLeft );
-
-        //const wallRight = makeWall(
-        //new CANNON.Vec3( 10, 2, 2 ),
-        //new CANNON.Vec3( 0, 0, 5.75 )
-        //);
-
-        //world.addBody( wallRight.body );
-        //walls.push( wallRight );
-
-        //const wallTop = makeWall(
-        //new CANNON.Vec3( 2, 2, 110 ),
-        //new CANNON.Vec3( -5.75, 0, 0 )
-        //);
-
-        //world.addBody( wallTop.body );
-        //walls.push( wallTop );
-
-        //const wallBottom = makeWall(
-        //new CANNON.Vec3( 2, 2, 10 ),
-        //new CANNON.Vec3( 5.75, 0, 0 )
-        //);
-
-        //world.addBody( wallBottom.body );
-        //walls.push( wallBottom );
-
-        const shape = new CANNON.Sphere(0.1);
-        const jointBody = new CANNON.Body({mass: 0});
-        jointBody.addShape(shape);
-        jointBody.collisionFilterGroup = 0;
-        jointBody.collisionFilterMask = 0;
-
-        world.addBody(jointBody);
-
-        this.jointBody = jointBody;
 
         this.onKeyDown = this.onKeyDown.bind( this );
         this.onKeyUp = this.onKeyUp.bind( this );
-        this.updatePhysics = this.updatePhysics.bind( this );
         this._onAnimate = this._onAnimate.bind( this );
         this.onMouseMove = this.onMouseMove.bind( this );
         this.onMouseDown = this.onMouseDown.bind( this );
@@ -247,43 +156,19 @@ export default class Dung extends Component {
 
     }
 
-    updatePhysics() {
-
-        let forceX = 0;
-        const forceY = 0;
-        let forceZ = 0;
-
-        if( KeyCodes.LEFT in this.keysDown ) {
-            forceZ += 1;
-        }
-        if( KeyCodes.RIGHT in this.keysDown ) {
-            forceZ -= 1;
-        }
-        if( KeyCodes.UP in this.keysDown ) {
-            forceX -= 1;
-        }
-        if( KeyCodes.DOWN in this.keysDown ) {
-            forceX += 1;
-        }
-
-        this.playerBody.applyImpulse( new CANNON.Vec3( forceX, forceY, forceZ ), this.playerBody.position );
-
-        // Step the physics world
-        this.world.step(timeStep);
-
-    }
-
     _onAnimate() {
 
-        this.updatePhysics();
-
-        const rotateable = ( KeyCodes.CTRL in this.keysDown ) ||
-            ( KeyCodes.ALT in this.keysDown );
+        const rotateable = ( KeyCodes.CTRL in this.keysPressed ) ||
+            ( KeyCodes.ALT in this.keysPressed );
 
         if( rotateable ) {
+
             this.controls.enabled = true;
+
         } else {
+
             this.controls.false = true;
+
         }
 
         const state = {
@@ -298,15 +183,43 @@ export default class Dung extends Component {
                 this.state.cubeRotation.x + 0.01,
                 this.state.cubeRotation.y + 0.01,
                 0
-            )
+            ),
         };
 
-        let cameraDelta = 0;
-        if( KeyCodes.Z in this.keysDown ) {
-            cameraDelta = -0.1;
-        } else if( KeyCodes.X in this.keysDown ) {
-            cameraDelta = 0.1;
+        if( KeyCodes[ '[' ] in this.keysPressed ) {
+
+            if( !this.snapChange ) {
+                state.gridSnap = this.state.gridSnap / 2;
+                state.gridScale = new THREE.Vector3( state.gridSnap, state.gridSnap, state.gridSnap );
+                this.snapChange = true;
+            }
+
+        } else if( KeyCodes[ ']' ] in this.keysPressed ) {
+
+            if( !this.snapChange ) {
+                state.gridSnap = this.state.gridSnap * 2;
+                state.gridScale = new THREE.Vector3( state.gridSnap, state.gridSnap, state.gridSnap );
+                this.snapChange = true;
+            }
+
+        } else {
+
+            this.snapChange = false;
+
         }
+
+        let cameraDelta = 0;
+
+        if( KeyCodes.Z in this.keysPressed ) {
+
+            cameraDelta = -0.1;
+
+        } else if( KeyCodes.X in this.keysPressed ) {
+
+            cameraDelta = 0.1;
+
+        }
+
         if( cameraDelta ) {
             state.cameraPosition = new THREE.Vector3(
                 this.state.cameraPosition.x + cameraDelta * 0.5,
@@ -315,19 +228,23 @@ export default class Dung extends Component {
             );
         }
 
+
         this.setState( state );
+
     }
 
     onKeyDown( event ) {
 
-        const which = { [ event.which ]: true };
-        this.keysDown = Object.assign( {}, this.keysDown, which );
+        const { which } = event;
+        const whichMap = { [ which ]: true };
+        this.keysPressed = Object.assign( {}, this.keysPressed, whichMap );
 
     }
 
     onKeyUp( event ) {
 
-        this.keysDown = without( this.keysDown, event.which );
+        const { which } = event;
+        this.keysPressed = without( this.keysPressed, which );
 
     }
 
@@ -357,13 +274,17 @@ export default class Dung extends Component {
 
         if ( intersections.length > 0 ) {
 
-            const point = intersections[ 0 ].point;
             const { gridSnap } = this.state;
+            const faceNormal = intersections[ 0 ].face.normal.clone().normalize();
+            const point = intersections[ 0 ].point
+                .clone()
+                .add( faceNormal.multiplyScalar( gridSnap / 2 ) );
+
             const snapEndPoint = new THREE.Vector3(
                 snapTo( point.x, gridSnap ),
                 snapTo( point.y, gridSnap ),
                 snapTo( point.z, gridSnap )
-            );
+            ).addScalar( -gridSnap / 2 );
 
             if( this.state.dragCreating ) {
 
@@ -375,11 +296,10 @@ export default class Dung extends Component {
                     createPreviewPosition: snapEndPoint
                         .clone()
                         .add( this.state.createPreviewStart )
-                        .multiplyScalar( 0.5 )
-                        .setY( point.y + gridSnap / 2 ),
+                        .multiplyScalar( 0.5 ),
                     createPreviewScale: new THREE.Vector3(
                         Math.max( Math.abs( vectorDiff.x ) + 1, gridSnap ),
-                        1,
+                        gridSnap,
                         Math.max( Math.abs( vectorDiff.z ) + 1, gridSnap )
                     ),
                     createPreviewEnd: snapEndPoint
@@ -401,22 +321,24 @@ export default class Dung extends Component {
 
     onMouseDown( event ) {
 
-        if( this.state.rotateable ) {
+        const { gridSnap, rotateable, gridPreviewPosition } = this.state;
+
+        if( rotateable ) {
 
             this.setState({
                 rotating: true
             });
 
-        } else if( this.state.gridPreviewPosition ) {
+        } else if( gridPreviewPosition ) {
 
             this.controls.enabled = false;
             event.stopPropagation();
 
             this.setState({
                 dragCreating: true,
-                createPreviewStart: this.state.gridPreviewPosition.clone(),
-                createPreviewScale: new THREE.Vector3( 1, 1, 1 ),
-                createPreviewPosition: this.state.gridPreviewPosition.clone()
+                createPreviewStart: gridPreviewPosition.clone(),
+                createPreviewScale: new THREE.Vector3( gridSnap, gridSnap, gridSnap ),
+                createPreviewPosition: gridPreviewPosition.clone()
             });
 
         }
@@ -458,23 +380,6 @@ export default class Dung extends Component {
         const { walls } = this.props;
         const { wallTextures, meshStates } = this.state;
 
-        //const wallMeshes = wallMeshStates.map( ( { resourceId, scale, geometry, position, quaternion }, i ) => {
-        //return <mesh
-        //key={i}
-        //position={position}
-        //quaternion={quaternion}
-        //scale={scale}
-        //castShadow
-        //>
-        //<geometryResource
-        //resourceId={ geometry }
-        ///>
-        //<materialResource
-        //resourceId={ resourceId }
-        ///>
-        //</mesh>;
-        //});
-
         return <div
             onMouseMove={ this.onMouseMove }
             onMouseDown={ this.onMouseDown }
@@ -508,12 +413,6 @@ export default class Dung extends Component {
                     />
 
                     <resources>
-                        <sphereGeometry
-                            resourceId="playerGeometry"
-                            radius={ playerRadius }
-                            widthSegments={20}
-                            heightSegments={20}
-                        />
                         <boxGeometry
                             resourceId="wallGeometry"
                             width={1}
@@ -535,7 +434,7 @@ export default class Dung extends Component {
                         <meshBasicMaterial
                             resourceId="transparentMaterial"
                             color={0xffffff}
-                            opacity={0.2}
+                            opacity={0.4}
                             transparent
                         />
                         <meshBasicMaterial
@@ -584,9 +483,9 @@ export default class Dung extends Component {
 
                     <mesh
                         ref="grid"
-                        position={ new THREE.Vector3( 0, 0, 0 ) }
-                        rotation={ new THREE.Euler( 0, Math.PI / 2, 0 ) }
-                        scale={ new THREE.Vector3( 20, 0.01, 20 ) }
+                        position={ this.state.gridBasePosition }
+                        rotation={ this.state.gridBaseRotation }
+                        scale={ this.state.gridBaseScale }
                     >
                         <geometryResource
                             resourceId="1x1box"
@@ -607,11 +506,11 @@ export default class Dung extends Component {
                         <materialResource
                             resourceId="previewBox"
                         />
-                    </mesh> : (
-                        !( this.state.rotateable ) && this.state.gridPreviewPosition && <mesh
+                    </mesh> : ( !( this.state.rotateable ) && this.state.gridPreviewPosition && <mesh
                         scale={ this.state.gridScale }
                         position={ this.state.gridPreviewPosition }
                         ref="previewPosition"
+                        castShadow
                     >
                         <geometryResource
                             resourceId="1x1box"
@@ -626,6 +525,8 @@ export default class Dung extends Component {
                             key={ wall.id }
                             position={ wall.position }
                             scale={ wall.scale }
+                            castShadow
+                            receiveShadow
                         >
                             <geometryResource
                                 resourceId="1x1box"
@@ -637,6 +538,7 @@ export default class Dung extends Component {
                     }) }
 
                     <Grid
+                        position={ this.state.gridPosition }
                         rows={ 20 }
                         columns={ 20 }
                         spacing={ this.state.gridSnap }

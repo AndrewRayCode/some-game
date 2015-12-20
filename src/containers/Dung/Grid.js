@@ -16,7 +16,7 @@ export default class Grid extends Component {
 
     render() {
 
-        const { rows, columns, spacing } = this.props;
+        const { rows, columns, spacing, position } = this.props;
         const width = rows * spacing;
         const height = columns * spacing;
 
@@ -27,7 +27,7 @@ export default class Grid extends Component {
                 key={ i }
                 position={ new THREE.Vector3(
                     0, 0, ( i * spacing ) - ( height / 2 )
-                )}
+                ).add( position ) }
             >
                 <shapeGeometryResource
                     resourceId="row"
@@ -47,7 +47,7 @@ export default class Grid extends Component {
                 key={ i }
                 position={ new THREE.Vector3(
                     ( i * spacing ) - ( width / 2 ), 0, 0
-                )}
+                ).add( position ) }
                 rotation={new THREE.Euler( Math.PI / 2, 0, 0 )}
             >
                 <shapeGeometryResource
