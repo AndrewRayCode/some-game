@@ -173,7 +173,6 @@ export default class Dung extends Component {
 
         const state = {
             rotateable,
-            wallTextures: Object.values( textureCache ),
             lightPosition: new THREE.Vector3(
                 radius * Math.sin( clock.getElapsedTime() * speed ),
                 10,
@@ -298,9 +297,9 @@ export default class Dung extends Component {
                         .add( this.state.createPreviewStart )
                         .multiplyScalar( 0.5 ),
                     createPreviewScale: new THREE.Vector3(
-                        Math.max( Math.abs( vectorDiff.x ) + 1, gridSnap ),
+                        Math.max( Math.abs( vectorDiff.x ) + gridSnap, gridSnap ),
                         gridSnap,
-                        Math.max( Math.abs( vectorDiff.z ) + 1, gridSnap )
+                        Math.max( Math.abs( vectorDiff.z ) + gridSnap, gridSnap )
                     ),
                     createPreviewEnd: snapEndPoint
                 });
@@ -378,7 +377,7 @@ export default class Dung extends Component {
         }
 
         const { walls } = this.props;
-        const { wallTextures, meshStates } = this.state;
+        const { meshStates } = this.state;
 
         return <div
             onMouseMove={ this.onMouseMove }
