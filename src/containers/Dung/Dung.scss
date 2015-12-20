@@ -1,5 +1,17 @@
 @import "../../theme/variables.scss";
 
+.canvas {
+    float: left;
+    margin-right:10px;
+}
+
+.sidebar {
+    background:#eee;
+    padding:8px;
+    float:left;
+    width:200px;
+}
+
 .rotateable {
     cursor:grab;
 }

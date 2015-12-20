@@ -29,17 +29,22 @@ const shadowD = 20;
 const raycaster = new THREE.Raycaster();
 
 const KeyCodes = {
-    LEFT: 37,
-    RIGHT: 39,
     UP: 38,
     DOWN: 40,
+    LEFT: 37,
+    RIGHT: 39,
+
+    ALT: 18,
+    CTRL: 17,
+    ESC: 27,
+
+    '[': 219,
+    ']': 221,
+
+    C: 67,
     X: 88,
     Y: 89,
-    Z: 90,
-    CTRL: 17,
-    ALT: 18,
-    '[': 219,
-    ']': 221
+    Z: 90
 };
 
 function without( obj, ...keys ) {
@@ -156,6 +161,29 @@ export default class Dung extends Component {
 
     }
 
+    _setStateFromKey( state, keys ) {
+
+        let stateKey;
+        if( KeyCodes.C in keys ) {
+            stateKey = 'creating';
+        } else if( KeyCodes.ESC in keys ) {
+            stateKey = 'selecting';
+        }
+
+        if( stateKey ) {
+
+            const update = { [ stateKey ]: true };
+            return Object.assign( {}, state, {
+                creating: false,
+                selecting: false
+            }, update );
+
+        }
+
+        return state;
+        
+    }
+
     _onAnimate() {
 
         const rotateable = ( KeyCodes.CTRL in this.keysPressed ) ||
@@ -167,11 +195,11 @@ export default class Dung extends Component {
 
         } else {
 
-            this.controls.false = true;
+            this.controls.enabled = true;
 
         }
 
-        const state = {
+        let state = {
             rotateable,
             lightPosition: new THREE.Vector3(
                 radius * Math.sin( clock.getElapsedTime() * speed ),
@@ -206,6 +234,8 @@ export default class Dung extends Component {
             this.snapChange = false;
 
         }
+
+        state = this._setStateFromKey( state, this.keysPressed );
 
         let cameraDelta = 0;
 
@@ -320,7 +350,7 @@ export default class Dung extends Component {
 
     onMouseDown( event ) {
 
-        const { gridSnap, rotateable, gridPreviewPosition } = this.state;
+        const { gridSnap, rotateable, gridPreviewPosition, creating } = this.state;
 
         if( rotateable ) {
 
@@ -328,7 +358,7 @@ export default class Dung extends Component {
                 rotating: true
             });
 
-        } else if( gridPreviewPosition ) {
+        } else if( creating && gridPreviewPosition ) {
 
             this.controls.enabled = false;
             event.stopPropagation();
@@ -376,175 +406,201 @@ export default class Dung extends Component {
             return <div />;
         }
 
+        let editorState = 'None';
+        if( this.state.rotateable ) {
+
+            editorState = 'Rotating';
+
+        } else if( this.state.creating ) {
+
+            editorState = 'Create';
+
+        } else if( this.state.selecting ) {
+
+            editorState = 'Select';
+
+        }
+
         const { walls } = this.props;
         const { meshStates } = this.state;
 
-        return <div
-            onMouseMove={ this.onMouseMove }
-            onMouseDown={ this.onMouseDown }
-            onMouseUp={ this.onMouseUp }
-            style={{ width, height }}
-            className={ cx({
-                rotateable: this.state.rotateable,
-                rotating: this.state.rotating,
-                creating: this.state.creating
-            }) }
-            ref="container"
-        >
-            <React3
-                mainCamera="camera"
-                width={width}
-                height={height}
-                onAnimate={this._onAnimate}
-            >
-                <scene
-                    ref="scene"
-                >
-                    <perspectiveCamera
-                        name="camera"
-                        fov={75}
-                        aspect={width / height}
-                        near={0.1}
-                        far={1000}
-                        position={this.state.cameraPosition}
-                        rotation={this.state.cameraRotation}
-                        ref="camera"
-                    />
-
-                    <resources>
-                        <boxGeometry
-                            resourceId="wallGeometry"
-                            width={1}
-                            height={1}
-                            depth={1}
-                            widthSegments={1}
-                            heightSegments={1}
-                        />
-                        <boxGeometry
-                            resourceId="1x1box"
-
-                            width={1}
-                            height={1}
-                            depth={1}
-
-                            widthSegments={1}
-                            heightSegments={1}
-                        />
-                        <meshBasicMaterial
-                            resourceId="transparentMaterial"
-                            color={0xffffff}
-                            opacity={0.4}
-                            transparent
-                        />
-                        <meshBasicMaterial
-                            resourceId="previewBox"
-                            color={0xff0000}
-                            opacity={0.5}
-                            transparent
-                        />
-                        <meshPhongMaterial
-                            resourceId="ornateWall"
-                            color={ 0xffffff }
-                        >
-                            <texture
-                                url={ require( './brick-pattern-ornate.png' ) }
-                                wrapS={ THREE.RepeatWrapping }
-                                wrapT={ THREE.RepeatWrapping }
-                                anisotropy={16}
-                            />
-                        </meshPhongMaterial>
-                    </resources>
-
-                    <ambientLight
-                        color={ 0x777777 }
-                    />
-
-                    <directionalLight
-                        color={ 0xffffff }
-                        intensity={ 1.0 }
-
-                        castShadow
-
-                        shadowMapWidth={1024}
-                        shadowMapHeight={1024}
-
-                        shadowCameraLeft={-shadowD}
-                        shadowCameraRight={shadowD}
-                        shadowCameraTop={shadowD}
-                        shadowCameraBottom={-shadowD}
-
-                        shadowCameraFar={3 * shadowD}
-                        shadowCameraNear={shadowD}
-                        shadowDarkness={0.5}
-
-                        position={this.state.lightPosition}
-                    />
-
-                    <mesh
-                        ref="grid"
-                        position={ this.state.gridBasePosition }
-                        rotation={ this.state.gridBaseRotation }
-                        scale={ this.state.gridBaseScale }
-                    >
-                        <geometryResource
-                            resourceId="1x1box"
-                        />
-                        <materialResource
-                            resourceId="transparentMaterial"
-                        />
-                    </mesh>
-
-                    { this.state.dragCreating ? <mesh
-                        position={ this.state.createPreviewPosition }
-                        scale={ this.state.createPreviewScale }
-                        ref="createPreview"
-                    >
-                        <geometryResource
-                            resourceId="1x1box"
-                        />
-                        <materialResource
-                            resourceId="previewBox"
-                        />
-                    </mesh> : ( !( this.state.rotateable ) && this.state.gridPreviewPosition && <mesh
-                        scale={ this.state.gridScale }
-                        position={ this.state.gridPreviewPosition }
-                        ref="previewPosition"
-                        castShadow
-                    >
-                        <geometryResource
-                            resourceId="1x1box"
-                        />
-                        <materialResource
-                            resourceId="previewBox"
-                        />
-                    </mesh> ) }
-
-                    { this.props.walls.map( ( wall ) => {
-                        return <mesh
-                            key={ wall.id }
-                            position={ wall.position }
-                            scale={ wall.scale }
-                            castShadow
-                            receiveShadow
-                        >
-                            <geometryResource
-                                resourceId="1x1box"
-                            />
-                            <materialResource
-                                resourceId="ornateWall"
-                            />
-                        </mesh>;
+        return <div>
+            <div className="clearfix">
+                <div
+                    onMouseMove={ this.onMouseMove }
+                    onMouseDown={ this.onMouseDown }
+                    onMouseUp={ this.onMouseUp }
+                    style={{ width, height }}
+                    className={ cx({
+                        canvas: true,
+                        rotateable: this.state.rotateable,
+                        rotating: this.state.rotating,
+                        creating: this.state.creating
                     }) }
+                    ref="container"
+                >
+                    <React3
+                        mainCamera="camera"
+                        width={width}
+                        height={height}
+                        onAnimate={this._onAnimate}
+                    >
+                        <scene
+                            ref="scene"
+                        >
+                            <perspectiveCamera
+                                name="camera"
+                                fov={75}
+                                aspect={width / height}
+                                near={0.1}
+                                far={1000}
+                                position={this.state.cameraPosition}
+                                rotation={this.state.cameraRotation}
+                                ref="camera"
+                            />
 
-                    <Grid
-                        position={ this.state.gridPosition }
-                        rows={ 20 }
-                        columns={ 20 }
-                        spacing={ this.state.gridSnap }
-                    />
+                            <resources>
+                                <boxGeometry
+                                    resourceId="wallGeometry"
+                                    width={1}
+                                    height={1}
+                                    depth={1}
+                                    widthSegments={1}
+                                    heightSegments={1}
+                                />
+                                <boxGeometry
+                                    resourceId="1x1box"
 
-                </scene>
-            </React3>
+                                    width={1}
+                                    height={1}
+                                    depth={1}
+
+                                    widthSegments={1}
+                                    heightSegments={1}
+                                />
+                                <meshBasicMaterial
+                                    resourceId="transparentMaterial"
+                                    color={0xffffff}
+                                    opacity={0.4}
+                                    transparent
+                                />
+                                <meshBasicMaterial
+                                    resourceId="previewBox"
+                                    color={0xff0000}
+                                    opacity={0.5}
+                                    transparent
+                                />
+                                <meshPhongMaterial
+                                    resourceId="ornateWall"
+                                    color={ 0xffffff }
+                                >
+                                    <texture
+                                        url={ require( './brick-pattern-ornate.png' ) }
+                                        wrapS={ THREE.RepeatWrapping }
+                                        wrapT={ THREE.RepeatWrapping }
+                                        anisotropy={16}
+                                    />
+                                </meshPhongMaterial>
+                            </resources>
+
+                            <ambientLight
+                                color={ 0x777777 }
+                            />
+
+                            <directionalLight
+                                color={ 0xffffff }
+                                intensity={ 1.0 }
+
+                                castShadow
+
+                                shadowMapWidth={1024}
+                                shadowMapHeight={1024}
+
+                                shadowCameraLeft={-shadowD}
+                                shadowCameraRight={shadowD}
+                                shadowCameraTop={shadowD}
+                                shadowCameraBottom={-shadowD}
+
+                                shadowCameraFar={3 * shadowD}
+                                shadowCameraNear={shadowD}
+                                shadowDarkness={0.5}
+
+                                position={this.state.lightPosition}
+                            />
+
+                            <mesh
+                                ref="grid"
+                                position={ this.state.gridBasePosition }
+                                rotation={ this.state.gridBaseRotation }
+                                scale={ this.state.gridBaseScale }
+                            >
+                                <geometryResource
+                                    resourceId="1x1box"
+                                />
+                                <materialResource
+                                    resourceId="transparentMaterial"
+                                />
+                            </mesh>
+
+                            { this.state.dragCreating ? <mesh
+                                position={ this.state.createPreviewPosition }
+                                scale={ this.state.createPreviewScale }
+                                ref="createPreview"
+                            >
+                                <geometryResource
+                                    resourceId="1x1box"
+                                />
+                                <materialResource
+                                    resourceId="previewBox"
+                                />
+                            </mesh> : ( !( this.state.rotateable ) && this.state.creating && this.state.gridPreviewPosition && <mesh
+                                scale={ this.state.gridScale }
+                                position={ this.state.gridPreviewPosition }
+                                ref="previewPosition"
+                                castShadow
+                            >
+                                <geometryResource
+                                    resourceId="1x1box"
+                                />
+                                <materialResource
+                                    resourceId="previewBox"
+                                />
+                            </mesh> ) }
+
+                            { this.props.walls.map( ( wall ) => {
+                                return <mesh
+                                    key={ wall.id }
+                                    position={ wall.position }
+                                    scale={ wall.scale }
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <geometryResource
+                                        resourceId="1x1box"
+                                    />
+                                    <materialResource
+                                        resourceId="ornateWall"
+                                    />
+                                </mesh>;
+                            }) }
+
+                            <Grid
+                                position={ this.state.gridPosition }
+                                rows={ 20 }
+                                columns={ 20 }
+                                spacing={ this.state.gridSnap }
+                            />
+
+                        </scene>
+                    </React3>
+                </div>
+                <div className={ cx({ sidebar: true }) }>
+                    sidebar
+                </div>
+            </div>
+            <div>
+                State: { editorState }
+            </div>
         </div>;
     }
 
