@@ -8,6 +8,8 @@ import {addWall, removeWall} from '../../redux/modules/game';
 import {bindActionCreators} from 'redux';
 import classNames from 'classnames/bind';
 import styles from './Dung.scss';
+import TubeBend from './TubeBend';
+import TubeStraight from './TubeStraight';
 const cx = classNames.bind( styles );
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
@@ -26,23 +28,16 @@ const width = 400;
 
 const shadowD = 20;
 
-
-const randomPoints = [];
-
-for ( let i = 0; i < 10; i ++ ) {
-
-    randomPoints.push( new THREE.Vector3(
-        ( i - 1.5 ) * 2,
-        THREE.Math.randFloat( -2, 2 ),
-        THREE.Math.randFloat( -2, 2 )
-    ) );
-
-}
-
-const randomSpline =  new THREE.CatmullRomCurve3( randomPoints );
+const tubeRadius = 0.5;
+const randomSpline = new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3( 0, 0, 0 ),
+    new THREE.Vector3( 0, tubeRadius, 0 ),
+    new THREE.Vector3( tubeRadius, tubeRadius )
+);
 
 const extrudeSettings = {
-    amount: 8,
+    curveSegments: 50,
+    amount: 10,
     bevelEnabled: false,
     bevelSegments: 0,
     steps: 18,
@@ -110,6 +105,7 @@ export default class Dung extends Component {
         this.state = {
             gridSnap,
             gridScale: new THREE.Vector3( gridSnap, gridSnap, gridSnap ),
+            createType: 'wall',
             selecting: true,
             cameraPosition: new THREE.Vector3(0, 7, 0),
             cameraRotation: new THREE.Euler(),
@@ -132,12 +128,15 @@ export default class Dung extends Component {
         this.onMouseDown = this.onMouseDown.bind( this );
         this.onMouseUp = this.onMouseUp.bind( this );
         this._onOrbitChange = this._onOrbitChange.bind( this );
+        this.selectType = this.selectType.bind( this );
 
     }
 
     componentDidMount() {
 
         if( typeof window !== 'undefined' ) {
+
+            window.THREE = THREE;
 
             this.setState({ isClient: true }, () => {
                 window.addEventListener( 'keydown', this.onKeyDown );
@@ -333,6 +332,11 @@ export default class Dung extends Component {
             .intersectObjects( this.refs.scene.children, true )
             .filter( ( intersection ) => {
                 return intersection.object !== this.refs.previewPosition &&
+                    intersection.object !== (
+                        this.refs.previewPosition &&
+                        this.refs.previewPosition.refs &&
+                        this.refs.previewPosition.refs.mesh
+                    ) &&
                     intersection.object !== this.refs.createPreview &&
                     !( intersection.object instanceof THREE.Line );
             })
@@ -456,6 +460,15 @@ export default class Dung extends Component {
 
     }
 
+    selectType( createType ) {
+
+        return ( event ) => {
+            event.preventDefault();
+            this.setState({ createType });
+        };
+
+    }
+
     render() {
 
         if ( !this.state.isClient ) {
@@ -478,7 +491,49 @@ export default class Dung extends Component {
         }
 
         const { walls } = this.props;
-        const { meshStates, selectedObject } = this.state;
+        const { createType, meshStates, selectedObject, creating, rotateable, gridPreviewPosition, gridScale } = this.state;
+
+        let previewObject = null;
+
+        if( !rotateable && creating && gridPreviewPosition ) {
+
+            if( createType === 'wall' ) {
+
+                previewObject = <mesh
+                    scale={ gridScale }
+                    position={ gridPreviewPosition }
+                    ref="previewPosition"
+                    castShadow
+                >
+                    <geometryResource
+                        resourceId="1x1box"
+                    />
+                    <materialResource
+                        resourceId="ghostMaterial"
+                    />
+                </mesh>;
+
+            } else if( createType === 'tube' ) {
+
+                previewObject = <TubeStraight
+                    scale={ gridScale }
+                    position={ gridPreviewPosition }
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                />;
+
+            } else if( createType === 'tubebend' ) {
+
+                previewObject = <TubeBend
+                    scale={ gridScale }
+                    position={ gridPreviewPosition }
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                />;
+
+            }
+
+        }
 
         return <div>
             <div className="clearfix">
@@ -491,7 +546,7 @@ export default class Dung extends Component {
                         canvas: true,
                         rotateable: this.state.rotateable,
                         rotating: this.state.rotating,
-                        creating: this.state.creating
+                        creating: creating
                     }) }
                     ref="container"
                 >
@@ -541,7 +596,7 @@ export default class Dung extends Component {
                                     transparent
                                 />
                                 <meshBasicMaterial
-                                    resourceId="previewBox"
+                                    resourceId="ghostMaterial"
                                     color={0xff0000}
                                     opacity={0.5}
                                     transparent
@@ -557,7 +612,8 @@ export default class Dung extends Component {
                                         anisotropy={16}
                                     />
                                 </meshPhongMaterial>
-                                <shape resourceId="arc">
+
+                                <shape resourceId="tubeWall">
                                     <absArc
                                         x={0}
                                         y={0}
@@ -577,6 +633,12 @@ export default class Dung extends Component {
                                         />
                                     </hole>
                                 </shape>
+
+                                <meshPhongMaterial
+                                    resourceId="tubeMaterial"
+                                    color={0x00ff00}
+                                />
+
                             </resources>
 
                             <ambientLight
@@ -627,21 +689,9 @@ export default class Dung extends Component {
                                     resourceId="1x1box"
                                 />
                                 <materialResource
-                                    resourceId="previewBox"
+                                    resourceId="ghostMaterial"
                                 />
-                            </mesh> : ( !( this.state.rotateable ) && this.state.creating && this.state.gridPreviewPosition && <mesh
-                                scale={ this.state.gridScale }
-                                position={ this.state.gridPreviewPosition }
-                                ref="previewPosition"
-                                castShadow
-                            >
-                                <geometryResource
-                                    resourceId="1x1box"
-                                />
-                                <materialResource
-                                    resourceId="previewBox"
-                                />
-                            </mesh> ) }
+                            </mesh> : previewObject }
 
                             { this.props.walls.map( ( wall ) => {
                                 return <mesh
@@ -668,21 +718,6 @@ export default class Dung extends Component {
                                 spacing={ this.state.gridSnap }
                             />
 
-                            <mesh
-                                position={new THREE.Vector3(0, 0, 0)}
-                            >
-                                <extrudeGeometry
-                                    settings={extrudeSettings}
-                                >
-                                    <shapeResource
-                                        resourceId="arc"
-                                    />
-                                </extrudeGeometry>
-                                <meshPhongMaterial
-                                    color={0x00ff00}
-                                />
-                            </mesh>
-
                         </scene>
 
                     </React3>
@@ -696,6 +731,19 @@ export default class Dung extends Component {
                         <b>scale</b>: {selectedObject.scale.x} {selectedObject.scale.y} {selectedObject.scale.z}
                         <br />
                         <b>position</b>: {selectedObject.position.x} {selectedObject.position.y} {selectedObject.position.z}
+                    </div>) : null }
+
+                    { creating ? (<div>
+                        <b>Create</b>
+                        <button onClick={ this.selectType( 'wall' ) }>
+                            Wall
+                        </button>
+                        <button onClick={ this.selectType( 'tube' ) }>
+                            Tube
+                        </button>
+                        <button onClick={ this.selectType( 'tubebend' ) }>
+                            Tube Bend
+                        </button>
                     </div>) : null }
                 </div>
             </div>
