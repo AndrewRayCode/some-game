@@ -12,6 +12,7 @@ import Wall from './Wall';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
 import StaticEntities from './StaticEntities';
+import KeyCodes from './KeyCodes';
 const cx = classNames.bind( styles );
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
@@ -50,38 +51,6 @@ const extrudeSettings = {
 };
 
 const raycaster = new THREE.Raycaster();
-
-const KeyCodes = {
-    UP: 38,
-    DOWN: 40,
-    LEFT: 37,
-    RIGHT: 39,
-
-    ALT: 18,
-    CTRL: 17,
-    ESC: 27,
-    DEL: 8,
-
-    '[': 219,
-    ']': 221,
-    ',': 188,
-    '.': 190,
-
-    1: 49,
-    2: 50,
-    3: 51,
-    4: 52,
-
-    B: 66,
-    G: 71,
-    C: 67,
-    S: 83,
-    T: 84,
-    W: 87,
-    X: 88,
-    Y: 89,
-    Z: 90
-};
 
 function without( obj, ...keys ) {
 
@@ -654,6 +623,26 @@ export default class Editor extends Component {
                             />
 
                             <resources>
+                                <shape resourceId="tubeWall">
+                                    <absArc
+                                        x={0}
+                                        y={0}
+                                        radius={0.5}
+                                        startAngle={0}
+                                        endAngle={Math.PI * 2}
+                                        clockwise={false}
+                                    />
+                                    <hole>
+                                        <absArc
+                                            x={0}
+                                            y={0}
+                                            radius={0.4}
+                                            startAngle={0}
+                                            endAngle={Math.PI * 2}
+                                            clockwise
+                                        />
+                                    </hole>
+                                </shape>
                                 <boxGeometry
                                     resourceId="1x1box"
 
@@ -665,7 +654,7 @@ export default class Editor extends Component {
                                     heightSegments={1}
                                 />
                                 <meshBasicMaterial
-                                    resourceId="transparentMaterial"
+                                    resourceId="gridFloorMaterial"
                                     color={0xffffff}
                                     opacity={0.4}
                                     transparent
@@ -713,7 +702,7 @@ export default class Editor extends Component {
                                     resourceId="1x1box"
                                 />
                                 <materialResource
-                                    resourceId="transparentMaterial"
+                                    resourceId="gridFloorMaterial"
                                 />
                             </mesh>
 

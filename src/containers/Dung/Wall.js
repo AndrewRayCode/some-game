@@ -9,23 +9,23 @@ export default class Wall extends Component {
 
     render() {
 
-        return <group>
-            <mesh
-                position={ this.props.position }
-                rotation={ this.props.rotation }
-                scale={ this.props.scale }
-                ref="mesh"
-                castShadow
-                receiveShadow
-            >
-                <geometryResource
-                    resourceId="1x1box"
-                />
-                <materialResource
-                    resourceId={ this.props.materialId }
-                />
-            </mesh>
-        </group>;
+        const { position, rotation, scale, materialId } = this.props;
+
+        return <mesh
+            position={ position }
+            rotation={ rotation }
+            scale={ scale }
+            ref="mesh"
+            castShadow
+            receiveShadow
+        >
+            <geometryResource
+                resourceId="1x1box"
+            />
+            <materialResource
+                resourceId={ materialId }
+            />
+        </mesh>;
 
     }
 

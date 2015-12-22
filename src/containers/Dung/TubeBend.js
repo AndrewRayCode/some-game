@@ -25,15 +25,19 @@ const offset = new THREE.Vector3( 0, -0.5, 0 );
 export default class TubeBend extends Component {
 
     constructor(props, context) {
+
         super(props, context);
+
     }
 
     render() {
 
+        const { position, rotation, scale, materialId } = this.props;
+
         return <group
-            position={ this.props.position }
-            rotation={ this.props.rotation }
-            scale={ this.props.scale }
+            position={ position }
+            rotation={ rotation }
+            scale={ scale }
         >
 
             <mesh
@@ -41,14 +45,14 @@ export default class TubeBend extends Component {
                 ref="mesh"
             >
                 <extrudeGeometry
-                    settings={extrudeSettings}
+                    settings={ extrudeSettings }
                 >
                     <shapeResource
                         resourceId="tubeWall"
                     />
                 </extrudeGeometry>
                 <materialResource
-                    resourceId={ this.props.materialId }
+                    resourceId={ materialId }
                 />
             </mesh>
 
