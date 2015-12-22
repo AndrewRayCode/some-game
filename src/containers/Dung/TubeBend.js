@@ -9,16 +9,18 @@ const bendSpline = new THREE.QuadraticBezierCurve3(
 );
 
 const extrudeSettings = {
-    curveSegments: 50,
-    amount: 10,
+    curveSegments: 5,
+    amount: 1,
     bevelEnabled: false,
     bevelSegments: 0,
-    steps: 18,
+    steps: 10,
     bevelSize: 0,
     closed: false,
     extrudePath: bendSpline,
     bevelThickness: 0
 };
+
+const offset = new THREE.Vector3( 0, -0.5, 0 );
 
 export default class TubeBend extends Component {
 
@@ -28,11 +30,14 @@ export default class TubeBend extends Component {
 
     render() {
 
-        return <group>
+        return <group
+            position={ this.props.position }
+            rotation={ this.props.rotation }
+            scale={ this.props.scale }
+        >
+
             <mesh
-                position={ this.props.position }
-                rotation={ this.props.rotation }
-                scale={ this.props.scale }
+                position={ offset }
                 ref="mesh"
             >
                 <extrudeGeometry

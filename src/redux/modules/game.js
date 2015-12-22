@@ -2,19 +2,21 @@ export default function game(state = [], action = {}) {
 
     switch (action.type) {
 
-        case 'ADD_WALL':
+        case 'ADD_ENTITY':
             return [ ...state, {
                 id: action.id,
+                type: action.entityType,
                 position: action.position,
-                scale: action.scale
+                scale: action.scale,
+                rotation: action.rotation
             } ];
 
-        case 'REMOVE_WALL':
+        case 'REMOVE_ENTITY':
 
-            const wall = state.find( ( search ) => {
+            const entity = state.find( ( search ) => {
                 return search.id === action.id;
             });
-            const index = state.indexOf( wall );
+            const index = state.indexOf( entity );
 
             return [
                 ...state.slice( 0, index ),
@@ -28,17 +30,17 @@ export default function game(state = [], action = {}) {
 
 }
 
-export function addWall( position, scale ) {
+export function addEntity( entityType, position, scale, rotation ) {
     return {
-        type: 'ADD_WALL',
+        type: 'ADD_ENTITY',
         id: Date.now(),
-        position, scale
+        entityType, position, scale, rotation
     };
 }
 
-export function removeWall( id ) {
+export function removeEntity( id ) {
     return {
-        type: 'REMOVE_WALL',
+        type: 'REMOVE_ENTITY',
         id
     };
 }

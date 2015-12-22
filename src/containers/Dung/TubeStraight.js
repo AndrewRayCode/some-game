@@ -12,6 +12,8 @@ const extrudeSettings = {
     bevelThickness: 0
 };
 
+const offset = new THREE.Vector3( 0, 0, -0.5 );
+
 export default class TubeBend extends Component {
 
     constructor(props, context) {
@@ -20,11 +22,14 @@ export default class TubeBend extends Component {
 
     render() {
 
-        return <group>
+        return <group
+            position={ this.props.position }
+            rotation={ this.props.rotation }
+            scale={ this.props.scale }
+        >
+
             <mesh
-                position={ this.props.position }
-                rotation={ this.props.rotation }
-                scale={ this.props.scale }
+                position={ offset }
                 ref="mesh"
             >
                 <extrudeGeometry
