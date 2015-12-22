@@ -58,6 +58,7 @@ export default class Dung extends Component {
                 onGameEnd={ this.onGameEnd }
             /> }
         </div>;
+
     }
 
 }

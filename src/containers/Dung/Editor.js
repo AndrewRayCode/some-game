@@ -4,7 +4,7 @@ import React3 from 'react-three-renderer';
 import THREE from 'three.js';
 import Grid from './Grid';
 import {connect} from 'react-redux';
-import {addEntity, removeEntity} from '../../redux/modules/game';
+import { moveEntity, addEntity, removeEntity } from '../../redux/modules/game';
 import {bindActionCreators} from 'redux';
 import classNames from 'classnames/bind';
 import styles from './Dung.scss';
@@ -71,7 +71,7 @@ function snapTo( number, interval ) {
 
 @connect(
     state => ({ entities: state.game }),
-    dispatch => bindActionCreators({addEntity, removeEntity}, dispatch)
+    dispatch => bindActionCreators({ addEntity, removeEntity, moveEntity }, dispatch)
 )
 export default class Editor extends Component {
 
@@ -126,7 +126,7 @@ export default class Editor extends Component {
                 mouseInput
             } = this.refs;
 
-            const controls = new OrbitControlsThree(camera);
+            const controls = new OrbitControlsThree( camera, this.refs.container );
 
             controls.rotateSpeed = 1.0;
             controls.zoomSpeed = 1.2;
@@ -238,7 +238,7 @@ export default class Editor extends Component {
 
         } else {
 
-            this.controls.enabled = true;
+            this.controls.enabled = false;
 
         }
 
@@ -322,10 +322,10 @@ export default class Editor extends Component {
 
         state = this._setStateFromKey( state, this.keysPressed );
 
-        if( this.state.selecting && ( KeyCodes.X in this.keysPressed ) && this.state.selectedObject ) {
+        if( this.state.selecting && ( KeyCodes.X in this.keysPressed ) && this.state.selectedObjectId ) {
 
-            this.setState({ selectedObject: null });
-            this.props.removeEntity( this.state.selectedObject.id );
+            this.setState({ selectedObjectId: null });
+            this.props.removeEntity( this.state.selectedObjectId );
             
         }
 
@@ -396,15 +396,17 @@ export default class Editor extends Component {
 
         if ( this.state.selecting ) {
 
+            const entityTest = this.props.entities.find( ( entity ) => {
+
+                const ref = this.refs.staticEntities.refs[ entity.id ].refs.mesh;
+
+                return ref === intersections[ 0 ].object;
+
+            });
+
             this.setState({
-                objectUnderCursor: intersections.length ?
-                    this.props.entities.find( ( entity ) => {
-
-                        const ref = this.refs.staticEntities.refs[ entity.id ].refs.mesh;
-
-                        return ref === intersections[ 0 ].object;
-
-                    }) : null
+                objectUnderCursorId: intersections.length && entityTest ?
+                     entityTest.id : null
             });
 
         }
@@ -458,7 +460,10 @@ export default class Editor extends Component {
 
     onMouseDown( event ) {
 
-        const { gridSnap, rotateable, createPreviewPosition, creating, selecting, objectUnderCursor } = this.state;
+        const {
+            gridSnap, rotateable, createPreviewPosition, creating, selecting,
+            objectUnderCursorId
+        } = this.state;
 
         if( rotateable ) {
 
@@ -466,9 +471,9 @@ export default class Editor extends Component {
                 rotating: true
             });
 
-        } else if( selecting && objectUnderCursor ) {
+        } else if( selecting && objectUnderCursorId ) {
 
-            this.setState({ selectedObject: objectUnderCursor });
+            this.setState({ selectedObjectId: objectUnderCursorId });
 
         } else if( creating && createPreviewPosition ) {
 
@@ -526,28 +531,42 @@ export default class Editor extends Component {
 
     }
 
+    onMoveSelectedObject( field, event ) {
+
+        const { selectedObjectId } = this.state;
+        const value = parseFloat( event.target.value );
+
+        this.props.moveEntity( selectedObjectId, field, value );
+
+    }
+
     render() {
 
+        const { entities } = this.props;
+        const {
+            createType, selecting, selectedObjectId, creating, rotateable,
+            createPreviewPosition, gridScale, createPreviewRotation, gridSnap,
+            rotating
+        } = this.state;
+
+        const selectedObject = entities.find( ( search ) => {
+            return search.id === selectedObjectId;
+        });
+
         let editorState = 'None';
-        if( this.state.rotateable ) {
+        if( rotateable ) {
 
             editorState = 'Rotating';
 
-        } else if( this.state.creating ) {
+        } else if( creating ) {
 
             editorState = 'Create';
 
-        } else if( this.state.selecting ) {
+        } else if( selecting ) {
 
             editorState = 'Select';
 
         }
-
-        const { entities } = this.props;
-        const {
-            createType, selecting, selectedObject, creating, rotateable,
-            createPreviewPosition, gridScale, createPreviewRotation, gridSnap
-        } = this.state;
 
         let previewObject = null;
 
@@ -596,9 +615,9 @@ export default class Editor extends Component {
                     style={{ width, height }}
                     className={ cx({
                         canvas: true,
-                        rotateable: this.state.rotateable,
-                        rotating: this.state.rotating,
-                        creating: creating
+                        rotateable,
+                        rotating,
+                        creating
                     }) }
                     ref="container"
                 >
@@ -737,14 +756,23 @@ export default class Editor extends Component {
                 </div>
 
                 <div className={ cx({ sidebar: true }) }>
-                    { selecting && selectedObject ? (<div>
+                    { selecting && selectedObjectId ? (<div>
                         <b>Selected Object</b>
                         <br />
                         <b>id</b>: {selectedObject.id}
                         <br />
                         <b>scale</b>: {selectedObject.scale.x} {selectedObject.scale.y} {selectedObject.scale.z}
                         <br />
-                        <b>position</b>: {selectedObject.position.x} {selectedObject.position.y} {selectedObject.position.z}
+                        <b>position</b>:
+                        ({ selectedObject.position.x })
+                        <input
+                            type="number"
+                            value={ selectedObject.position.x }
+                            onChange={ this.onMoveSelectedObject.bind( this, 'x' ) }
+                            min={-Infinity}
+                            max={Infinity}
+                            step={ gridSnap }
+                        />
                     </div>) : null }
 
                     { creating ? (<div>
