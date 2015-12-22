@@ -5,6 +5,7 @@ import THREE from 'three.js';
 import CANNON from 'cannon/src/Cannon';
 import StaticEntities from '../Dung/StaticEntities';
 import {connect} from 'react-redux';
+import KeyCodes from '../Dung/KeyCodes';
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
 THREE.ImageUtils.crossOrigin = '';
@@ -24,16 +25,6 @@ const playerRadius = 1.0;
 
 const timeStep = 1 / 60;
 const raycaster = new THREE.Raycaster();
-
-const KeyCodes = {
-    LEFT: 37,
-    RIGHT: 39,
-    UP: 38,
-    DOWN: 40,
-    X: 88,
-    Y: 89,
-    Z: 90
-};
 
 function without( obj, ...keys ) {
 
@@ -256,6 +247,10 @@ export default class Game extends Component {
             )
         };
 
+        if( KeyCodes.ESC in this.keysDown ) {
+            this.props.onGameEnd();
+        }
+
         let cameraDelta = 0;
         if( KeyCodes.Z in this.keysDown ) {
             cameraDelta = -0.1;
@@ -324,8 +319,13 @@ export default class Game extends Component {
                     near={0.1}
                     far={1000}
                     position={this.state.cameraPosition}
-                    rotation={this.state.cameraRotation}
+                    lookAt={ new THREE.Vector3( 0, 0, 0 ) }
                     ref="camera"
+                />
+
+                <StaticEntities
+                    ref="staticEntities"
+                    entities={ this.props.entities }
                 />
 
             </scene>

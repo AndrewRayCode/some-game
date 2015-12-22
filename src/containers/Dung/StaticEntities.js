@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import THREE from 'three.js';
+import Wall from './Wall';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
 
@@ -15,6 +16,16 @@ export default class StaticEntities extends Component {
 
         return <group>
             <resources>
+                <boxGeometry
+                    resourceId="1x1box"
+
+                    width={1}
+                    height={1}
+                    depth={1}
+
+                    widthSegments={1}
+                    heightSegments={1}
+                />
                 <boxGeometry
                     resourceId="wallGeometry"
                     width={1}
@@ -67,21 +78,14 @@ export default class StaticEntities extends Component {
 
                 if( entity.type === 'wall' ) {
 
-                    return <mesh
+                    return <Wall
                         ref={ entity.id }
                         key={ entity.id }
                         position={ entity.position }
+                        rotation={ entity.rotation }
                         scale={ entity.scale }
-                        castShadow
-                        receiveShadow
-                    >
-                        <geometryResource
-                            resourceId="1x1box"
-                        />
-                        <materialResource
-                            resourceId="ornateWall"
-                        />
-                    </mesh>;
+                        materialId="ornateWall"
+                    />;
 
                 } else if( entity.type === 'tube' ) {
 

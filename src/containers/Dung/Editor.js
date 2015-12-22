@@ -8,6 +8,7 @@ import {addEntity, removeEntity} from '../../redux/modules/game';
 import {bindActionCreators} from 'redux';
 import classNames from 'classnames/bind';
 import styles from './Dung.scss';
+import Wall from './Wall';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
 import StaticEntities from './StaticEntities';
@@ -413,13 +414,11 @@ export default class Editor extends Component {
         const intersections = raycaster
             .intersectObjects( this.refs.scene.children, true )
             .filter( ( intersection ) => {
-                return intersection.object !== this.refs.previewPosition &&
-                    intersection.object !== (
+                return intersection.object !== (
                         this.refs.previewPosition &&
-                        this.refs.previewPosition.refs &&
                         this.refs.previewPosition.refs.mesh
                     ) &&
-                    intersection.object !== this.refs.createPreview &&
+                    intersection.object !== this.refs.dragCreateBlock &&
                     !( intersection.object instanceof THREE.Line );
             })
             .sort( ( a, b ) => {
@@ -432,10 +431,9 @@ export default class Editor extends Component {
                 objectUnderCursor: intersections.length ?
                     this.props.entities.find( ( entity ) => {
 
-                        const ref = this.refs[ entity.id ];
+                        const ref = this.refs.staticEntities.refs[ entity.id ].refs.mesh;
 
-                        return ref === intersections[ 0 ].object ||
-                            ref.refs && ref.refs.mesh === intersections[ 0 ].object;
+                        return ref === intersections[ 0 ].object;
 
                     }) : null
             });
@@ -588,20 +586,13 @@ export default class Editor extends Component {
 
             if( createType === 'wall' ) {
 
-                previewObject = <mesh
+                previewObject = <Wall
                     scale={ gridScale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     ref="previewPosition"
-                    castShadow
-                >
-                    <geometryResource
-                        resourceId="1x1box"
-                    />
-                    <materialResource
-                        resourceId="ghostMaterial"
-                    />
-                </mesh>;
+                    materialId="ghostMaterial"
+                />;
 
             } else if( createType === 'tube' ) {
 
@@ -729,7 +720,7 @@ export default class Editor extends Component {
                             { this.state.dragCreating ? <mesh
                                 position={ this.state.createPreviewPosition }
                                 scale={ this.state.createPreviewScale }
-                                ref="createPreview"
+                                ref="dragCreateBlock"
                             >
                                 <geometryResource
                                     resourceId="1x1box"
@@ -739,9 +730,10 @@ export default class Editor extends Component {
                                 />
                             </mesh> : previewObject }
 
-                            { this.state.creating && <StaticEntities
+                            <StaticEntities
+                                ref="staticEntities"
                                 entities={ entities }
-                            /> }
+                            />
 
                             <Grid
                                 position={ this.state.gridPosition }
