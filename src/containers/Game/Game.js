@@ -21,7 +21,7 @@ const width = 400;
 const shadowD = 20;
 const boxes = 5;
 
-const playerRadius = 1.0;
+const playerRadius = 0.5;
 
 const timeStep = 1 / 60;
 const raycaster = new THREE.Raycaster();
@@ -60,20 +60,22 @@ export default class Game extends Component {
         this.keysDown = {};
 
         this.state = {
-            cameraPosition: new THREE.Vector3(0, 4, 0),
+            cameraPosition: new THREE.Vector3(0, 7, 0),
             lightPosition: new THREE.Vector3(),
             meshStates: []
         };
 
+        const { entities } = this.props;
+
         this.world = new CANNON.World();
         const world = this.world;
 
-        const physicsBodies = this.physicsBodies = [];
+        const bodies = [];
 
         world.quatNormalizeSkip = 0;
         world.quatNormalizeFast = false;
 
-        world.gravity.set(10, 0, 0);
+        world.gravity.set( 0, 0, 20 );
         world.broadphase = new CANNON.NaiveBroadphase();
 
         const mass = 5;
@@ -81,17 +83,38 @@ export default class Game extends Component {
         const playerBody = new CANNON.Body({ mass });
         this.playerBody = playerBody;
 
+        const playerShape = new CANNON.Sphere( playerRadius );
+
+        playerBody.addShape(playerShape);
+        playerBody.position.set( 0, 1.5, 0 );
+        world.addBody( playerBody );
+        bodies.push( playerBody );
+
         playerBody.addEventListener( 'beginContact', () => {
             console.log('collision', arguments);
         });
 
-        const playerShape = new CANNON.Sphere( playerRadius );
-        this.playerShape = playerShape;
+        const physicsBodies = bodies.concat( entities.map( ( entity ) => {
 
-        playerBody.addShape(playerShape);
-        playerBody.position.set( 0, 0, 0 );
-        world.addBody( playerBody );
-        physicsBodies.push( playerBody );
+            const { position, scale } = entity;
+            const entityBody = new CANNON.Body({ mass: 0 });
+            const boxShape = new CANNON.Box( new CANNON.Vec3(
+                scale.x / 2,
+                scale.y / 2,
+                scale.z / 2
+            ));
+            entityBody.addShape( boxShape );
+            entityBody.position.set(
+                position.x,
+                position.y,
+                position.z
+            );
+            world.addBody( entityBody );
+            return entityBody;
+
+        }));
+
+        this.physicsBodies = [];
 
         //const boxSize = 1.0;
         //const boxShape = new CANNON.Box( new CANNON.Vec3( boxSize / 2, boxSize / 2, boxSize / 2 ) );
@@ -199,23 +222,22 @@ export default class Game extends Component {
     updatePhysics() {
 
         let forceX = 0;
-        const forceY = 0;
         let forceZ = 0;
 
         if( KeyCodes.LEFT in this.keysDown ) {
-            forceZ += 1;
+            forceX -= 2;
         }
         if( KeyCodes.RIGHT in this.keysDown ) {
-            forceZ -= 1;
+            forceX += 2;
         }
         if( KeyCodes.UP in this.keysDown ) {
-            forceX -= 1;
+            forceZ -= 2;
         }
         if( KeyCodes.DOWN in this.keysDown ) {
-            forceX += 1;
+            forceZ += 2;
         }
 
-        this.playerBody.applyImpulse( new CANNON.Vec3( forceX, forceY, forceZ ), this.playerBody.position );
+        this.playerBody.applyImpulse( new CANNON.Vec3( forceX, 0, forceZ ), this.playerBody.position );
 
         // Step the physics world
         this.world.step(timeStep);
@@ -260,7 +282,7 @@ export default class Game extends Component {
 
         if( cameraDelta ) {
             state.cameraPosition = new THREE.Vector3(
-                this.state.cameraPosition.x + cameraDelta * 0.5,
+                this.state.cameraPosition.x,
                 this.state.cameraPosition.y + cameraDelta,
                 this.state.cameraPosition.z
             );
@@ -322,7 +344,7 @@ export default class Game extends Component {
                     near={0.1}
                     far={1000}
                     position={this.state.cameraPosition}
-                    lookAt={new THREE.Vector3( 0, 0, 0 )}
+                    rotation={ new THREE.Euler( -Math.PI / 2, 0, 0 )}
                     ref="camera"
                 />
 
@@ -336,6 +358,16 @@ export default class Game extends Component {
 
                         widthSegments={1}
                         heightSegments={1}
+                    />
+                    <sphereGeometry
+                        resourceId="playerGeometry"
+                        radius={ playerRadius }
+                        widthSegments={ 20 }
+                        heightSegments={ 20 }
+                    />
+                    <meshPhongMaterial
+                        resourceId="playerMaterial"
+                        color={ 0xffffff }
                     />
                 </resources>
 
@@ -363,6 +395,19 @@ export default class Game extends Component {
 
                     position={this.state.lightPosition}
                 />
+
+                <mesh
+                    ref="player"
+                    position={ new THREE.Vector3().copy( this.playerBody.position ) }
+                    quaternion={ new THREE.Quaternion().copy( this.playerBody.quaternion ) }
+                >
+                    <geometryResource
+                        resourceId="playerGeometry"
+                    />
+                    <materialResource
+                        resourceId="playerMaterial"
+                    />
+                </mesh>
 
                 <StaticEntities
                     ref="staticEntities"

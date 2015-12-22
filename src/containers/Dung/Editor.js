@@ -89,8 +89,7 @@ export default class Editor extends Component {
             selecting: true,
             createPreviewRotation: new THREE.Euler( 0, 0, 0 ),
             cameraPosition: new THREE.Vector3(0, 7, 0),
-            cameraRotation: new THREE.Euler(),
-            cubeRotation: new THREE.Euler(),
+            cameraRotation: new THREE.Euler(0, 0, 0),
             lightPosition: new THREE.Vector3(),
 
             gridBasePosition: new THREE.Vector3( 0, 0, 0 ),
@@ -232,7 +231,7 @@ export default class Editor extends Component {
         const rotateable = ( KeyCodes.CTRL in this.keysPressed ) ||
             ( KeyCodes.ALT in this.keysPressed );
 
-        if( rotateable ) {
+        if( rotateable || this.state.selecting ) {
 
             this.controls.enabled = true;
 
@@ -248,12 +247,7 @@ export default class Editor extends Component {
                 radius * Math.sin( clock.getElapsedTime() * speed ),
                 10,
                 radius * Math.cos( clock.getElapsedTime() * speed )
-            ),
-            cubeRotation: new THREE.Euler(
-                this.state.cubeRotation.x + 0.01,
-                this.state.cubeRotation.y + 0.01,
-                0
-            ),
+            )
         };
 
         if( KeyCodes[ '[' ] in this.keysPressed ) {
