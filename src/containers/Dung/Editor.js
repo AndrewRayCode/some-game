@@ -764,15 +764,38 @@ export default class Editor extends Component {
                         <b>scale</b>: {selectedObject.scale.x} {selectedObject.scale.y} {selectedObject.scale.z}
                         <br />
                         <b>position</b>:
-                        ({ selectedObject.position.x })
-                        <input
+                        <br />
+
+                        x <input
                             type="number"
+                            style={{ width: '40px' }}
                             value={ selectedObject.position.x }
                             onChange={ this.onMoveSelectedObject.bind( this, 'x' ) }
                             min={-Infinity}
                             max={Infinity}
                             step={ gridSnap }
                         />
+
+                        y <input
+                            type="number"
+                            style={{ width: '40px' }}
+                            value={ selectedObject.position.y }
+                            onChange={ this.onMoveSelectedObject.bind( this, 'y' ) }
+                            min={-Infinity}
+                            max={Infinity}
+                            step={ gridSnap }
+                        />
+
+                        z <input
+                            type="number"
+                            style={{ width: '40px' }}
+                            value={ selectedObject.position.z }
+                            onChange={ this.onMoveSelectedObject.bind( this, 'z' ) }
+                            min={-Infinity}
+                            max={Infinity}
+                            step={ gridSnap }
+                        />
+
                     </div>) : null }
 
                     { creating ? (<div>
