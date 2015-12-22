@@ -71,7 +71,7 @@ function snapTo( number, interval ) {
 
 @connect(
     state => ({ entities: state.game }),
-    dispatch => bindActionCreators({ addEntity, removeEntity, moveEntity }, dispatch)
+    dispatch => bindActionCreators( { addEntity, removeEntity, moveEntity }, dispatch )
 )
 export default class Editor extends Component {
 
@@ -394,7 +394,7 @@ export default class Editor extends Component {
                 return a.distance - b.distance;
             });
 
-        if ( this.state.selecting ) {
+        if ( this.state.selecting && intersections.length ) {
 
             const entityTest = this.props.entities.find( ( entity ) => {
 
@@ -450,7 +450,7 @@ export default class Editor extends Component {
 
             }
 
-        } else {
+        } else if( this.state.creating ) {
 
             this.setState({ createPreviewPosition: null });
 

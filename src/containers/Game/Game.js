@@ -60,7 +60,7 @@ export default class Game extends Component {
         this.keysDown = {};
 
         this.state = {
-            cameraPosition: new THREE.Vector3(0, 7, 0),
+            cameraPosition: new THREE.Vector3(0, 4, 0),
             lightPosition: new THREE.Vector3(),
             meshStates: []
         };
@@ -267,6 +267,7 @@ export default class Game extends Component {
         }
 
         this.setState( state );
+
     }
 
     onKeyDown( event ) {
@@ -285,6 +286,7 @@ export default class Game extends Component {
     render() {
 
         const { meshStates } = this.state;
+        const { entities } = this.props;
 
         //const cubeMeshes = meshStates.map( ( { scale, geometry, position, quaternion }, i ) => {
             //return <mesh
@@ -312,6 +314,7 @@ export default class Game extends Component {
             <scene
                 ref="scene"
             >
+
                 <perspectiveCamera
                     name="camera"
                     fov={75}
@@ -319,13 +322,51 @@ export default class Game extends Component {
                     near={0.1}
                     far={1000}
                     position={this.state.cameraPosition}
-                    lookAt={ new THREE.Vector3( 0, 0, 0 ) }
+                    lookAt={new THREE.Vector3( 0, 0, 0 )}
                     ref="camera"
+                />
+
+                <resources>
+                    <boxGeometry
+                        resourceId="1x1box"
+
+                        width={1}
+                        height={1}
+                        depth={1}
+
+                        widthSegments={1}
+                        heightSegments={1}
+                    />
+                </resources>
+
+                <ambientLight
+                    color={ 0x777777 }
+                />
+
+                <directionalLight
+                    color={ 0xffffff }
+                    intensity={ 1.0 }
+
+                    castShadow
+
+                    shadowMapWidth={1024}
+                    shadowMapHeight={1024}
+
+                    shadowCameraLeft={-shadowD}
+                    shadowCameraRight={shadowD}
+                    shadowCameraTop={shadowD}
+                    shadowCameraBottom={-shadowD}
+
+                    shadowCameraFar={3 * shadowD}
+                    shadowCameraNear={shadowD}
+                    shadowDarkness={0.5}
+
+                    position={this.state.lightPosition}
                 />
 
                 <StaticEntities
                     ref="staticEntities"
-                    entities={ this.props.entities }
+                    entities={ entities }
                 />
 
             </scene>
