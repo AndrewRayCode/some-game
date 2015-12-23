@@ -69,8 +69,17 @@ export default class StaticEntities extends Component {
 
                 <meshPhongMaterial
                     resourceId="tubeMaterial"
-                    color={0x00ff00}
-                />
+                    color={0xffffff}
+                    side={ THREE.DoubleSide }
+                    transparent
+                >
+                    <texture
+                        url={ require( '../Game/tube-pattern-1.png' ) }
+                        wrapS={ THREE.RepeatWrapping }
+                        wrapT={ THREE.RepeatWrapping }
+                        anisotropy={16}
+                    />
+                </meshPhongMaterial>
 
             </resources>
 

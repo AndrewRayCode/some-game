@@ -4,7 +4,7 @@ import React3 from 'react-three-renderer';
 import THREE from 'three.js';
 import Grid from './Grid';
 import {connect} from 'react-redux';
-import { moveEntity, addEntity, removeEntity } from '../../redux/modules/game';
+import { rotateEntity, moveEntity, addEntity, removeEntity } from '../../redux/modules/game';
 import {bindActionCreators} from 'redux';
 import classNames from 'classnames/bind';
 import styles from './Dung.scss';
@@ -71,7 +71,7 @@ function snapTo( number, interval ) {
 
 @connect(
     state => ({ entities: state.game }),
-    dispatch => bindActionCreators( { addEntity, removeEntity, moveEntity }, dispatch )
+    dispatch => bindActionCreators( { addEntity, removeEntity, moveEntity, rotateEntity }, dispatch )
 )
 export default class Editor extends Component {
 
@@ -534,6 +534,15 @@ export default class Editor extends Component {
 
     }
 
+    onRotateSelectedObject( field, event ) {
+
+        const { selectedObjectId } = this.state;
+        const value = parseFloat( event.target.value );
+
+        this.props.rotateEntity( selectedObjectId, field, value );
+
+    }
+
     render() {
 
         const { entities } = this.props;
@@ -785,6 +794,40 @@ export default class Editor extends Component {
                             style={{ width: '40px' }}
                             value={ selectedObject.position.z }
                             onChange={ this.onMoveSelectedObject.bind( this, 'z' ) }
+                            min={-Infinity}
+                            max={Infinity}
+                            step={ gridSnap }
+                        />
+
+                        <br />
+                        <b>rotation euler</b>:
+                        <br />
+
+                        x <input
+                            type="number"
+                            style={{ width: '40px' }}
+                            value={ selectedObject.rotation.x }
+                            onChange={ this.onRotateSelectedObject.bind( this, 'x' ) }
+                            min={-Infinity}
+                            max={Infinity}
+                            step={ gridSnap }
+                        />
+
+                        y <input
+                            type="number"
+                            style={{ width: '40px' }}
+                            value={ selectedObject.rotation.y }
+                            onChange={ this.onRotateSelectedObject.bind( this, 'y' ) }
+                            min={-Infinity}
+                            max={Infinity}
+                            step={ gridSnap }
+                        />
+
+                        z <input
+                            type="number"
+                            style={{ width: '40px' }}
+                            value={ selectedObject.rotation.z }
+                            onChange={ this.onRotateSelectedObject.bind( this, 'z' ) }
                             min={-Infinity}
                             max={Infinity}
                             step={ gridSnap }

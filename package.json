@@ -86,7 +86,7 @@
     "babel-plugin-typecheck": "^2.0.0",
     "babel-polyfill": "^6.3.14",
     "body-parser": "^1.14.1",
-    "cannon": "^0.6.2",
+    "cannon": "git://github.com/schteppe/cannon.js.git#master",
     "classnames": "^2.2.1",
     "compression": "^1.6.0",
     "express": "^4.13.3",
@@ -126,6 +126,7 @@
     "three": "^0.73.0",
     "three-orbit-controls": "^72.0.0",
     "three.js": "^0.73.0",
+    "underscore": "^1.8.3",
     "url-loader": "^0.5.7",
     "webpack-isomorphic-tools": "^2.2.18"
   },

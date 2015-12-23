@@ -8,6 +8,7 @@ const KeyCodes = {
     CTRL: 17,
     ESC: 27,
     DEL: 8,
+    SPACE: 32,
 
     '[': 219,
     ']': 221,
@@ -19,9 +20,11 @@ const KeyCodes = {
     3: 51,
     4: 52,
 
+    A: 65,
     B: 66,
     G: 71,
     C: 67,
+    D: 68,
     S: 83,
     T: 84,
     W: 87,

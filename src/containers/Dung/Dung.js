@@ -33,19 +33,25 @@ export default class Dung extends Component {
 
     onGameEnd() {
 
-        this.setState({ type: 'editor' });
+        this.setState({ type: 'unmount' });
+        setTimeout( () => {
+            this.setState({ type: 'editor' });
+        }, 500 );
 
     }
 
     onEditorSwitch() {
 
-        this.setState({ type: 'game' });
+        this.setState({ type: 'unmount' });
+        setTimeout( () => {
+            this.setState({ type: 'game' });
+        }, 500 );
 
     }
 
     render() {
 
-        if ( !this.state.isClient ) {
+        if ( !this.state.isClient || this.state.unmount ) {
             return <div />;
         }
 
