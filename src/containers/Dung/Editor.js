@@ -13,6 +13,7 @@ import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
 import StaticEntities from './StaticEntities';
 import KeyCodes from './KeyCodes';
+import Shrink from './Shrink';
 const cx = classNames.bind( styles );
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
@@ -195,6 +196,10 @@ export default class Editor extends Component {
 
                 createType = 'tubebend';
 
+            } else if( KeyCodes.K in keys ) {
+
+                createType = 'shrink';
+                 
             }
 
             if( createType ) {
@@ -242,6 +247,7 @@ export default class Editor extends Component {
         }
 
         let state = {
+            time: Date.now(),
             rotateable,
             lightPosition: new THREE.Vector3(
                 radius * Math.sin( clock.getElapsedTime() * speed ),
@@ -254,7 +260,9 @@ export default class Editor extends Component {
 
             if( !this.snapChange ) {
                 state.gridSnap = this.state.gridSnap / 2;
-                state.gridScale = new THREE.Vector3( state.gridSnap, state.gridSnap, state.gridSnap );
+                state.gridScale = new THREE.Vector3(
+                    state.gridSnap, state.gridSnap, state.gridSnap
+                );
                 this.snapChange = true;
             }
 
@@ -262,7 +270,9 @@ export default class Editor extends Component {
 
             if( !this.snapChange ) {
                 state.gridSnap = this.state.gridSnap * 2;
-                state.gridScale = new THREE.Vector3( state.gridSnap, state.gridSnap, state.gridSnap );
+                state.gridScale = new THREE.Vector3(
+                    state.gridSnap, state.gridSnap, state.gridSnap
+                );
                 this.snapChange = true;
             }
 
@@ -386,6 +396,10 @@ export default class Editor extends Component {
                 return intersection.object !== (
                         this.refs.previewPosition &&
                         this.refs.previewPosition.refs.mesh
+                    ) &&
+                    intersection.object !== (
+                        this.refs.previewPosition &&
+                        this.refs.previewPosition.refs.mesh2
                     ) &&
                     intersection.object !== this.refs.dragCreateBlock &&
                     !( intersection.object instanceof THREE.Line );
@@ -555,7 +569,7 @@ export default class Editor extends Component {
         const {
             createType, selecting, selectedObjectId, creating, rotateable,
             createPreviewPosition, gridScale, createPreviewRotation, gridSnap,
-            rotating
+            rotating, time
         } = this.state;
 
         const selectedObject = entities.find( ( search ) => {
@@ -581,7 +595,19 @@ export default class Editor extends Component {
 
         if( !rotateable && creating && createPreviewPosition ) {
 
-            if( createType === 'wall' ) {
+            if( createType === 'shrink' ) {
+
+                previewObject = <Shrink
+                    scale={ gridScale }
+                    rotation={ createPreviewRotation }
+                    position={ createPreviewPosition }
+                    time={ time }
+                    wrapMaterialId="ghostMaterial"
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                />;
+
+            } else if( createType === 'wall' ) {
 
                 previewObject = <Wall
                     scale={ gridScale }
@@ -651,6 +677,45 @@ export default class Editor extends Component {
                             />
 
                             <resources>
+                                <sphereGeometry
+                                    resourceId="sphereGeometry"
+                                    radius={ 0.5 }
+                                    widthSegments={ 6 }
+                                    heightSegments={ 6 }
+                                />
+                                <planeBufferGeometry
+                                    resourceId="planeGeometry"
+                                    width={1}
+                                    height={1}
+                                    widthSegments={1}
+                                    heightSegments={1}
+                                />
+                                <shape resourceId="row">
+                                    <moveTo
+                                        x={-width / 2}
+                                        y={0}
+                                    />
+                                    <lineTo
+                                        x={width / 2}
+                                        y={0}
+                                    />
+                                </shape>
+                                <shape resourceId="col">
+                                    <moveTo
+                                        x={0}
+                                        y={-height / 2}
+                                    />
+                                    <lineTo
+                                        x={0}
+                                        y={height / 2}
+                                    />
+                                </shape>
+                                <lineBasicMaterial
+                                    resourceId="gridLineMaterial"
+                                    color={0x222222}
+                                    linewidth={0.5}
+                                />
+
                                 <shape resourceId="tubeWall">
                                     <absArc
                                         x={0}
@@ -693,6 +758,28 @@ export default class Editor extends Component {
                                     opacity={0.5}
                                     transparent
                                 />
+
+                                <meshPhongMaterial
+                                    resourceId="shrinkWrapMaterial"
+                                    color={ 0x462B2B }
+                                    opacity={ 0.3 }
+                                    transparent
+                                />
+
+                                <meshPhongMaterial
+                                    resourceId="shrinkMaterial"
+                                    color={0xffffff}
+                                    side={ THREE.DoubleSide }
+                                    transparent
+                                >
+                                    <texture
+                                        url={ require( '../Game/spiral-texture.png' ) }
+                                        wrapS={ THREE.RepeatWrapping }
+                                        wrapT={ THREE.RepeatWrapping }
+                                        anisotropy={16}
+                                    />
+                                </meshPhongMaterial>
+
                             </resources>
 
                             <ambientLight
@@ -747,16 +834,17 @@ export default class Editor extends Component {
                                 />
                             </mesh> : previewObject }
 
-                            <StaticEntities
-                                ref="staticEntities"
-                                entities={ entities }
-                            />
-
                             <Grid
                                 position={ this.state.gridPosition }
                                 rows={ 20 }
                                 columns={ 20 }
                                 spacing={ gridSnap }
+                            />
+
+                            <StaticEntities
+                                ref="staticEntities"
+                                entities={ entities }
+                                time={ time }
                             />
 
                         </scene>
@@ -765,8 +853,10 @@ export default class Editor extends Component {
                 </div>
 
                 <div className={ cx({ sidebar: true }) }>
-                    { selecting && selectedObjectId ? (<div>
-                        <b>Selected Object</b>
+                    <b>Editor</b>
+                    <br />
+                    { selecting && selectedObjectId ? <div>
+                        <b>type</b>: {selectedObject.type}
                         <br />
                         <b>id</b>: {selectedObject.id}
                         <br />
@@ -839,7 +929,8 @@ export default class Editor extends Component {
                             step={ gridSnap }
                         />
 
-                    </div>) : null }
+                    </div> : <div>
+                    </div>}
 
                     { creating ? (<div>
                         <b>Create</b>
@@ -857,6 +948,11 @@ export default class Editor extends Component {
                         [B] { createType === 'tubebend' && '✓' }
                         <button onClick={ this.selectType( 'tubebend' ) }>
                             Tube Bend
+                        </button>
+                        <br />
+                        [K] { createType === 'shrink' && '✓' }
+                        <button onClick={ this.selectType( 'shrink' ) }>
+                            Shrink
                         </button>
                     </div>) : null }
                 </div>

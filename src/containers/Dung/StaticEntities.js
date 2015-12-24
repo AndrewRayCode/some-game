@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import THREE from 'three.js';
+import Shrink from './Shrink';
 import Wall from './Wall';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
@@ -12,7 +13,7 @@ export default class StaticEntities extends Component {
 
     render() {
 
-        const { entities } = this.props;
+        const { entities, time } = this.props;
 
         return <group>
             <resources>
@@ -45,27 +46,6 @@ export default class StaticEntities extends Component {
                         anisotropy={16}
                     />
                 </meshPhongMaterial>
-
-                <shape resourceId="tubeWall">
-                    <absArc
-                        x={0}
-                        y={0}
-                        radius={0.5}
-                        startAngle={0}
-                        endAngle={Math.PI * 2}
-                        clockwise={false}
-                    />
-                    <hole>
-                        <absArc
-                            x={0}
-                            y={0}
-                            radius={0.4}
-                            startAngle={0}
-                            endAngle={Math.PI * 2}
-                            clockwise
-                        />
-                    </hole>
-                </shape>
 
                 <meshPhongMaterial
                     resourceId="tubeMaterial"
@@ -116,6 +96,19 @@ export default class StaticEntities extends Component {
                         rotation={ entity.rotation }
                         scale={ entity.scale }
                         materialId="tubeMaterial"
+                    />;
+
+                } else if( entity.type === 'shrink' ) {
+
+                    return <Shrink
+                        time={ time }
+                        ref={ entity.id }
+                        key={ entity.id }
+                        position={ entity.position }
+                        rotation={ entity.rotation }
+                        scale={ entity.scale }
+                        wrapMaterialId="shrinkWrapMaterial"
+                        materialId="shrinkMaterial"
                     />;
 
                 }

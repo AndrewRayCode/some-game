@@ -253,7 +253,11 @@ export default class Game extends Component {
         world.addBody( playerBody );
         bodies.push( playerBody );
 
-        const physicsBodies = bodies.concat( entities.map( ( entity ) => {
+        const physicsBodies = bodies.concat( entities.reduce( ( ents, entity ) => {
+
+            if( entity.type === 'shrink' ) {
+                return ents;
+            }
 
             const { position, scale } = entity;
             const entityBody = new CANNON.Body({
@@ -273,9 +277,9 @@ export default class Game extends Component {
             );
             entityBody.entity = entity;
             world.addBody( entityBody );
-            return entityBody;
+            return ents.concat( entityBody );
 
-        }));
+        }, [] ));
 
         this.physicsBodies = [];
 
@@ -319,7 +323,9 @@ export default class Game extends Component {
             
             if( event.type === 'endContact' ) {
 
-                this.setState({ playerContact: without( playerContact, otherObject.id ) });
+                this.setState({
+                    playerContact: without( playerContact, otherObject.id )
+                });
 
             } else {
 
@@ -582,6 +588,7 @@ export default class Game extends Component {
         this.updatePhysics();
 
         const state = {
+            time: Date.now(),
             meshStates: this._getMeshStates( this.physicsBodies ),
             lightPosition: new THREE.Vector3(
                 radius * Math.sin( clock.getElapsedTime() * speed ),
@@ -636,25 +643,8 @@ export default class Game extends Component {
 
     render() {
 
-        const { meshStates } = this.state;
+        const { meshStates, time } = this.state;
         const { entities } = this.props;
-
-        //const cubeMeshes = meshStates.map( ( { scale, geometry, position, quaternion }, i ) => {
-            //return <mesh
-                //key={i}
-                //position={position}
-                //quaternion={quaternion}
-                //scale={scale}
-                //castShadow
-            //>
-                //<geometryResource
-                    //resourceId={ geometry }
-                ///>
-                //<materialResource
-                    //resourceId="cubeMaterial"
-                ///>
-            //</mesh>;
-        //});
 
         return <React3
             mainCamera="camera"
@@ -707,43 +697,76 @@ export default class Game extends Component {
                         color={ 0x0000ff }
                     />
 
-
-
-                <shape resourceId="tubeWall">
-                    <absArc
-                        x={0}
-                        y={0}
-                        radius={0.5}
-                        startAngle={0}
-                        endAngle={Math.PI * 2}
-                        clockwise={false}
+                    <sphereGeometry
+                        resourceId="sphereGeometry"
+                        radius={ 0.5 }
+                        widthSegments={ 6 }
+                        heightSegments={ 6 }
                     />
-                    <hole>
+
+                    <planeBufferGeometry
+                        resourceId="planeGeometry"
+                        width={1}
+                        height={1}
+                        widthSegments={1}
+                        heightSegments={1}
+                    />
+
+                    <shape resourceId="tubeWall">
                         <absArc
                             x={0}
                             y={0}
-                            radius={0.4}
+                            radius={0.5}
                             startAngle={0}
                             endAngle={Math.PI * 2}
-                            clockwise
+                            clockwise={false}
                         />
-                    </hole>
-                </shape>
+                        <hole>
+                            <absArc
+                                x={0}
+                                y={0}
+                                radius={0.4}
+                                startAngle={0}
+                                endAngle={Math.PI * 2}
+                                clockwise
+                            />
+                        </hole>
+                    </shape>
 
-                <meshPhongMaterial
-                    resourceId="tubeMaterial"
-                    color={0xffffff}
-                    side={ THREE.DoubleSide }
-                    transparent
-                >
-                    <texture
-                        url={ require( '../Game/tube-pattern-1.png' ) }
-                        wrapS={ THREE.RepeatWrapping }
-                        wrapT={ THREE.RepeatWrapping }
-                        anisotropy={16}
+                    <meshPhongMaterial
+                        resourceId="tubeMaterial"
+                        color={0xffffff}
+                        side={ THREE.DoubleSide }
+                        transparent
+                    >
+                        <texture
+                            url={ require( '../Game/tube-pattern-1.png' ) }
+                            wrapS={ THREE.RepeatWrapping }
+                            wrapT={ THREE.RepeatWrapping }
+                            anisotropy={16}
+                        />
+                    </meshPhongMaterial>
+
+                    <meshPhongMaterial
+                        resourceId="shrinkWrapMaterial"
+                        color={ 0x462B2B }
+                        opacity={ 0.3 }
+                        transparent
                     />
-                </meshPhongMaterial>
 
+                    <meshPhongMaterial
+                        resourceId="shrinkMaterial"
+                        color={0xffffff}
+                        side={ THREE.DoubleSide }
+                        transparent
+                    >
+                        <texture
+                            url={ require( '../Game/spiral-texture.png' ) }
+                            wrapS={ THREE.RepeatWrapping }
+                            wrapT={ THREE.RepeatWrapping }
+                            anisotropy={16}
+                        />
+                    </meshPhongMaterial>
 
                 </resources>
 
@@ -848,6 +871,7 @@ export default class Game extends Component {
                 <StaticEntities
                     ref="staticEntities"
                     entities={ entities }
+                    time={ time }
                 />
 
                 { [/*1,2,3,4*/].map( ( i ) => {
