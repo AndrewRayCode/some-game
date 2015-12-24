@@ -214,6 +214,22 @@ export default class Game extends Component {
         this.world = new CANNON.World();
         const world = this.world;
 
+        const wallMaterial = new CANNON.Material( 'wallMaterial' );
+        this.wallMaterial = wallMaterial;
+
+        // Adjust constraint equation parameters for ground/ground contact
+        const material = new CANNON.ContactMaterial( wallMaterial, wallMaterial, {
+            friction: 0.4,
+            restitution: 0.3,
+            contactEquationStiffness: 1e8,
+            contactEquationRelaxation: 3,
+            frictionEquationStiffness: 1e8,
+            frictionEquationRegularizationTime: 3,
+        });
+
+        // Add contact material to the world
+        world.addContactMaterial( material );
+
         const bodies = [];
 
         world.quatNormalizeSkip = 0;
@@ -224,7 +240,10 @@ export default class Game extends Component {
 
         const mass = 5;
 
-        const playerBody = new CANNON.Body({ mass });
+        const playerBody = new CANNON.Body({
+            material: wallMaterial,
+            mass
+        });
         this.playerBody = playerBody;
 
         const playerShape = new CANNON.Sphere( playerRadius );
@@ -237,7 +256,10 @@ export default class Game extends Component {
         const physicsBodies = bodies.concat( entities.map( ( entity ) => {
 
             const { position, scale } = entity;
-            const entityBody = new CANNON.Body({ mass: 0 });
+            const entityBody = new CANNON.Body({
+                mass: 0,
+                material: wallMaterial
+            });
             const boxShape = new CANNON.Box( new CANNON.Vec3(
                 scale.x / 2,
                 scale.y / 2,
