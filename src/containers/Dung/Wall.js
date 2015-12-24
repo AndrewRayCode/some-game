@@ -13,7 +13,7 @@ export default class Wall extends Component {
 
         return <mesh
             position={ position }
-            rotation={ rotation }
+            rotation={ new THREE.Euler().setFromQuaternion( rotation ) }
             scale={ scale }
             ref="mesh"
             castShadow

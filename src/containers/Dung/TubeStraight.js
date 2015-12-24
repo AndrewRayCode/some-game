@@ -28,7 +28,7 @@ export default class TubeBend extends Component {
 
         return <group
             position={ position }
-            rotation={ rotation }
+            rotation={ new THREE.Euler().setFromQuaternion( rotation ) }
             scale={ scale }
         >
 

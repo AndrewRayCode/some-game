@@ -21,6 +21,7 @@ const extrudeSettings = {
 };
 
 const offset = new THREE.Vector3( 0, -0.5, 0 );
+const rotationOffset = new THREE.Euler( 0, Math.PI / 2, 0 );
 
 export default class TubeBend extends Component {
 
@@ -36,12 +37,13 @@ export default class TubeBend extends Component {
 
         return <group
             position={ position }
-            rotation={ rotation }
+            rotation={ new THREE.Euler().setFromQuaternion( rotation ) }
             scale={ scale }
         >
 
             <mesh
                 position={ offset }
+                rotation={ rotationOffset }
                 ref="mesh"
                 castShadow
                 receiveShadow

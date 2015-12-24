@@ -26,7 +26,7 @@ const boxes = 5;
 const playerRadius = 0.45;
 const playerScale = 1;
 
-const tubeTravelDurationMs = 250;
+const tubeTravelDurationMs = 200;
 const tubeStartTravelDurationMs = 50;
 
 const coolDownTimeMs = 500;
@@ -76,27 +76,74 @@ function resetBodyPhysics( body, position ) {
 
 function getEntrancesForTube( tube ) {
 
-    const { position, rotation } = tube;
+    const { position, rotation, type } = tube;
 
-    const yaw = rotation.y;
-    const pitch = rotation.x;
-    const directionVector =  new THREE.Vector3(
-        Math.sin( yaw ),
-        -( Math.sin( pitch ) * Math.cos( yaw ) ),
-        -( Math.cos( pitch ) * Math.cos( yaw ) )
-    );
+    if( type === 'tube' ) {
 
-    const entrance1 = position.clone().add( directionVector );
-    const entrance2 = position.clone().sub( directionVector );
+        const rotatedQuaternion = rotation.clone().multiply(
+            new THREE.Quaternion().setFromEuler( new THREE.Euler(
+                THREE.Math.degToRad( 0 ),
+                THREE.Math.degToRad( 90 ),
+                0
+            ))
+        );
 
-    const directionVectorScaled = directionVector
-        .clone()
-        .multiplyScalar( 0.5 );
+        const directionVector = new THREE.Vector3( 1, 0, 0 )
+            .applyQuaternion( rotatedQuaternion );
 
-    const threshold1 = position.clone().add( directionVectorScaled );
-    const threshold2 = position.clone().sub( directionVectorScaled );
+        const entrance1 = position.clone().add( directionVector );
+        const entrance2 = position.clone().sub( directionVector );
 
-    return { tube, entrance1, entrance2, threshold1, threshold2 };
+        const directionVectorScaled = directionVector
+            .clone()
+            .multiplyScalar( 0.5 );
+
+        const threshold1 = position.clone().add( directionVectorScaled );
+        const threshold2 = position.clone().sub( directionVectorScaled );
+
+        return { tube, entrance1, entrance2, threshold1, threshold2 };
+
+    } else if( type === 'tubebend' ) {
+
+        const rotatedQuaternion = rotation.clone().multiply(
+            new THREE.Quaternion().setFromEuler( new THREE.Euler(
+                THREE.Math.degToRad( 0 ),
+                THREE.Math.degToRad( 90 ),
+                0
+            ))
+        );
+
+        const directionVector = new THREE.Vector3( 1, 0, 0 )
+            .applyQuaternion( rotatedQuaternion );
+
+        const bentQuaternion = rotation.clone().multiply(
+            new THREE.Quaternion().setFromEuler( new THREE.Euler(
+                THREE.Math.degToRad( -90 ),
+                THREE.Math.degToRad( 90 ),
+                0
+            ))
+        );
+
+        const directionVectorBent = new THREE.Vector3( 1, 0, 0 )
+            .applyQuaternion( bentQuaternion );
+
+        const entrance1 = position.clone().add( directionVector );
+        const entrance2 = position.clone().add( directionVectorBent );
+
+        const directionVectorScaled = directionVector
+            .clone()
+            .multiplyScalar( 0.5 );
+
+        const bentDirectionVectorScaled = directionVectorBent
+            .clone()
+            .multiplyScalar( 0.5 );
+
+        const threshold1 = position.clone().add( directionVectorScaled );
+        const threshold2 = position.clone().add( bentDirectionVectorScaled );
+
+        return { tube, entrance1, entrance2, threshold1, threshold2 };
+
+    }
 
 }
 
@@ -300,7 +347,7 @@ export default class Game extends Component {
                 });
 
                 const { entity } = physicsBody;
-                if( entity.type === 'tube' ) {
+                if( entity.type === 'tube' || entity.type === 'tubebend') {
 
                     tubeEntrances = getEntrancesForTube( entity );
                     this.setState({
@@ -361,7 +408,7 @@ export default class Game extends Component {
                 let currentEntrance = entrancePlayerStartsAt;
 
                 let failSafe = 0;
-                while( failSafe < 10 && ( nextTube = findNextTube( currentTube, currentEntrance, entities ) ) ) {
+                while( failSafe < 30 && ( nextTube = findNextTube( currentTube, currentEntrance, entities ) ) ) {
 
                     failSafe++;
 
@@ -386,7 +433,7 @@ export default class Game extends Component {
 
                 }
 
-                if( failSafe > 5 ) {
+                if( failSafe > 29 ) {
                     newTubeFlow = null;
                 }
 
@@ -637,6 +684,45 @@ export default class Game extends Component {
                         resourceId="exitMaterial"
                         color={ 0x0000ff }
                     />
+
+
+
+                <shape resourceId="tubeWall">
+                    <absArc
+                        x={0}
+                        y={0}
+                        radius={0.5}
+                        startAngle={0}
+                        endAngle={Math.PI * 2}
+                        clockwise={false}
+                    />
+                    <hole>
+                        <absArc
+                            x={0}
+                            y={0}
+                            radius={0.4}
+                            startAngle={0}
+                            endAngle={Math.PI * 2}
+                            clockwise
+                        />
+                    </hole>
+                </shape>
+
+                <meshPhongMaterial
+                    resourceId="tubeMaterial"
+                    color={0xffffff}
+                    side={ THREE.DoubleSide }
+                    transparent
+                >
+                    <texture
+                        url={ require( '../Game/tube-pattern-1.png' ) }
+                        wrapS={ THREE.RepeatWrapping }
+                        wrapT={ THREE.RepeatWrapping }
+                        anisotropy={16}
+                    />
+                </meshPhongMaterial>
+
+
                 </resources>
 
                 <ambientLight
@@ -722,7 +808,7 @@ export default class Game extends Component {
                         resourceId="playerGeometry"
                     />
                     <materialResource
-                        resourceId="playerMaterial"
+                        resourceId="exitMaterial"
                     />
                 </mesh> }
                 { this.state.playerSnappedx && <mesh
@@ -741,6 +827,101 @@ export default class Game extends Component {
                     ref="staticEntities"
                     entities={ entities }
                 />
+
+                { [/*1,2,3,4*/].map( ( i ) => {
+
+                    let e;
+                    switch(i) {
+                        case 1:
+                            e = new THREE.Quaternion( 0, 0, 0, 1 )
+                                .clone()
+                                .multiply( new THREE.Quaternion()
+                                    .setFromEuler( new THREE.Euler(
+                                        THREE.Math.degToRad( 90 ),
+                                        THREE.Math.degToRad( 0 ),
+                                        0
+                                    ) )
+                                );
+                            break;
+                        case 2:
+                            e = new THREE.Quaternion( 0, 0, 0, 1 )
+                                .clone()
+                                .multiply( new THREE.Quaternion()
+                                    .setFromEuler( new THREE.Euler(
+                                        THREE.Math.degToRad( 0 ),
+                                        THREE.Math.degToRad( -90 ),
+                                        0
+                                    ) )
+                                );
+                            break;
+                        case 3:
+                            e = new THREE.Quaternion( 0, 0, 0, 1 )
+                                .clone()
+                                .multiply( new THREE.Quaternion()
+                                    .setFromEuler( new THREE.Euler(
+                                        THREE.Math.degToRad( -90 ),
+                                        THREE.Math.degToRad( 90 ),
+                                        0
+                                    ) )
+                                );
+                            break;
+                        case 4:
+                            e = new THREE.Quaternion( 0, 0, 0, 1 )
+                                .clone()
+                                .multiply( new THREE.Quaternion()
+                                    .setFromEuler( new THREE.Euler(
+                                        THREE.Math.degToRad( 180 ),
+                                        THREE.Math.degToRad( -90 ),
+                                        0
+                                    ) )
+                                );
+                            break;
+                        default:
+                            console.log('gfy');
+                    }
+
+                    const position = new THREE.Vector3( ( i * 3 ) - 7, 3, 0 );
+
+                    const { entrance1, entrance2 } = getEntrancesForTube({
+                        position, rotation: e, type: 'tubebend'
+                    });
+
+                    return <group key={i}>
+
+                        <mesh
+                            position={ entrance1 }
+                            scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
+                        >
+                            <geometryResource
+                                resourceId="playerGeometry"
+                            />
+                            <materialResource
+                                resourceId="playerMaterial"
+                            />
+                        </mesh>
+                        <mesh
+                            position={ entrance2 }
+                            scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
+                        >
+                            <geometryResource
+                                resourceId="playerGeometry"
+                            />
+                            <materialResource
+                                resourceId="exitMaterial"
+                            />
+                        </mesh>
+
+                        <TubeBend
+                            key={ i }
+                            position={ position }
+                            rotation={ e }
+                            scale={ new THREE.Vector3(1,1,1)}
+                            materialId="tubeMaterial"
+                        />
+
+                    </group>;
+
+                } ) }
 
             </scene>
         </React3>;

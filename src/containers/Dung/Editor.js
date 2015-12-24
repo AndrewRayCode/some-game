@@ -87,7 +87,7 @@ export default class Editor extends Component {
             gridScale: new THREE.Vector3( gridSnap, gridSnap, gridSnap ),
             createType: 'wall',
             selecting: true,
-            createPreviewRotation: new THREE.Euler( 0, 0, 0 ),
+            createPreviewRotation: new THREE.Quaternion( 0, 0, 0, 1 ),
             cameraPosition: new THREE.Vector3(0, 7, 0),
             cameraRotation: new THREE.Euler(0, 0, 0),
             lightPosition: new THREE.Vector3(),
@@ -215,7 +215,7 @@ export default class Editor extends Component {
 
             const update = { [ stateKey ]: true };
             copy = Object.assign( {}, copy, {
-                createPreviewRotation: new THREE.Euler( 0, 0, 0 ),
+                createPreviewRotation: new THREE.Quaternion( 0, 0, 0, 1 ),
                 creating: false,
                 selecting: false
             }, update );
@@ -276,28 +276,28 @@ export default class Editor extends Component {
         if( KeyCodes[ '1' ] in this.keysPressed ) {
 
             if( !this.rotateChange ) {
-                rotationChange = new THREE.Vector3( 0, -Math.PI / 2, 0 );
+                rotationChange = new THREE.Vector3( 0, 90, 0 );
                 this.rotateChange = true;
             }
 
         } else if( KeyCodes[ '2' ] in this.keysPressed ) {
 
             if( !this.rotateChange ) {
-                rotationChange = new THREE.Vector3( 0, Math.PI / 2, 0 );
+                rotationChange = new THREE.Vector3( 0, 90, 0 );
                 this.rotateChange = true;
             }
 
         } else if( KeyCodes[ '3' ] in this.keysPressed ) {
 
             if( !this.rotateChange ) {
-                rotationChange = new THREE.Vector3( -Math.PI / 2, 0, 0 );
+                rotationChange = new THREE.Vector3( -90, 0, 0 );
                 this.rotateChange = true;
             }
 
         } else if( KeyCodes[ '4' ] in this.keysPressed ) {
 
             if( !this.rotateChange ) {
-                rotationChange = new THREE.Vector3( Math.PI / 2, 0, 0 );
+                rotationChange = new THREE.Vector3( 90, 0, 0 );
                 this.rotateChange = true;
             }
 
@@ -306,12 +306,18 @@ export default class Editor extends Component {
             this.rotateChange = false;
 
         }
+
         if( rotationChange ) {
-            state.createPreviewRotation = new THREE.Euler().setFromVector3(
-                this.state.createPreviewRotation
-                    .toVector3()
-                    .add( rotationChange )
-            );
+            const { createPreviewRotation } = this.state;
+            state.createPreviewRotation = createPreviewRotation
+                .clone()
+                .multiply( new THREE.Quaternion()
+                    .setFromEuler( new THREE.Euler(
+                        THREE.Math.degToRad( rotationChange.x ),
+                        THREE.Math.degToRad( rotationChange.y ),
+                        0
+                    ) )
+                );
         }
 
         state = this._setStateFromKey( state, this.keysPressed );

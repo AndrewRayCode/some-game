@@ -5,6 +5,8 @@
     "mocha": true
   },
   "rules": {
+    "no-multiple-empty-lines": 0,
+    "no-else-return": 0,
     "no-cond-assign": 0,
     "guard-for-in": 0,
     "no-nested-ternary": 0,
