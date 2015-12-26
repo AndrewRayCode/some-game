@@ -1,76 +1,41 @@
 import THREE from 'three.js';
 
-export default function game(state = [], action = {}) {
+const defaultState = {
+    playerRadius: 0.45,
+    playerScale: 1,
+    playerMass: 5,
+    entities: []
+};
 
-    switch (action.type) {
+export default function game( state = defaultState, action = {} ) {
 
-        case 'ADD_ENTITY':
-            return [ ...state, {
-                id: action.id,
-                type: action.entityType,
-                position: action.position,
-                scale: action.scale,
-                rotation: action.rotation
-            } ];
+    switch( action.type ) {
 
-        case 'REMOVE_ENTITY':
+        case 'START_GAME':
 
-            const entity = state.find( ( search ) => {
-                return search.id === action.id;
-            });
-            const index = state.indexOf( entity );
-
-            return [
-                ...state.slice( 0, index ),
-                ...state.slice( index + 1 )
-            ];
-
-        case 'MOVE_ENTITY':
-
-            const mEntity = state.find( ( search ) => {
-                return search.id === action.id;
-            });
-            const mIndex = state.indexOf( mEntity );
-            const { position } = mEntity;
-            const { field, value } = action;
-
-            const movedEntity = Object.assign( {}, mEntity, {
-                position: new THREE.Vector3(
-                    field === 'x' ? value : position.x,
-                    field === 'y' ? value : position.y,
-                    field === 'z' ? value : position.z
-                )
+            return Object.assign( {}, state, {
+                entities: action.entities
             });
 
-            return [
-                ...state.slice( 0, mIndex ),
-                movedEntity,
-                ...state.slice( mIndex + 1 )
-            ];
+        case 'SHRINK_PLAYER':
 
-        case 'ROTATE_ENTITY':
-
-            const rEntity = state.find( ( search ) => {
-                return search.id === action.id;
+            const sEntity = state.entities.find( ( search ) => {
+                return search.id === action.entityId;
             });
-            const rIndex = state.indexOf( rEntity );
-            const { rotation } = rEntity;
-            const rField = action.field;
-            const rValue = action.value;
+            const sIndex = state.entities.indexOf( sEntity );
 
-            const rotatedEntity = Object.assign( {}, rEntity, {
-                rotation: new THREE.Vector3(
-                    rField === 'x' ? rValue : rotation.x,
-                    rField === 'y' ? rValue : rotation.y,
-                    rField === 'z' ? rValue : rotation.z
-                )
-            });
+            return {
+                ...state,
+                playerRadius: state.playerRadius / 2,
+                playerScale: state.playerScale / 2,
+                entities: [
+                    ...state.entities.slice( 0, sIndex ),
+                    ...state.entities.slice( sIndex + 1 )
+                ]
+            };
 
-            return [
-                ...state.slice( 0, rIndex ),
-                rotatedEntity,
-                ...state.slice( rIndex + 1 )
-            ];
+        case 'END_GAME':
+            return defaultState;
 
         default:
             return state;
@@ -79,31 +44,20 @@ export default function game(state = [], action = {}) {
 
 }
 
-export function addEntity( entityType, position, scale, rotation ) {
+export function startGame( entities ) {
     return {
-        type: 'ADD_ENTITY',
-        id: Date.now(),
-        entityType, position, scale, rotation
+        type: 'START_GAME',
+        entities
     };
 }
 
-export function removeEntity( id ) {
+export function shrinkPlayer( entityId ) {
     return {
-        type: 'REMOVE_ENTITY',
-        id
+        type: 'SHRINK_PLAYER',
+        entityId
     };
 }
 
-export function moveEntity( id, field, value ) {
-    return {
-        type: 'MOVE_ENTITY',
-        id, field, value
-    };
-}
-
-export function rotateEntity( id, field, value ) {
-    return {
-        type: 'ROTATE_ENTITY',
-        id, field, value
-    };
+export function endGame() {
+    return { type: 'END_GAME' };
 }

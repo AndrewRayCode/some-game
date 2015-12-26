@@ -7,6 +7,7 @@ import counter from './counter';
 import {reducer as form} from 'redux-form';
 import info from './info';
 import widgets from './widgets';
+import editor from './editor';
 import game from './game';
 
 export default combineReducers({
@@ -14,6 +15,7 @@ export default combineReducers({
   auth,
   form,
   game,
+  editor,
   multireducer: multireducer({
     counter1: counter,
     counter2: counter,

@@ -4,7 +4,9 @@ import React3 from 'react-three-renderer';
 import THREE from 'three.js';
 import CANNON from 'cannon/src/Cannon';
 import StaticEntities from '../Dung/StaticEntities';
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { shrinkPlayer } from '../../redux/modules/game';
 import KeyCodes from '../Dung/KeyCodes';
 import TubeBend from '../Dung/TubeBend';
 import TubeStraight from '../Dung/TubeStraight';
@@ -22,9 +24,6 @@ const width = 400;
 
 const shadowD = 20;
 const boxes = 5;
-
-const playerRadius = 0.45;
-const playerScale = 1;
 
 const tubeTravelDurationMs = 200;
 const tubeStartTravelDurationMs = 50;
@@ -191,7 +190,13 @@ function without( obj, ...keys ) {
 }
 
 @connect(
-    state => ({ entities: state.game })
+    state => ({
+        entities: state.game.entities,
+        playerRadius: state.game.playerRadius,
+        playerScale: state.game.playerScale,
+        playerMass: state.game.playerMass,
+    }),
+    dispatch => bindActionCreators( { shrinkPlayer }, dispatch )
 )
 export default class Game extends Component {
 
@@ -209,7 +214,7 @@ export default class Game extends Component {
 
         this.wallCoolDowns = {};
 
-        const { entities } = this.props;
+        const { entities, playerRadius, playerMass } = props;
 
         this.world = new CANNON.World();
         const world = this.world;
@@ -230,30 +235,25 @@ export default class Game extends Component {
         // Add contact material to the world
         world.addContactMaterial( material );
 
-        const bodies = [];
-
         world.quatNormalizeSkip = 0;
         world.quatNormalizeFast = false;
 
         world.gravity.set( 0, 0, 20 );
         world.broadphase = new CANNON.NaiveBroadphase();
 
-        const mass = 5;
-
         const playerBody = new CANNON.Body({
             material: wallMaterial,
-            mass
+            mass: playerMass
         });
         this.playerBody = playerBody;
 
         const playerShape = new CANNON.Sphere( playerRadius );
 
-        playerBody.addShape(playerShape);
+        playerBody.addShape( playerShape );
         playerBody.position.set( 0, 1.5, 0 );
         world.addBody( playerBody );
-        bodies.push( playerBody );
 
-        const physicsBodies = bodies.concat( entities.reduce( ( ents, entity ) => {
+        const physicsBodies = [ playerBody ].concat( entities.reduce( ( ents, entity ) => {
 
             if( entity.type === 'shrink' ) {
                 return ents;
@@ -281,7 +281,7 @@ export default class Game extends Component {
 
         }, [] ));
 
-        this.physicsBodies = [];
+        this.physicsBodies = physicsBodies;
 
         this.onKeyDown = this.onKeyDown.bind( this );
         this.onKeyUp = this.onKeyUp.bind( this );
@@ -344,7 +344,7 @@ export default class Game extends Component {
 
     updatePhysics() {
 
-        const { entities } = this.props;
+        const { entities, playerScale } = this.props;
         const { playerContact } = this.state;
         const { keysDown } = this;
         let forceX = 0;
@@ -585,6 +585,8 @@ export default class Game extends Component {
 
     _onAnimate() {
 
+        const { entities, playerRadius, playerMass } = this.props;
+
         this.updatePhysics();
 
         const state = {
@@ -624,6 +626,35 @@ export default class Game extends Component {
             );
         }
 
+        for( let i = 0; i < entities.length; i++ ) {
+
+            const entity = entities[ i ];
+
+            if( entity.position.distanceTo( this.playerBody.position ) < playerRadius ) {
+
+                this.world.remove( this.playerBody );
+
+                const playerBody = new CANNON.Body({
+                    material: this.wallMaterial,
+                    mass: playerMass
+                });
+
+                const playerShape = new CANNON.Sphere( playerRadius / 2 );
+
+                playerBody.addShape( playerShape );
+                playerBody.position.copy( this.playerBody.position );
+
+                this.world.addBody( playerBody );
+
+                this.playerBody = playerBody;
+                this.physicsBodies[ 0 ] = playerBody;
+
+                this.props.shrinkPlayer( entity.id );
+
+            }
+
+        }
+
         this.setState( state );
 
     }
@@ -644,7 +675,7 @@ export default class Game extends Component {
     render() {
 
         const { meshStates, time } = this.state;
-        const { entities } = this.props;
+        const { entities, playerRadius } = this.props;
 
         return <React3
             mainCamera="camera"

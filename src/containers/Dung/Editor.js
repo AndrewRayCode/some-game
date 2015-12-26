@@ -3,9 +3,11 @@ import React, { Component } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three.js';
 import Grid from './Grid';
-import {connect} from 'react-redux';
-import { rotateEntity, moveEntity, addEntity, removeEntity } from '../../redux/modules/game';
-import {bindActionCreators} from 'redux';
+import { connect } from 'react-redux';
+import {
+    rotateEntity, moveEntity, addEntity, removeEntity
+} from '../../redux/modules/editor';
+import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
 import styles from './Dung.scss';
 import Wall from './Wall';
@@ -71,8 +73,10 @@ function snapTo( number, interval ) {
 }
 
 @connect(
-    state => ({ entities: state.game }),
-    dispatch => bindActionCreators( { addEntity, removeEntity, moveEntity, rotateEntity }, dispatch )
+    state => ({ entities: state.editor }),
+    dispatch => bindActionCreators(
+        { addEntity, removeEntity, moveEntity, rotateEntity }, dispatch
+    )
 )
 export default class Editor extends Component {
 

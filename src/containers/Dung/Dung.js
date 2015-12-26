@@ -1,10 +1,17 @@
 import 'babel/polyfill';
 import React, { Component } from 'react';
 import React3 from 'react-three-renderer';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { startGame, endGame } from '../../redux/modules/game';
 import THREE from 'three.js';
 import Editor from './Editor';
 import Game from '../Game/Game';
 
+@connect(
+    state => ({ entities: state.editor }),
+    dispatch => bindActionCreators( { startGame, endGame }, dispatch )
+)
 export default class Dung extends Component {
 
     constructor( props, context ) {
@@ -33,12 +40,14 @@ export default class Dung extends Component {
 
     onGameEnd() {
 
+        this.props.endGame();
         this.setState({ type: 'editor' });
 
     }
 
     onEditorSwitch() {
 
+        this.props.startGame( this.props.entities );
         this.setState({ type: 'game' });
 
     }
