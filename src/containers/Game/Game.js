@@ -37,6 +37,8 @@ const airMoveForce = 0.5;
 const timeStep = 1 / 60;
 const raycaster = new THREE.Raycaster();
 
+const cameraMultiplierFromPlayer = 7;
+
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
 const lerp = ( () => {
@@ -75,7 +77,7 @@ function resetBodyPhysics( body, position ) {
 }
 
 const upVector = new THREE.Vector3( 0, 0, -1 );
-const cameraAngleScale = 0.15;
+const cameraAngleScale = 0.9;
 
 function lookAtVector( sourcePoint, destPoint ) {
     
@@ -146,7 +148,7 @@ export default class Game extends Component {
 
         this.state = {
             playerContact: {},
-            cameraPosition: new THREE.Vector3( 0, 7, 0 ),
+            cameraPosition: new THREE.Vector3( 0, cameraMultiplierFromPlayer, 0 ),
             lightPosition: new THREE.Vector3(),
             meshStates: []
         };
@@ -177,7 +179,7 @@ export default class Game extends Component {
         world.quatNormalizeSkip = 0;
         world.quatNormalizeFast = false;
 
-        world.gravity.set( 0, 0, 20 );
+        world.gravity.set( 0, -20, 20 );
         world.broadphase = new CANNON.NaiveBroadphase();
 
         const playerBody = new CANNON.Body({
@@ -524,7 +526,7 @@ export default class Game extends Component {
 
     _onAnimate() {
 
-        const { entities, playerRadius, playerMass } = this.props;
+        const { entities, playerRadius, playerMass, playerScale } = this.props;
         const playerPosition = this.state.currentFlowPosition || this.playerBody.position;
 
         this.updatePhysics();
@@ -570,9 +572,9 @@ export default class Game extends Component {
 
         state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
             playerPosition.x * cameraAngleScale,
-            this.state.cameraPosition.y,
+            cameraMultiplierFromPlayer * playerScale,
             playerPosition.z * cameraAngleScale
-        ), 0.05 );
+        ), 0.05 * ( 1 / ( playerScale * playerScale ) ) );
 
         for( let i = 0; i < entities.length; i++ ) {
 
@@ -640,12 +642,15 @@ export default class Game extends Component {
     render() {
 
         const {
-            meshStates, time, cameraPosition
+            meshStates, time, cameraPosition, currentFlowPosition
         } = this.state;
         const { entities, playerRadius } = this.props;
+        const playerPosition = new THREE.Vector3().copy(
+            currentFlowPosition || this.playerBody.position
+        );
         const lookAt = lookAtVector(
             cameraPosition,
-            new THREE.Vector3( 0,0,0 )
+            playerPosition
         );
 
         return <React3
@@ -799,7 +804,7 @@ export default class Game extends Component {
 
                 <mesh
                     ref="player"
-                    position={ new THREE.Vector3().copy( this.state.currentFlowPosition || this.playerBody.position ) }
+                    position={ playerPosition }
                     quaternion={ new THREE.Quaternion().copy( this.playerBody.quaternion ) }
                 >
                     <geometryResource
