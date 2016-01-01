@@ -10,6 +10,7 @@ import { shrinkPlayer } from '../../redux/modules/game';
 import KeyCodes from '../Dung/KeyCodes';
 import TubeBend from '../Dung/TubeBend';
 import TubeStraight from '../Dung/TubeStraight';
+import { getEntrancesForTube } from '../Dung/Utils';
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
 THREE.ImageUtils.crossOrigin = '';
@@ -52,10 +53,10 @@ function resetBodyPhysics( body, position ) {
     body.initPosition.copy( position );
 
     // orientation
-    body.quaternion.set(0,0,0,1);
-    body.initQuaternion.set(0,0,0,1);
-    body.previousQuaternion.set(0,0,0,1);
-    body.interpolatedQuaternion.set(0,0,0,1);
+    body.quaternion.set( 0, 0, 0, 1 );
+    body.initQuaternion.set( 0, 0, 0, 1 );
+    body.previousQuaternion.set( 0, 0, 0, 1 );
+    body.interpolatedQuaternion.set( 0, 0, 0, 1 );
 
     // Velocity
     body.velocity.setZero();
@@ -73,82 +74,20 @@ function resetBodyPhysics( body, position ) {
     body._wakeUpAfterNarrowphase = false;
 }
 
-function getEntrancesForTube( tube ) {
+const upVector = new THREE.Vector3( 0, 0, -1 );
+const cameraAngleScale = 0.15;
 
-    const { position, rotation, type } = tube;
-
-    if( type === 'tube' ) {
-
-        const rotatedQuaternion = rotation.clone().multiply(
-            new THREE.Quaternion().setFromEuler( new THREE.Euler(
-                THREE.Math.degToRad( 0 ),
-                THREE.Math.degToRad( 90 ),
-                0
-            ))
-        );
-
-        const directionVector = new THREE.Vector3( 1, 0, 0 )
-            .applyQuaternion( rotatedQuaternion );
-
-        const entrance1 = position.clone().add( directionVector );
-        const entrance2 = position.clone().sub( directionVector );
-
-        const directionVectorScaled = directionVector
-            .clone()
-            .multiplyScalar( 0.5 );
-
-        const threshold1 = position.clone().add( directionVectorScaled );
-        const threshold2 = position.clone().sub( directionVectorScaled );
-
-        return { tube, entrance1, entrance2, threshold1, threshold2 };
-
-    } else if( type === 'tubebend' ) {
-
-        const rotatedQuaternion = rotation.clone().multiply(
-            new THREE.Quaternion().setFromEuler( new THREE.Euler(
-                THREE.Math.degToRad( 0 ),
-                THREE.Math.degToRad( 90 ),
-                0
-            ))
-        );
-
-        const directionVector = new THREE.Vector3( 1, 0, 0 )
-            .applyQuaternion( rotatedQuaternion );
-
-        const bentQuaternion = rotation.clone().multiply(
-            new THREE.Quaternion().setFromEuler( new THREE.Euler(
-                THREE.Math.degToRad( -90 ),
-                THREE.Math.degToRad( 90 ),
-                0
-            ))
-        );
-
-        const directionVectorBent = new THREE.Vector3( 1, 0, 0 )
-            .applyQuaternion( bentQuaternion );
-
-        const entrance1 = position.clone().add( directionVector );
-        const entrance2 = position.clone().add( directionVectorBent );
-
-        const directionVectorScaled = directionVector
-            .clone()
-            .multiplyScalar( 0.5 );
-
-        const bentDirectionVectorScaled = directionVectorBent
-            .clone()
-            .multiplyScalar( 0.5 );
-
-        const threshold1 = position.clone().add( directionVectorScaled );
-        const threshold2 = position.clone().add( bentDirectionVectorScaled );
-
-        return { tube, entrance1, entrance2, threshold1, threshold2 };
-
-    }
+function lookAtVector( sourcePoint, destPoint ) {
+    
+    return new THREE.Quaternion().setFromRotationMatrix(
+        new THREE.Matrix4().lookAt( sourcePoint, destPoint, upVector )
+    );
 
 }
 
-function findNextTube( tube, entrance, entities ) {
+function findNextTube( tube, entrance, entities, scale ) {
 
-    const { entrance1, entrance2 } = getEntrancesForTube( tube );
+    const { entrance1, entrance2 } = getEntrancesForTube( tube, scale );
 
     const isEntrance1 = vec3Equals( entrance, entrance1 );
     const isEntrance2 = vec3Equals( entrance, entrance2 );
@@ -166,7 +105,7 @@ function findNextTube( tube, entrance, entities ) {
 
     if( nextTube ) {
 
-        return getEntrancesForTube( nextTube );
+        return getEntrancesForTube( nextTube, scale );
 
     }
 
@@ -360,7 +299,6 @@ export default class Game extends Component {
             snapTo( playerPosition.y, playerScale ),
             snapTo( playerPosition.z, playerScale )
         ).addScalar( -playerScale / 2 );
-        this.setState({playerSnapped});
 
         const contactKeys = Object.keys( playerContact );
         let tubeEntrances;
@@ -377,11 +315,11 @@ export default class Game extends Component {
                 const { entity } = physicsBody;
                 if( entity.type === 'tube' || entity.type === 'tubebend') {
 
-                    tubeEntrances = getEntrancesForTube( entity );
-                    this.setState({
-                        entrance1: tubeEntrances.entrance1,
-                        entrance2: tubeEntrances.entrance2
-                    });
+                    tubeEntrances = getEntrancesForTube( entity, playerScale );
+                    //this.setState({
+                        //entrance1: tubeEntrances.entrance1,
+                        //entrance2: tubeEntrances.entrance2
+                    //});
                     break;
 
                 }
@@ -436,7 +374,7 @@ export default class Game extends Component {
                 let currentEntrance = entrancePlayerStartsAt;
 
                 let failSafe = 0;
-                while( failSafe < 30 && ( nextTube = findNextTube( currentTube, currentEntrance, entities ) ) ) {
+                while( failSafe < 30 && ( nextTube = findNextTube( currentTube, currentEntrance, entities, playerScale ) ) ) {
 
                     failSafe++;
 
@@ -468,6 +406,7 @@ export default class Game extends Component {
                 //console.log('traversing',newTubeFlow.length - 1,'tubes');
 
                 this.setState({
+                    playerSnapped,
                     startTime: Date.now(),
                     tubeFlow: newTubeFlow,
                     currentFlowPosition: newTubeFlow[ 0 ].start,
@@ -586,6 +525,7 @@ export default class Game extends Component {
     _onAnimate() {
 
         const { entities, playerRadius, playerMass } = this.props;
+        const playerPosition = this.state.currentFlowPosition || this.playerBody.position;
 
         this.updatePhysics();
 
@@ -611,45 +551,62 @@ export default class Game extends Component {
             this.props.onGameEnd();
         }
 
-        let cameraDelta = 0;
-        if( KeyCodes.Z in this.keysDown ) {
-            cameraDelta = -0.1;
-        } else if( KeyCodes.X in this.keysDown ) {
-            cameraDelta = 0.1;
-        }
+        //let cameraDelta = 0;
+        //if( KeyCodes.Z in this.keysDown ) {
+            //cameraDelta = -0.1;
+        //} else if( KeyCodes.X in this.keysDown ) {
+            //cameraDelta = 0.1;
+        //}
 
-        if( cameraDelta ) {
-            state.cameraPosition = new THREE.Vector3(
-                this.state.cameraPosition.x,
-                this.state.cameraPosition.y + cameraDelta,
-                this.state.cameraPosition.z
-            );
-        }
+        //if( cameraDelta ) {
+
+            //state.cameraPosition = new THREE.Vector3(
+                //this.state.cameraPosition.x,
+                //this.state.cameraPosition.y + cameraDelta,
+                //this.state.cameraPosition.z
+            //);
+
+        //}
+
+        state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
+            playerPosition.x * cameraAngleScale,
+            this.state.cameraPosition.y,
+            playerPosition.z * cameraAngleScale
+        ), 0.05 );
 
         for( let i = 0; i < entities.length; i++ ) {
 
             const entity = entities[ i ];
 
-            if( entity.position.distanceTo( this.playerBody.position ) < playerRadius ) {
+            if( entity.type === 'shrink' ) {
 
-                this.world.remove( this.playerBody );
+                if( entity.position.distanceTo( playerPosition ) < playerRadius ) {
 
-                const playerBody = new CANNON.Body({
-                    material: this.wallMaterial,
-                    mass: playerMass
-                });
+                    this.world.remove( this.playerBody );
 
-                const playerShape = new CANNON.Sphere( playerRadius / 2 );
+                    const playerBody = new CANNON.Body({
+                        material: this.wallMaterial,
+                        mass: playerMass
+                    });
 
-                playerBody.addShape( playerShape );
-                playerBody.position.copy( this.playerBody.position );
+                    const playerShape = new CANNON.Sphere( playerRadius / 2 );
 
-                this.world.addBody( playerBody );
+                    playerBody.addShape( playerShape );
+                    const newPosition = playerPosition;
+                    playerBody.position.set(
+                        newPosition.x,
+                        newPosition.y - ( playerRadius / 2 ),
+                        newPosition.z,
+                    );
 
-                this.playerBody = playerBody;
-                this.physicsBodies[ 0 ] = playerBody;
+                    this.world.addBody( playerBody );
 
-                this.props.shrinkPlayer( entity.id );
+                    this.playerBody = playerBody;
+                    this.physicsBodies[ 0 ] = playerBody;
+
+                    this.props.shrinkPlayer( entity.id );
+
+                }
 
             }
 
@@ -662,6 +619,14 @@ export default class Game extends Component {
     onKeyDown( event ) {
 
         const which = { [ event.which ]: true };
+
+        if( event.which === KeyCodes.SPACE ||
+                event.which === KeyCodes.UP ||
+                event.which === KeyCodes.DOWN
+            ) {
+            event.preventDefault();
+        }
+
         this.keysDown = Object.assign( {}, this.keysDown, which );
 
     }
@@ -674,8 +639,14 @@ export default class Game extends Component {
 
     render() {
 
-        const { meshStates, time } = this.state;
+        const {
+            meshStates, time, cameraPosition
+        } = this.state;
         const { entities, playerRadius } = this.props;
+        const lookAt = lookAtVector(
+            cameraPosition,
+            new THREE.Vector3( 0,0,0 )
+        );
 
         return <React3
             mainCamera="camera"
@@ -693,8 +664,8 @@ export default class Game extends Component {
                     aspect={width / height}
                     near={0.1}
                     far={1000}
-                    position={this.state.cameraPosition}
-                    rotation={ new THREE.Euler( -Math.PI / 2, 0, 0 )}
+                    position={ cameraPosition }
+                    quaternion={ lookAt }
                     ref="camera"
                 />
 
