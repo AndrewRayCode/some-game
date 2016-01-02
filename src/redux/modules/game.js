@@ -61,3 +61,4 @@ export function shrinkPlayer( entityId ) {
 export function endGame() {
     return { type: 'END_GAME' };
 }
+
