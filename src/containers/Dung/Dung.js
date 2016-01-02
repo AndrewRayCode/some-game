@@ -4,7 +4,7 @@ import React3 from 'react-three-renderer';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { startGame, endGame } from '../../redux/modules/game';
-import THREE from 'three.js';
+import THREE from 'three';
 import Editor from './Editor';
 import Game from '../Game/Game';
 

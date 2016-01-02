@@ -1,4 +1,4 @@
-import THREE from 'three.js';
+import THREE from 'three';
 
 const defaultState = {
     playerRadius: 0.45,

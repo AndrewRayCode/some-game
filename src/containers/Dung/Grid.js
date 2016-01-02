@@ -1,6 +1,6 @@
 import 'babel/polyfill';
 import React, { Component } from 'react';
-import THREE from 'three.js';
+import THREE from 'three';
 import React3 from 'react-three-renderer';
 import PureRenderMixin from 'react/lib/ReactComponentWithPureRenderMixin';
 

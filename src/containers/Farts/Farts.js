@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import PureRenderMixin from 'react/lib/ReactComponentWithPureRenderMixin';
 
-import THREE from 'three.js';
+import THREE from 'three';
 
 import React3 from 'react-three-renderer';
 

@@ -1,4 +1,4 @@
-import THREE from 'three.js';
+import THREE from 'three';
 
 export function getEntrancesForTube( tube, scaleFactor ) {
 

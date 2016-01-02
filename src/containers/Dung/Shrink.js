@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import THREE from 'three.js';
+import THREE from 'three';
 
 const rotationOffset = new THREE.Euler( Math.PI / 2, 0, 0 );
 

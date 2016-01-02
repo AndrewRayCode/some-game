@@ -1,7 +1,7 @@
 import 'babel/polyfill';
 import React, { Component } from 'react';
 import React3 from 'react-three-renderer';
-import THREE from 'three.js';
+import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
 import StaticEntities from '../Dung/StaticEntities';
 import { connect } from 'react-redux';

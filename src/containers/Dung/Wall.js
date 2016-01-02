@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import THREE from 'three.js';
+import THREE from 'three';
 
 export default class Wall extends Component {
 

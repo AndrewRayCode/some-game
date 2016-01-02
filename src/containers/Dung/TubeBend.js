@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import THREE from 'three.js';
+import THREE from 'three';
 
 const tubeRadius = 0.5;
 const bendSpline = new THREE.QuadraticBezierCurve3(

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import THREE from 'three.js';
+import THREE from 'three';
 import Shrink from './Shrink';
 import Wall from './Wall';
 import TubeBend from './TubeBend';
