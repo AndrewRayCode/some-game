@@ -113,7 +113,7 @@
     "react-redux": "^4.0.0",
     "react-router": "1.0.2",
     "react-router-bootstrap": "^0.19.3",
-    "react-three-renderer": "https://s3-us-west-1.amazonaws.com/shader-frog/react-three-renderer-0.0.14-alpha.tgz",
+    "react-three-renderer": "http://andrewray.me/stuff/react-three-renderer-0.0.14-alpha.tgz",
     "redux": "^3.0.4",
     "redux-form": "^3.0.12",
     "redux-router": "1.0.0-beta5",
