@@ -16,6 +16,8 @@ import { getEntrancesForTube } from '../Dung/Utils';
 THREE.ImageUtils.crossOrigin = '';
 THREE.TextureLoader.crossOrigin = '';
 
+THREE.TextureLoader.prototype.crossOrigin = '';
+
 const radius = 20;
 const speed = 0.1;
 const clock = new THREE.Clock();

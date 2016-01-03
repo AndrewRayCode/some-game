@@ -22,6 +22,8 @@ const cx = classNames.bind( styles );
 THREE.ImageUtils.crossOrigin = '';
 THREE.TextureLoader.crossOrigin = '';
 
+THREE.TextureLoader.prototype.crossOrigin = '';
+
 import OrbitControls from 'three-orbit-controls';
 const OrbitControlsThree = OrbitControls(THREE);
 
@@ -573,7 +575,7 @@ export default class Editor extends Component {
         const {
             createType, selecting, selectedObjectId, creating, rotateable,
             createPreviewPosition, gridScale, createPreviewRotation, gridSnap,
-            rotating, time
+            rotating, time, lightPosition
         } = this.state;
 
         const selectedObject = entities.find( ( search ) => {
@@ -808,7 +810,7 @@ export default class Editor extends Component {
                                 shadowCameraNear={shadowD}
                                 shadowDarkness={0.5}
 
-                                position={this.state.lightPosition}
+                                position={ lightPosition }
                             />
 
                             <mesh
@@ -859,7 +861,13 @@ export default class Editor extends Component {
                 <div className={ cx({ sidebar: true }) }>
                     <b>Editor</b>
                     <br />
+                    <br />
                     { selecting && selectedObjectId ? <div>
+                        <b>Object Seelcted</b>
+                        <br />
+                        Press [X] to delete this object
+                        <br />
+                        <br />
                         <b>type</b>: {selectedObject.type}
                         <br />
                         <b>id</b>: {selectedObject.id}
@@ -933,10 +941,9 @@ export default class Editor extends Component {
                             step={ gridSnap }
                         />
 
-                    </div> : <div>
-                    </div>}
+                    </div> : null }
 
-                    { creating ? (<div>
+                    { creating ? <div>
                         <b>Create</b>
                         <br />
                         [W] { createType === 'wall' && '✓' }
@@ -958,14 +965,30 @@ export default class Editor extends Component {
                         <button onClick={ this.selectType( 'shrink' ) }>
                             Shrink
                         </button>
-                    </div>) : null }
+                    </div> : null }
+
+                    <br />
+                    <b>Keyboard Shortcuts</b>
+                    <br />
+                    <br />
+                    [C] { creating && '✓' } Create entities mode.
+                    <br />
+                    [S] { selecting && '✓' } Select & Zoom mode. Use mouse to rotate camera and scroll to zoom.
+                    <br />
+                    [G] Start Game.
+                    <br />
+                    [Esc] Return to editor.
+
                 </div>
+
             </div>
+
             <div>
                 State: { editorState }
                 <br />
                 Grid Snap: { gridSnap }
             </div>
+
         </div>;
     }
 
