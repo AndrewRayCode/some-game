@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { shrinkPlayer } from '../../redux/modules/game';
 import KeyCodes from '../Dung/KeyCodes';
+import Cardinality from '../Dung/Cardinality';
 import TubeBend from '../Dung/TubeBend';
 import TubeStraight from '../Dung/TubeStraight';
 import { getEntrancesForTube } from '../Dung/Utils';
@@ -32,7 +33,7 @@ const tubeTravelDurationMs = 200;
 const tubeStartTravelDurationMs = 50;
 
 const coolDownTimeMs = 500;
-const jumpForce = 50;
+const jumpForce = 100;
 const moveForce = 2;
 const airMoveForce = 0.5;
 
@@ -47,6 +48,48 @@ const lerp = ( () => {
     const v = new THREE.Vector3();
     return v.lerpVectors.bind( v );
 } )();
+
+const cameraAngleScale = 0.9;
+
+function getCardinalityOfVector( v3 ) {
+
+    const { field, value } = [
+        { field: 'x', value: v3.x },
+        { field: 'y', value: v3.y },
+        { field: 'z', value: v3.z }
+    ].sort( ( a, b ) => {
+        return Math.abs( a.value ) - Math.abs( b.value );
+    })[ 2 ];
+
+    if( field === 'x' ) {
+        return value < 0 ? Cardinality.LEFT : Cardinality.RIGHT;
+    } else if( field === 'y' ) {
+        return value < 0 ? Cardinality.BACK : Cardinality.FORWARD;
+    } else {
+        return value < 0 ? Cardinality.UP : Cardinality.DOWN;
+    }
+
+}
+
+function snapVectorAngleTo( v3, snapAngle ) {
+
+    const angle = v3.angleTo( Cardinality.UP );
+
+    if( angle < snapAngle / 2.0 ) {
+        return Cardinality.UP.clone().multiplyScalar( v3.length() );
+    } else if( angle > 180.0 - snapAngle / 2.0 ) {
+        return Cardinality.DOWN.clone().multiplyScalar( v3.length() );
+    }
+
+    const t = Math.round( angle / snapAngle );
+    const deltaAngle = ( t * snapAngle ) - angle;
+
+    const axis = new THREE.Vector3().crossVectors( Cardinality.UP, v3 );
+    const q = new THREE.Quaternion().setFromAxisAngle( axis, deltaAngle );
+
+    return v3.clone().applyQuaternion( q );
+
+}
 
 function resetBodyPhysics( body, position ) {
 
@@ -78,13 +121,10 @@ function resetBodyPhysics( body, position ) {
     body._wakeUpAfterNarrowphase = false;
 }
 
-const upVector = new THREE.Vector3( 0, 0, -1 );
-const cameraAngleScale = 0.9;
-
 function lookAtVector( sourcePoint, destPoint ) {
     
     return new THREE.Quaternion().setFromRotationMatrix(
-        new THREE.Matrix4().lookAt( sourcePoint, destPoint, upVector )
+        new THREE.Matrix4().lookAt( sourcePoint, destPoint, Cardinality.UP )
     );
 
 }
@@ -167,8 +207,8 @@ export default class Game extends Component {
 
         // Adjust constraint equation parameters for ground/ground contact
         const material = new CANNON.ContactMaterial( wallMaterial, wallMaterial, {
-            friction: 0.4,
-            restitution: 0.3,
+            friction: 0.9,
+            restitution: 0,
             contactEquationStiffness: 1e8,
             contactEquationRelaxation: 3,
             frictionEquationStiffness: 1e8,
@@ -231,7 +271,8 @@ export default class Game extends Component {
         this.updatePhysics = this.updatePhysics.bind( this );
         this._onAnimate = this._onAnimate.bind( this );
         this._getMeshStates = this._getMeshStates.bind( this );
-        this.onWorldContact = this.onWorldContact.bind( this );
+        this.onPlayerCollide = this.onPlayerCollide.bind( this );
+        this.onWorldEndContact = this.onWorldEndContact.bind( this );
 
     }
 
@@ -240,8 +281,8 @@ export default class Game extends Component {
         window.addEventListener( 'keydown', this.onKeyDown );
         window.addEventListener( 'keyup', this.onKeyUp );
 
-        this.world.addEventListener( 'beginContact', this.onWorldContact );
-        this.world.addEventListener( 'endContact', this.onWorldContact );
+        this.playerBody.addEventListener( 'collide', this.onPlayerCollide );
+        this.world.addEventListener( 'endContact', this.onWorldEndContact );
 
     }
 
@@ -250,38 +291,42 @@ export default class Game extends Component {
         window.removeEventListener( 'keydown', this.onKeyDown );
         window.removeEventListener( 'keyup', this.onKeyUp );
 
-        this.world.removeEventListener( 'beginContact', this.onWorldContact );
-        this.world.removeEventListener( 'endContact', this.onWorldContact );
+        this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+        this.world.removeEventListener( 'endContact', this.onWorldEndContact );
 
     }
 
-    onWorldContact( event ) {
+    onWorldEndContact( event ) {
 
-        const otherObject = event.bodyA === this.playerBody ? event.bodyB : (
+        const otherBody = event.bodyA === this.playerBody ? event.bodyB : (
             event.bodyB === this.playerBody ? event.bodyA : null
         );
         const { playerContact } = this.state;
 
-        if( otherObject ) {
-            
-            if( event.type === 'endContact' ) {
+        this.setState({
+            playerContact: without( playerContact, otherBody.id )
+        });
 
-                this.setState({
-                    playerContact: without( playerContact, otherObject.id )
-                });
+    }
 
-            } else {
+    onPlayerCollide( event ) {
 
-                const assign = {
-                    [ otherObject.id ]: true
-                };
-                this.setState({
-                    playerContact: Object.assign( {}, playerContact, assign )
-                });
+        const { contact } = event;
+        const otherBody = contact.bi === this.playerBody ? contact.bj : contact.bi;
+        const contactNormal = getCardinalityOfVector( new THREE.Vector3().copy(
+            contact.bi === this.playerBody ?
+                contact.ni :
+                contact.ni.negate()
+        ));
 
-            }
+        const { playerContact } = this.state;
 
-        }
+        const assign = {
+            [ otherBody.id ]: contactNormal
+        };
+        this.setState({
+            playerContact: Object.assign( {}, playerContact, assign )
+        });
 
     }
 
@@ -882,6 +927,23 @@ export default class Game extends Component {
                     entities={ entities }
                     time={ time }
                 />
+
+                { Object.keys( this.state.playerContact || {} ).map( ( key ) => {
+
+                    return <mesh
+                        position={ playerPosition.clone().add( this.state.playerContact[ key ] ) }
+                        scale={ new THREE.Vector3( 0.5, 7, 0.5 )}
+                        key={ key }
+                    >
+                        <geometryResource
+                            resourceId="playerGeometry"
+                        />
+                        <materialResource
+                            resourceId="playerMaterial"
+                        />
+                    </mesh>;
+
+                }) }
 
                 { [/*1,2,3,4*/].map( ( i ) => {
 
