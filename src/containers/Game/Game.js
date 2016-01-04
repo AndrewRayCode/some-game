@@ -33,7 +33,7 @@ const tubeTravelDurationMs = 200;
 const tubeStartTravelDurationMs = 50;
 
 const coolDownTimeMs = 500;
-const jumpForce = 100;
+const jumpForce = 200;
 const moveForce = 2;
 const airMoveForce = 0.5;
 
@@ -526,22 +526,51 @@ export default class Game extends Component {
             if( KeyCodes.SPACE in keysDown ) {
 
                 const coolDownKeys = Object.keys( this.wallCoolDowns );
-                const canJump = Object.keys( playerContact ).find( ( key ) => {
 
-                    return coolDownKeys.indexOf( key ) === -1;
+                const jumpableWalls = Object.keys( playerContact ).reduce( ( memo, key ) => {
 
-                });
+                    if( coolDownKeys.indexOf( key ) > -1 ) {
+                        return memo;
+                    }
 
-                if( canJump ) {
+                    if( playerContact[ key ] === Cardinality.DOWN ) {
+                        memo.down = true;
+                    }
+
+                    if( playerContact[ key ] === Cardinality.LEFT ) {
+                        memo.left = true;
+                    }
+
+                    if( playerContact[ key ] === Cardinality.RIGHT ) {
+                        memo.right = true;
+                    }
+
+                    return memo;
+                }, {});
+
+                if( Object.keys( jumpableWalls ).length ) {
+
+                    if( jumpableWalls.down ) {
+
+                        forceZ -= jumpForce;
+
+                    } else if( jumpableWalls.right ) {
+
+                        forceZ -= jumpForce / 3;
+                        forceX -= jumpForce;
+
+                    } else if( jumpableWalls.left ) {
+
+                        forceZ -= jumpForce / 3;
+                        forceX += jumpForce;
+
+                    }
 
                     const coolDowns = {};
                     for( const key in playerContact ) {
                         coolDowns[ key ] = Date.now();
                     }
-
                     this.wallCoolDowns = Object.assign( {}, this.wallCoolDowns, coolDowns );
-
-                    forceZ -= jumpForce;
 
                 }
 
