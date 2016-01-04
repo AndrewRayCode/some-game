@@ -625,8 +625,23 @@ export default class Game extends Component {
 
         });
 
+        if( KeyCodes['`'] in this.keysDown ) {
+
+            if( !this.debugSwitch ) {
+                state.debug = !this.state.debug;
+                this.debugSwitch = true;
+            }
+
+        } else {
+
+            this.debugSwitch = false;
+
+        }
+
         if( KeyCodes.ESC in this.keysDown ) {
+
             this.props.onGameEnd();
+
         }
 
         //let cameraDelta = 0;
@@ -718,7 +733,7 @@ export default class Game extends Component {
     render() {
 
         const {
-            meshStates, time, cameraPosition, currentFlowPosition
+            meshStates, time, cameraPosition, currentFlowPosition, debug
         } = this.state;
         const { entities, playerRadius } = this.props;
         const playerPosition = new THREE.Vector3().copy(
@@ -891,7 +906,7 @@ export default class Game extends Component {
                     />
                 </mesh>
 
-                { this.state.tubeFlowx && <mesh
+                { debug && this.state.tubeFlow && <mesh
                     position={ this.state.tubeFlow[ this.state.tubeIndex ].start }
                     scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
                 >
@@ -902,7 +917,7 @@ export default class Game extends Component {
                         resourceId="entranceMaterial"
                     />
                 </mesh> }
-                { this.state.tubeFlowx && <mesh
+                { debug && this.state.tubeFlow && <mesh
                     position={ this.state.tubeIndex === this.state.tubeFlow.length - 1 ?
                         this.state.tubeFlow[ this.state.tubeIndex ].exit :
                         this.state.tubeFlow[ this.state.tubeIndex ].end
@@ -917,7 +932,7 @@ export default class Game extends Component {
                     />
                 </mesh> }
 
-                { this.state.entrance1x && <mesh
+                { debug && this.state.entrance1 && <mesh
                     position={ this.state.entrance1 }
                     scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
                 >
@@ -928,7 +943,7 @@ export default class Game extends Component {
                         resourceId="playerMaterial"
                     />
                 </mesh> }
-                { this.state.entrance2x && <mesh
+                { debug && this.state.entrance2 && <mesh
                     position={ this.state.entrance2 }
                     scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
                 >
@@ -939,7 +954,7 @@ export default class Game extends Component {
                         resourceId="exitMaterial"
                     />
                 </mesh> }
-                { this.state.playerSnappedx && <mesh
+                { debug && this.state.playerSnapped && <mesh
                     position={this.state.playerSnapped }
                     scale={ new THREE.Vector3( 0.1, 3.5, 0.1 )}
                 >
@@ -957,7 +972,7 @@ export default class Game extends Component {
                     time={ time }
                 />
 
-                { Object.keys( this.state.playerContact || {} ).map( ( key ) => {
+                { debug && Object.keys( this.state.playerContact || {} ).map( ( key ) => {
 
                     return <mesh
                         position={ playerPosition.clone().add( this.state.playerContact[ key ] ) }
@@ -974,7 +989,7 @@ export default class Game extends Component {
 
                 }) }
 
-                { [/*1,2,3,4*/].map( ( i ) => {
+                { debug && [1,2,3,4].map( ( i ) => {
 
                     let e;
                     switch(i) {
