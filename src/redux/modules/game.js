@@ -14,7 +14,12 @@ export default function game( state = defaultState, action = {} ) {
         case 'START_GAME':
 
             return Object.assign( {}, state, {
-                entities: action.entities
+                entities: action.entities.filter( ( entity ) => {
+                    return entity.type !== 'player';
+                }),
+                playerPosition: action.entities.find( ( entity ) => {
+                    return entity.type === 'player';
+                }).position || new THREE.Vector3( 0, 0, 0 )
             });
 
         case 'SHRINK_PLAYER':

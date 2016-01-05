@@ -11,6 +11,7 @@ import KeyCodes from '../Dung/KeyCodes';
 import Cardinality from '../Dung/Cardinality';
 import TubeBend from '../Dung/TubeBend';
 import TubeStraight from '../Dung/TubeStraight';
+import Player from '../Dung/Player';
 import { getEntrancesForTube } from '../Dung/Utils';
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
@@ -175,6 +176,7 @@ function without( obj, ...keys ) {
 @connect(
     state => ({
         entities: state.game.entities,
+        playerPosition: state.game.playerPosition,
         playerRadius: state.game.playerRadius,
         playerScale: state.game.playerScale,
         playerMass: state.game.playerMass,
@@ -233,7 +235,7 @@ export default class Game extends Component {
         const playerShape = new CANNON.Sphere( playerRadius );
 
         playerBody.addShape( playerShape );
-        playerBody.position.set( 0, 1.5, 0 );
+        playerBody.position.copy( this.props.playerPosition );
         world.addBody( playerBody );
 
         const physicsBodies = [ playerBody ].concat( entities.reduce( ( ents, entity ) => {
@@ -301,11 +303,16 @@ export default class Game extends Component {
         const otherBody = event.bodyA === this.playerBody ? event.bodyB : (
             event.bodyB === this.playerBody ? event.bodyA : null
         );
-        const { playerContact } = this.state;
 
-        this.setState({
-            playerContact: without( playerContact, otherBody.id )
-        });
+        if( otherBody ) {
+
+            const { playerContact } = this.state;
+
+            this.setState({
+                playerContact: without( playerContact, otherBody.id )
+            });
+
+        }
 
     }
 
@@ -365,10 +372,10 @@ export default class Game extends Component {
                 if( entity.type === 'tube' || entity.type === 'tubebend') {
 
                     tubeEntrances = getEntrancesForTube( entity, playerScale );
-                    //this.setState({
-                        //entrance1: tubeEntrances.entrance1,
-                        //entrance2: tubeEntrances.entrance2
-                    //});
+                    this.setState({
+                        entrance1: tubeEntrances.entrance1,
+                        entrance2: tubeEntrances.entrance2
+                    });
                     break;
 
                 }
@@ -776,12 +783,6 @@ export default class Game extends Component {
                         widthSegments={1}
                         heightSegments={1}
                     />
-                    <sphereGeometry
-                        resourceId="playerGeometry"
-                        radius={ playerRadius }
-                        widthSegments={ 20 }
-                        heightSegments={ 20 }
-                    />
                     <meshPhongMaterial
                         resourceId="playerMaterial"
                         color={ 0xffffff }
@@ -893,18 +894,13 @@ export default class Game extends Component {
                     position={this.state.lightPosition}
                 />
 
-                <mesh
+                <Player
                     ref="player"
                     position={ playerPosition }
+                    radius={ playerRadius }
                     quaternion={ new THREE.Quaternion().copy( this.playerBody.quaternion ) }
-                >
-                    <geometryResource
-                        resourceId="playerGeometry"
-                    />
-                    <materialResource
-                        resourceId="playerMaterial"
-                    />
-                </mesh>
+                    materialId="playerMaterial"
+                />
 
                 { debug && this.state.tubeFlow && <mesh
                     position={ this.state.tubeFlow[ this.state.tubeIndex ].start }

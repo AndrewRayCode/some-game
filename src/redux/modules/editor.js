@@ -5,6 +5,7 @@ export default function game(state = [], action = {}) {
     switch (action.type) {
 
         case 'ADD_ENTITY':
+
             return [ ...state, {
                 id: action.id,
                 type: action.entityType,

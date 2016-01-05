@@ -4,6 +4,7 @@ import Shrink from './Shrink';
 import Wall from './Wall';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
+import Player from './Player';
 
 export default class StaticEntities extends Component {
 
@@ -109,6 +110,18 @@ export default class StaticEntities extends Component {
                         scale={ entity.scale }
                         wrapMaterialId="shrinkWrapMaterial"
                         materialId="shrinkMaterial"
+                    />;
+
+                } else if( entity.type === 'player' ) {
+
+                    return <Player
+                        ref={ entity.id }
+                        key={ entity.id }
+                        position={ entity.position }
+                        rotation={ entity.rotation }
+                        quaternion={ entity.quaternion }
+                        radius={ 0.5 }
+                        materialId="playerMaterial"
                     />;
 
                 }

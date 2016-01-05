@@ -13,6 +13,7 @@ import styles from './Dung.scss';
 import Wall from './Wall';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
+import Player from './Player';
 import StaticEntities from './StaticEntities';
 import KeyCodes from './KeyCodes';
 import Shrink from './Shrink';
@@ -205,6 +206,10 @@ export default class Editor extends Component {
             } else if( KeyCodes.K in keys ) {
 
                 createType = 'shrink';
+
+            } else if( KeyCodes.P in keys ) {
+
+                createType = 'player';
                  
             }
 
@@ -643,6 +648,16 @@ export default class Editor extends Component {
                     materialId="ghostMaterial"
                 />;
 
+            } else if( createType === 'player' ) {
+
+                previewObject = <Player
+                    position={ createPreviewPosition }
+                    rotation={ createPreviewRotation }
+                    materialId="ghostMaterial"
+                    ref="previewPosition"
+                    radius={ 0.5 }
+                />;
+
             }
 
         }
@@ -785,6 +800,18 @@ export default class Editor extends Component {
                                         anisotropy={16}
                                     />
                                 </meshPhongMaterial>
+
+                                <sphereGeometry
+                                    resourceId="playerGeometry"
+                                    radius={ 1.0 }
+                                    widthSegments={ 20 }
+                                    heightSegments={ 20 }
+                                />
+
+                                <meshPhongMaterial
+                                    resourceId="playerMaterial"
+                                    color={ 0xffffff }
+                                />
 
                             </resources>
 
@@ -964,6 +991,11 @@ export default class Editor extends Component {
                         [K] { createType === 'shrink' && '✓' }
                         <button onClick={ this.selectType( 'shrink' ) }>
                             Shrink
+                        </button>
+                        <br />
+                        [P] { createType === 'player' && '✓' }
+                        <button onClick={ this.selectType( 'player' ) }>
+                            Player
                         </button>
                     </div> : null }
 
