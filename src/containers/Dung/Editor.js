@@ -5,7 +5,7 @@ import THREE from 'three';
 import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
-    rotateEntity, moveEntity, addEntity, removeEntity
+    rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -17,6 +17,7 @@ import Player from './Player';
 import StaticEntities from './StaticEntities';
 import KeyCodes from './KeyCodes';
 import Shrink from './Shrink';
+import Textures from './Textures';
 const cx = classNames.bind( styles );
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
@@ -78,7 +79,7 @@ function snapTo( number, interval ) {
 @connect(
     state => ({ entities: state.editor }),
     dispatch => bindActionCreators(
-        { addEntity, removeEntity, moveEntity, rotateEntity }, dispatch
+        { addEntity, removeEntity, moveEntity, rotateEntity, changeEntityMaterial }, dispatch
     )
 )
 export default class Editor extends Component {
@@ -93,6 +94,7 @@ export default class Editor extends Component {
         this.state = {
             gridSnap,
             gridScale: new THREE.Vector3( gridSnap, gridSnap, gridSnap ),
+            createMaterialId: 'ornateWall1',
             createType: 'wall',
             selecting: true,
             createPreviewRotation: new THREE.Quaternion( 0, 0, 0, 1 ),
@@ -115,6 +117,8 @@ export default class Editor extends Component {
         this.onMouseUp = this.onMouseUp.bind( this );
         this._onOrbitChange = this._onOrbitChange.bind( this );
         this.selectType = this.selectType.bind( this );
+        this.selectMaterialId = this.selectMaterialId.bind( this );
+        this.changeMaterialId = this.changeMaterialId.bind( this );
 
     }
 
@@ -520,7 +524,7 @@ export default class Editor extends Component {
 
         const {
             rotateable, dragCreating, createType, createPreviewPosition,
-            createPreviewScale, createPreviewRotation
+            createPreviewScale, createPreviewRotation, createMaterialId
         } = this.state;
 
         if( rotateable ) {
@@ -534,7 +538,8 @@ export default class Editor extends Component {
         if( dragCreating ) {
 
             this.props.addEntity(
-                createType, createPreviewPosition, createPreviewScale, createPreviewRotation
+                createType, createPreviewPosition, createPreviewScale,
+                createPreviewRotation, createMaterialId
             );
 
             this.controls.enabled = true;
@@ -552,6 +557,27 @@ export default class Editor extends Component {
         return ( event ) => {
             event.preventDefault();
             this.setState({ createType });
+        };
+
+    }
+
+    selectMaterialId( createMaterialId ) {
+
+        return ( event ) => {
+            event.preventDefault();
+            this.setState({ createMaterialId });
+        };
+
+    }
+
+    changeMaterialId( newMaterialId ) {
+
+        return ( event ) => {
+            event.preventDefault();
+            this.props.changeEntityMaterial(
+                this.state.selectedObjectId,
+                newMaterialId
+            );
         };
 
     }
@@ -810,7 +836,7 @@ export default class Editor extends Component {
 
                                 <meshPhongMaterial
                                     resourceId="playerMaterial"
-                                    color={ 0xffffff }
+                                    color={ 0xFADE95 }
                                 />
 
                             </resources>
@@ -968,6 +994,22 @@ export default class Editor extends Component {
                             step={ gridSnap }
                         />
 
+                        <br /><br />
+
+                        { Object.keys( Textures ).map( ( key ) => {
+
+                            return <button onClick={ this.changeMaterialId( key ) }
+                                key={ key }
+                            >
+                                <img
+                                    src={ Textures[ key ] }
+                                    height={ 20 }
+                                    width={ 20 }
+                                />
+                            </button>;
+
+                        })}
+
                     </div> : null }
 
                     { creating ? <div>
@@ -997,6 +1039,26 @@ export default class Editor extends Component {
                         <button onClick={ this.selectType( 'player' ) }>
                             Player
                         </button>
+
+                        { createType === 'wall' && <div>
+
+                            { Object.keys( Textures ).map( ( key ) => {
+
+                                return <button
+                                    onClick={ this.selectMaterialId( key ) }
+                                    key={ key }
+                                >
+                                    <img
+                                        src={ Textures[ key ] }
+                                        height={ 20 }
+                                        width={ 20 }
+                                    />
+                                </button>;
+
+                            })}
+
+                        </div> }
+
                     </div> : null }
 
                     <br />

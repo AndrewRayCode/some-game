@@ -11,7 +11,8 @@ export default function game(state = [], action = {}) {
                 type: action.entityType,
                 position: action.position,
                 scale: action.scale,
-                rotation: action.rotation
+                rotation: action.rotation,
+                materialId: action.materialId
             } ];
 
         case 'REMOVE_ENTITY':
@@ -25,6 +26,24 @@ export default function game(state = [], action = {}) {
                 ...state.slice( 0, index ),
                 ...state.slice( index + 1 )
             ];
+
+        case 'CHANGE_ENTITY_MATERIAL_ID':
+
+            const cEntity = state.find( ( search ) => {
+                return search.id === action.id;
+            });
+            const cIndex = state.indexOf( cEntity );
+
+            const texturedEntity = Object.assign( {}, cEntity, {
+                materialId: action.newMaterialId
+            });
+
+            return [
+                ...state.slice( 0, cIndex ),
+                texturedEntity,
+                ...state.slice( cIndex + 1 )
+            ];
+
 
         case 'MOVE_ENTITY':
 
@@ -80,11 +99,11 @@ export default function game(state = [], action = {}) {
 
 }
 
-export function addEntity( entityType, position, scale, rotation ) {
+export function addEntity( entityType, position, scale, rotation, materialId ) {
     return {
         type: 'ADD_ENTITY',
         id: Date.now(),
-        entityType, position, scale, rotation
+        entityType, position, scale, rotation, materialId
     };
 }
 
@@ -106,5 +125,12 @@ export function rotateEntity( id, field, value ) {
     return {
         type: 'ROTATE_ENTITY',
         id, field, value
+    };
+}
+
+export function changeEntityMaterial( id, newMaterialId ) {
+    return {
+        type: 'CHANGE_ENTITY_MATERIAL_ID',
+        id, newMaterialId
     };
 }

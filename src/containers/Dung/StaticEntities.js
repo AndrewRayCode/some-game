@@ -5,6 +5,7 @@ import Wall from './Wall';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
 import Player from './Player';
+import Textures from './Textures';
 
 export default class StaticEntities extends Component {
 
@@ -36,17 +37,23 @@ export default class StaticEntities extends Component {
                     widthSegments={1}
                     heightSegments={1}
                 />
-                <meshPhongMaterial
-                    resourceId="ornateWall"
-                    color={ 0xffffff }
-                >
-                    <texture
-                        url={ require( './brick-pattern-ornate.png' ) }
-                        wrapS={ THREE.RepeatWrapping }
-                        wrapT={ THREE.RepeatWrapping }
-                        anisotropy={16}
-                    />
-                </meshPhongMaterial>
+
+                { Object.keys( Textures ).map( ( key ) => {
+
+                    return <meshPhongMaterial
+                        key={ key }
+                        resourceId={ key }
+                        color={ 0xffffff }
+                    >
+                        <texture
+                            url={ Textures[ key ] }
+                            wrapS={ THREE.RepeatWrapping }
+                            wrapT={ THREE.RepeatWrapping }
+                            anisotropy={16}
+                        />
+                    </meshPhongMaterial>;
+
+                }) }
 
                 <meshPhongMaterial
                     resourceId="tubeMaterial"
@@ -74,7 +81,7 @@ export default class StaticEntities extends Component {
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
-                        materialId="ornateWall"
+                        materialId={ entity.materialId }
                     />;
 
                 } else if( entity.type === 'tube' ) {

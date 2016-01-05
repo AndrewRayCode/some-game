@@ -15,15 +15,15 @@ export function getEntrancesForTube( tube, scaleFactor ) {
         );
 
         const directionVector = new THREE.Vector3( 1, 0, 0 )
-            .applyQuaternion( rotatedQuaternion )
-            .multiplyScalar( scaleFactor );
+            .multiplyScalar( scaleFactor )
+            .applyQuaternion( rotatedQuaternion );
 
         const entrance1 = position.clone().add( directionVector );
         const entrance2 = position.clone().sub( directionVector );
 
         const directionVectorScaled = directionVector
             .clone()
-            .multiplyScalar( 0.5 * scaleFactor );
+            .multiplyScalar( 0.5 );
 
         const threshold1 = position.clone().add( directionVectorScaled );
         const threshold2 = position.clone().sub( directionVectorScaled );

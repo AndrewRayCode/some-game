@@ -21,7 +21,7 @@ THREE.TextureLoader.crossOrigin = '';
 THREE.TextureLoader.prototype.crossOrigin = '';
 
 const radius = 20;
-const speed = 0.1;
+const lightRotationSpeed = 0.5;
 const clock = new THREE.Clock();
 
 const height = 400;
@@ -32,6 +32,8 @@ const boxes = 5;
 
 const tubeTravelDurationMs = 200;
 const tubeStartTravelDurationMs = 50;
+
+const wallJumpVerticalDampen = 0.4;
 
 const coolDownTimeMs = 500;
 const jumpForce = 200;
@@ -483,7 +485,9 @@ export default class Game extends Component {
 
             const isLastTube = tubeIndex === tubeFlow.length - 1;
 
-            let currentPercent = ( time - startTime ) / ( tubeIndex === 0 ? tubeStartTravelDurationMs : tubeTravelDurationMs );
+            let currentPercent = ( time - startTime ) / ( tubeIndex === 0 ?
+                tubeStartTravelDurationMs : tubeTravelDurationMs
+            ) * ( this.state.debug ? 0.1 : 1 );
             let isDone;
 
             if( currentPercent >= 1 ) {
@@ -518,7 +522,10 @@ export default class Game extends Component {
 
                 this.setState({
                     currentFlowPosition: lerp(
-                        currentTube.start, isLastTube ? currentTube.exit : currentTube.end, currentPercent
+                        currentTube.start, isLastTube ?
+                            currentTube.exit :
+                            currentTube.end,
+                        currentPercent
                     ),
                     tubeIndex,
                     startTime
@@ -559,17 +566,17 @@ export default class Game extends Component {
 
                     if( jumpableWalls.down ) {
 
-                        forceZ -= jumpForce;
+                        forceZ -= playerScale * jumpForce;
 
                     } else if( jumpableWalls.right ) {
 
-                        forceZ -= jumpForce / 3;
-                        forceX -= jumpForce;
+                        forceZ -= playerScale * ( jumpForce * wallJumpVerticalDampen );
+                        forceX -= playerScale * jumpForce;
 
                     } else if( jumpableWalls.left ) {
 
-                        forceZ -= jumpForce / 3;
-                        forceX += jumpForce;
+                        forceZ -= playerScale * ( jumpForce * wallJumpVerticalDampen );
+                        forceX += playerScale * jumpForce;
 
                     }
 
@@ -618,9 +625,9 @@ export default class Game extends Component {
             time: Date.now(),
             meshStates: this._getMeshStates( this.physicsBodies ),
             lightPosition: new THREE.Vector3(
-                radius * Math.sin( clock.getElapsedTime() * speed ),
+                radius * Math.sin( clock.getElapsedTime() * lightRotationSpeed ),
                 10,
-                radius * Math.cos( clock.getElapsedTime() * speed )
+                radius * Math.cos( clock.getElapsedTime() * lightRotationSpeed )
             )
         };
 
@@ -688,6 +695,7 @@ export default class Game extends Component {
                         material: this.wallMaterial,
                         mass: playerMass
                     });
+                    playerBody.addEventListener( 'collide', this.onPlayerCollide );
 
                     const playerShape = new CANNON.Sphere( playerRadius / 2 );
 
@@ -742,7 +750,7 @@ export default class Game extends Component {
         const {
             meshStates, time, cameraPosition, currentFlowPosition, debug
         } = this.state;
-        const { entities, playerRadius } = this.props;
+        const { entities, playerRadius, playerScale } = this.props;
         const playerPosition = new THREE.Vector3().copy(
             currentFlowPosition || this.playerBody.position
         );
@@ -785,7 +793,7 @@ export default class Game extends Component {
                     />
                     <meshPhongMaterial
                         resourceId="playerMaterial"
-                        color={ 0xffffff }
+                        color={ 0xFADE95 }
                     />
                     <meshPhongMaterial
                         resourceId="entranceMaterial"
@@ -866,6 +874,13 @@ export default class Game extends Component {
                             anisotropy={16}
                         />
                     </meshPhongMaterial>
+
+                    <sphereGeometry
+                        resourceId="playerGeometry"
+                        radius={ playerRadius }
+                        widthSegments={ 20 }
+                        heightSegments={ 20 }
+                    />
 
                 </resources>
 
@@ -1041,7 +1056,7 @@ export default class Game extends Component {
 
                     const { entrance1, entrance2 } = getEntrancesForTube({
                         position, rotation: e, type: 'tubebend'
-                    });
+                    }, playerScale );
 
                     return <group key={i}>
 
