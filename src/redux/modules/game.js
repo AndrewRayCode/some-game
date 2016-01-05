@@ -17,9 +17,9 @@ export default function game( state = defaultState, action = {} ) {
                 entities: action.entities.filter( ( entity ) => {
                     return entity.type !== 'player';
                 }),
-                playerPosition: action.entities.find( ( entity ) => {
+                playerPosition: ( action.entities.find( ( entity ) => {
                     return entity.type === 'player';
-                }).position || new THREE.Vector3( 0, 0, 0 )
+                }) || {} ).position || new THREE.Vector3( 0, 1.5, 0 )
             });
 
         case 'SHRINK_PLAYER':
