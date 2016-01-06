@@ -24,8 +24,10 @@ const radius = 20;
 const lightRotationSpeed = 0.5;
 const clock = new THREE.Clock();
 
-const height = 400;
-const width = 400;
+const gameWidth = 400;
+const gameHeight = 400;
+const cameraAspect = gameWidth / gameHeight;
+const cameraFov = 75;
 
 const shadowD = 20;
 const boxes = 5;
@@ -43,7 +45,7 @@ const airMoveForce = 0.5;
 const timeStep = 1 / 60;
 const raycaster = new THREE.Raycaster();
 
-const cameraMultiplierFromPlayer = 7;
+const cameraMultiplierFromPlayer = 2;
 
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
@@ -53,6 +55,12 @@ const lerp = ( () => {
 } )();
 
 const cameraAngleScale = 0.9;
+
+function getCameraDistanceToPlayer( aspect, fov, objectSize ) {
+
+    return Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) );
+
+}
 
 function getCardinalityOfVector( v3 ) {
 
@@ -194,7 +202,11 @@ export default class Game extends Component {
 
         this.state = {
             playerContact: {},
-            cameraPosition: new THREE.Vector3( 0, cameraMultiplierFromPlayer, 0 ),
+            cameraPosition: new THREE.Vector3(
+                0,
+                cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, 1 ),
+                0
+            ),
             lightPosition: new THREE.Vector3(),
             meshStates: []
         };
@@ -676,10 +688,10 @@ export default class Game extends Component {
         //}
 
         state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
-            playerPosition.x * cameraAngleScale,
-            cameraMultiplierFromPlayer * playerScale,
-            playerPosition.z * cameraAngleScale
-        ), 0.05 * ( 1 / ( playerScale * playerScale ) ) );
+            playerPosition.x,
+            playerPosition.y + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, playerScale ),
+            playerPosition.z
+        ), 0.05 / playerScale );
 
         for( let i = 0; i < entities.length; i++ ) {
 
@@ -761,9 +773,9 @@ export default class Game extends Component {
 
         return <React3
             mainCamera="camera"
-            width={width}
-            height={height}
-            onAnimate={this._onAnimate}
+            width={ gameWidth }
+            height={ gameHeight }
+            onAnimate={ this._onAnimate }
         >
             <scene
                 ref="scene"
@@ -771,10 +783,10 @@ export default class Game extends Component {
 
                 <perspectiveCamera
                     name="camera"
-                    fov={75}
-                    aspect={width / height}
-                    near={0.1}
-                    far={1000}
+                    fov={ cameraFov }
+                    aspect={ cameraAspect }
+                    near={ 0.1 }
+                    far={ 1000 }
                     position={ cameraPosition }
                     quaternion={ lookAt }
                     ref="camera"
