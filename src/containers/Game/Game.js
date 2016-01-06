@@ -288,7 +288,7 @@ export default class Game extends Component {
         this._onAnimate = this._onAnimate.bind( this );
         this._getMeshStates = this._getMeshStates.bind( this );
         this.onPlayerCollide = this.onPlayerCollide.bind( this );
-        this.onWorldEndContact = this.onWorldEndContact.bind( this );
+        this.onPlayerContactEndTest = this.onPlayerContactEndTest.bind( this );
 
     }
 
@@ -298,7 +298,7 @@ export default class Game extends Component {
         window.addEventListener( 'keyup', this.onKeyUp );
 
         this.playerBody.addEventListener( 'collide', this.onPlayerCollide );
-        this.world.addEventListener( 'endContact', this.onWorldEndContact );
+        this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
 
     }
 
@@ -308,11 +308,11 @@ export default class Game extends Component {
         window.removeEventListener( 'keyup', this.onKeyUp );
 
         this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
-        this.world.removeEventListener( 'endContact', this.onWorldEndContact );
+        this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
 
     }
 
-    onWorldEndContact( event ) {
+    onPlayerContactEndTest( event ) {
 
         const otherBody = event.bodyA === this.playerBody ? event.bodyB : (
             event.bodyB === this.playerBody ? event.bodyA : null
@@ -430,6 +430,22 @@ export default class Game extends Component {
 
             if( isInTubeRange && vec3Equals( playerTowardTube, tube.position ) ) {
 
+                this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+                this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
+
+                const newPlayerContact = Object.keys( playerContact ).reduce( ( memo, key ) => {
+
+                    const { entity } = this.world.bodies.find( ( search ) => {
+                        return search.id.toString() === key;
+                    });
+
+                    if( entity.type !== 'tubebend' && entity.type !== 'tube' ) {
+                        memo[ key ] = playerContact[ key ];
+                    }
+
+                    return memo;
+                }, {} );
+
                 newTubeFlow = [{
                     start: playerPosition.clone(),
                     end: thresholdPlayerStartsAt
@@ -476,6 +492,7 @@ export default class Game extends Component {
                 //console.log('traversing',newTubeFlow.length - 1,'tubes');
 
                 this.setState({
+                    playerContact: newPlayerContact,
                     playerSnapped,
                     startTime: Date.now(),
                     tubeFlow: newTubeFlow,
@@ -509,20 +526,12 @@ export default class Game extends Component {
                 if( isLastTube ) {
                     //console.log('FREE');
                     const lastTube = tubeFlow[ tubeIndex ];
+
+                    this.playerBody.addEventListener( 'collide', this.onPlayerCollide );
+                    this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
+
                     isDone = true;
                     this.setState({
-                        playerContact: Object.keys( playerContact ).reduce( ( memo, key ) => {
-
-                            const { entity } = this.world.bodies.find( ( search ) => {
-                                return search.id.toString() === key;
-                            });
-
-                            if( entity.type !== 'tubebend' &&  entity.type !== 'tube' ) {
-                                memo[ key ] = playerContact[ key ];
-                            }
-
-                            return memo;
-                        }, {} ),
                         tubeFlow: null,
                         currentFlowPosition: null
                     });
