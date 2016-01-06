@@ -1,56 +1,81 @@
 import THREE from 'three';
 
-export default function game(state = [], action = {}) {
+const LOAD = 'redux-example/LOAD';
+const LOAD_SUCCESS = 'redux-example/LOAD_SUCCESS';
+const LOAD_FAIL = 'redux-example/LOAD_FAIL';
 
-    switch (action.type) {
+const defaultState = {
+    levels: [],
+    currentLevel: null
+};
+
+export default function game( state = defaultState, action = {} ) {
+
+    switch( action.type ) {
+
+        case 'ADD_LEVEl':
+            return {
+                ...state,
+                levels: [
+                    ...state.levels, action.level
+                ]
+            };
 
         case 'ADD_ENTITY':
 
-            return [ ...state, {
-                id: action.id,
-                type: action.entityType,
-                position: action.position,
-                scale: action.scale,
-                rotation: action.rotation,
-                materialId: action.materialId
-            } ];
+            return {
+                ...state,
+                entities: [ ...state.entities, {
+                    id: action.id,
+                    type: action.entityType,
+                    position: action.position,
+                    scale: action.scale,
+                    rotation: action.rotation,
+                    materialId: action.materialId
+                }]
+            };
 
         case 'REMOVE_ENTITY':
 
-            const entity = state.find( ( search ) => {
+            const entity = state.entities.find( ( search ) => {
                 return search.id === action.id;
             });
-            const index = state.indexOf( entity );
+            const index = state.entities.indexOf( entity );
 
-            return [
-                ...state.slice( 0, index ),
-                ...state.slice( index + 1 )
-            ];
+            return {
+                ...state,
+                entities: [ ...state.entities, {
+                    ...state.entities.slice( 0, index ),
+                    ...state.entities.slice( index + 1 )
+                }]
+            };
 
         case 'CHANGE_ENTITY_MATERIAL_ID':
 
-            const cEntity = state.find( ( search ) => {
+            const cEntity = state.entities.find( ( search ) => {
                 return search.id === action.id;
             });
-            const cIndex = state.indexOf( cEntity );
+            const cIndex = state.entities.indexOf( cEntity );
 
             const texturedEntity = Object.assign( {}, cEntity, {
                 materialId: action.newMaterialId
             });
 
-            return [
-                ...state.slice( 0, cIndex ),
-                texturedEntity,
-                ...state.slice( cIndex + 1 )
-            ];
-
+            return {
+                ...state,
+                entities: [
+                    ...state.entities.slice( 0, cIndex ),
+                    texturedEntity,
+                    ...state.entities.slice( cIndex + 1 )
+                ]
+            };
 
         case 'MOVE_ENTITY':
 
-            const mEntity = state.find( ( search ) => {
+            const mEntity = state.entities.find( ( search ) => {
                 return search.id === action.id;
             });
-            const mIndex = state.indexOf( mEntity );
+            const mIndex = state.entities.indexOf( mEntity );
             const { position } = mEntity;
             const { field, value } = action;
 
@@ -62,18 +87,21 @@ export default function game(state = [], action = {}) {
                 )
             });
 
-            return [
-                ...state.slice( 0, mIndex ),
-                movedEntity,
-                ...state.slice( mIndex + 1 )
-            ];
+            return {
+                ...state,
+                entities: [ ...state.entities, {
+                    ...state.entities.slice( 0, mIndex ),
+                    movedEntity,
+                    ...state.entities.slice( mIndex + 1 )
+                }]
+            };
 
         case 'ROTATE_ENTITY':
 
-            const rEntity = state.find( ( search ) => {
+            const rEntity = state.entities.find( ( search ) => {
                 return search.id === action.id;
             });
-            const rIndex = state.indexOf( rEntity );
+            const rIndex = state.entities.indexOf( rEntity );
             const { rotation } = rEntity;
             const rField = action.field;
             const rValue = action.value;
@@ -86,11 +114,36 @@ export default function game(state = [], action = {}) {
                 )
             });
 
-            return [
-                ...state.slice( 0, rIndex ),
-                rotatedEntity,
-                ...state.slice( rIndex + 1 )
-            ];
+            return {
+                ...state,
+                entities: [ ...state.entities, {
+                    ...state.entities.slice( 0, rIndex ),
+                    rotatedEntity,
+                    ...state.entities.slice( rIndex + 1 )
+                }]
+            };
+
+        case LOAD:
+            return {
+                ...state,
+                loading: true
+            };
+
+        case LOAD_SUCCESS:
+            return {
+                ...state,
+                loading: false,
+                loaded: true,
+                levels: action.levels
+            };
+
+        case LOAD_FAIL:
+            return {
+                ...state,
+                loading: false,
+                loaded: false,
+                error: action.error
+            };
 
         default:
             return state;
@@ -133,4 +186,15 @@ export function changeEntityMaterial( id, newMaterialId ) {
         type: 'CHANGE_ENTITY_MATERIAL_ID',
         id, newMaterialId
     };
+}
+
+export function loadLevels() {
+  return {
+    types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
+    promise: (client) => client.get('/loadInfo')
+  };
+}
+
+export function areLevelsLoaded(globalState) {
+  return globalState.info && globalState.info.loaded;
 }

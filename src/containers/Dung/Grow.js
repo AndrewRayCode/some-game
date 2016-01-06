@@ -27,7 +27,7 @@ export default class Grow extends Component {
             scale={ scale }
         >
             <mesh
-                scale={ scale.clone().multiplyScalar( 1.8 ) }
+                scale={ new THREE.Vector3( 0.8, 0.8, 0.8 ) }
                 rotation={ rotationOffset }
                 ref="mesh2"
             >
