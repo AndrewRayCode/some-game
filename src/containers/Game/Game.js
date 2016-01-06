@@ -45,7 +45,7 @@ const airMoveForce = 0.5;
 const timeStep = 1 / 60;
 const raycaster = new THREE.Raycaster();
 
-const cameraMultiplierFromPlayer = 2;
+const cameraMultiplierFromPlayer = 3;
 
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
@@ -383,7 +383,7 @@ export default class Game extends Component {
                 });
 
                 const { entity } = physicsBody;
-                if( entity.type === 'tube' || entity.type === 'tubebend') {
+                if( entity.type === 'tube' || entity.type === 'tubebend' ) {
 
                     tubeEntrances = getEntrancesForTube( entity, playerScale );
                     this.setState({
@@ -511,6 +511,18 @@ export default class Game extends Component {
                     const lastTube = tubeFlow[ tubeIndex ];
                     isDone = true;
                     this.setState({
+                        playerContact: Object.keys( playerContact ).reduce( ( memo, key ) => {
+
+                            const { entity } = this.world.bodies.find( ( search ) => {
+                                return search.id.toString() === key;
+                            });
+
+                            if( entity.type !== 'tubebend' &&  entity.type !== 'tube' ) {
+                                memo[ key ] = playerContact[ key ];
+                            }
+
+                            return memo;
+                        }, {} ),
                         tubeFlow: null,
                         currentFlowPosition: null
                     });
