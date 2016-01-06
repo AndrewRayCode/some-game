@@ -17,6 +17,7 @@ import Player from './Player';
 import StaticEntities from './StaticEntities';
 import KeyCodes from './KeyCodes';
 import Shrink from './Shrink';
+import Grow from './Grow';
 import Textures from './Textures';
 const cx = classNames.bind( styles );
 
@@ -210,6 +211,10 @@ export default class Editor extends Component {
             } else if( KeyCodes.K in keys ) {
 
                 createType = 'shrink';
+
+            } else if( KeyCodes.O in keys ) {
+
+                createType = 'grow';
 
             } else if( KeyCodes.P in keys ) {
 
@@ -632,7 +637,19 @@ export default class Editor extends Component {
 
         if( !rotateable && creating && createPreviewPosition ) {
 
-            if( createType === 'shrink' ) {
+            if( createType === 'grow' ) {
+
+                previewObject = <Grow
+                    scale={ gridScale }
+                    rotation={ createPreviewRotation }
+                    position={ createPreviewPosition }
+                    time={ time }
+                    wrapMaterialId="ghostMaterial"
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                />;
+
+            } else if( createType === 'shrink' ) {
 
                 previewObject = <Shrink
                     scale={ gridScale }
@@ -821,6 +838,27 @@ export default class Editor extends Component {
                                 >
                                     <texture
                                         url={ require( '../Game/spiral-texture.png' ) }
+                                        wrapS={ THREE.RepeatWrapping }
+                                        wrapT={ THREE.RepeatWrapping }
+                                        anisotropy={16}
+                                    />
+                                </meshPhongMaterial>
+
+                                <meshPhongMaterial
+                                    resourceId="growWrapMaterial"
+                                    color={ 0x462B2B }
+                                    opacity={ 0.3 }
+                                    transparent
+                                />
+
+                                <meshPhongMaterial
+                                    resourceId="growMaterial"
+                                    color={0xffffff}
+                                    side={ THREE.DoubleSide }
+                                    transparent
+                                >
+                                    <texture
+                                        url={ require( '../Game/grow-texture.png' ) }
                                         wrapS={ THREE.RepeatWrapping }
                                         wrapT={ THREE.RepeatWrapping }
                                         anisotropy={16}
@@ -1033,6 +1071,10 @@ export default class Editor extends Component {
                         [K] { createType === 'shrink' && '✓' }
                         <button onClick={ this.selectType( 'shrink' ) }>
                             Shrink
+                        </button>
+                        [O] { createType === 'grow' && '✓' }
+                        <button onClick={ this.selectType( 'grow' ) }>
+                            Grow
                         </button>
                         <br />
                         [P] { createType === 'player' && '✓' }

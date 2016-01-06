@@ -18,7 +18,7 @@ export default class Grow extends Component {
                 .clone().multiply( new THREE.Quaternion()
                     .setFromEuler( new THREE.Euler(
                         0,
-                        THREE.Math.degToRad( time * 0.1 ),
+                        THREE.Math.degToRad( time * -0.1 ),
                         0
                     ) )
                 )
@@ -27,7 +27,7 @@ export default class Grow extends Component {
             scale={ scale }
         >
             <mesh
-                scale={ scale.clone().multiplyScalar( 0.8 ) }
+                scale={ scale.clone().multiplyScalar( 1.8 ) }
                 rotation={ rotationOffset }
                 ref="mesh2"
             >

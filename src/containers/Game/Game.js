@@ -6,7 +6,7 @@ import CANNON from 'cannon/src/Cannon';
 import StaticEntities from '../Dung/StaticEntities';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { shrinkPlayer } from '../../redux/modules/game';
+import { scalePlayer } from '../../redux/modules/game';
 import KeyCodes from '../Dung/KeyCodes';
 import Cardinality from '../Dung/Cardinality';
 import TubeBend from '../Dung/TubeBend';
@@ -191,7 +191,7 @@ function without( obj, ...keys ) {
         playerScale: state.game.playerScale,
         playerMass: state.game.playerMass,
     }),
-    dispatch => bindActionCreators( { shrinkPlayer }, dispatch )
+    dispatch => bindActionCreators( { scalePlayer }, dispatch )
 )
 export default class Game extends Component {
 
@@ -254,7 +254,7 @@ export default class Game extends Component {
 
         const physicsBodies = [ playerBody ].concat( entities.reduce( ( ents, entity ) => {
 
-            if( entity.type === 'shrink' ) {
+            if( entity.type === 'shrink' || entity.type === 'grow' ) {
                 return ents;
             }
 
@@ -718,9 +718,12 @@ export default class Game extends Component {
 
             const entity = entities[ i ];
 
-            if( entity.type === 'shrink' ) {
+            if( entity.type === 'shrink' || entity.type === 'grow' ) {
 
                 if( entity.position.distanceTo( playerPosition ) < playerRadius ) {
+
+                    const isShrinking = entity.type === 'shrink';
+                    const multiplier = isShrinking ? 0.5 : 2;
 
                     this.world.remove( this.playerBody );
 
@@ -730,14 +733,14 @@ export default class Game extends Component {
                     });
                     playerBody.addEventListener( 'collide', this.onPlayerCollide );
 
-                    const playerShape = new CANNON.Sphere( playerRadius / 2 );
+                    const playerShape = new CANNON.Sphere( playerRadius * multiplier );
 
                     playerBody.addShape( playerShape );
                     const newPosition = playerPosition;
                     playerBody.position.set(
                         newPosition.x,
-                        newPosition.y - ( playerRadius / 2 ),
-                        newPosition.z,
+                        newPosition.y + ( isShrinking ? 0 : playerRadius ),
+                        newPosition.z - ( isShrinking ? 0 : playerRadius ),
                     );
 
                     this.world.addBody( playerBody );
@@ -745,7 +748,7 @@ export default class Game extends Component {
                     this.playerBody = playerBody;
                     this.physicsBodies[ 0 ] = playerBody;
 
-                    this.props.shrinkPlayer( entity.id );
+                    this.props.scalePlayer( entity.id, multiplier );
 
                 }
 
@@ -908,9 +911,30 @@ export default class Game extends Component {
                         />
                     </meshPhongMaterial>
 
+                    <meshPhongMaterial
+                        resourceId="growWrapMaterial"
+                        color={ 0x462B2B }
+                        opacity={ 0.3 }
+                        transparent
+                    />
+
+                    <meshPhongMaterial
+                        resourceId="growMaterial"
+                        color={0xffffff}
+                        side={ THREE.DoubleSide }
+                        transparent
+                    >
+                        <texture
+                            url={ require( '../Game/grow-texture.png' ) }
+                            wrapS={ THREE.RepeatWrapping }
+                            wrapT={ THREE.RepeatWrapping }
+                            anisotropy={16}
+                        />
+                    </meshPhongMaterial>
+
                     <sphereGeometry
                         resourceId="playerGeometry"
-                        radius={ playerRadius }
+                        radius={ 1 }
                         widthSegments={ 20 }
                         heightSegments={ 20 }
                     />

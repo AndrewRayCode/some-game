@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import THREE from 'three';
 import Shrink from './Shrink';
+import Grow from './Grow';
 import Wall from './Wall';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
@@ -118,6 +119,20 @@ export default class StaticEntities extends Component {
                         wrapMaterialId="shrinkWrapMaterial"
                         materialId="shrinkMaterial"
                     />;
+
+                } else if( entity.type === 'grow' ) {
+
+                    return <Grow
+                        time={ time }
+                        ref={ entity.id }
+                        key={ entity.id }
+                        position={ entity.position }
+                        rotation={ entity.rotation }
+                        scale={ entity.scale }
+                        wrapMaterialId="growWrapMaterial"
+                        materialId="growMaterial"
+                    />;
+
 
                 } else if( entity.type === 'player' ) {
 

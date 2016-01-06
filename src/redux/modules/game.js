@@ -22,17 +22,17 @@ export default function game( state = defaultState, action = {} ) {
                 }) || {} ).position || new THREE.Vector3( 0, 1.5, 0 )
             });
 
-        case 'SHRINK_PLAYER':
+        case 'SCALE_PLAYER':
 
             const sEntity = state.entities.find( ( search ) => {
-                return search.id === action.entityId;
+                return search.id === action.powerupIdToRemove;
             });
             const sIndex = state.entities.indexOf( sEntity );
 
             return {
                 ...state,
-                playerRadius: state.playerRadius / 2,
-                playerScale: state.playerScale / 2,
+                playerRadius: state.playerRadius * action.multiplier,
+                playerScale: state.playerScale * action.multiplier,
                 entities: [
                     ...state.entities.slice( 0, sIndex ),
                     ...state.entities.slice( sIndex + 1 )
@@ -56,10 +56,10 @@ export function startGame( entities ) {
     };
 }
 
-export function shrinkPlayer( entityId ) {
+export function scalePlayer( powerupIdToRemove, multiplier ) {
     return {
-        type: 'SHRINK_PLAYER',
-        entityId
+        type: 'SCALE_PLAYER',
+        powerupIdToRemove, multiplier
     };
 }
 
