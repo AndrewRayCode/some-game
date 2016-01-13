@@ -7,15 +7,17 @@ import counter from './counter';
 import {reducer as form} from 'redux-form';
 import info from './info';
 import widgets from './widgets';
-import editor from './editor';
 import game from './game';
+import { levelsReducer, entitiesReducer, currentLevelReducer } from './editor';
 
 export default combineReducers({
   router: routerStateReducer,
   auth,
   form,
+  levels: levelsReducer,
+  entities: entitiesReducer,
+  currentLevel: currentLevelReducer,
   game,
-  editor,
   multireducer: multireducer({
     counter1: counter,
     counter2: counter,

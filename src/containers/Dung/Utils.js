@@ -75,3 +75,14 @@ export function getEntrancesForTube( tube, scaleFactor ) {
     }
 
 }
+
+export function without( obj, ...keys ) {
+
+    return Object.keys( obj ).reduce( ( memo, key ) => {
+        if( keys.indexOf( parseFloat( key ) ) === -1 ) {
+            memo[ key ] = obj[ key ];
+        }
+        return memo;
+    }, {} );
+
+}

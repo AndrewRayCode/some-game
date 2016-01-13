@@ -5,7 +5,8 @@ import THREE from 'three';
 import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
-    rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial
+    rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
+    addLevel, selectLevel
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -30,7 +31,7 @@ THREE.TextureLoader.crossOrigin = '';
 THREE.TextureLoader.prototype.crossOrigin = '';
 
 import OrbitControls from 'three-orbit-controls';
-const OrbitControlsThree = OrbitControls(THREE);
+const OrbitControlsThree = OrbitControls( THREE );
 
 const radius = 20;
 const speed = 0.1;
@@ -89,15 +90,21 @@ function fetchData( getState, dispatch ) {
 
 @connectData(fetchData)
 @connect(
-    state => ({ entities: state.editor }),
+    state => ({
+        levels: state.levels,
+        entities: state.entities,
+        currentLevelId: state.currentLevel
+    }),
     dispatch => bindActionCreators({
-        addEntity, removeEntity, moveEntity, rotateEntity, changeEntityMaterial
+        addEntity, removeEntity, moveEntity, rotateEntity,
+        changeEntityMaterial, addLevel, selectLevel
     }, dispatch )
 )
 export default class Editor extends Component {
 
-    constructor(props, context) {
-        super(props, context);
+    constructor( props, context ) {
+
+        super( props, context );
 
         this.keysPressed = {};
 
@@ -143,28 +150,44 @@ export default class Editor extends Component {
             window.addEventListener( 'keydown', this.onKeyDown );
             window.addEventListener( 'keyup', this.onKeyUp );
 
-            const {
-                container,
-                camera,
-                mouseInput
-            } = this.refs;
+            if( this.props.currentLevelId ) {
 
-            const controls = new OrbitControlsThree( camera, this.refs.container );
+                this._setUpOrbitControls();
 
-            controls.rotateSpeed = 1.0;
-            controls.zoomSpeed = 1.2;
-            controls.panSpeed = 0.8;
-            controls.enableZoom = true;
-            controls.enablePan = false;
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.3;
-
-            this.controls = controls;
-
-            this.controls.addEventListener('change', this._onOrbitChange);
-
+            }
 
         }
+
+    }
+
+    componentDidUpdate( prevProps ) {
+
+        if( !this.controls && this.props.currentLevelId ) {
+            this._setUpOrbitControls();
+        }
+
+    }
+
+    _setUpOrbitControls() {
+
+        const {
+            container,
+            camera,
+        } = this.refs;
+
+        const controls = new OrbitControlsThree( camera, container );
+
+        controls.rotateSpeed = 1.0;
+        controls.zoomSpeed = 1.2;
+        controls.panSpeed = 0.8;
+        controls.enableZoom = true;
+        controls.enablePan = false;
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.3;
+
+        this.controls = controls;
+
+        this.controls.addEventListener( 'change', this._onOrbitChange );
 
     }
 
@@ -174,7 +197,10 @@ export default class Editor extends Component {
 
             window.removeEventListener( 'keydown', this.onKeyDown );
             window.removeEventListener( 'keyup', this.onKeyUp );
-            this.controls.removeEventListener('change', this._onOrbitChange);
+
+            if( this.controls ) {
+                this.controls.removeEventListener('change', this._onOrbitChange);
+            }
 
         }
 
@@ -410,7 +436,20 @@ export default class Editor extends Component {
 
     onMouseMove( event ) {
         
-        const bounds = this.refs.container.getBoundingClientRect();
+        const { levels, currentLevelId } = this.props;
+        if( !currentLevelId ) {
+
+            return;
+
+        }
+
+        const {
+            scene, previewPosition, staticEntities, camera, dragCreateBlock,
+            container
+        } = this.refs;
+
+        const { entityIds } = levels[ currentLevelId ];
+        const bounds = container.getBoundingClientRect();
 
         // calculate mouse position in normalized device coordinates
         // (-1 to +1) for both components
@@ -419,20 +458,20 @@ export default class Editor extends Component {
             y: -( ( event.clientY - bounds.top ) / height ) * 2 + 1
         };
 
-        raycaster.setFromCamera( mouse, this.refs.camera );
+        raycaster.setFromCamera( mouse, camera );
 
         const intersections = raycaster
-            .intersectObjects( this.refs.scene.children, true )
+            .intersectObjects( scene.children, true )
             .filter( ( intersection ) => {
                 return intersection.object !== (
-                        this.refs.previewPosition &&
-                        this.refs.previewPosition.refs.mesh
+                        previewPosition &&
+                        previewPosition.refs.mesh
                     ) &&
                     intersection.object !== (
-                        this.refs.previewPosition &&
-                        this.refs.previewPosition.refs.mesh2
+                        previewPosition &&
+                        previewPosition.refs.mesh2
                     ) &&
-                    intersection.object !== this.refs.dragCreateBlock &&
+                    intersection.object !== dragCreateBlock &&
                     !( intersection.object instanceof THREE.Line );
             })
             .sort( ( a, b ) => {
@@ -441,9 +480,9 @@ export default class Editor extends Component {
 
         if ( this.state.selecting && intersections.length ) {
 
-            const entityTest = this.props.entities.find( ( entity ) => {
+            const entityTest = entityIds.find( ( id ) => {
 
-                const ref = this.refs.staticEntities.refs[ entity.id ].refs.mesh;
+                const ref = staticEntities.refs[ id ].refs.mesh;
 
                 return ref === intersections[ 0 ].object;
 
@@ -543,6 +582,8 @@ export default class Editor extends Component {
             createPreviewScale, createPreviewRotation, createMaterialId
         } = this.state;
 
+        const { currentLevelId } = this.props;
+
         if( rotateable ) {
 
             this.setState({
@@ -554,7 +595,7 @@ export default class Editor extends Component {
         if( dragCreating ) {
 
             this.props.addEntity(
-                createType, createPreviewPosition, createPreviewScale,
+                currentLevelId, createType, createPreviewPosition, createPreviewScale,
                 createPreviewRotation, createMaterialId
             );
 
@@ -618,14 +659,31 @@ export default class Editor extends Component {
 
     render() {
 
-        const { entities } = this.props;
+        const { entities, levels, currentLevelId } = this.props;
+
+        if( !currentLevelId ) {
+
+            return <div>
+                No level selected
+                <button onClick={ this.props.addLevel.bind( null, 'New Level' ) }>
+                    Create Level
+                </button>
+            </div>;
+
+        }
+
+        const currentLevel = levels[ currentLevelId ];
+        const { entityIds } = currentLevel;
+
+        const levelEntities = entityIds.map( id => entities[ id ] );
+
         const {
             createType, selecting, selectedObjectId, creating, rotateable,
             createPreviewPosition, gridScale, createPreviewRotation, gridSnap,
             rotating, time, lightPosition
         } = this.state;
 
-        const selectedObject = entities.find( ( search ) => {
+        const selectedObject = levelEntities.find( ( search ) => {
             return search.id === selectedObjectId;
         });
 
@@ -951,7 +1009,7 @@ export default class Editor extends Component {
 
                             <StaticEntities
                                 ref="staticEntities"
-                                entities={ entities }
+                                entities={ levelEntities }
                                 time={ time }
                             />
 

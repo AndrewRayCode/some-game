@@ -12,7 +12,7 @@ import Cardinality from '../Dung/Cardinality';
 import TubeBend from '../Dung/TubeBend';
 import TubeStraight from '../Dung/TubeStraight';
 import Player from '../Dung/Player';
-import { getEntrancesForTube } from '../Dung/Utils';
+import { getEntrancesForTube, without } from '../Dung/Utils';
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
 THREE.ImageUtils.crossOrigin = '';
@@ -169,17 +169,6 @@ function findNextTube( tube, entrance, entities, scale ) {
 function snapTo( number, interval ) {
 
     return interval * Math.ceil( number / interval );
-
-}
-
-function without( obj, ...keys ) {
-
-    return Object.keys( obj ).reduce( ( memo, key ) => {
-        if( keys.indexOf( parseFloat( key ) ) === -1 ) {
-            memo[ key ] = obj[ key ];
-        }
-        return memo;
-    }, {} );
 
 }
 

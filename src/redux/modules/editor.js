@@ -1,126 +1,139 @@
 import THREE from 'three';
+import { without } from '../../containers/Dung/Utils';
 
 const LOAD = 'redux-example/LOAD';
 const LOAD_SUCCESS = 'redux-example/LOAD_SUCCESS';
 const LOAD_FAIL = 'redux-example/LOAD_FAIL';
 
-const defaultState = {
-    levels: [],
-    currentLevel: null
-};
-
-export default function game( state = defaultState, action = {} ) {
+// Private reducer, only modifies entities themselves. State will be an entity
+function entityPropertyReducer( state, action ) {
 
     switch( action.type ) {
 
-        case 'ADD_LEVEl':
+        case 'CHANGE_ENTITY_MATERIAL_ID':
+
             return {
                 ...state,
-                levels: [
-                    ...state.levels, action.level
-                ]
+                materialId: action.newMaterialId
             };
+
+        case 'MOVE_ENTITY':
+
+            const { field, value } = action;
+            const { position } = state;
+
+            return {
+                ...state,
+                position: new THREE.Vector3(
+                    field === 'x' ? value : position.x,
+                    field === 'y' ? value : position.y,
+                    field === 'z' ? value : position.z
+                )
+            };
+
+        case 'ROTATE_ENTITY':
+
+            const rField = action.field;
+            const rValue = action.value;
+            const { rotation } = state;
+
+            return {
+                ...state,
+                rotation: new THREE.Vector3(
+                    field === 'x' ? value : rotation.x,
+                    field === 'y' ? value : rotation.y,
+                    field === 'z' ? value : rotation.z
+                )
+            };
+
+        default:
+            return state;
+
+    }
+
+}
+
+// Handles all entities. State is an object of { id: entity, ... }
+export function entitiesReducer( state = {}, action = {} ) {
+
+    switch( action.type ) {
 
         case 'ADD_ENTITY':
 
             return {
                 ...state,
-                entities: [ ...state.entities, {
+                [ action.id ]: {
                     id: action.id,
                     type: action.entityType,
                     position: action.position,
                     scale: action.scale,
                     rotation: action.rotation,
                     materialId: action.materialId
-                }]
+                }
             };
 
         case 'REMOVE_ENTITY':
 
-            const entity = state.entities.find( ( search ) => {
-                return search.id === action.id;
-            });
-            const index = state.entities.indexOf( entity );
-
-            return {
-                ...state,
-                entities: [ ...state.entities, {
-                    ...state.entities.slice( 0, index ),
-                    ...state.entities.slice( index + 1 )
-                }]
-            };
-
-        case 'CHANGE_ENTITY_MATERIAL_ID':
-
-            const cEntity = state.entities.find( ( search ) => {
-                return search.id === action.id;
-            });
-            const cIndex = state.entities.indexOf( cEntity );
-
-            const texturedEntity = Object.assign( {}, cEntity, {
-                materialId: action.newMaterialId
-            });
-
-            return {
-                ...state,
-                entities: [
-                    ...state.entities.slice( 0, cIndex ),
-                    texturedEntity,
-                    ...state.entities.slice( cIndex + 1 )
-                ]
-            };
-
-        case 'MOVE_ENTITY':
-
-            const mEntity = state.entities.find( ( search ) => {
-                return search.id === action.id;
-            });
-            const mIndex = state.entities.indexOf( mEntity );
-            const { position } = mEntity;
-            const { field, value } = action;
-
-            const movedEntity = Object.assign( {}, mEntity, {
-                position: new THREE.Vector3(
-                    field === 'x' ? value : position.x,
-                    field === 'y' ? value : position.y,
-                    field === 'z' ? value : position.z
-                )
-            });
-
-            return {
-                ...state,
-                entities: [ ...state.entities, {
-                    ...state.entities.slice( 0, mIndex ),
-                    movedEntity,
-                    ...state.entities.slice( mIndex + 1 )
-                }]
-            };
+            return without( state, action.id );
 
         case 'ROTATE_ENTITY':
+        case 'MOVE_ENTITY':
+        case 'CHANGE_ENTITY_MATERIAL_ID':
 
-            const rEntity = state.entities.find( ( search ) => {
-                return search.id === action.id;
-            });
-            const rIndex = state.entities.indexOf( rEntity );
-            const { rotation } = rEntity;
-            const rField = action.field;
-            const rValue = action.value;
+            return state;
+                //...state,
+                //entityPropertyReducer( state[ action.id ], action )
+            //};
 
-            const rotatedEntity = Object.assign( {}, rEntity, {
-                rotation: new THREE.Vector3(
-                    rField === 'x' ? rValue : rotation.x,
-                    rField === 'y' ? rValue : rotation.y,
-                    rField === 'z' ? rValue : rotation.z
-                )
-            });
+        default:
+            return state;
+            
+    }
 
+}
+
+// Private reducer, only modifies levels. state will be an individual level
+function levelEntityReducer( state, action ) {
+
+    switch( action.type ) {
+
+        case 'ADD_ENTITY':
             return {
                 ...state,
-                entities: [ ...state.entities, {
-                    ...state.entities.slice( 0, rIndex ),
-                    rotatedEntity,
-                    ...state.entities.slice( rIndex + 1 )
-                }]
+                entityIds: [ ...state.entityIds, action.id ]
+            };
+
+        case 'REMOVE_ENTITY':
+            return {
+                ...state,
+                entityIds: state.entityIds.filter( id => id !== action.id )
+            };
+
+        default:
+            return state;
+    }
+
+}
+
+export function levelsReducer( state = {}, action = {} ) {
+
+    switch( action.type ) {
+
+        case 'ADD_LEVEL':
+            return {
+                ...state,
+                [ action.id ]: {
+                    id: action.id,
+                    name: action.name,
+                    entityIds: []
+                }
+            };
+
+        case 'REMOVE_ENTITY':
+        case 'ADD_ENTITY':
+            return {
+                ...state,
+                [ action.levelId ]: levelEntityReducer( state[ action.levelId ], action )
             };
 
         case LOAD:
@@ -152,11 +165,41 @@ export default function game( state = defaultState, action = {} ) {
 
 }
 
-export function addEntity( entityType, position, scale, rotation, materialId ) {
+export function currentLevelReducer( state = null, action = {} ) {
+
+    switch( action.type ) {
+
+        case 'ADD_LEVEL':
+            return action.id;
+
+        default:
+            return state;
+
+    }
+
+}
+
+// Actions
+export function addLevel( name ) {
+    return {
+        type: 'ADD_LEVEL',
+        id: Date.now(),
+        name
+    };
+}
+
+export function selectLevel( id ) {
+    return {
+        type: 'SELECT_LEVEL',
+        id
+    };
+}
+
+export function addEntity( levelId, entityType, position, scale, rotation, materialId ) {
     return {
         type: 'ADD_ENTITY',
         id: Date.now(),
-        entityType, position, scale, rotation, materialId
+        levelId, entityType, position, scale, rotation, materialId
     };
 }
 
@@ -195,6 +238,6 @@ export function loadLevels() {
   };
 }
 
-export function areLevelsLoaded(globalState) {
-  return globalState.info && globalState.info.loaded;
+export function areLevelsLoaded( globalState ) {
+    return globalState.info && globalState.info.loaded;
 }
