@@ -392,7 +392,7 @@ export default class Editor extends Component {
         if( this.state.selecting && ( KeyCodes.X in this.keysPressed ) && this.state.selectedObjectId ) {
 
             this.setState({ selectedObjectId: null });
-            this.props.removeEntity( this.state.selectedObjectId );
+            this.props.removeEntity( this.props.currentLevelId, this.state.selectedObjectId );
             
         }
 
@@ -437,6 +437,7 @@ export default class Editor extends Component {
     onMouseMove( event ) {
         
         const { levels, currentLevelId } = this.props;
+
         if( !currentLevelId ) {
 
             return;
@@ -490,7 +491,7 @@ export default class Editor extends Component {
 
             this.setState({
                 objectUnderCursorId: intersections.length && entityTest ?
-                     entityTest.id : null
+                     entityTest : null
             });
 
         }

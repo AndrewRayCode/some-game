@@ -80,10 +80,10 @@ export function entitiesReducer( state = {}, action = {} ) {
         case 'MOVE_ENTITY':
         case 'CHANGE_ENTITY_MATERIAL_ID':
 
-            return state;
-                //...state,
-                //entityPropertyReducer( state[ action.id ], action )
-            //};
+            return {
+                ...state,
+                [ action.id ]: entityPropertyReducer( state[ action.id ], action )
+            };
 
         default:
             return state;
@@ -203,10 +203,10 @@ export function addEntity( levelId, entityType, position, scale, rotation, mater
     };
 }
 
-export function removeEntity( id ) {
+export function removeEntity( levelId, id ) {
     return {
         type: 'REMOVE_ENTITY',
-        id
+        levelId, id
     };
 }
 
