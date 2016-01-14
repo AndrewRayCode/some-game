@@ -23,7 +23,9 @@ export default function game( state = defaultState, action = {} ) {
                     const level = levels[ id ];
                     memo[ id ] = {
                         ...level,
-                        entityIds: level.entityIds.slice( 0 )
+                        entityIds: level.entityIds.filter(
+                            ( eId ) => entities[ eId ].type !== 'player'
+                        )
                     };
                     return memo;
 
@@ -52,19 +54,19 @@ export default function game( state = defaultState, action = {} ) {
 
         case 'SCALE_PLAYER':
 
-            const sEntity = state.entities.find( ( search ) => {
-                return search.id === action.powerupIdToRemove;
-            });
-            const sIndex = state.entities.indexOf( sEntity );
+            const level = state.levels[ action.levelId ];
 
             return {
                 ...state,
                 playerRadius: state.playerRadius * action.multiplier,
                 playerScale: state.playerScale * action.multiplier,
-                entities: [
-                    ...state.entities.slice( 0, sIndex ),
-                    ...state.entities.slice( sIndex + 1 )
-                ]
+                levels: {
+                    ...state.levels,
+                    [ level.id ]: {
+                        ...level,
+                        entityIds: level.entityIds.filter( id => id !== action.powerupIdToRemove )
+                    }
+                }
             };
 
         case 'END_GAME':
@@ -85,10 +87,10 @@ export function startGame( levels, entities ) {
     };
 }
 
-export function scalePlayer( powerupIdToRemove, multiplier ) {
+export function scalePlayer( levelId, powerupIdToRemove, multiplier ) {
     return {
         type: 'SCALE_PLAYER',
-        powerupIdToRemove, multiplier
+        levelId, powerupIdToRemove, multiplier
     };
 }
 

@@ -177,12 +177,16 @@ function snapTo( number, interval ) {
 
         const { levels } = state.game;
         const currentLevel = levels[ state.currentLevel ];
+        const allEntities = state.game.entities;
+
+        // Potential placeholder for showing multiple levels at the same time?
+        const visibleEntities = currentLevel.entityIds.map( id => allEntities[ id ] );
 
         return {
             currentLevel,
             levels,
-            allEntities: state.game.entities,
-            entitiesArray: Object.values( state.game.entities ),
+            visibleEntities,
+            allEntities,
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
             playerScale: state.game.playerScale,
@@ -355,7 +359,7 @@ export default class Game extends Component {
 
     updatePhysics() {
 
-        const { entitiesArray, playerScale } = this.props;
+        const { visibleEntities, playerScale } = this.props;
         const { playerContact } = this.state;
         const { keysDown } = this;
         let forceX = 0;
@@ -462,7 +466,7 @@ export default class Game extends Component {
                 let currentEntrance = entrancePlayerStartsAt;
 
                 let failSafe = 0;
-                while( failSafe < 30 && ( nextTube = findNextTube( currentTube, currentEntrance, entitiesArray, playerScale ) ) ) {
+                while( failSafe < 30 && ( nextTube = findNextTube( currentTube, currentEntrance, visibleEntities, playerScale ) ) ) {
 
                     failSafe++;
 
@@ -651,7 +655,9 @@ export default class Game extends Component {
 
     _onAnimate() {
 
-        const { entitiesArray, playerRadius, playerMass, playerScale } = this.props;
+        const {
+            visibleEntities, playerRadius, playerMass, playerScale, currentLevel
+        } = this.props;
         const playerPosition = this.state.currentFlowPosition || this.playerBody.position;
 
         this.updatePhysics();
@@ -716,9 +722,9 @@ export default class Game extends Component {
             playerPosition.z
         ), 0.05 / playerScale );
 
-        for( let i = 0; i < entitiesArray.length; i++ ) {
+        for( let i = 0; i < visibleEntities.length; i++ ) {
 
-            const entity = entitiesArray[ i ];
+            const entity = visibleEntities[ i ];
 
             if( entity.type === 'shrink' || entity.type === 'grow' ) {
 
@@ -750,7 +756,7 @@ export default class Game extends Component {
                     this.playerBody = playerBody;
                     this.physicsBodies[ 0 ] = playerBody;
 
-                    this.props.scalePlayer( entity.id, multiplier );
+                    this.props.scalePlayer( currentLevel.id, entity.id, multiplier );
 
                 }
 
@@ -788,7 +794,7 @@ export default class Game extends Component {
         const {
             meshStates, time, cameraPosition, currentFlowPosition, debug
         } = this.state;
-        const { playerRadius, playerScale, entitiesArray } = this.props;
+        const { playerRadius, playerScale, visibleEntities } = this.props;
         const playerPosition = new THREE.Vector3().copy(
             currentFlowPosition || this.playerBody.position
         );
@@ -1038,7 +1044,7 @@ export default class Game extends Component {
 
                 <StaticEntities
                     ref="staticEntities"
-                    entities={ entitiesArray }
+                    entities={ visibleEntities }
                     time={ time }
                 />
 
