@@ -173,13 +173,23 @@ function snapTo( number, interval ) {
 }
 
 @connect(
-    state => ({
-        entities: state.game.entities,
-        playerPosition: state.game.playerPosition,
-        playerRadius: state.game.playerRadius,
-        playerScale: state.game.playerScale,
-        playerMass: state.game.playerMass,
-    }),
+    ( state ) => {
+
+        const { levels } = state.game;
+        const currentLevel = levels[ state.currentLevel ];
+
+        return {
+            currentLevel,
+            levels,
+            allEntities: state.game.entities,
+            entitiesArray: Object.values( state.game.entities ),
+            playerPosition: state.game.playerPosition,
+            playerRadius: state.game.playerRadius,
+            playerScale: state.game.playerScale,
+            playerMass: state.game.playerMass,
+        };
+
+    },
     dispatch => bindActionCreators( { scalePlayer }, dispatch )
 )
 export default class Game extends Component {
@@ -202,7 +212,8 @@ export default class Game extends Component {
 
         this.wallCoolDowns = {};
 
-        const { entities, playerRadius, playerMass } = props;
+        const { currentLevel, allEntities, playerRadius, playerMass } = props;
+        const { entityIds } = currentLevel;
 
         this.world = new CANNON.World();
         const world = this.world;
@@ -241,7 +252,9 @@ export default class Game extends Component {
         playerBody.position.copy( this.props.playerPosition );
         world.addBody( playerBody );
 
-        const physicsBodies = [ playerBody ].concat( entities.reduce( ( ents, entity ) => {
+        const physicsBodies = [ playerBody ].concat( entityIds.reduce( ( ents, id ) => {
+
+            const entity = allEntities[ id ];
 
             if( entity.type === 'shrink' || entity.type === 'grow' ) {
                 return ents;
@@ -342,7 +355,7 @@ export default class Game extends Component {
 
     updatePhysics() {
 
-        const { entities, playerScale } = this.props;
+        const { entitiesArray, playerScale } = this.props;
         const { playerContact } = this.state;
         const { keysDown } = this;
         let forceX = 0;
@@ -449,7 +462,7 @@ export default class Game extends Component {
                 let currentEntrance = entrancePlayerStartsAt;
 
                 let failSafe = 0;
-                while( failSafe < 30 && ( nextTube = findNextTube( currentTube, currentEntrance, entities, playerScale ) ) ) {
+                while( failSafe < 30 && ( nextTube = findNextTube( currentTube, currentEntrance, entitiesArray, playerScale ) ) ) {
 
                     failSafe++;
 
@@ -638,7 +651,7 @@ export default class Game extends Component {
 
     _onAnimate() {
 
-        const { entities, playerRadius, playerMass, playerScale } = this.props;
+        const { entitiesArray, playerRadius, playerMass, playerScale } = this.props;
         const playerPosition = this.state.currentFlowPosition || this.playerBody.position;
 
         this.updatePhysics();
@@ -703,9 +716,9 @@ export default class Game extends Component {
             playerPosition.z
         ), 0.05 / playerScale );
 
-        for( let i = 0; i < entities.length; i++ ) {
+        for( let i = 0; i < entitiesArray.length; i++ ) {
 
-            const entity = entities[ i ];
+            const entity = entitiesArray[ i ];
 
             if( entity.type === 'shrink' || entity.type === 'grow' ) {
 
@@ -775,7 +788,7 @@ export default class Game extends Component {
         const {
             meshStates, time, cameraPosition, currentFlowPosition, debug
         } = this.state;
-        const { entities, playerRadius, playerScale } = this.props;
+        const { playerRadius, playerScale, entitiesArray } = this.props;
         const playerPosition = new THREE.Vector3().copy(
             currentFlowPosition || this.playerBody.position
         );
@@ -1025,7 +1038,7 @@ export default class Game extends Component {
 
                 <StaticEntities
                     ref="staticEntities"
-                    entities={ entities }
+                    entities={ entitiesArray }
                     time={ time }
                 />
 

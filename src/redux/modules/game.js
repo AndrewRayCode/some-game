@@ -4,7 +4,8 @@ const defaultState = {
     playerRadius: 0.45,
     playerScale: 1,
     playerMass: 5,
-    entities: []
+    entities: {},
+    levels: {}
 };
 
 export default function game( state = defaultState, action = {} ) {
@@ -13,14 +14,41 @@ export default function game( state = defaultState, action = {} ) {
 
         case 'START_GAME':
 
-            return Object.assign( {}, state, {
-                entities: action.entities.filter( ( entity ) => {
-                    return entity.type !== 'player';
-                }),
-                playerPosition: ( action.entities.find( ( entity ) => {
-                    return entity.type === 'player';
-                }) || {} ).position || new THREE.Vector3( 0, 1.5, 0 )
-            });
+            const { entities, levels } = action;
+
+            return {
+                ...state,
+                levels: Object.keys( levels ).reduce( ( memo, id ) => {
+
+                    const level = levels[ id ];
+                    memo[ id ] = {
+                        ...level,
+                        entityIds: level.entityIds.slice( 0 )
+                    };
+                    return memo;
+
+                }, {} ),
+                entities: Object.keys( entities ).reduce( ( memo, id ) => {
+
+                    if( entities[ id ].type !== 'player' ) {
+
+                        const entity = entities[ id ];
+                        memo[ id ] = {
+                            ...entity,
+                            position: entity.position.clone(),
+                            scale: entity.scale.clone(),
+                            rotation: entity.rotation.clone(),
+                        };
+
+                    }
+
+                    return memo;
+
+                }, {} ),
+                playerPosition: ( ( entities[ Object.keys( entities ).find(
+                    ( id ) => entities[ id ].type === 'player'
+                ) ] || {} ).position || new THREE.Vector3( 0, 1.5, 0 ) ).clone()
+            };
 
         case 'SCALE_PLAYER':
 
@@ -49,10 +77,11 @@ export default function game( state = defaultState, action = {} ) {
 
 }
 
-export function startGame( entities ) {
+export function startGame( levels, entities ) {
     return {
         type: 'START_GAME',
-        entities
+        levelId: Object.keys( levels )[ 0 ],
+        levels, entities
     };
 }
 

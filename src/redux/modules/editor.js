@@ -136,28 +136,6 @@ export function levelsReducer( state = {}, action = {} ) {
                 [ action.levelId ]: levelEntityReducer( state[ action.levelId ], action )
             };
 
-        case LOAD:
-            return {
-                ...state,
-                loading: true
-            };
-
-        case LOAD_SUCCESS:
-            return {
-                ...state,
-                loading: false,
-                loaded: true,
-                levels: action.levels
-            };
-
-        case LOAD_FAIL:
-            return {
-                ...state,
-                loading: false,
-                loaded: false,
-                error: action.error
-            };
-
         default:
             return state;
 
@@ -171,6 +149,9 @@ export function currentLevelReducer( state = null, action = {} ) {
 
         case 'ADD_LEVEL':
             return action.id;
+
+        case 'START_GAME':
+            return action.levelId;
 
         default:
             return state;
@@ -232,10 +213,10 @@ export function changeEntityMaterial( id, newMaterialId ) {
 }
 
 export function loadLevels() {
-  return {
-    types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
-    promise: (client) => client.get('/loadInfo')
-  };
+    return {
+        types: [ LOAD, LOAD_SUCCESS, LOAD_FAIL ],
+        promise: client => client.get( '/loadInfo' )
+    };
 }
 
 export function areLevelsLoaded( globalState ) {

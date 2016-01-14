@@ -87,6 +87,7 @@
     "body-parser": "^1.14.1",
     "cannon": "git://github.com/schteppe/cannon.js.git#master",
     "classnames": "^2.2.1",
+    "clone": "^1.0.2",
     "compression": "^1.6.0",
     "express": "^4.13.3",
     "express-session": "^1.12.1",

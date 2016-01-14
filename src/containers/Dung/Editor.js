@@ -82,13 +82,13 @@ function snapTo( number, interval ) {
 
 function fetchData( getState, dispatch ) {
     const promises = [];
-    if( !areLevelsLoaded( getState() ) ) {
-        promises.push( dispatch( loadLevels() ) );
-    }
+    //if( !areLevelsLoaded( getState() ) ) {
+        //promises.push( dispatch( loadLevels() ) );
+    //}
     return Promise.all( promises );
 }
 
-@connectData(fetchData)
+@connectData( fetchData )
 @connect(
     state => ({
         levels: state.levels,

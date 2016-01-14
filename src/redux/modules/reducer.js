@@ -11,18 +11,18 @@ import game from './game';
 import { levelsReducer, entitiesReducer, currentLevelReducer } from './editor';
 
 export default combineReducers({
-  router: routerStateReducer,
-  auth,
-  form,
-  levels: levelsReducer,
-  entities: entitiesReducer,
-  currentLevel: currentLevelReducer,
-  game,
-  multireducer: multireducer({
-    counter1: counter,
-    counter2: counter,
-    counter3: counter
-  }),
-  info,
-  widgets
+    router: routerStateReducer,
+    auth,
+    form,
+    levels: levelsReducer,
+    entities: entitiesReducer,
+    currentLevel: currentLevelReducer,
+    game,
+    multireducer: multireducer({
+        counter1: counter,
+        counter2: counter,
+        counter3: counter
+    }),
+    info,
+    widgets
 });

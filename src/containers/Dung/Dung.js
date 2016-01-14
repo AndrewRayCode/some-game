@@ -9,7 +9,10 @@ import Editor from './Editor';
 import Game from '../Game/Game';
 
 @connect(
-    state => ({ entities: state.editor }),
+    state => ({
+        levels: state.levels,
+        entities: state.entities
+    }),
     dispatch => bindActionCreators( { startGame, endGame }, dispatch )
 )
 export default class Dung extends Component {
@@ -47,7 +50,7 @@ export default class Dung extends Component {
 
     onEditorSwitch() {
 
-        this.props.startGame( this.props.entities );
+        this.props.startGame( this.props.levels, this.props.entities );
         this.setState({ type: 'game' });
 
     }
