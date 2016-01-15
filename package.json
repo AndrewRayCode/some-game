@@ -104,6 +104,7 @@
     "map-props": "^1.0.0",
     "mousetrap": "^1.5.3",
     "multireducer": "^1.0.2",
+    "pg": "^4.4.3",
     "piping": "^0.3.0",
     "pretty-error": "^1.2.0",
     "query-string": "^3.0.0",

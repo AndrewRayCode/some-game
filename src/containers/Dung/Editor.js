@@ -6,7 +6,7 @@ import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
-    addLevel, selectLevel
+    addLevel, selectLevel, saveLevel, updateLevel
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -20,8 +20,6 @@ import KeyCodes from './KeyCodes';
 import Shrink from './Shrink';
 import Grow from './Grow';
 import Textures from './Textures';
-import connectData from '../../helpers/connectData';
-import { areLevelsLoaded, loadLevels } from '../../redux/modules/editor';
 const cx = classNames.bind( styles );
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
@@ -80,15 +78,6 @@ function snapTo( number, interval ) {
 
 }
 
-function fetchData( getState, dispatch ) {
-    const promises = [];
-    //if( !areLevelsLoaded( getState() ) ) {
-        //promises.push( dispatch( loadLevels() ) );
-    //}
-    return Promise.all( promises );
-}
-
-@connectData( fetchData )
 @connect(
     state => ({
         levels: state.levels,
@@ -97,7 +86,7 @@ function fetchData( getState, dispatch ) {
     }),
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
-        changeEntityMaterial, addLevel, selectLevel
+        changeEntityMaterial, addLevel, selectLevel, saveLevel, updateLevel
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -1184,6 +1173,12 @@ export default class Editor extends Component {
                     [G] Start Game.
                     <br />
                     [Esc] Return to editor.
+
+                    { currentLevel.saved ? <button onClick={ this.props.updateLevel.bind( null, currentLevel, entities ) }>
+                        Update Level "{ currentLevel.name }"
+                    </button> : <button onClick={ this.props.saveLevel.bind( null, currentLevel, entities ) }>
+                        Save Level "{ currentLevel.name }"
+                    </button> }
 
                 </div>
 

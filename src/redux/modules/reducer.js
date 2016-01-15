@@ -8,12 +8,13 @@ import {reducer as form} from 'redux-form';
 import info from './info';
 import widgets from './widgets';
 import game from './game';
-import { levelsReducer, entitiesReducer, currentLevelReducer } from './editor';
+import { loadLevelsReducer, levelsReducer, entitiesReducer, currentLevelReducer } from './editor';
 
 export default combineReducers({
     router: routerStateReducer,
     auth,
     form,
+    levelsLoaded: loadLevelsReducer,
     levels: levelsReducer,
     entities: entitiesReducer,
     currentLevel: currentLevelReducer,

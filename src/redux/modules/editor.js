@@ -1,9 +1,17 @@
 import THREE from 'three';
 import { without } from '../../containers/Dung/Utils';
 
-const LOAD = 'redux-example/LOAD';
-const LOAD_SUCCESS = 'redux-example/LOAD_SUCCESS';
-const LOAD_FAIL = 'redux-example/LOAD_FAIL';
+const LOAD = 'redux-example/LEVEL_LOAD';
+const LOAD_SUCCESS = 'redux-example/LEVEL_LOAD_SUCCESS';
+const LOAD_FAIL = 'redux-example/LEVEL_LOAD_FAIL';
+
+const SAVE = 'redux-example/SAVE';
+const SAVE_SUCCESS = 'redux-example/SAVE_SUCCESS';
+const SAVE_FAIL = 'redux-example/SAVE_FAIL';
+
+const UPDATE = 'redux-example/UPDATE';
+const UPDATE_SUCCESS = 'redux-example/UPDATE_SUCCESS';
+const UPDATE_FAIL = 'redux-example/UPDATE_FAIL';
 
 // Private reducer, only modifies entities themselves. State will be an entity
 function entityPropertyReducer( state, action ) {
@@ -57,6 +65,9 @@ function entityPropertyReducer( state, action ) {
 export function entitiesReducer( state = {}, action = {} ) {
 
     switch( action.type ) {
+
+        case LOAD_SUCCESS:
+            return Object.assign( {}, state, action.result );
 
         case 'ADD_ENTITY':
 
@@ -119,6 +130,24 @@ export function levelsReducer( state = {}, action = {} ) {
 
     switch( action.type ) {
 
+        case LOAD_SUCCESS:
+            return {
+                ...state,
+                levels: Object.assign( {}, state.levels, action.result )
+            };
+
+        case SAVE_SUCCESS:
+
+            const oldLevel = state[ action.result.oldId ];
+            return {
+                ...without( state, oldLevel.id ),
+                [ action.result.id ]: {
+                    ...oldLevel,
+                    id: action.result.id,
+                    saved: true
+                }
+            };
+
         case 'ADD_LEVEL':
             return {
                 ...state,
@@ -147,11 +176,31 @@ export function currentLevelReducer( state = null, action = {} ) {
 
     switch( action.type ) {
 
+        case SAVE_SUCCESS:
+            return action.result.id;
+
         case 'ADD_LEVEL':
             return action.id;
 
         case 'START_GAME':
             return action.levelId;
+
+        default:
+            return state;
+
+    }
+
+}
+
+export function loadLevelsReducer( state = {}, action = {} ) {
+
+    switch( action.type ) {
+
+        case LOAD_SUCCESS:
+            return {
+                ...state,
+                loaded: true
+            };
 
         default:
             return state;
@@ -215,10 +264,26 @@ export function changeEntityMaterial( id, newMaterialId ) {
 export function loadLevels() {
     return {
         types: [ LOAD, LOAD_SUCCESS, LOAD_FAIL ],
-        promise: client => client.get( '/loadInfo' )
+        promise: client => client.get( '/loadLevels' )
+    };
+}
+
+export function saveLevel( levelData, entities ) {
+    return {
+        types: [ SAVE, SAVE_SUCCESS, SAVE_FAIL ],
+        promise: client => client.post( '/saveLevel', { data: { levelData, entities } } )
+    };
+}
+
+export function updateLevel( levelData, entities ) {
+    return {
+        types: [ UPDATE, UPDATE_SUCCESS, UPDATE_FAIL ],
+        promise: client => client.post( '/updateLevel', { data: { levelData, entities } } )
     };
 }
 
 export function areLevelsLoaded( globalState ) {
-    return globalState.info && globalState.info.loaded;
+
+    return globalState.levelsLoaded && globalState.levelsLoaded.loaded;
+
 }

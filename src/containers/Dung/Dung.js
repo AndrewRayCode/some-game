@@ -4,10 +4,21 @@ import React3 from 'react-three-renderer';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { startGame, endGame } from '../../redux/modules/game';
+import { areLevelsLoaded, loadLevels } from '../../redux/modules/editor';
+import connectData from '../../helpers/connectData';
 import THREE from 'three';
 import Editor from './Editor';
 import Game from '../Game/Game';
 
+function fetchData( getState, dispatch ) {
+    const promises = [];
+    if( !areLevelsLoaded( getState() ) ) {
+        promises.push( dispatch( loadLevels() ) );
+    }
+    return Promise.all( promises );
+}
+
+@connectData( fetchData )
 @connect(
     state => ({
         levels: state.levels,
