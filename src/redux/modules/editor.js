@@ -13,6 +13,9 @@ const UPDATE = 'redux-example/UPDATE';
 const UPDATE_SUCCESS = 'redux-example/UPDATE_SUCCESS';
 const UPDATE_FAIL = 'redux-example/UPDATE_FAIL';
 
+// do NOT do this
+let hasDeserialized = false;
+
 // Private reducer, only modifies entities themselves. State will be an entity
 function entityPropertyReducer( state, action ) {
 
@@ -52,6 +55,14 @@ function entityPropertyReducer( state, action ) {
                     field === 'y' ? value : rotation.y,
                     field === 'z' ? value : rotation.z
                 )
+            };
+
+        case 'DESERIALIZE':
+            return {
+                ...state,
+                position: new THREE.Vector3().copy( state.position ),
+                rotation: new THREE.Quaternion( state.rotation._x, state.rotation._y, state.rotation._z, state.rotation._w ),
+                scale: new THREE.Vector3().copy( state.scale )
             };
 
         default:
@@ -98,6 +109,17 @@ export function entitiesReducer( state = {}, action = {} ) {
                 ...state,
                 [ action.id ]: entityPropertyReducer( state[ action.id ], action )
             };
+
+        case 'DESERIALIZE':
+            if( hasDeserialized ) {
+                return state;
+            }
+            hasDeserialized = true;
+            return Object.keys( state ).reduce( ( memo, id ) => {
+                memo[ id ] = entityPropertyReducer( state[ id ], action );
+                console.log('creaed a monster',memo[ id ]);
+                return memo;
+            }, {} );
 
         default:
             return state;
@@ -183,6 +205,7 @@ export function currentLevelReducer( state = null, action = {} ) {
             return action.result.id;
 
         case 'ADD_LEVEL':
+        case 'SELECT_LEVEL':
             return action.id;
 
         case 'START_GAME':
@@ -262,6 +285,10 @@ export function changeEntityMaterial( id, newMaterialId ) {
         type: 'CHANGE_ENTITY_MATERIAL_ID',
         id, newMaterialId
     };
+}
+
+export function deserializeLevels() {
+    return { type: 'DESERIALIZE' };
 }
 
 export function loadLevels() {

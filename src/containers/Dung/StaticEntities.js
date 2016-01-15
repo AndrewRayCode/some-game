@@ -146,6 +146,11 @@ export default class StaticEntities extends Component {
                         materialId="playerMaterial"
                     />;
 
+                } else {
+
+                    console.warn( 'Unknown entity type!', entity );
+                    return null;
+
                 }
 
             }) }

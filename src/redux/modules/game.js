@@ -97,4 +97,3 @@ export function scalePlayer( levelId, powerupIdToRemove, multiplier ) {
 export function endGame() {
     return { type: 'END_GAME' };
 }
-

@@ -6,7 +6,7 @@ import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
-    addLevel, selectLevel, saveLevel, updateLevel
+    addLevel, selectLevel, saveLevel, updateLevel, deserializeLevels
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -86,7 +86,8 @@ function snapTo( number, interval ) {
     }),
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
-        changeEntityMaterial, addLevel, selectLevel, saveLevel, updateLevel
+        changeEntityMaterial, addLevel, selectLevel, saveLevel, updateLevel,
+        deserializeLevels
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -144,6 +145,11 @@ export default class Editor extends Component {
                 this._setUpOrbitControls();
 
             }
+
+            // This is bad. Fix it later
+            setTimeout( () => {
+                this.props.deserializeLevels();
+            }, 0 );
 
         }
 
@@ -657,8 +663,10 @@ export default class Editor extends Component {
                 No level selected
                 <ul>
                 { ( Object.keys( levels ) || [] ).map( id => {
-                    return <li>
-                        { levels[ id ].name }
+                    return <li key={ id }>
+                        <a onClick={ this.props.selectLevel.bind( null, id ) }>
+                            { levels[ id ].name }
+                        </a>
                     </li>;
                 }) }
                 </ul>
