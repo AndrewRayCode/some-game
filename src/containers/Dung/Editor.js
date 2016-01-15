@@ -655,6 +655,13 @@ export default class Editor extends Component {
 
             return <div>
                 No level selected
+                <ul>
+                { ( Object.keys( levels ) || [] ).map( id => {
+                    return <li>
+                        { levels[ id ].name }
+                    </li>;
+                }) }
+                </ul>
                 <button onClick={ this.props.addLevel.bind( null, 'New Level' ) }>
                     Create Level
                 </button>

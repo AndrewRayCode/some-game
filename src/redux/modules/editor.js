@@ -67,7 +67,10 @@ export function entitiesReducer( state = {}, action = {} ) {
     switch( action.type ) {
 
         case LOAD_SUCCESS:
-            return Object.assign( {}, state, action.result );
+            return {
+                ...state,
+                ...action.result.entities
+            };
 
         case 'ADD_ENTITY':
 
@@ -133,7 +136,7 @@ export function levelsReducer( state = {}, action = {} ) {
         case LOAD_SUCCESS:
             return {
                 ...state,
-                levels: Object.assign( {}, state.levels, action.result )
+                ...action.result.levels
             };
 
         case SAVE_SUCCESS:

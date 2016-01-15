@@ -17,11 +17,26 @@ export function saveLevel( request ) {
         return db.insert( newLevel )
             .into( 'levels' )
             .returning( 'id' )
-            .then( id => resolve({
+            .then( ids => {
+
+                const id = ids[ 0 ];
+                const levelWithUpdatedIdInJSON = {
+                    title: name,
+                    data: { levelData: {
+                        ...levelData,
+                        id
+                    }, entities }
+                };
+
+                return db( 'levels' )
+                    .where({ id })
+                    .update( levelWithUpdatedIdInJSON )
+                    .returning( 'id' );
+
+            }).then( id => resolve({
                 oldId: levelData.id,
                 id: id[ 0 ]
-            }) )
-            .catch( reject );
+            }) ).catch( reject );
         
     });
 
@@ -53,10 +68,19 @@ export function loadLevels( request ) {
 
     return new Promise( ( resolve, reject ) => {
 
-        console.log('lol what');
         return db( 'levels' )
             .select( '*' )
-            .then( resolve )
+            .then( results =>
+                  resolve( results.reduce( ( memo, sqlRow ) => {
+                    const json = JSON.parse( sqlRow.data );
+                    memo.levels[ sqlRow.id ] = json.levelData;
+                    memo.entities = {
+                        ...memo.entities,
+                        ...json.entities
+                    };
+                    return memo;
+                  }, { levels: {}, entities: {} } ) )
+            )
             .catch( reject );
         
     });
