@@ -16,9 +16,12 @@ export default class StaticEntities extends Component {
 
     render() {
 
-        const { entities, time } = this.props;
+        const { entities, time, position, scale } = this.props;
 
-        return <group>
+        return <group
+            position={ position }
+            scale={ scale }
+        >
             <resources>
                 <boxGeometry
                     resourceId="1x1box"

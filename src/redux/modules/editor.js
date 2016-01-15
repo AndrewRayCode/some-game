@@ -117,7 +117,6 @@ export function entitiesReducer( state = {}, action = {} ) {
             hasDeserialized = true;
             return Object.keys( state ).reduce( ( memo, id ) => {
                 memo[ id ] = entityPropertyReducer( state[ id ], action );
-                console.log('creaed a monster',memo[ id ]);
                 return memo;
             }, {} );
 
@@ -170,6 +169,16 @@ export function levelsReducer( state = {}, action = {} ) {
                     ...oldLevel,
                     id: action.result.id,
                     saved: true
+                }
+            };
+
+        case 'MODIFY_LEVEL':
+            return {
+                ...state,
+                [ action.id ]: {
+                    ...state[ action.id ],
+                    id: action.id,
+                    [ action.field ]: action.value
                 }
             };
 
@@ -286,6 +295,16 @@ export function changeEntityMaterial( id, newMaterialId ) {
         id, newMaterialId
     };
 }
+
+export function renameLevel( id, name ) {
+    return {
+        type: 'MODIFY_LEVEL',
+        field: 'name',
+        value: name,
+        id
+    };
+}
+
 
 export function deserializeLevels() {
     return { type: 'DESERIALIZE' };

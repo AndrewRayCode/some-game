@@ -6,7 +6,8 @@ import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
-    addLevel, selectLevel, saveLevel, updateLevel, deserializeLevels
+    addLevel, selectLevel, saveLevel, updateLevel, deserializeLevels,
+    renameLevel
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -87,7 +88,7 @@ function snapTo( number, interval ) {
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
         changeEntityMaterial, addLevel, selectLevel, saveLevel, updateLevel,
-        deserializeLevels
+        deserializeLevels, renameLevel
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -115,6 +116,7 @@ export default class Editor extends Component {
             gridBaseRotation: new THREE.Euler( 0, Math.PI / 2, 0 ),
             gridBaseScale: new THREE.Vector3( 200, 0.00001, 200 ),
 
+            insertLevelId: ( Object.keys( props.levels )[ 0 ] || {} ).id,
             gridPosition: new THREE.Vector3( 0, 0, 0 )
         };
 
@@ -128,6 +130,7 @@ export default class Editor extends Component {
         this.selectType = this.selectType.bind( this );
         this.selectMaterialId = this.selectMaterialId.bind( this );
         this.changeMaterialId = this.changeMaterialId.bind( this );
+        this.onLevelCreateChange = this.onLevelCreateChange.bind( this );
 
     }
 
@@ -160,6 +163,14 @@ export default class Editor extends Component {
         if( !this.controls && this.props.currentLevelId ) {
             this._setUpOrbitControls();
         }
+
+    }
+
+    onLevelCreateChange( event ) {
+
+        this.setState({
+            insertLevelId: event.target.value
+        });
 
     }
 
@@ -251,6 +262,10 @@ export default class Editor extends Component {
             } else if( KeyCodes.P in keys ) {
 
                 createType = 'player';
+
+            } else if( KeyCodes.L in keys ) {
+
+                createType = 'level';
                  
             }
 
@@ -775,6 +790,28 @@ export default class Editor extends Component {
                     radius={ 0.5 }
                 />;
 
+            } else if( createType === 'level' ) {
+
+                previewObject = <group
+                    position={ createPreviewPosition }
+                    quaternion={ createPreviewRotation }
+                    scale={ gridScale }
+                >
+                    <Wall
+                        position={ new THREE.Vector3( 0, 0, 0 ) }
+                        ref="previewPosition"
+                        materialId="ghostMaterial"
+                        scale={ new THREE.Vector3( 8, 1.5, 8 ) }
+                    />
+                    <StaticEntities
+                        time={ time }
+                        position={ new THREE.Vector3( 0, 0, 0 ) }
+                        entities={ levels[
+                            this.state.insertLevelId || Object.keys( levels )[ 0 ]
+                        ].entityIds.map( id => entities[ id ] ) }
+                    />
+                </group>;
+
             }
 
         }
@@ -1155,6 +1192,24 @@ export default class Editor extends Component {
                         <button onClick={ this.selectType( 'player' ) }>
                             Player
                         </button>
+                        <br />
+                        [L] { createType === 'level' && '✓' }
+                        <select
+                            onChange={ this.onLevelCreateChange }
+                            value={ this.state.insertLevelId }
+                        >
+                            { ( Object.keys( levels ) || [] ).map( id => {
+                                return <option
+                                    key={ id }
+                                    value={ id }
+                                >
+                                    { levels[ id ].name }
+                                </option>;
+                            }) }
+                        </select>
+                        <button onClick={ this.selectType( 'level' ) }>
+                            Level
+                        </button>
 
                         { createType === 'wall' && <div>
 
@@ -1189,7 +1244,14 @@ export default class Editor extends Component {
                     <br />
                     [Esc] Return to editor.
 
-                    <div style={{ opacity: 0 }}>
+                    <br />
+                    <b>Level Name</b>
+                    <input
+                        type="text"
+                        value={ currentLevel.name }
+                        onChange={ event => this.props.renameLevel( currentLevel.id, event.target.value ) }
+                    />
+                    <div>
                         { currentLevel.saved ? <button onClick={ this.props.updateLevel.bind( null, currentLevel, entities ) }>
                             Update Level "{ currentLevel.name }"
                         </button> : <button onClick={ this.props.saveLevel.bind( null, currentLevel, entities ) }>
