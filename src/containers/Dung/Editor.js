@@ -1189,11 +1189,13 @@ export default class Editor extends Component {
                     <br />
                     [Esc] Return to editor.
 
-                    { currentLevel.saved ? <button onClick={ this.props.updateLevel.bind( null, currentLevel, entities ) }>
-                        Update Level "{ currentLevel.name }"
-                    </button> : <button onClick={ this.props.saveLevel.bind( null, currentLevel, entities ) }>
-                        Save Level "{ currentLevel.name }"
-                    </button> }
+                    <div style={{ opacity: 0 }}>
+                        { currentLevel.saved ? <button onClick={ this.props.updateLevel.bind( null, currentLevel, entities ) }>
+                            Update Level "{ currentLevel.name }"
+                        </button> : <button onClick={ this.props.saveLevel.bind( null, currentLevel, entities ) }>
+                            Save Level "{ currentLevel.name }"
+                        </button> }
+                    </div>
 
                 </div>
 
