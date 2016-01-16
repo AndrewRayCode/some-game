@@ -47,9 +47,18 @@ export default function game( state = defaultState, action = {} ) {
                     return memo;
 
                 }, {} ),
-                playerPosition: ( ( entities[ Object.keys( entities ).find(
-                    ( id ) => entities[ id ].type === 'player'
+                // Reverse to fix a bug where leftover player entities cause
+                // old starting points to remain
+                playerPosition: ( ( entities[ Object.keys( entities ).reverse().find(
+                    id => entities[ id ].type === 'player'
                 ) ] || {} ).position || new THREE.Vector3( 0, 1.5, 0 ) ).clone()
+            };
+
+        case 'SELECT_LEVEL':
+            return {
+                ...state,
+                playerRadius: defaultState.playerRadius,
+                playerScale: defaultState.playerScale
             };
 
         case 'SCALE_PLAYER':
@@ -83,6 +92,13 @@ export function startGame( levelId, levels, entities ) {
     return {
         type: 'START_GAME',
         levelId, levels, entities
+    };
+}
+
+export function advanceLevel( id ) {
+    return {
+        type: 'SELECT_LEVEL',
+        id
     };
 }
 

@@ -6,7 +6,7 @@ import CANNON from 'cannon/src/Cannon';
 import StaticEntities from '../Dung/StaticEntities';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { scalePlayer } from '../../redux/modules/game';
+import { scalePlayer, advanceLevel } from '../../redux/modules/game';
 import KeyCodes from '../Dung/KeyCodes';
 import Cardinality from '../Dung/Cardinality';
 import TubeBend from '../Dung/TubeBend';
@@ -55,6 +55,18 @@ const lerp = ( () => {
 } )();
 
 const cameraAngleScale = 0.9;
+
+const wallMaterial = new CANNON.Material( 'wallMaterial' );
+
+// Adjust constraint equation parameters for ground/ground contact
+const material = new CANNON.ContactMaterial( wallMaterial, wallMaterial, {
+    friction: 0.9,
+    restitution: 0,
+    contactEquationStiffness: 1e8,
+    contactEquationRelaxation: 3,
+    frictionEquationStiffness: 1e8,
+    frictionEquationRegularizationTime: 3,
+});
 
 function getCameraDistanceToPlayer( aspect, fov, objectSize ) {
 
@@ -207,11 +219,12 @@ function snapTo( number, interval ) {
         };
 
     },
-    dispatch => bindActionCreators( { scalePlayer }, dispatch )
+    dispatch => bindActionCreators( { scalePlayer, advanceLevel }, dispatch )
 )
 export default class Game extends Component {
 
     constructor( props, context ) {
+
         super( props, context );
 
         this.keysDown = {};
@@ -229,24 +242,8 @@ export default class Game extends Component {
 
         this.wallCoolDowns = {};
 
-        const { currentLevel, allEntities, playerRadius, playerMass } = props;
-        const { entityIds } = currentLevel;
-
         this.world = new CANNON.World();
         const world = this.world;
-
-        const wallMaterial = new CANNON.Material( 'wallMaterial' );
-        this.wallMaterial = wallMaterial;
-
-        // Adjust constraint equation parameters for ground/ground contact
-        const material = new CANNON.ContactMaterial( wallMaterial, wallMaterial, {
-            friction: 0.9,
-            restitution: 0,
-            contactEquationStiffness: 1e8,
-            contactEquationRelaxation: 3,
-            frictionEquationStiffness: 1e8,
-            frictionEquationRegularizationTime: 3,
-        });
 
         // Add contact material to the world
         world.addContactMaterial( material );
@@ -257,6 +254,25 @@ export default class Game extends Component {
         world.gravity.set( 0, -20, 20 );
         world.broadphase = new CANNON.NaiveBroadphase();
 
+        this.onKeyDown = this.onKeyDown.bind( this );
+        this.onKeyUp = this.onKeyUp.bind( this );
+        this.updatePhysics = this.updatePhysics.bind( this );
+        this._onAnimate = this._onAnimate.bind( this );
+        this._getMeshStates = this._getMeshStates.bind( this );
+        this.onPlayerCollide = this.onPlayerCollide.bind( this );
+        this.onPlayerContactEndTest = this.onPlayerContactEndTest.bind( this );
+        this._setupPhysics = this._setupPhysics.bind( this );
+
+        // Needs proper scoping of this before we can call it :(
+        this._setupPhysics( props );
+
+    }
+
+    _setupPhysics( props, playerPosition ) {
+
+        const { currentLevel, allEntities, playerRadius, playerMass } = props;
+        const { entityIds } = currentLevel;
+
         const playerBody = new CANNON.Body({
             material: wallMaterial,
             mass: playerMass
@@ -266,8 +282,8 @@ export default class Game extends Component {
         const playerShape = new CANNON.Sphere( playerRadius );
 
         playerBody.addShape( playerShape );
-        playerBody.position.copy( this.props.playerPosition );
-        world.addBody( playerBody );
+        playerBody.position.copy( playerPosition || props.playerPosition );
+        this.world.addBody( playerBody );
 
         const physicsBodies = [ playerBody ].concat( entityIds.reduce( ( ents, id ) => {
 
@@ -294,20 +310,15 @@ export default class Game extends Component {
                 position.z
             );
             entityBody.entity = entity;
-            world.addBody( entityBody );
+            this.world.addBody( entityBody );
             return ents.concat( entityBody );
 
         }, [] ));
 
         this.physicsBodies = physicsBodies;
 
-        this.onKeyDown = this.onKeyDown.bind( this );
-        this.onKeyUp = this.onKeyUp.bind( this );
-        this.updatePhysics = this.updatePhysics.bind( this );
-        this._onAnimate = this._onAnimate.bind( this );
-        this._getMeshStates = this._getMeshStates.bind( this );
-        this.onPlayerCollide = this.onPlayerCollide.bind( this );
-        this.onPlayerContactEndTest = this.onPlayerContactEndTest.bind( this );
+        this.playerBody.addEventListener( 'collide', this.onPlayerCollide );
+        this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
 
     }
 
@@ -315,9 +326,6 @@ export default class Game extends Component {
 
         window.addEventListener( 'keydown', this.onKeyDown );
         window.addEventListener( 'keyup', this.onKeyUp );
-
-        this.playerBody.addEventListener( 'collide', this.onPlayerCollide );
-        this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
 
     }
 
@@ -328,6 +336,35 @@ export default class Game extends Component {
 
         this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
         this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
+
+    }
+
+    componentWillUpdate( nextProps, nextState ) {
+
+        if( nextProps.currentLevel.id !== this.props.currentLevel.id ) {
+
+            this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
+            this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+
+            this.physicsBodies.map( body => this.world.remove( this.playerBody ) );
+
+            const { position } = this.playerBody;
+            const newPosition = new CANNON.Vec3(
+                position.x * 2 * 2 * 2,
+                1.5,
+                position.z * 2 * 2 * 2
+            );
+
+            this._setupPhysics( nextProps, newPosition );
+            this.advancing = false;
+
+            this.state.cameraPosition = new THREE.Vector3(
+                newPosition.x,
+                newPosition.y + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, 1 ),
+                newPosition.z
+            );
+
+        }
 
     }
 
@@ -372,7 +409,7 @@ export default class Game extends Component {
 
     updatePhysics() {
 
-        const { visibleEntities, playerScale, nextLevel } = this.props;
+        const { visibleEntities, playerScale, nextLevel, currentLevel } = this.props;
         const { playerContact } = this.state;
         const { keysDown } = this;
         let forceX = 0;
@@ -392,13 +429,14 @@ export default class Game extends Component {
         const contactKeys = Object.keys( playerContact );
         let tubeEntrances;
 
-        if( nextLevel && playerScale === nextLevel.scale.x && (
-             ( playerPosition.x > ( nextLevel.position.x - 0.500 ) ) &&
-             ( playerPosition.x < ( nextLevel.position.x + 0.500 ) ) &&
-             ( playerPosition.z > ( nextLevel.position.z - 0.500 ) ) &&
-             ( playerPosition.z < ( nextLevel.position.z + 0.500 ) )
+        if( nextLevel && playerScale === nextLevel.scale.x && !this.advancing && (
+             ( playerPosition.x > ( nextLevel.position.x - 0.550 ) ) &&
+             ( playerPosition.x < ( nextLevel.position.x + 0.550 ) ) &&
+             ( playerPosition.z > ( nextLevel.position.z - 0.550 ) ) &&
+             ( playerPosition.z < ( nextLevel.position.z + 0.550 ) )
         ) ) {
-            console.log('AHAHAHHA');
+            this.advancing = true;
+            this.props.advanceLevel( currentLevel.nextLevelId );
         }
 
         if( !this.state.tubeFlow ) {
@@ -760,7 +798,7 @@ export default class Game extends Component {
                     this.world.remove( this.playerBody );
 
                     const playerBody = new CANNON.Body({
-                        material: this.wallMaterial,
+                        material: wallMaterial,
                         mass: playerMass
                     });
                     playerBody.addEventListener( 'collide', this.onPlayerCollide );
