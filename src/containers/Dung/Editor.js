@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
     addLevel, selectLevel, saveLevel, updateLevel, deserializeLevels,
-    renameLevel
+    renameLevel, addNextLevel
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -87,8 +87,8 @@ function snapTo( number, interval ) {
     }),
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
-        changeEntityMaterial, addLevel, selectLevel, saveLevel, updateLevel,
-        deserializeLevels, renameLevel
+        changeEntityMaterial, addNextLevel, selectLevel, saveLevel, updateLevel,
+        deserializeLevels, renameLevel, addLevel
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -483,7 +483,9 @@ export default class Editor extends Component {
                         previewPosition.refs.mesh2
                     ) &&
                     intersection.object !== dragCreateBlock &&
-                    !( intersection.object instanceof THREE.Line );
+                    !( intersection.object instanceof THREE.Line ) &&
+                    ( intersection.object.parent !== this.refs.previewGroup ) &&
+                    ( intersection.object.parent && intersection.object.parent.parent !== this.refs.previewGroup );
             })
             .sort( ( a, b ) => {
                 return a.distance - b.distance;
@@ -493,9 +495,9 @@ export default class Editor extends Component {
 
             const entityTest = entityIds.find( ( id ) => {
 
-                const ref = staticEntities.refs[ id ].refs.mesh;
-
-                return ref === intersections[ 0 ].object;
+                const ref = staticEntities.refs[ id ];
+                
+                return ref && ref.refs.mesh === intersections[ 0 ].object;
 
             });
 
@@ -518,7 +520,7 @@ export default class Editor extends Component {
                 snapTo( point.x, gridSnap ),
                 snapTo( point.y, gridSnap ),
                 snapTo( point.z, gridSnap )
-            ).addScalar( -gridSnap / 2 );
+            ).addScalar( this.state.createType === 'level' ? 0 : -gridSnap / 2 );
 
             if( this.state.dragCreating ) {
 
@@ -593,7 +595,7 @@ export default class Editor extends Component {
             createPreviewScale, createPreviewRotation, createMaterialId
         } = this.state;
 
-        const { currentLevelId } = this.props;
+        const { currentLevelId, levels } = this.props;
 
         if( rotateable ) {
 
@@ -605,10 +607,21 @@ export default class Editor extends Component {
 
         if( dragCreating ) {
 
-            this.props.addEntity(
-                currentLevelId, createType, createPreviewPosition, createPreviewScale,
-                createPreviewRotation, createMaterialId
-            );
+            if( createType === 'level' ) {
+
+                this.props.addNextLevel(
+                    currentLevelId, this.state.insertLevelId || Object.keys( levels )[ 0 ],
+                    createPreviewPosition, createPreviewScale
+                );
+
+            } else {
+
+                this.props.addEntity(
+                    currentLevelId, createType, createPreviewPosition, createPreviewScale,
+                    createPreviewRotation, createMaterialId
+                );
+
+            }
 
             this.controls.enabled = true;
             this.setState({
@@ -695,7 +708,16 @@ export default class Editor extends Component {
         const currentLevel = levels[ currentLevelId ];
         const { entityIds } = currentLevel;
 
-        const levelEntities = entityIds.map( id => entities[ id ] );
+        const levelEntities = entityIds
+            .map( id => entities[ id ] )
+            .filter( entity => entity.type !== 'level' );
+
+        const nextLevel = currentLevel.nextLevelId && {
+            level: levels[ currentLevel.nextLevelId ],
+            ...Object.keys( entities )
+                .map( id => entities[ id ] )
+                .find( entity => entity.type === 'level' )
+        };
 
         const {
             createType, selecting, selectedObjectId, creating, rotateable,
@@ -796,12 +818,14 @@ export default class Editor extends Component {
                     position={ createPreviewPosition }
                     quaternion={ createPreviewRotation }
                     scale={ gridScale }
+                    ref="previewGroup"
                 >
                     <Wall
                         position={ new THREE.Vector3( 0, 0, 0 ) }
                         ref="previewPosition"
                         materialId="ghostMaterial"
-                        scale={ new THREE.Vector3( 8, 1.5, 8 ) }
+                        position={ new THREE.Vector3( 0, 1, 0 ) }
+                        scale={ new THREE.Vector3( 8.01, 2.01, 8.01 ) }
                     />
                     <StaticEntities
                         time={ time }
@@ -1054,6 +1078,17 @@ export default class Editor extends Component {
                                 entities={ levelEntities }
                                 time={ time }
                             />
+
+                            { nextLevel && <StaticEntities
+                                position={ nextLevel.position }
+                                scale={ nextLevel.scale }
+                                ref="staticEntities"
+                                entities={ nextLevel.level.entityIds
+                                    .map( id => entities[ id ] )
+                                    .filter( entity => entity.type !== 'level' )
+                                }
+                                time={ time }
+                            /> }
 
                         </scene>
 

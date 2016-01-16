@@ -83,6 +83,7 @@ export function entitiesReducer( state = {}, action = {} ) {
                 ...action.result.entities
             };
 
+        case 'ADD_NEXT_LEVEL':
         case 'ADD_ENTITY':
 
             return {
@@ -169,6 +170,15 @@ export function levelsReducer( state = {}, action = {} ) {
                     ...oldLevel,
                     id: action.result.id,
                     saved: true
+                }
+            };
+
+        case 'ADD_NEXT_LEVEL':
+            return {
+                ...state,
+                [ action.levelId ]: {
+                    ...state[ action.levelId ],
+                    nextLevelId: action.nextLevelId
                 }
             };
 
@@ -302,6 +312,15 @@ export function renameLevel( id, name ) {
         field: 'name',
         value: name,
         id
+    };
+}
+
+export function addNextLevel( levelId, nextLevelId, position, scale ) {
+    return {
+        type: 'ADD_NEXT_LEVEL',
+        entityType: 'level',
+        id: Date.now(),
+        levelId, nextLevelId, position, scale
     };
 }
 
