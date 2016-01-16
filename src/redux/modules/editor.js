@@ -61,7 +61,10 @@ function entityPropertyReducer( state, action ) {
             return {
                 ...state,
                 position: new THREE.Vector3().copy( state.position ),
-                rotation: new THREE.Quaternion( state.rotation._x, state.rotation._y, state.rotation._z, state.rotation._w ),
+                // Level entities don't have rotation saved
+                rotation: state.rotation ?
+                    new THREE.Quaternion( state.rotation._x, state.rotation._y, state.rotation._z, state.rotation._w ) :
+                    new THREE.Quaternion( 0, 0, 0, 1 ),
                 scale: new THREE.Vector3().copy( state.scale )
             };
 
