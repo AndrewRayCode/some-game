@@ -339,6 +339,23 @@ export default class Game extends Component {
 
     }
 
+    componentWillReceiveProps( nextProps ) {
+
+        if( nextProps.currentLevel.id !== this.props.currentLevel.id ) {
+
+            const { nextLevel } = this.props;
+            const { cameraPosition } = this.state;
+
+            this.setState({ cameraPosition: new THREE.Vector3(
+                ( cameraPosition.x - nextLevel.position.x ) * 2 * 2 * 2,
+                1.5 + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, 1 ),
+                ( cameraPosition.z - nextLevel.position.z ) * 2 * 2 * 2
+            ) });
+
+        }
+
+    }
+
     componentWillUpdate( nextProps, nextState ) {
 
         if( nextProps.currentLevel.id !== this.props.currentLevel.id ) {
@@ -357,12 +374,6 @@ export default class Game extends Component {
             );
 
             this._setupPhysics( nextProps, newPosition );
-
-            //this.state.cameraPosition = new THREE.Vector3(
-                //newPosition.x,
-                //newPosition.y + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, 1 ),
-                //newPosition.z
-            //);
 
             this.advancing = false;
 
