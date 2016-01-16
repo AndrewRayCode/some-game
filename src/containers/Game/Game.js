@@ -348,21 +348,23 @@ export default class Game extends Component {
 
             this.physicsBodies.map( body => this.world.remove( this.playerBody ) );
 
+            const { nextLevel } = this.props;
             const { position } = this.playerBody;
             const newPosition = new CANNON.Vec3(
-                position.x * 2 * 2 * 2,
+                ( position.x - nextLevel.position.x ) * 2 * 2 * 2,
                 1.5,
-                position.z * 2 * 2 * 2
+                ( position.z - nextLevel.position.z ) * 2 * 2 * 2,
             );
 
             this._setupPhysics( nextProps, newPosition );
-            this.advancing = false;
 
-            this.state.cameraPosition = new THREE.Vector3(
-                newPosition.x,
-                newPosition.y + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, 1 ),
-                newPosition.z
-            );
+            //this.state.cameraPosition = new THREE.Vector3(
+                //newPosition.x,
+                //newPosition.y + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, 1 ),
+                //newPosition.z
+            //);
+
+            this.advancing = false;
 
         }
 
@@ -430,10 +432,10 @@ export default class Game extends Component {
         let tubeEntrances;
 
         if( nextLevel && playerScale === nextLevel.scale.x && !this.advancing && (
-             ( playerPosition.x > ( nextLevel.position.x - 0.550 ) ) &&
-             ( playerPosition.x < ( nextLevel.position.x + 0.550 ) ) &&
-             ( playerPosition.z > ( nextLevel.position.z - 0.550 ) ) &&
-             ( playerPosition.z < ( nextLevel.position.z + 0.550 ) )
+             ( playerPosition.x > ( nextLevel.position.x - 0.475 ) ) &&
+             ( playerPosition.x < ( nextLevel.position.x + 0.475 ) ) &&
+             ( playerPosition.z > ( nextLevel.position.z - 0.475 ) ) &&
+             ( playerPosition.z < ( nextLevel.position.z + 0.475 ) )
         ) ) {
             this.advancing = true;
             this.props.advanceLevel( currentLevel.nextLevelId );
