@@ -83,7 +83,8 @@ function snapTo( number, interval ) {
     state => ({
         levels: state.levels,
         entities: state.entities,
-        currentLevelId: state.currentLevel
+        currentLevelId: state.currentLevel,
+        currentLevel: state.levels[ state.currentLevel ]
     }),
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
@@ -402,7 +403,11 @@ export default class Editor extends Component {
         if( this.state.selecting && ( KeyCodes.X in this.keysPressed ) && this.state.selectedObjectId ) {
 
             this.setState({ selectedObjectId: null });
-            this.props.removeEntity( this.props.currentLevelId, this.state.selectedObjectId );
+            this.props.removeEntity(
+                this.props.currentLevelId,
+                this.state.selectedObjectId,
+                this.props.entities[ this.state.selectedObjectId ].type
+            );
             
         }
 
@@ -446,7 +451,7 @@ export default class Editor extends Component {
 
     onMouseMove( event ) {
         
-        const { levels, currentLevelId } = this.props;
+        const { levels, currentLevelId, currentLevel } = this.props;
 
         if( !currentLevelId ) {
 
@@ -459,7 +464,7 @@ export default class Editor extends Component {
             container
         } = this.refs;
 
-        const { entityIds } = levels[ currentLevelId ];
+        const { entityIds } = currentLevel;
         const bounds = container.getBoundingClientRect();
 
         // calculate mouse position in normalized device coordinates
@@ -493,13 +498,22 @@ export default class Editor extends Component {
 
         if ( this.state.selecting && intersections.length ) {
 
-            const entityTest = entityIds.find( ( id ) => {
+            const objectIntersection = intersections[ 0 ].object;
+
+            let entityTest = entityIds.find( ( id ) => {
 
                 const ref = staticEntities.refs[ id ];
                 
-                return ref && ref.refs.mesh === intersections[ 0 ].object;
+                return ref && ref.refs.mesh === objectIntersection;
 
             });
+
+            if( this.props.currentLevel.nextLevelId && objectIntersection.parent === this.refs.nextLevel.refs.group ) {
+                entityTest = Object.keys( this.props.entities )
+                    .map( id => this.props.entities[ id ] )
+                    .find( entity => entity.type === 'level' );
+                entityTest = entityTest.id;
+            }
 
             this.setState({
                 objectUnderCursorId: intersections.length && entityTest ?
@@ -683,7 +697,7 @@ export default class Editor extends Component {
 
     render() {
 
-        const { entities, levels, currentLevelId } = this.props;
+        const { entities, levels, currentLevelId, currentLevel } = this.props;
 
         if( !currentLevelId ) {
 
@@ -705,7 +719,6 @@ export default class Editor extends Component {
 
         }
 
-        const currentLevel = levels[ currentLevelId ];
         const { entityIds } = currentLevel;
 
         const levelEntities = entityIds
@@ -725,9 +738,7 @@ export default class Editor extends Component {
             rotating, time, lightPosition
         } = this.state;
 
-        const selectedObject = levelEntities.find( ( search ) => {
-            return search.id === selectedObjectId;
-        });
+        const selectedObject = entities[ selectedObjectId ];
 
         let editorState = 'None';
         if( rotateable ) {
@@ -1080,9 +1091,9 @@ export default class Editor extends Component {
                             />
 
                             { nextLevel && <StaticEntities
+                                ref="nextLevel"
                                 position={ nextLevel.position }
                                 scale={ nextLevel.scale }
-                                ref="staticEntities"
                                 entities={ nextLevel.level.entityIds
                                     .map( id => entities[ id ] )
                                     .filter( entity => entity.type !== 'level' )
@@ -1299,9 +1310,23 @@ export default class Editor extends Component {
             </div>
 
             <div>
-                State: { editorState }
+                <b>State:</b> { editorState }
                 <br />
-                Grid Snap: { gridSnap }
+                <b>Grid Snap:</b> { gridSnap }
+                <br />
+                <b>Levels:</b>
+                <ul>
+                { ( Object.keys( levels ) || [] ).map( id => {
+                    return <li key={ id }>
+                        <a onClick={ this.props.selectLevel.bind( null, id ) }>
+                            { levels[ id ].name }
+                        </a>
+                    </li>;
+                }) }
+                </ul>
+                <button onClick={ this.props.addLevel.bind( null, 'New Level' ) }>
+                    Create Level
+                </button>
             </div>
 
         </div>;

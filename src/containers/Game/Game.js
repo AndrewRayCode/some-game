@@ -182,11 +182,24 @@ function snapTo( number, interval ) {
         // Potential placeholder for showing multiple levels at the same time?
         const visibleEntities = currentLevel.entityIds.map( id => allEntities[ id ] );
 
+        const nextLevel = currentLevel.nextLevelId && {
+            level: levels[ currentLevel.nextLevelId ],
+            ...Object.keys( allEntities )
+                .map( id => allEntities[ id ] )
+                .find( entity => entity.type === 'level' )
+        };
+
+        const nextLevelEntities = nextLevel && nextLevel.level.entityIds
+            .map( id => allEntities[ id ] )
+            .filter( entity => entity.type !== 'level' );
+
         return {
             currentLevel,
             levels,
             visibleEntities,
             allEntities,
+            nextLevel,
+            nextLevelEntities,
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
             playerScale: state.game.playerScale,
@@ -359,7 +372,7 @@ export default class Game extends Component {
 
     updatePhysics() {
 
-        const { visibleEntities, playerScale } = this.props;
+        const { visibleEntities, playerScale, nextLevel } = this.props;
         const { playerContact } = this.state;
         const { keysDown } = this;
         let forceX = 0;
@@ -378,6 +391,15 @@ export default class Game extends Component {
 
         const contactKeys = Object.keys( playerContact );
         let tubeEntrances;
+
+        if( nextLevel && playerScale === nextLevel.scale.x && (
+             ( playerPosition.x > ( nextLevel.position.x - 0.500 ) ) &&
+             ( playerPosition.x < ( nextLevel.position.x + 0.500 ) ) &&
+             ( playerPosition.z > ( nextLevel.position.z - 0.500 ) ) &&
+             ( playerPosition.z < ( nextLevel.position.z + 0.500 ) )
+        ) ) {
+            console.log('AHAHAHHA');
+        }
 
         if( !this.state.tubeFlow ) {
 
@@ -601,21 +623,23 @@ export default class Game extends Component {
                     return memo;
                 }, {});
 
+                const jumpScale = Math.min( playerScale * 2, 1 );
+
                 if( Object.keys( jumpableWalls ).length ) {
 
                     if( jumpableWalls.down ) {
 
-                        forceZ -= playerScale * jumpForce;
+                        forceZ -= jumpScale * jumpForce;
 
                     } else if( jumpableWalls.right ) {
 
-                        forceZ -= playerScale * ( jumpForce * wallJumpVerticalDampen );
-                        forceX -= playerScale * jumpForce;
+                        forceZ -= jumpScale * ( jumpForce * wallJumpVerticalDampen );
+                        forceX -= jumpScale * jumpForce;
 
                     } else if( jumpableWalls.left ) {
 
-                        forceZ -= playerScale * ( jumpForce * wallJumpVerticalDampen );
-                        forceX += playerScale * jumpForce;
+                        forceZ -= jumpScale * ( jumpForce * wallJumpVerticalDampen );
+                        forceX += jumpScale * jumpForce;
 
                     }
 
@@ -794,7 +818,12 @@ export default class Game extends Component {
         const {
             meshStates, time, cameraPosition, currentFlowPosition, debug
         } = this.state;
-        const { playerRadius, playerScale, visibleEntities } = this.props;
+
+        const {
+            playerRadius, playerScale, visibleEntities, nextLevel,
+            nextLevelEntities
+        } = this.props;
+
         const playerPosition = new THREE.Vector3().copy(
             currentFlowPosition || this.playerBody.position
         );
@@ -1047,6 +1076,14 @@ export default class Game extends Component {
                     entities={ visibleEntities }
                     time={ time }
                 />
+                
+                { nextLevel && <StaticEntities
+                    position={ nextLevel.position }
+                    scale={ nextLevel.scale }
+                    ref="nextLevel"
+                    entities={ nextLevelEntities }
+                    time={ time }
+                /> }
 
                 { debug && Object.keys( this.state.playerContact || {} ).map( ( key ) => {
 

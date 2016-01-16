@@ -19,6 +19,7 @@ export default class StaticEntities extends Component {
         const { entities, time, position, scale } = this.props;
 
         return <group
+            ref="group"
             position={ position }
             scale={ scale }
         >

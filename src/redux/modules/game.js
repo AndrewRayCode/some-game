@@ -79,11 +79,10 @@ export default function game( state = defaultState, action = {} ) {
 
 }
 
-export function startGame( levels, entities ) {
+export function startGame( levelId, levels, entities ) {
     return {
         type: 'START_GAME',
-        levelId: Object.keys( levels )[ 0 ],
-        levels, entities
+        levelId, levels, entities
     };
 }
 

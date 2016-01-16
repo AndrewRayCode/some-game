@@ -22,7 +22,8 @@ function fetchData( getState, dispatch ) {
 @connect(
     state => ({
         levels: state.levels,
-        entities: state.entities
+        entities: state.entities,
+        currentLevelId: state.currentLevel
     }),
     dispatch => bindActionCreators( { startGame, endGame }, dispatch )
 )
@@ -61,7 +62,7 @@ export default class Dung extends Component {
 
     onEditorSwitch() {
 
-        this.props.startGame( this.props.levels, this.props.entities );
+        this.props.startGame( this.props.currentLevelId, this.props.levels, this.props.entities );
         this.setState({ type: 'game' });
 
     }

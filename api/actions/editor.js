@@ -71,7 +71,7 @@ export function loadLevels( request ) {
         return db( 'levels' )
             .select( '*' )
             .then( results =>
-                  resolve( results.reduce( ( memo, sqlRow ) => {
+                resolve( results.reduce( ( memo, sqlRow ) => {
                     const json = JSON.parse( sqlRow.data );
                     memo.levels[ sqlRow.id ] = json.levelData;
                     memo.entities = {

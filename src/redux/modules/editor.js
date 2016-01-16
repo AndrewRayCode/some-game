@@ -96,7 +96,7 @@ export function entitiesReducer( state = {}, action = {} ) {
                     type: action.entityType,
                     position: action.position,
                     scale: action.scale,
-                    rotation: action.rotation,
+                    rotation: action.rotation || new THREE.Quaternion( 0, 0, 0, 1 ),
                     materialId: action.materialId
                 }
             };
@@ -145,6 +145,7 @@ function levelEntityReducer( state, action ) {
         case 'REMOVE_ENTITY':
             return {
                 ...state,
+                nextLevelId: action.entityType === 'level' ? null : state.nextLevelId,
                 entityIds: state.entityIds.filter( id => id !== action.id )
             };
 
@@ -281,10 +282,10 @@ export function addEntity( levelId, entityType, position, scale, rotation, mater
     };
 }
 
-export function removeEntity( levelId, id ) {
+export function removeEntity( levelId, id, entityType ) {
     return {
         type: 'REMOVE_ENTITY',
-        levelId, id
+        levelId, id, entityType
     };
 }
 
