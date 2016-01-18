@@ -38,11 +38,7 @@ const tubeStartTravelDurationMs = 50;
 const wallJumpVerticalDampen = 0.4;
 
 const coolDownTimeMs = 500;
-const jumpForce = 200;
-const moveForce = 2;
-const airMoveForce = 0.5;
 
-const timeStep = 1 / 60;
 const raycaster = new THREE.Raycaster();
 
 const cameraMultiplierFromPlayer = 3;
@@ -60,11 +56,13 @@ const wallMaterial = new CANNON.Material( 'wallMaterial' );
 
 // Adjust constraint equation parameters for ground/ground contact
 const material = new CANNON.ContactMaterial( wallMaterial, wallMaterial, {
-    friction: 0.9,
-    restitution: 0,
+    friction: 1,
+    // Bounciness (0-1, higher is bouncier). How much energy is conserved
+    // after a collision
+    restitution: 0.4,
     contactEquationStiffness: 1e8,
     contactEquationRelaxation: 3,
-    frictionEquationStiffness: 1e8,
+    frictionEquationStiffness: 1e9,
     frictionEquationRegularizationTime: 3,
 });
 
@@ -212,6 +210,9 @@ function snapTo( number, interval ) {
             allEntities,
             nextLevel,
             nextLevelEntities,
+            jumpForce: state.game.jumpForce,
+            moveForce: state.game.moveForce,
+            airMoveForce: state.airMoveForce,
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
             playerScale: state.game.playerScale,
@@ -251,7 +252,7 @@ export default class Game extends Component {
         world.quatNormalizeSkip = 0;
         world.quatNormalizeFast = false;
 
-        world.gravity.set( 0, -20, 20 );
+        world.gravity.set( 0, -9.8, 9.8 );
         world.broadphase = new CANNON.NaiveBroadphase();
 
         this.onKeyDown = this.onKeyDown.bind( this );
@@ -401,6 +402,8 @@ export default class Game extends Component {
 
     onPlayerCollide( event ) {
 
+        //console.log( 'collision detected' );
+
         const { contact } = event;
         const otherBody = contact.bi === this.playerBody ? contact.bj : contact.bi;
         const contactNormal = getCardinalityOfVector( new THREE.Vector3().copy(
@@ -422,7 +425,10 @@ export default class Game extends Component {
 
     updatePhysics() {
 
-        const { visibleEntities, playerScale, nextLevel, currentLevel } = this.props;
+        const {
+            visibleEntities, playerScale, nextLevel, currentLevel, jumpForce,
+            moveForce, airMoveForce
+        } = this.props;
         const { playerContact } = this.state;
         const { keysDown } = this;
         let forceX = 0;
@@ -680,17 +686,19 @@ export default class Game extends Component {
 
                     if( jumpableWalls.down ) {
 
-                        forceZ -= jumpScale * jumpForce;
+                        forceZ -= 5000;
 
                     } else if( jumpableWalls.right ) {
 
-                        forceZ -= jumpScale * ( jumpForce * wallJumpVerticalDampen );
-                        forceX -= jumpScale * jumpForce;
+                        console.log('rightjump');
+                        forceZ -= jumpForce * wallJumpVerticalDampen;
+                        forceX -= jumpForce;
 
                     } else if( jumpableWalls.left ) {
 
-                        forceZ -= jumpScale * ( jumpForce * wallJumpVerticalDampen );
-                        forceX += jumpScale * jumpForce;
+                        console.log('leftjump');
+                        forceZ -= jumpForce * wallJumpVerticalDampen;
+                        forceX += jumpForce;
 
                     }
 
@@ -700,11 +708,21 @@ export default class Game extends Component {
                     }
                     this.wallCoolDowns = Object.assign( {}, this.wallCoolDowns, coolDowns );
 
+                    //this.playerBody.initVelocity.setZero();
+                    //this.playerBody.force.setZero();
+                    //this.playerBody.velocity.setZero();
+                    this.playerBody.angularVelocity.setZero();
+                    this.playerBody.initAngularVelocity.setZero();
+
+                    const now = Date.now();
+                    console.log('jumping', now - ( this.lastJump || 0 ) );
+                    this.lastJump = now;
+
                 }
 
             }
 
-            this.playerBody.applyImpulse(
+            this.playerBody.applyForce(
                 new CANNON.Vec3( forceX, 0, forceZ ),
                 new CANNON.Vec3( 0, 0, 0 )
             );
@@ -712,7 +730,10 @@ export default class Game extends Component {
         }
 
         // Step the physics world
-        this.world.step( timeStep );
+        const delta = clock.getDelta();
+        if( delta ) {
+            this.world.step( 1 / 60, delta, 3 );
+        }
 
     }
 
@@ -883,265 +904,215 @@ export default class Game extends Component {
             playerPosition
         );
 
-        return <React3
-            mainCamera="camera"
-            width={ gameWidth }
-            height={ gameHeight }
-            onAnimate={ this._onAnimate }
-        >
-            <scene
-                ref="scene"
+        return <div>
+            <React3
+                mainCamera="camera"
+                width={ gameWidth }
+                height={ gameHeight }
+                onAnimate={ this._onAnimate }
             >
+                <scene
+                    ref="scene"
+                >
 
-                <perspectiveCamera
-                    name="camera"
-                    fov={ cameraFov }
-                    aspect={ cameraAspect }
-                    near={ 0.1 }
-                    far={ 1000 }
-                    position={ cameraPosition }
-                    quaternion={ lookAt }
-                    ref="camera"
-                />
-
-                <resources>
-                    <boxGeometry
-                        resourceId="1x1box"
-
-                        width={1}
-                        height={1}
-                        depth={1}
-
-                        widthSegments={1}
-                        heightSegments={1}
-                    />
-                    <meshPhongMaterial
-                        resourceId="playerMaterial"
-                        color={ 0xFADE95 }
-                    />
-                    <meshPhongMaterial
-                        resourceId="entranceMaterial"
-                        color={ 0xff0000 }
-                    />
-                    <meshPhongMaterial
-                        resourceId="exitMaterial"
-                        color={ 0x0000ff }
+                    <perspectiveCamera
+                        name="camera"
+                        fov={ cameraFov }
+                        aspect={ cameraAspect }
+                        near={ 0.1 }
+                        far={ 1000 }
+                        position={ cameraPosition }
+                        quaternion={ lookAt }
+                        ref="camera"
                     />
 
-                    <sphereGeometry
-                        resourceId="sphereGeometry"
-                        radius={ 0.5 }
-                        widthSegments={ 6 }
-                        heightSegments={ 6 }
-                    />
+                    <resources>
+                        <boxGeometry
+                            resourceId="1x1box"
 
-                    <planeBufferGeometry
-                        resourceId="planeGeometry"
-                        width={1}
-                        height={1}
-                        widthSegments={1}
-                        heightSegments={1}
-                    />
+                            width={1}
+                            height={1}
+                            depth={1}
 
-                    <shape resourceId="tubeWall">
-                        <absArc
-                            x={0}
-                            y={0}
-                            radius={0.5}
-                            startAngle={0}
-                            endAngle={Math.PI * 2}
-                            clockwise={false}
+                            widthSegments={1}
+                            heightSegments={1}
                         />
-                        <hole>
+                        <meshPhongMaterial
+                            resourceId="playerMaterial"
+                            color={ 0xFADE95 }
+                        />
+                        <meshPhongMaterial
+                            resourceId="entranceMaterial"
+                            color={ 0xff0000 }
+                        />
+                        <meshPhongMaterial
+                            resourceId="exitMaterial"
+                            color={ 0x0000ff }
+                        />
+
+                        <sphereGeometry
+                            resourceId="sphereGeometry"
+                            radius={ 0.5 }
+                            widthSegments={ 6 }
+                            heightSegments={ 6 }
+                        />
+
+                        <planeBufferGeometry
+                            resourceId="planeGeometry"
+                            width={1}
+                            height={1}
+                            widthSegments={1}
+                            heightSegments={1}
+                        />
+
+                        <shape resourceId="tubeWall">
                             <absArc
                                 x={0}
                                 y={0}
-                                radius={0.4}
+                                radius={0.5}
                                 startAngle={0}
                                 endAngle={Math.PI * 2}
-                                clockwise
+                                clockwise={false}
                             />
-                        </hole>
-                    </shape>
+                            <hole>
+                                <absArc
+                                    x={0}
+                                    y={0}
+                                    radius={0.4}
+                                    startAngle={0}
+                                    endAngle={Math.PI * 2}
+                                    clockwise
+                                />
+                            </hole>
+                        </shape>
 
-                    <meshPhongMaterial
-                        resourceId="tubeMaterial"
-                        color={0xffffff}
-                        side={ THREE.DoubleSide }
-                        transparent
-                    >
-                        <texture
-                            url={ require( '../Game/tube-pattern-1.png' ) }
-                            wrapS={ THREE.RepeatWrapping }
-                            wrapT={ THREE.RepeatWrapping }
-                            anisotropy={16}
+                        <meshPhongMaterial
+                            resourceId="tubeMaterial"
+                            color={0xffffff}
+                            side={ THREE.DoubleSide }
+                            transparent
+                        >
+                            <texture
+                                url={ require( '../Game/tube-pattern-1.png' ) }
+                                wrapS={ THREE.RepeatWrapping }
+                                wrapT={ THREE.RepeatWrapping }
+                                anisotropy={16}
+                            />
+                        </meshPhongMaterial>
+
+                        <meshPhongMaterial
+                            resourceId="shrinkWrapMaterial"
+                            color={ 0x462B2B }
+                            opacity={ 0.3 }
+                            transparent
                         />
-                    </meshPhongMaterial>
 
-                    <meshPhongMaterial
-                        resourceId="shrinkWrapMaterial"
-                        color={ 0x462B2B }
-                        opacity={ 0.3 }
-                        transparent
-                    />
+                        <meshPhongMaterial
+                            resourceId="shrinkMaterial"
+                            color={0xffffff}
+                            side={ THREE.DoubleSide }
+                            transparent
+                        >
+                            <texture
+                                url={ require( '../Game/spiral-texture.png' ) }
+                                wrapS={ THREE.RepeatWrapping }
+                                wrapT={ THREE.RepeatWrapping }
+                                anisotropy={16}
+                            />
+                        </meshPhongMaterial>
 
-                    <meshPhongMaterial
-                        resourceId="shrinkMaterial"
-                        color={0xffffff}
-                        side={ THREE.DoubleSide }
-                        transparent
-                    >
-                        <texture
-                            url={ require( '../Game/spiral-texture.png' ) }
-                            wrapS={ THREE.RepeatWrapping }
-                            wrapT={ THREE.RepeatWrapping }
-                            anisotropy={16}
+                        <meshPhongMaterial
+                            resourceId="growWrapMaterial"
+                            color={ 0x462B2B }
+                            opacity={ 0.3 }
+                            transparent
                         />
-                    </meshPhongMaterial>
 
-                    <meshPhongMaterial
-                        resourceId="growWrapMaterial"
-                        color={ 0x462B2B }
-                        opacity={ 0.3 }
-                        transparent
-                    />
+                        <meshPhongMaterial
+                            resourceId="growMaterial"
+                            color={0xffffff}
+                            side={ THREE.DoubleSide }
+                            transparent
+                        >
+                            <texture
+                                url={ require( '../Game/grow-texture.png' ) }
+                                wrapS={ THREE.RepeatWrapping }
+                                wrapT={ THREE.RepeatWrapping }
+                                anisotropy={16}
+                            />
+                        </meshPhongMaterial>
 
-                    <meshPhongMaterial
-                        resourceId="growMaterial"
-                        color={0xffffff}
-                        side={ THREE.DoubleSide }
-                        transparent
-                    >
-                        <texture
-                            url={ require( '../Game/grow-texture.png' ) }
-                            wrapS={ THREE.RepeatWrapping }
-                            wrapT={ THREE.RepeatWrapping }
-                            anisotropy={16}
+                        <sphereGeometry
+                            resourceId="playerGeometry"
+                            radius={ 1 }
+                            widthSegments={ 20 }
+                            heightSegments={ 20 }
                         />
-                    </meshPhongMaterial>
 
-                    <sphereGeometry
-                        resourceId="playerGeometry"
-                        radius={ 1 }
-                        widthSegments={ 20 }
-                        heightSegments={ 20 }
+                    </resources>
+
+                    <ambientLight
+                        color={ 0x777777 }
                     />
 
-                </resources>
+                    <directionalLight
+                        color={ 0xffffff }
+                        intensity={ 1.0 }
 
-                <ambientLight
-                    color={ 0x777777 }
-                />
+                        castShadow
 
-                <directionalLight
-                    color={ 0xffffff }
-                    intensity={ 1.0 }
+                        shadowMapWidth={1024}
+                        shadowMapHeight={1024}
 
-                    castShadow
+                        shadowCameraLeft={-shadowD}
+                        shadowCameraRight={shadowD}
+                        shadowCameraTop={shadowD}
+                        shadowCameraBottom={-shadowD}
 
-                    shadowMapWidth={1024}
-                    shadowMapHeight={1024}
+                        shadowCameraFar={3 * shadowD}
+                        shadowCameraNear={shadowD}
+                        shadowDarkness={0.5}
 
-                    shadowCameraLeft={-shadowD}
-                    shadowCameraRight={shadowD}
-                    shadowCameraTop={shadowD}
-                    shadowCameraBottom={-shadowD}
-
-                    shadowCameraFar={3 * shadowD}
-                    shadowCameraNear={shadowD}
-                    shadowDarkness={0.5}
-
-                    position={this.state.lightPosition}
-                />
-
-                <Player
-                    ref="player"
-                    position={ playerPosition }
-                    radius={ playerRadius }
-                    quaternion={ new THREE.Quaternion().copy( this.playerBody.quaternion ) }
-                    materialId="playerMaterial"
-                />
-
-                { debug && this.state.tubeFlow && <mesh
-                    position={ this.state.tubeFlow[ this.state.tubeIndex ].start }
-                    scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
-                >
-                    <geometryResource
-                        resourceId="playerGeometry"
+                        position={this.state.lightPosition}
                     />
-                    <materialResource
-                        resourceId="entranceMaterial"
-                    />
-                </mesh> }
-                { debug && this.state.tubeFlow && <mesh
-                    position={ this.state.tubeIndex === this.state.tubeFlow.length - 1 ?
-                        this.state.tubeFlow[ this.state.tubeIndex ].exit :
-                        this.state.tubeFlow[ this.state.tubeIndex ].end
-                    }
-                    scale={ new THREE.Vector3( 2, 0.5, 2 )}
-                >
-                    <geometryResource
-                        resourceId="playerGeometry"
-                    />
-                    <materialResource
-                        resourceId="exitMaterial"
-                    />
-                </mesh> }
 
-                { debug && this.state.entrance1 && <mesh
-                    position={ this.state.entrance1 }
-                    scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
-                >
-                    <geometryResource
-                        resourceId="playerGeometry"
+                    <Player
+                        ref="player"
+                        position={ playerPosition }
+                        radius={ playerRadius }
+                        quaternion={ new THREE.Quaternion().copy( this.playerBody.quaternion ) }
+                        materialId="playerMaterial"
                     />
-                    <materialResource
-                        resourceId="playerMaterial"
-                    />
-                </mesh> }
-                { debug && this.state.entrance2 && <mesh
-                    position={ this.state.entrance2 }
-                    scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
-                >
-                    <geometryResource
-                        resourceId="playerGeometry"
-                    />
-                    <materialResource
-                        resourceId="exitMaterial"
-                    />
-                </mesh> }
-                { debug && this.state.playerSnapped && <mesh
-                    position={this.state.playerSnapped }
-                    scale={ new THREE.Vector3( 0.1, 3.5, 0.1 )}
-                >
-                    <geometryResource
-                        resourceId="playerGeometry"
-                    />
-                    <materialResource
-                        resourceId="exitMaterial"
-                    />
-                </mesh> }
 
-                <StaticEntities
-                    ref="staticEntities"
-                    entities={ visibleEntities }
-                    time={ time }
-                />
-                
-                { nextLevel && <StaticEntities
-                    position={ nextLevel.position }
-                    scale={ nextLevel.scale }
-                    ref="nextLevel"
-                    entities={ nextLevelEntities }
-                    time={ time }
-                /> }
+                    { debug && this.state.tubeFlow && <mesh
+                        position={ this.state.tubeFlow[ this.state.tubeIndex ].start }
+                        scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
+                    >
+                        <geometryResource
+                            resourceId="playerGeometry"
+                        />
+                        <materialResource
+                            resourceId="entranceMaterial"
+                        />
+                    </mesh> }
+                    { debug && this.state.tubeFlow && <mesh
+                        position={ this.state.tubeIndex === this.state.tubeFlow.length - 1 ?
+                            this.state.tubeFlow[ this.state.tubeIndex ].exit :
+                            this.state.tubeFlow[ this.state.tubeIndex ].end
+                        }
+                        scale={ new THREE.Vector3( 2, 0.5, 2 )}
+                    >
+                        <geometryResource
+                            resourceId="playerGeometry"
+                        />
+                        <materialResource
+                            resourceId="exitMaterial"
+                        />
+                    </mesh> }
 
-                { debug && Object.keys( this.state.playerContact || {} ).map( ( key ) => {
-
-                    return <mesh
-                        position={ playerPosition.clone().add( this.state.playerContact[ key ] ) }
-                        scale={ new THREE.Vector3( 0.5, 7, 0.5 )}
-                        key={ key }
+                    { debug && this.state.entrance1 && <mesh
+                        position={ this.state.entrance1 }
+                        scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
                     >
                         <geometryResource
                             resourceId="playerGeometry"
@@ -1149,73 +1120,50 @@ export default class Game extends Component {
                         <materialResource
                             resourceId="playerMaterial"
                         />
-                    </mesh>;
+                    </mesh> }
+                    { debug && this.state.entrance2 && <mesh
+                        position={ this.state.entrance2 }
+                        scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
+                    >
+                        <geometryResource
+                            resourceId="playerGeometry"
+                        />
+                        <materialResource
+                            resourceId="exitMaterial"
+                        />
+                    </mesh> }
+                    { debug && this.state.playerSnapped && <mesh
+                        position={this.state.playerSnapped }
+                        scale={ new THREE.Vector3( 0.1, 3.5, 0.1 )}
+                    >
+                        <geometryResource
+                            resourceId="playerGeometry"
+                        />
+                        <materialResource
+                            resourceId="exitMaterial"
+                        />
+                    </mesh> }
 
-                }) }
+                    <StaticEntities
+                        ref="staticEntities"
+                        entities={ visibleEntities }
+                        time={ time }
+                    />
+                    
+                    { nextLevel && <StaticEntities
+                        position={ nextLevel.position }
+                        scale={ nextLevel.scale }
+                        ref="nextLevel"
+                        entities={ nextLevelEntities }
+                        time={ time }
+                    /> }
 
-                { debug && [1,2,3,4].map( ( i ) => {
+                    { debug && Object.keys( this.state.playerContact || {} ).map( ( key ) => {
 
-                    let e;
-                    switch(i) {
-                        case 1:
-                            e = new THREE.Quaternion( 0, 0, 0, 1 )
-                                .clone()
-                                .multiply( new THREE.Quaternion()
-                                    .setFromEuler( new THREE.Euler(
-                                        THREE.Math.degToRad( 90 ),
-                                        THREE.Math.degToRad( 0 ),
-                                        0
-                                    ) )
-                                );
-                            break;
-                        case 2:
-                            e = new THREE.Quaternion( 0, 0, 0, 1 )
-                                .clone()
-                                .multiply( new THREE.Quaternion()
-                                    .setFromEuler( new THREE.Euler(
-                                        THREE.Math.degToRad( 0 ),
-                                        THREE.Math.degToRad( -90 ),
-                                        0
-                                    ) )
-                                );
-                            break;
-                        case 3:
-                            e = new THREE.Quaternion( 0, 0, 0, 1 )
-                                .clone()
-                                .multiply( new THREE.Quaternion()
-                                    .setFromEuler( new THREE.Euler(
-                                        THREE.Math.degToRad( -90 ),
-                                        THREE.Math.degToRad( 90 ),
-                                        0
-                                    ) )
-                                );
-                            break;
-                        case 4:
-                            e = new THREE.Quaternion( 0, 0, 0, 1 )
-                                .clone()
-                                .multiply( new THREE.Quaternion()
-                                    .setFromEuler( new THREE.Euler(
-                                        THREE.Math.degToRad( 180 ),
-                                        THREE.Math.degToRad( -90 ),
-                                        0
-                                    ) )
-                                );
-                            break;
-                        default:
-                            console.log('gfy');
-                    }
-
-                    const position = new THREE.Vector3( ( i * 3 ) - 7, 3, 0 );
-
-                    const { entrance1, entrance2 } = getEntrancesForTube({
-                        position, rotation: e, type: 'tubebend'
-                    }, playerScale );
-
-                    return <group key={i}>
-
-                        <mesh
-                            position={ entrance1 }
-                            scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
+                        return <mesh
+                            position={ playerPosition.clone().add( this.state.playerContact[ key ] ) }
+                            scale={ new THREE.Vector3( 0.5, 7, 0.5 )}
+                            key={ key }
                         >
                             <geometryResource
                                 resourceId="playerGeometry"
@@ -1223,33 +1171,110 @@ export default class Game extends Component {
                             <materialResource
                                 resourceId="playerMaterial"
                             />
-                        </mesh>
-                        <mesh
-                            position={ entrance2 }
-                            scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
-                        >
-                            <geometryResource
-                                resourceId="playerGeometry"
+                        </mesh>;
+
+                    }) }
+
+                    { debug && [1,2,3,4].map( ( i ) => {
+
+                        let e;
+                        switch(i) {
+                            case 1:
+                                e = new THREE.Quaternion( 0, 0, 0, 1 )
+                                    .clone()
+                                    .multiply( new THREE.Quaternion()
+                                        .setFromEuler( new THREE.Euler(
+                                            THREE.Math.degToRad( 90 ),
+                                            THREE.Math.degToRad( 0 ),
+                                            0
+                                        ) )
+                                    );
+                                break;
+                            case 2:
+                                e = new THREE.Quaternion( 0, 0, 0, 1 )
+                                    .clone()
+                                    .multiply( new THREE.Quaternion()
+                                        .setFromEuler( new THREE.Euler(
+                                            THREE.Math.degToRad( 0 ),
+                                            THREE.Math.degToRad( -90 ),
+                                            0
+                                        ) )
+                                    );
+                                break;
+                            case 3:
+                                e = new THREE.Quaternion( 0, 0, 0, 1 )
+                                    .clone()
+                                    .multiply( new THREE.Quaternion()
+                                        .setFromEuler( new THREE.Euler(
+                                            THREE.Math.degToRad( -90 ),
+                                            THREE.Math.degToRad( 90 ),
+                                            0
+                                        ) )
+                                    );
+                                break;
+                            case 4:
+                                e = new THREE.Quaternion( 0, 0, 0, 1 )
+                                    .clone()
+                                    .multiply( new THREE.Quaternion()
+                                        .setFromEuler( new THREE.Euler(
+                                            THREE.Math.degToRad( 180 ),
+                                            THREE.Math.degToRad( -90 ),
+                                            0
+                                        ) )
+                                    );
+                                break;
+                            default:
+                                console.log('gfy');
+                        }
+
+                        const position = new THREE.Vector3( ( i * 3 ) - 7, 3, 0 );
+
+                        const { entrance1, entrance2 } = getEntrancesForTube({
+                            position, rotation: e, type: 'tubebend'
+                        }, playerScale );
+
+                        return <group key={i}>
+
+                            <mesh
+                                position={ entrance1 }
+                                scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
+                            >
+                                <geometryResource
+                                    resourceId="playerGeometry"
+                                />
+                                <materialResource
+                                    resourceId="playerMaterial"
+                                />
+                            </mesh>
+                            <mesh
+                                position={ entrance2 }
+                                scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
+                            >
+                                <geometryResource
+                                    resourceId="playerGeometry"
+                                />
+                                <materialResource
+                                    resourceId="exitMaterial"
+                                />
+                            </mesh>
+
+                            <TubeBend
+                                key={ i }
+                                position={ position }
+                                rotation={ e }
+                                scale={ new THREE.Vector3(1,1,1)}
+                                materialId="tubeMaterial"
                             />
-                            <materialResource
-                                resourceId="exitMaterial"
-                            />
-                        </mesh>
 
-                        <TubeBend
-                            key={ i }
-                            position={ position }
-                            rotation={ e }
-                            scale={ new THREE.Vector3(1,1,1)}
-                            materialId="tubeMaterial"
-                        />
+                        </group>;
 
-                    </group>;
+                    } ) }
 
-                } ) }
+                </scene>
+            </React3>
 
-            </scene>
-        </React3>;
+            <input value={ this.playerBody.velocity.y } />
+        </div>;
     }
 
 }

@@ -45,8 +45,6 @@ export default class TubeBend extends Component {
                 position={ offset }
                 rotation={ rotationOffset }
                 ref="mesh"
-                castShadow
-                receiveShadow
             >
                 <extrudeGeometry
                     settings={ extrudeSettings }
