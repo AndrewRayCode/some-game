@@ -59,7 +59,7 @@ const material = new CANNON.ContactMaterial( wallMaterial, wallMaterial, {
     friction: 1,
     // Bounciness (0-1, higher is bouncier). How much energy is conserved
     // after a collision
-    restitution: 0.4,
+    restitution: 0.3,
     contactEquationStiffness: 1e8,
     contactEquationRelaxation: 3,
     frictionEquationStiffness: 1e9,
@@ -210,6 +210,7 @@ function snapTo( number, interval ) {
             allEntities,
             nextLevel,
             nextLevelEntities,
+            velocityLimit: state.game.velocityLimit,
             jumpForce: state.game.jumpForce,
             moveForce: state.game.moveForce,
             airMoveForce: state.airMoveForce,
@@ -229,9 +230,9 @@ export default class Game extends Component {
         super( props, context );
 
         this.keysDown = {};
+        this.playerContact = {};
 
         this.state = {
-            playerContact: {},
             cameraPosition: new THREE.Vector3(
                 0,
                 cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, 1 ),
@@ -279,6 +280,7 @@ export default class Game extends Component {
             mass: playerMass
         });
         this.playerBody = playerBody;
+        playerBody.linearDamping = 0.1;
 
         const playerShape = new CANNON.Sphere( playerRadius );
 
@@ -390,19 +392,15 @@ export default class Game extends Component {
 
         if( otherBody ) {
 
-            const { playerContact } = this.state;
-
-            this.setState({
-                playerContact: without( playerContact, otherBody.id )
-            });
+            //console.log('ended contact with ',otherBody.id);
+            const { playerContact } = this;
+            this.playerContact = without( playerContact, otherBody.id );
 
         }
 
     }
 
     onPlayerCollide( event ) {
-
-        //console.log( 'collision detected' );
 
         const { contact } = event;
         const otherBody = contact.bi === this.playerBody ? contact.bj : contact.bi;
@@ -412,14 +410,12 @@ export default class Game extends Component {
                 contact.ni.negate()
         ));
 
-        const { playerContact } = this.state;
+        const { playerContact } = this;
 
         const assign = {
             [ otherBody.id ]: contactNormal
         };
-        this.setState({
-            playerContact: Object.assign( {}, playerContact, assign )
-        });
+        this.playerContact = { ...playerContact, ...assign };
 
     }
 
@@ -427,9 +423,9 @@ export default class Game extends Component {
 
         const {
             visibleEntities, playerScale, nextLevel, currentLevel, jumpForce,
-            moveForce, airMoveForce
+            moveForce, airMoveForce, velocityLimit
         } = this.props;
-        const { playerContact } = this.state;
+        const { playerContact } = this;
         const { keysDown } = this;
         let forceX = 0;
         let forceZ = 0;
@@ -484,10 +480,12 @@ export default class Game extends Component {
         }
 
         if( isLeft ) {
-            forceX -= moveForce;
+            const percentAwayFromTarget = Math.min( ( Math.abs( -velocityLimit - this.playerBody.velocity.x ) / velocityLimit ) * 4, 1 );
+            forceX -= moveForce * percentAwayFromTarget;
         }
         if( isRight ) {
-            forceX += moveForce;
+            const percentAwayFromTarget = Math.min( ( Math.abs( velocityLimit - this.playerBody.velocity.x ) / velocityLimit ) * 4, 1 );
+            forceX += moveForce * percentAwayFromTarget;
         }
         if( isUp ) {
             forceZ -= airMoveForce;
@@ -576,8 +574,9 @@ export default class Game extends Component {
 
                 //console.log('traversing',newTubeFlow.length - 1,'tubes');
 
+                this.playerContact = newPlayerContact;
+
                 this.setState({
-                    playerContact: newPlayerContact,
                     playerSnapped,
                     startTime: Date.now(),
                     tubeFlow: newTubeFlow,
@@ -680,25 +679,11 @@ export default class Game extends Component {
                     return memo;
                 }, {});
 
-                const jumpScale = Math.min( playerScale * 2, 1 );
-
                 if( Object.keys( jumpableWalls ).length ) {
 
                     if( jumpableWalls.down ) {
 
-                        forceZ -= 5000;
-
-                    } else if( jumpableWalls.right ) {
-
-                        console.log('rightjump');
-                        forceZ -= jumpForce * wallJumpVerticalDampen;
-                        forceX -= jumpForce;
-
-                    } else if( jumpableWalls.left ) {
-
-                        console.log('leftjump');
-                        forceZ -= jumpForce * wallJumpVerticalDampen;
-                        forceX += jumpForce;
+                        forceZ -= jumpForce;
 
                     }
 
@@ -714,16 +699,14 @@ export default class Game extends Component {
                     this.playerBody.angularVelocity.setZero();
                     this.playerBody.initAngularVelocity.setZero();
 
-                    const now = Date.now();
-                    console.log('jumping', now - ( this.lastJump || 0 ) );
-                    this.lastJump = now;
+                    this.playerBody.velocity.z = forceZ;
 
                 }
 
             }
 
-            this.playerBody.applyForce(
-                new CANNON.Vec3( forceX, 0, forceZ ),
+            this.playerBody.applyImpulse(
+                new CANNON.Vec3( forceX, 0, 0 ),
                 new CANNON.Vec3( 0, 0, 0 )
             );
             
@@ -1158,10 +1141,10 @@ export default class Game extends Component {
                         time={ time }
                     /> }
 
-                    { debug && Object.keys( this.state.playerContact || {} ).map( ( key ) => {
+                    { debug && Object.keys( this.playerContact || {} ).map( ( key ) => {
 
                         return <mesh
-                            position={ playerPosition.clone().add( this.state.playerContact[ key ] ) }
+                            position={ playerPosition.clone().add( this.playerContact[ key ] ) }
                             scale={ new THREE.Vector3( 0.5, 7, 0.5 )}
                             key={ key }
                         >
