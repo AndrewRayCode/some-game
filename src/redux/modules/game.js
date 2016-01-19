@@ -4,7 +4,7 @@ const playerRadius = 0.45;
 const jumpForce = 20;
 const density = 1000; // kg / m^3
 const moveForce = 400;
-const airMoveForce = 0.1;
+const airMoveForce = 10;
 const velocityLimit = 5;
 
 // So the impulse you needs drops to 1/(8 * sqrt(2)) of the original.

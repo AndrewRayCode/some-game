@@ -683,7 +683,7 @@ export default class Game extends Component {
 
                     if( jumpableWalls.down ) {
 
-                        forceZ -= jumpForce;
+                        this.playerBody.velocity.z = -jumpForce;
 
                     }
 
@@ -693,13 +693,6 @@ export default class Game extends Component {
                     }
                     this.wallCoolDowns = Object.assign( {}, this.wallCoolDowns, coolDowns );
 
-                    //this.playerBody.initVelocity.setZero();
-                    //this.playerBody.force.setZero();
-                    //this.playerBody.velocity.setZero();
-                    this.playerBody.angularVelocity.setZero();
-                    this.playerBody.initAngularVelocity.setZero();
-
-                    this.playerBody.velocity.z = forceZ;
 
                 }
 
@@ -1255,8 +1248,6 @@ export default class Game extends Component {
 
                 </scene>
             </React3>
-
-            <input value={ this.playerBody.velocity.y } />
         </div>;
     }
 
