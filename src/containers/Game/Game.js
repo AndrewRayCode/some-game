@@ -20,7 +20,6 @@ THREE.TextureLoader.crossOrigin = '';
 
 THREE.TextureLoader.prototype.crossOrigin = '';
 
-const radius = 20;
 const lightRotationSpeed = 0.5;
 const clock = new THREE.Clock();
 
@@ -65,6 +64,12 @@ const material = new CANNON.ContactMaterial( wallMaterial, wallMaterial, {
     frictionEquationStiffness: 1e8,
     frictionEquationRegularizationTime: 3,
 });
+
+function getSphereMass( density, radius ) {
+
+    return density * ( 4 / 3 ) * Math.PI * Math.pow( radius, 3 );
+
+}
 
 function getCameraDistanceToPlayer( aspect, fov, objectSize ) {
 
@@ -217,7 +222,7 @@ function snapTo( number, interval ) {
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
             playerScale: state.game.playerScale,
-            playerMass: state.game.playerMass,
+            playerDensity: state.game.playerDensity
         };
 
     },
@@ -272,12 +277,12 @@ export default class Game extends Component {
 
     _setupPhysics( props, playerPosition ) {
 
-        const { currentLevel, allEntities, playerRadius, playerMass } = props;
+        const { currentLevel, allEntities, playerRadius, playerDensity } = props;
         const { entityIds } = currentLevel;
 
         const playerBody = new CANNON.Body({
             material: wallMaterial,
-            mass: playerMass
+            mass: getSphereMass( playerDensity, playerRadius )
         });
         this.playerBody = playerBody;
         playerBody.linearDamping = 0.0;
@@ -287,6 +292,13 @@ export default class Game extends Component {
         playerBody.addShape( playerShape );
         playerBody.position.copy( playerPosition || props.playerPosition );
         this.world.addBody( playerBody );
+
+        const topWall = new CANNON.Body({ mass: 0 });
+        const topWallShape = new CANNON.Box( new CANNON.Vec3( 100, 1, 100 ) );
+        topWall.addShape( topWallShape );
+        topWall.position.set( -50, 2.001 + ( playerRadius * 2 ), -50 );
+        this.topWall = topWall;
+        this.world.addBody( topWall );
 
         const physicsBodies = [ playerBody ].concat( entityIds.reduce( ( ents, id ) => {
 
@@ -366,13 +378,13 @@ export default class Game extends Component {
             this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
             this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
-            this.physicsBodies.map( body => this.world.remove( this.playerBody ) );
+            this.physicsBodies.map( body => this.world.remove( body ) );
 
             const { nextLevel } = this.props;
             const { position } = this.playerBody;
             const newPosition = new CANNON.Vec3(
                 ( position.x - nextLevel.position.x ) * 2 * 2 * 2,
-                1.5,
+                1 + nextProps.playerRadius,
                 ( position.z - nextLevel.position.z ) * 2 * 2 * 2,
             );
 
@@ -423,12 +435,15 @@ export default class Game extends Component {
 
         const {
             visibleEntities, playerScale, nextLevel, currentLevel, jumpForce,
-            moveForce, airMoveForce, velocityLimit, playerRadius
+            airMoveForce, playerRadius, playerDensity
         } = this.props;
         const { playerContact } = this;
         const { keysDown } = this;
         let forceX = 0;
         let forceZ = 0;
+
+        const velocityLimit = 10 * playerRadius;
+        const moveForce = 50 * ( getSphereMass( playerDensity, playerRadius ) / 16 );
 
         const isLeft = ( KeyCodes.A in keysDown ) || ( KeyCodes.LEFT in keysDown );
         const isRight = ( KeyCodes.D in keysDown ) || ( KeyCodes.RIGHT in keysDown );
@@ -464,7 +479,7 @@ export default class Game extends Component {
                 });
 
                 const { entity } = physicsBody;
-                if( entity.type === 'tube' || entity.type === 'tubebend' ) {
+                if( entity && ( entity.type === 'tube' || entity.type === 'tubebend' ) ) {
 
                     tubeEntrances = getEntrancesForTube( entity, playerScale );
                     this.setState({
@@ -699,7 +714,7 @@ export default class Game extends Component {
             }
 
             this.playerBody.applyImpulse(
-                new CANNON.Vec3( forceX, 0, 0 ),
+                new CANNON.Vec3( forceX, 1, 0 ),
                 new CANNON.Vec3( 0, 0, 0 )
             );
             
@@ -728,7 +743,7 @@ export default class Game extends Component {
     _onAnimate() {
 
         const {
-            visibleEntities, playerRadius, playerMass, playerScale, currentLevel
+            visibleEntities, playerRadius, playerDensity, playerScale, currentLevel
         } = this.props;
         const playerPosition = this.state.currentFlowPosition || this.playerBody.position;
 
@@ -738,9 +753,9 @@ export default class Game extends Component {
             time: Date.now(),
             meshStates: this._getMeshStates( this.physicsBodies ),
             lightPosition: new THREE.Vector3(
-                radius * Math.sin( clock.getElapsedTime() * lightRotationSpeed ),
+                10 * Math.sin( clock.getElapsedTime() * lightRotationSpeed ),
                 10,
-                radius * Math.cos( clock.getElapsedTime() * lightRotationSpeed )
+                10 * Math.cos( clock.getElapsedTime() * lightRotationSpeed )
             )
         };
 
@@ -804,22 +819,23 @@ export default class Game extends Component {
 
                     const isShrinking = entity.type === 'shrink';
                     const multiplier = isShrinking ? 0.5 : 2;
+                    const newRadius = multiplier * playerRadius;
 
                     this.world.remove( this.playerBody );
 
                     const playerBody = new CANNON.Body({
                         material: wallMaterial,
-                        mass: playerMass
+                        mass: getSphereMass( playerDensity, playerRadius )
                     });
                     playerBody.addEventListener( 'collide', this.onPlayerCollide );
 
-                    const playerShape = new CANNON.Sphere( playerRadius * multiplier );
+                    const playerShape = new CANNON.Sphere( newRadius );
 
                     playerBody.addShape( playerShape );
                     const newPosition = playerPosition;
                     playerBody.position.set(
                         newPosition.x,
-                        newPosition.y + ( isShrinking ? 0 : playerRadius ),
+                        1 + playerRadius,
                         newPosition.z - ( isShrinking ? 0 : playerRadius ),
                     );
 
@@ -827,6 +843,8 @@ export default class Game extends Component {
 
                     this.playerBody = playerBody;
                     this.physicsBodies[ 0 ] = playerBody;
+
+                    this.topWall.position.set( -50, 2.001 + newRadius * 2, -50 );
 
                     this.props.scalePlayer( currentLevel.id, entity.id, multiplier );
 
@@ -1248,15 +1266,6 @@ export default class Game extends Component {
 
                 </scene>
             </React3>
-
-            <div>
-                <br />
-                x: <input type="text" value={ playerPosition.x } readOnly />
-                <br />
-                y: <input type="text" value={ playerPosition.y } readOnly />
-                <br />
-                z: <input type="text" value={ playerPosition.z } readOnly />
-            </div>
         </div>;
     }
 

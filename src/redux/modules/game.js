@@ -1,27 +1,17 @@
 import THREE from 'three';
 
 const playerRadius = 0.45;
-const jumpForce = 20;
-const density = 1000; // kg / m^3
+const playerDensity = 1000; // kg / m^3
 const moveForce = 400;
 const airMoveForce = 10;
-const velocityLimit = 5;
 
 const shrinkForceMultiplier = 1 / ( 8 * Math.sqrt( 2 ) );
 
 // So the impulse you needs drops to 1/(8 * sqrt(2)) of the original.
 
-function getPlayerMass( radius ) {
-
-    return density * ( 4 / 3 ) * Math.PI * Math.pow( radius, 3 );
-
-}
-
 const defaultState = {
-    playerRadius, moveForce, airMoveForce, velocityLimit,
+    playerRadius, moveForce, airMoveForce, playerDensity,
     playerScale: 1,
-    playerMass: getPlayerMass( playerRadius ),
-    jumpForce: Math.sqrt( 2 ) * 9.8 * playerRadius * 2,
     entities: {},
     levels: {}
 };
@@ -85,10 +75,8 @@ export default function game( state = defaultState, action = {} ) {
 
             return {
                 ...state,
-                playerMass: getPlayerMass( state.playerRadius * action.multiplier ),
                 playerRadius: state.playerRadius * action.multiplier,
                 playerScale: state.playerScale * action.multiplier,
-                jumpForce: state.jumpForce * 0.9,
                 levels: {
                     ...state.levels,
                     [ level.id ]: {
