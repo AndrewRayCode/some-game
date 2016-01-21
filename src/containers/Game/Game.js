@@ -217,12 +217,14 @@ function snapTo( number, interval ) {
             nextLevelEntities,
             velocityLimit: state.game.velocityLimit,
             jumpForce: state.game.jumpForce,
-            moveForce: state.game.moveForce,
             airMoveForce: state.airMoveForce,
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
             playerScale: state.game.playerScale,
-            playerDensity: state.game.playerDensity
+            playerDensity: state.game.playerDensity,
+            playerMass: getSphereMass(
+                state.game.playerDensity, state.game.playerRadius
+            )
         };
 
     },
@@ -435,7 +437,7 @@ export default class Game extends Component {
 
         const {
             visibleEntities, playerScale, nextLevel, currentLevel, jumpForce,
-            airMoveForce, playerRadius, playerDensity
+            playerRadius, playerMass
         } = this.props;
         const { playerContact } = this;
         const { keysDown } = this;
@@ -443,7 +445,8 @@ export default class Game extends Component {
         let forceZ = 0;
 
         const velocityLimit = 10 * playerRadius;
-        const moveForce = 50 * ( getSphereMass( playerDensity, playerRadius ) / 16 );
+        const moveForce = 50 * ( playerMass / 16 );
+        const airMoveForce = 5 * ( playerMass / 16 );
 
         const isLeft = ( KeyCodes.A in keysDown ) || ( KeyCodes.LEFT in keysDown );
         const isRight = ( KeyCodes.D in keysDown ) || ( KeyCodes.RIGHT in keysDown );
@@ -536,8 +539,9 @@ export default class Game extends Component {
                     const { entity } = this.world.bodies.find( ( search ) => {
                         return search.id.toString() === key;
                     });
+                    
 
-                    if( entity.type !== 'tubebend' && entity.type !== 'tube' ) {
+                    if( entity && ( entity.type !== 'tubebend' && entity.type !== 'tube' ) ) {
                         memo[ key ] = playerContact[ key ];
                     }
 
@@ -1106,7 +1110,7 @@ export default class Game extends Component {
 
                     { debug && this.state.entrance1 && <mesh
                         position={ this.state.entrance1 }
-                        scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
+                        scale={ new THREE.Vector3( 0.5, 2, 0.5 ).multiplyScalar( playerScale )}
                     >
                         <geometryResource
                             resourceId="playerGeometry"
@@ -1117,7 +1121,7 @@ export default class Game extends Component {
                     </mesh> }
                     { debug && this.state.entrance2 && <mesh
                         position={ this.state.entrance2 }
-                        scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
+                        scale={ new THREE.Vector3( 0.5, 2, 0.5 ).multiplyScalar( playerScale )}
                     >
                         <geometryResource
                             resourceId="playerGeometry"
@@ -1128,7 +1132,7 @@ export default class Game extends Component {
                     </mesh> }
                     { debug && this.state.playerSnapped && <mesh
                         position={this.state.playerSnapped }
-                        scale={ new THREE.Vector3( 0.1, 3.5, 0.1 )}
+                        scale={ new THREE.Vector3( 0.1, 3.5, 0.1 ).multiplyScalar( playerScale ) }
                     >
                         <geometryResource
                             resourceId="playerGeometry"
@@ -1156,7 +1160,7 @@ export default class Game extends Component {
 
                         return <mesh
                             position={ playerPosition.clone().add( this.playerContact[ key ] ) }
-                            scale={ new THREE.Vector3( 0.5, 7, 0.5 )}
+                            scale={ new THREE.Vector3( 0.5, 7, 0.5 ).multiplyScalar( playerScale ) }
                             key={ key }
                         >
                             <geometryResource
