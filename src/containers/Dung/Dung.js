@@ -1,3 +1,5 @@
+/* @flow */
+
 import 'babel/polyfill';
 import React, { Component } from 'react';
 import React3 from 'react-three-renderer';
@@ -18,6 +20,7 @@ function fetchData( getState, dispatch ) {
     return Promise.all( promises );
 }
 
+/*::`*/
 @connectData( fetchData )
 @connect(
     state => ({
@@ -26,7 +29,7 @@ function fetchData( getState, dispatch ) {
         currentLevelId: state.currentLevel
     }),
     dispatch => bindActionCreators( { startGame, endGame }, dispatch )
-)
+)/*::`*/
 export default class Dung extends Component {
 
     constructor( props, context ) {
@@ -34,7 +37,8 @@ export default class Dung extends Component {
         super( props, context );
 
         this.state = {
-            type: 'editor'
+            type: 'editor',
+            isClient: false
         };
 
         this.onGameEnd = this.onGameEnd.bind( this );

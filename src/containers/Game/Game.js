@@ -62,7 +62,7 @@ const material = new CANNON.ContactMaterial( wallMaterial, wallMaterial, {
     restitution: 0.3,
     contactEquationStiffness: 1e8,
     contactEquationRelaxation: 3,
-    frictionEquationStiffness: 1e9,
+    frictionEquationStiffness: 1e8,
     frictionEquationRegularizationTime: 3,
 });
 
@@ -253,7 +253,7 @@ export default class Game extends Component {
         world.quatNormalizeSkip = 0;
         world.quatNormalizeFast = false;
 
-        world.gravity.set( 0, -9.8, 9.8 );
+        world.gravity.set( 0, 0, 9.8 );
         world.broadphase = new CANNON.NaiveBroadphase();
 
         this.onKeyDown = this.onKeyDown.bind( this );
@@ -280,7 +280,7 @@ export default class Game extends Component {
             mass: playerMass
         });
         this.playerBody = playerBody;
-        playerBody.linearDamping = 0.1;
+        playerBody.linearDamping = 0.0;
 
         const playerShape = new CANNON.Sphere( playerRadius );
 
@@ -423,7 +423,7 @@ export default class Game extends Component {
 
         const {
             visibleEntities, playerScale, nextLevel, currentLevel, jumpForce,
-            moveForce, airMoveForce, velocityLimit
+            moveForce, airMoveForce, velocityLimit, playerRadius
         } = this.props;
         const { playerContact } = this;
         const { keysDown } = this;
@@ -683,7 +683,7 @@ export default class Game extends Component {
 
                     if( jumpableWalls.down ) {
 
-                        this.playerBody.velocity.z = -jumpForce;
+                        this.playerBody.velocity.z = -Math.sqrt( 1.1 * 2 * 9.8 * playerScale );
 
                     }
 
@@ -1248,6 +1248,15 @@ export default class Game extends Component {
 
                 </scene>
             </React3>
+
+            <div>
+                <br />
+                x: <input type="text" value={ playerPosition.x } readOnly />
+                <br />
+                y: <input type="text" value={ playerPosition.y } readOnly />
+                <br />
+                z: <input type="text" value={ playerPosition.z } readOnly />
+            </div>
         </div>;
     }
 

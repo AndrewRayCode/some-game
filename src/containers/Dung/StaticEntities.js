@@ -153,7 +153,7 @@ export default class StaticEntities extends Component {
                 } else {
 
                     console.warn( 'Unknown entity type!', entity );
-                    return null;
+                    return <group />;
 
                 }
 

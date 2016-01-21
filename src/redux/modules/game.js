@@ -7,6 +7,8 @@ const moveForce = 400;
 const airMoveForce = 10;
 const velocityLimit = 5;
 
+const shrinkForceMultiplier = 1 / ( 8 * Math.sqrt( 2 ) );
+
 // So the impulse you needs drops to 1/(8 * sqrt(2)) of the original.
 
 function getPlayerMass( radius ) {
@@ -16,9 +18,10 @@ function getPlayerMass( radius ) {
 }
 
 const defaultState = {
-    playerRadius, moveForce, airMoveForce, jumpForce, velocityLimit,
+    playerRadius, moveForce, airMoveForce, velocityLimit,
     playerScale: 1,
     playerMass: getPlayerMass( playerRadius ),
+    jumpForce: Math.sqrt( 2 ) * 9.8 * playerRadius * 2,
     entities: {},
     levels: {}
 };
@@ -82,9 +85,10 @@ export default function game( state = defaultState, action = {} ) {
 
             return {
                 ...state,
-                playerMass: state.playerRadius * action.multiplier,
+                playerMass: getPlayerMass( state.playerRadius * action.multiplier ),
                 playerRadius: state.playerRadius * action.multiplier,
                 playerScale: state.playerScale * action.multiplier,
+                jumpForce: state.jumpForce * 0.9,
                 levels: {
                     ...state.levels,
                     [ level.id ]: {

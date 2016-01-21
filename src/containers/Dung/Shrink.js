@@ -14,7 +14,7 @@ export default class Shrink extends Component {
         const { position, rotation, scale, materialId, wrapMaterialId, time } = this.props;
 
         return <group
-            rotation={ new THREE.Euler().setFromQuaternion( rotation
+            rotation={ rotation ? new THREE.Euler().setFromQuaternion( rotation
                 .clone().multiply( new THREE.Quaternion()
                     .setFromEuler( new THREE.Euler(
                         0,
@@ -22,7 +22,7 @@ export default class Shrink extends Component {
                         0
                     ) )
                 )
-            ) }
+            ) : null }
             position={ position }
             scale={ scale }
         >
