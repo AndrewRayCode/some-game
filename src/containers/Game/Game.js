@@ -301,7 +301,7 @@ export default class Game extends Component {
         this.topWall = topWall;
         this.world.addBody( topWall );
 
-        const physicsBodies = [ playerBody ].concat( entityIds.reduce( ( ents, id ) => {
+        const physicsBodies = [ playerBody, topWall ].concat( entityIds.reduce( ( ents, id ) => {
 
             const entity = allEntities[ id ];
 
@@ -822,7 +822,8 @@ export default class Game extends Component {
 
             const entity = visibleEntities[ i ];
 
-            if( entity.type === 'shrink' || entity.type === 'grow' ) {
+            if( ( entity.type === 'shrink' || entity.type === 'grow' ) &&
+                    entity.scale.x === playerScale ) {
 
                 if( entity.position.distanceTo( playerPosition ) < playerRadius ) {
 
