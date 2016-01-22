@@ -191,7 +191,7 @@ function snapTo( number, interval ) {
     ( state ) => {
 
         const { levels } = state.game;
-        const currentLevel = levels[ state.currentLevel ];
+        const currentLevel = levels[ state.currentGameLevel ];
         const allEntities = state.game.entities;
 
         // Potential placeholder for showing multiple levels at the same time?
@@ -215,7 +215,6 @@ function snapTo( number, interval ) {
             allEntities,
             nextLevel,
             nextLevelEntities,
-            velocityLimit: state.game.velocityLimit,
             jumpForce: state.game.jumpForce,
             airMoveForce: state.airMoveForce,
             playerPosition: state.game.playerPosition,
@@ -435,6 +434,10 @@ export default class Game extends Component {
 
     updatePhysics() {
 
+        if( this.advancing ) {
+            return;
+        }
+
         const {
             visibleEntities, playerScale, nextLevel, currentLevel, jumpForce,
             playerRadius, playerMass
@@ -444,7 +447,7 @@ export default class Game extends Component {
         let forceX = 0;
         let forceZ = 0;
 
-        const velocityLimit = 10 * playerRadius;
+        const velocityLimit = 5 * playerScale;
         const moveForce = 50 * ( playerMass / 16 );
         const airMoveForce = 5 * ( playerMass / 16 );
 
@@ -469,7 +472,9 @@ export default class Game extends Component {
              ( playerPosition.z < ( nextLevel.position.z + 0.475 ) )
         ) ) {
             this.advancing = true;
+            this.playerContact = {};
             this.props.advanceLevel( currentLevel.nextLevelId );
+            return;
         }
 
         if( !this.state.tubeFlow ) {

@@ -220,19 +220,15 @@ export function levelsReducer( state = {}, action = {} ) {
 
 }
 
-export function currentLevelReducer( state = null, action = {} ) {
+export function editorLevelReducer( state = null, action = {} ) {
 
     switch( action.type ) {
 
         case SAVE_SUCCESS:
             return action.result.id;
 
-        case 'ADD_LEVEL':
-        case 'SELECT_LEVEL':
+        case 'EDITOR_SELECT_LEVEL':
             return action.id;
-
-        case 'START_GAME':
-            return action.levelId;
 
         default:
             return state;
@@ -269,7 +265,7 @@ export function addLevel( name ) {
 
 export function selectLevel( id ) {
     return {
-        type: 'SELECT_LEVEL',
+        type: 'EDITOR_SELECT_LEVEL',
         id
     };
 }

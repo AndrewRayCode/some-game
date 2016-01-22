@@ -7,8 +7,8 @@ import counter from './counter';
 import {reducer as form} from 'redux-form';
 import info from './info';
 import widgets from './widgets';
-import game from './game';
-import { loadLevelsReducer, levelsReducer, entitiesReducer, currentLevelReducer } from './editor';
+import { game, gameLevelReducer } from './game';
+import { loadLevelsReducer, levelsReducer, entitiesReducer, editorLevelReducer } from './editor';
 
 export default combineReducers({
     router: routerStateReducer,
@@ -17,7 +17,8 @@ export default combineReducers({
     levelsLoaded: loadLevelsReducer,
     levels: levelsReducer,
     entities: entitiesReducer,
-    currentLevel: currentLevelReducer,
+    currentEditorLevel: editorLevelReducer,
+    currentGameLevel: gameLevelReducer,
     game,
     multireducer: multireducer({
         counter1: counter,

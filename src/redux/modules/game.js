@@ -1,22 +1,21 @@
 import THREE from 'three';
 
+const playerScale = 1;
 const playerRadius = 0.45;
 const playerDensity = 1000; // kg / m^3
-const moveForce = 400;
-const airMoveForce = 10;
 
 const shrinkForceMultiplier = 1 / ( 8 * Math.sqrt( 2 ) );
 
 // So the impulse you needs drops to 1/(8 * sqrt(2)) of the original.
 
 const defaultState = {
-    playerRadius, moveForce, airMoveForce, playerDensity,
+    playerRadius, playerDensity,
     playerScale: 1,
     entities: {},
     levels: {}
 };
 
-export default function game( state = defaultState, action = {} ) {
+export function game( state = defaultState, action = {} ) {
 
     switch( action.type ) {
 
@@ -59,14 +58,13 @@ export default function game( state = defaultState, action = {} ) {
                 // old starting points to remain
                 playerPosition: ( ( entities[ Object.keys( entities ).reverse().find(
                     id => entities[ id ].type === 'player'
-                ) ] || {} ).position || new THREE.Vector3( 0, 1.5, 0 ) ).clone()
+                ) ] || {} ).position || new THREE.Vector3( 0, 1.5, 0 ) ).clone(),
             };
 
-        case 'SELECT_LEVEL':
+        case 'GAME_SELECT_LEVEL':
             return {
                 ...state,
-                playerRadius: defaultState.playerRadius,
-                playerScale: defaultState.playerScale
+                playerRadius, playerScale, playerDensity
             };
 
         case 'SCALE_PLAYER':
@@ -96,6 +94,21 @@ export default function game( state = defaultState, action = {} ) {
 
 }
 
+export function gameLevelReducer( state = null, action = {} ) {
+
+    switch( action.type ) {
+
+        case 'START_GAME':
+        case 'GAME_SELECT_LEVEL':
+            return action.levelId;
+
+        default:
+            return state;
+
+    }
+
+}
+
 export function startGame( levelId, levels, entities ) {
     return {
         type: 'START_GAME',
@@ -103,10 +116,10 @@ export function startGame( levelId, levels, entities ) {
     };
 }
 
-export function advanceLevel( id ) {
+export function advanceLevel( levelId ) {
     return {
-        type: 'SELECT_LEVEL',
-        id
+        type: 'GAME_SELECT_LEVEL',
+        levelId
     };
 }
 

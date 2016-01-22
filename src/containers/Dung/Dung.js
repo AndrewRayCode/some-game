@@ -26,7 +26,7 @@ function fetchData( getState, dispatch ) {
     state => ({
         levels: state.levels,
         entities: state.entities,
-        currentLevelId: state.currentLevel
+        currentLevelId: state.currentEditorLevel
     }),
     dispatch => bindActionCreators( { startGame, endGame }, dispatch )
 )/*::`*/

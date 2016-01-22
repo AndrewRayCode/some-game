@@ -83,8 +83,8 @@ function snapTo( number, interval ) {
     state => ({
         levels: state.levels,
         entities: state.entities,
-        currentLevelId: state.currentLevel,
-        currentLevel: state.levels[ state.currentLevel ]
+        currentLevelId: state.currentEditorLevel,
+        currentLevel: state.levels[ state.currentEditorLevel ]
     }),
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
