@@ -136,9 +136,11 @@ function levelEntityReducer( state, action ) {
 
     switch( action.type ) {
 
+        case 'ADD_NEXT_LEVEL':
         case 'ADD_ENTITY':
             return {
                 ...state,
+                nextLevelId: action.nextLevelId,
                 entityIds: [ ...state.entityIds, action.id ]
             };
 
@@ -177,15 +179,6 @@ export function levelsReducer( state = {}, action = {} ) {
                 }
             };
 
-        case 'ADD_NEXT_LEVEL':
-            return {
-                ...state,
-                [ action.levelId ]: {
-                    ...state[ action.levelId ],
-                    nextLevelId: action.nextLevelId
-                }
-            };
-
         case 'MODIFY_LEVEL':
             return {
                 ...state,
@@ -206,6 +199,7 @@ export function levelsReducer( state = {}, action = {} ) {
                 }
             };
 
+        case 'ADD_NEXT_LEVEL':
         case 'REMOVE_ENTITY':
         case 'ADD_ENTITY':
             return {

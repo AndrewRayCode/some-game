@@ -215,7 +215,6 @@ function snapTo( number, interval ) {
             allEntities,
             nextLevel,
             nextLevelEntities,
-            jumpForce: state.game.jumpForce,
             airMoveForce: state.airMoveForce,
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
@@ -439,7 +438,7 @@ export default class Game extends Component {
         }
 
         const {
-            visibleEntities, playerScale, nextLevel, currentLevel, jumpForce,
+            visibleEntities, playerScale, nextLevel, currentLevel,
             playerRadius, playerMass
         } = this.props;
         const { playerContact } = this;
@@ -707,7 +706,7 @@ export default class Game extends Component {
 
                     if( jumpableWalls.down ) {
 
-                        this.playerBody.velocity.z = -Math.sqrt( 1.1 * 2 * 9.8 * playerScale );
+                        this.playerBody.velocity.z = -Math.sqrt( 1.3 * 2 * 9.8 * playerScale );
 
                     }
 

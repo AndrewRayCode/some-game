@@ -27,7 +27,7 @@ export default class Shrink extends Component {
             scale={ scale }
         >
             <mesh
-                scale={ scale.clone().multiplyScalar( 0.8 ) }
+                scale={ new THREE.Vector3( 0.7, 0.7, 0.7 ) }
                 rotation={ rotationOffset }
                 ref="mesh2"
             >

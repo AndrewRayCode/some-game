@@ -727,7 +727,7 @@ export default class Editor extends Component {
 
         const nextLevel = currentLevel.nextLevelId && {
             level: levels[ currentLevel.nextLevelId ],
-            ...Object.keys( entities )
+            ...entityIds
                 .map( id => entities[ id ] )
                 .find( entity => entity.type === 'level' )
         };
