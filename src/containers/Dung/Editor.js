@@ -1168,7 +1168,7 @@ export default class Editor extends Component {
                     <b>Editor</b>
                     <br />
                     <br />
-                    { selecting && selectedObjectId ? <div>
+                    { selecting && selectedObject && selectedObjectId ? <div>
                         <b>Object Seelcted</b>
                         <br />
                         Press [X] to delete this object

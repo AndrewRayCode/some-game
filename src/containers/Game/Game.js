@@ -296,13 +296,13 @@ export default class Game extends Component {
     _setupPhysics( props, playerPosition ) {
 
         const {
-            currentLevel, allEntities, playerRadius, playerDensity
+            currentLevel, allEntities, playerRadius, playerDensity, playerMass
         } = props;
         const { entityIds } = currentLevel;
 
         const playerBody = new CANNON.Body({
             material: wallMaterial,
-            mass: getSphereMass( playerDensity, playerRadius )
+            mass: playerMass
         });
         this.playerBody = playerBody;
         playerBody.linearDamping = 0.0;
@@ -381,11 +381,19 @@ export default class Game extends Component {
             const { nextLevelEntity } = this.props;
             const { cameraPosition } = this.state;
 
-            this.setState({ cameraPosition: new THREE.Vector3(
-                ( cameraPosition.x - nextLevelEntity.position.x ) * 2 * 2 * 2,
-                1.5 + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, 1 ),
-                ( cameraPosition.z - nextLevelEntity.position.z ) * 2 * 2 * 2
-            ) });
+            if( this.props.nextLevelEntity.scale.x < 1 ) {
+                this.setState({ cameraPosition: new THREE.Vector3(
+                    ( cameraPosition.x - nextLevelEntity.position.x ) / 0.125,
+                    1.5 + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, nextProps.playerScale ),
+                    ( cameraPosition.z - nextLevelEntity.position.z ) / 0.125
+                ) });
+            } else {
+                this.setState({ cameraPosition: new THREE.Vector3(
+                    ( cameraPosition.x - nextLevelEntity.position.x ) * 0.125,
+                    1.5 + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, nextProps.playerScale ),
+                    ( cameraPosition.z - nextLevelEntity.position.z ) * 0.125
+                ) });
+            }
 
         }
 
@@ -406,16 +414,15 @@ export default class Game extends Component {
             
             if( this.props.nextLevelEntity.scale.x < 1 ) {
                 newPosition = new CANNON.Vec3(
-                    ( position.x - nextLevelEntity.position.x ) * 2 * 2 * 2,
+                    ( position.x - nextLevelEntity.position.x ) / 0.125,
                     1 + nextProps.playerRadius,
-                    ( position.z - nextLevelEntity.position.z ) * 2 * 2 * 2,
+                    ( position.z - nextLevelEntity.position.z ) / 0.125,
                 );
             } else {
-                console.log('sidivindg');
                 newPosition = new CANNON.Vec3(
-                    ( position.x - nextLevelEntity.position.x ) / 2 / 2 / 2,
-                    2 + nextProps.playerRadius,
-                    ( position.z - nextLevelEntity.position.z ) / 2 / 2 / 2,
+                    ( position.x - nextLevelEntity.position.x ) * 0.125,
+                    1 + nextProps.playerRadius,
+                    ( position.z - nextLevelEntity.position.z ) * 0.125,
                 );
             }
 
@@ -1276,7 +1283,7 @@ export default class Game extends Component {
                             position, rotation: e, type: 'tubebend'
                         }, playerScale );
 
-                        return <group key={i}>
+                        return <group key={ i }>
 
                             <mesh
                                 position={ entrance1 }
