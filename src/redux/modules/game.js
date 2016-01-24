@@ -64,7 +64,8 @@ export function game( state = defaultState, action = {} ) {
         case 'GAME_SELECT_LEVEL':
             return {
                 ...state,
-                playerRadius, playerScale, playerDensity
+                playerRadius: action.levelScale < 1 ? playerRadius : playerRadius * 0.125,
+                playerScale: action.levelScale < 1 ? playerScale : 0.125
             };
 
         case 'SCALE_PLAYER':
@@ -116,10 +117,10 @@ export function startGame( levelId, levels, entities ) {
     };
 }
 
-export function advanceLevel( levelId ) {
+export function advanceLevel( levelId, levelScale ) {
     return {
         type: 'GAME_SELECT_LEVEL',
-        levelId
+        levelId, levelScale
     };
 }
 

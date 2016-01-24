@@ -191,31 +191,49 @@ function snapTo( number, interval ) {
     ( state ) => {
 
         const { levels } = state.game;
-        const currentLevel = levels[ state.currentGameLevel ];
+        const currentLevelId = state.currentGameLevel;
+        const currentLevel = levels[ currentLevelId ];
         const allEntities = state.game.entities;
 
-        // Potential placeholder for showing multiple levels at the same time?
-        const visibleEntities = currentLevel.entityIds.map( id => allEntities[ id ] );
+        const {
+            currentLevelAllEntities,
+            currentLevelStaticEntities,
+            nextLevelData
+        } = currentLevel.entityIds.reduce( ( memo, id ) => {
+            const entity = allEntities[ id ];
 
-        const nextLevel = currentLevel.nextLevelId && {
-            level: levels[ currentLevel.nextLevelId ],
-            ...Object.keys( allEntities )
-                .map( id => allEntities[ id ] )
-                .find( entity => entity.type === 'level' )
+            if( entity.type === 'level' ) {
+                memo.nextLevelData = allEntities[ id ];
+                memo.currentLevelAllEntities[ id ] = entity;
+            } else {
+                memo.currentLevelAllEntities[ id ] = entity;
+                memo.currentLevelStaticEntities[ id ] = entity;
+            }
+
+            return memo;
+        }, {
+            currentLevelAllEntities: {},
+            currentLevelStaticEntities: {}
+        });
+
+        const nextLevelId = currentLevel.nextLevelId;
+        const /* this shit is */nextLevel = nextLevelId && levels[ nextLevelId ];
+
+        const nextLevelEntity = nextLevelId && {
+            level: nextLevel,
+            ...nextLevelData
         };
 
-        const nextLevelEntities = nextLevel && nextLevel.level.entityIds
+        const nextLevelEntitiesArray = nextLevelId && nextLevel.entityIds
             .map( id => allEntities[ id ] )
             .filter( entity => entity.type !== 'level' );
 
         return {
-            currentLevel,
-            levels,
-            visibleEntities,
-            allEntities,
-            nextLevel,
-            nextLevelEntities,
-            airMoveForce: state.airMoveForce,
+            levels, currentLevel, currentLevelId, currentLevelAllEntities,
+            currentLevelStaticEntities, allEntities, nextLevelId,
+            nextLevelEntity, nextLevel, nextLevelEntitiesArray,
+            currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
+
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
             playerScale: state.game.playerScale,
@@ -277,7 +295,9 @@ export default class Game extends Component {
 
     _setupPhysics( props, playerPosition ) {
 
-        const { currentLevel, allEntities, playerRadius, playerDensity } = props;
+        const {
+            currentLevel, allEntities, playerRadius, playerDensity
+        } = props;
         const { entityIds } = currentLevel;
 
         const playerBody = new CANNON.Body({
@@ -358,13 +378,13 @@ export default class Game extends Component {
 
         if( nextProps.currentLevel.id !== this.props.currentLevel.id ) {
 
-            const { nextLevel } = this.props;
+            const { nextLevelEntity } = this.props;
             const { cameraPosition } = this.state;
 
             this.setState({ cameraPosition: new THREE.Vector3(
-                ( cameraPosition.x - nextLevel.position.x ) * 2 * 2 * 2,
+                ( cameraPosition.x - nextLevelEntity.position.x ) * 2 * 2 * 2,
                 1.5 + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, 1 ),
-                ( cameraPosition.z - nextLevel.position.z ) * 2 * 2 * 2
+                ( cameraPosition.z - nextLevelEntity.position.z ) * 2 * 2 * 2
             ) });
 
         }
@@ -380,13 +400,24 @@ export default class Game extends Component {
 
             this.physicsBodies.map( body => this.world.remove( body ) );
 
-            const { nextLevel } = this.props;
+            const { nextLevelEntity } = this.props;
             const { position } = this.playerBody;
-            const newPosition = new CANNON.Vec3(
-                ( position.x - nextLevel.position.x ) * 2 * 2 * 2,
-                1 + nextProps.playerRadius,
-                ( position.z - nextLevel.position.z ) * 2 * 2 * 2,
-            );
+            let newPosition;
+            
+            if( this.props.nextLevelEntity.scale.x < 1 ) {
+                newPosition = new CANNON.Vec3(
+                    ( position.x - nextLevelEntity.position.x ) * 2 * 2 * 2,
+                    1 + nextProps.playerRadius,
+                    ( position.z - nextLevelEntity.position.z ) * 2 * 2 * 2,
+                );
+            } else {
+                console.log('sidivindg');
+                newPosition = new CANNON.Vec3(
+                    ( position.x - nextLevelEntity.position.x ) / 2 / 2 / 2,
+                    2 + nextProps.playerRadius,
+                    ( position.z - nextLevelEntity.position.z ) / 2 / 2 / 2,
+                );
+            }
 
             this._setupPhysics( nextProps, newPosition );
 
@@ -438,8 +469,8 @@ export default class Game extends Component {
         }
 
         const {
-            visibleEntities, playerScale, nextLevel, currentLevel,
-            playerRadius, playerMass
+            playerScale, nextLevelEntity, currentLevel, playerRadius,
+            playerMass, currentLevelStaticEntitiesArray, nextLevelId
         } = this.props;
         const { playerContact } = this;
         const { keysDown } = this;
@@ -464,16 +495,25 @@ export default class Game extends Component {
         const contactKeys = Object.keys( playerContact );
         let tubeEntrances;
 
-        if( nextLevel && playerScale === nextLevel.scale.x && !this.advancing && (
-             ( playerPosition.x > ( nextLevel.position.x - 0.475 ) ) &&
-             ( playerPosition.x < ( nextLevel.position.x + 0.475 ) ) &&
-             ( playerPosition.z > ( nextLevel.position.z - 0.475 ) ) &&
-             ( playerPosition.z < ( nextLevel.position.z + 0.475 ) )
-        ) ) {
-            this.advancing = true;
-            this.playerContact = {};
-            this.props.advanceLevel( currentLevel.nextLevelId );
-            return;
+        if( nextLevelEntity ) {
+
+            if( !this.advancing && ( (
+                ( playerPosition.x > ( nextLevelEntity.position.x - 0.475 ) ) &&
+                ( playerPosition.x < ( nextLevelEntity.position.x + 0.475 ) ) &&
+                ( playerPosition.z > ( nextLevelEntity.position.z - 0.475 ) ) &&
+                ( playerPosition.z < ( nextLevelEntity.position.z + 0.475 ) )
+            ) || (
+                ( playerPosition.x > 4 ) ||
+                ( playerPosition.x < -4 ) ||
+                ( playerPosition.z > 4 ) ||
+                ( playerPosition.z < -4 )
+            ) ) ) {
+                this.advancing = true;
+                this.playerContact = {};
+                this.props.advanceLevel( nextLevelId, nextLevelEntity.scale.x );
+                return;
+            }
+
         }
 
         if( !this.state.tubeFlow ) {
@@ -566,7 +606,7 @@ export default class Game extends Component {
                 let currentEntrance = entrancePlayerStartsAt;
 
                 let failSafe = 0;
-                while( failSafe < 30 && ( nextTube = findNextTube( currentTube, currentEntrance, visibleEntities, playerScale ) ) ) {
+                while( failSafe < 30 && ( nextTube = findNextTube( currentTube, currentEntrance, currentLevelStaticEntitiesArray, playerScale ) ) ) {
 
                     failSafe++;
 
@@ -751,7 +791,7 @@ export default class Game extends Component {
     _onAnimate() {
 
         const {
-            visibleEntities, playerRadius, playerDensity, playerScale, currentLevel
+            currentLevelStaticEntitiesArray, playerRadius, playerDensity, playerScale, currentLevel
         } = this.props;
         const playerPosition = this.state.currentFlowPosition || this.playerBody.position;
 
@@ -817,9 +857,9 @@ export default class Game extends Component {
             playerPosition.z
         ), 0.05 / playerScale );
 
-        for( let i = 0; i < visibleEntities.length; i++ ) {
+        for( let i = 0; i < currentLevelStaticEntitiesArray.length; i++ ) {
 
-            const entity = visibleEntities[ i ];
+            const entity = currentLevelStaticEntitiesArray[ i ];
 
             if( ( entity.type === 'shrink' || entity.type === 'grow' ) &&
                     entity.scale.x === playerScale ) {
@@ -895,8 +935,8 @@ export default class Game extends Component {
         } = this.state;
 
         const {
-            playerRadius, playerScale, visibleEntities, nextLevel,
-            nextLevelEntities
+            playerRadius, playerScale, currentLevelStaticEntitiesArray, nextLevelEntity,
+            nextLevelEntities, nextLevelEntitiesArray
         } = this.props;
 
         const playerPosition = new THREE.Vector3().copy(
@@ -1149,15 +1189,15 @@ export default class Game extends Component {
 
                     <StaticEntities
                         ref="staticEntities"
-                        entities={ visibleEntities }
+                        entities={ currentLevelStaticEntitiesArray }
                         time={ time }
                     />
                     
-                    { nextLevel && <StaticEntities
-                        position={ nextLevel.position }
-                        scale={ nextLevel.scale }
+                    { nextLevelEntity && <StaticEntities
+                        position={ nextLevelEntity.position }
+                        scale={ nextLevelEntity.scale }
                         ref="nextLevel"
-                        entities={ nextLevelEntities }
+                        entities={ nextLevelEntitiesArray }
                         time={ time }
                     /> }
 

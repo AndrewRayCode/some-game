@@ -94,23 +94,22 @@ function snapTo( number, interval ) {
                 currentLevelAllEntities,
                 currentLevelStaticEntities,
                 nextLevelData
-            } = currentLevel.entityIds
-                .reduce( ( memo, id ) => {
-                    const entity = allEntities[ id ];
+            } = currentLevel.entityIds.reduce( ( memo, id ) => {
+                const entity = allEntities[ id ];
 
-                    if( entity.type === 'level' ) {
-                        memo.nextLevelData = allEntities[ id ];
-                        memo.currentLevelAllEntities[ id ] = entity;
-                    } else {
-                        memo.currentLevelAllEntities[ id ] = entity;
-                        memo.currentLevelStaticEntities[ id ] = entity;
-                    }
+                if( entity.type === 'level' ) {
+                    memo.nextLevelData = allEntities[ id ];
+                    memo.currentLevelAllEntities[ id ] = entity;
+                } else {
+                    memo.currentLevelAllEntities[ id ] = entity;
+                    memo.currentLevelStaticEntities[ id ] = entity;
+                }
 
-                    return memo;
-                }, {
-                    currentLevelAllEntities: {},
-                    currentLevelStaticEntities: {}
-                });
+                return memo;
+            }, {
+                currentLevelAllEntities: {},
+                currentLevelStaticEntities: {}
+            });
 
             const nextLevelId = currentLevel.nextLevelId;
             const /* this shit is */nextLevel = nextLevelId && levels[ nextLevelId ];
@@ -120,12 +119,16 @@ function snapTo( number, interval ) {
                 ...nextLevelData
             };
 
+            const nextLevelEntitiesArray = nextLevel && nextLevel.entityIds
+                .map( id => allEntities[ id ] )
+                .filter( entity => entity.type !== 'level' );
+
             return {
                 levels, currentLevel, currentLevelId, currentLevelAllEntities,
                 currentLevelStaticEntities, allEntities, nextLevelId,
-                nextLevelEntity, nextLevel,
+                nextLevelEntity, nextLevel, nextLevelEntitiesArray,
                 currentLevelAllEntitiesArray: Object.values( currentLevelAllEntities ),
-                currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities )
+                currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             };
 
         }
@@ -763,7 +766,7 @@ export default class Editor extends Component {
             levels, currentLevelId, currentLevel, currentLevelAllEntities,
             currentLevelStaticEntities, nextLevelId, nextLevelEntity,
             allEntities, currentLevelAllEntitiesArray,
-            currentLevelStaticEntitiesArray
+            currentLevelStaticEntitiesArray, nextLevelEntitiesArray
         } = this.props;
 
         if( !currentLevelId ) {
@@ -1152,10 +1155,7 @@ export default class Editor extends Component {
                                 ref="nextLevel"
                                 position={ nextLevelEntity.position }
                                 scale={ nextLevelEntity.scale }
-                                entities={ nextLevelEntity.level.entityIds
-                                    .map( id => allEntities[ id ] )
-                                    .filter( entity => entity.type !== 'level' )
-                                }
+                                entities={ nextLevelEntitiesArray }
                                 time={ time }
                             /> }
 
