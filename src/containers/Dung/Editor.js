@@ -1390,8 +1390,17 @@ export default class Editor extends Component {
                             ( levels[ nextLevelId ].entityIds.map(
                                 id => allEntities[ id ]
                             ).find( entity => entity.type === 'level' ) || {} ).id,
-                            nextLevelEntity.position,
-                            nextLevelEntity.scale
+                            nextLevelEntity.position.clone()
+                                .multiply(
+                                    new THREE.Vector3( -1, 1, -1 )
+                                )
+                                .multiplyScalar( 1 / nextLevelEntity.scale.x )
+                                .setY( -7 ),
+                            new THREE.Vector3(
+                                1 / nextLevelEntity.scale.x,
+                                1 / nextLevelEntity.scale.y,
+                                1 / nextLevelEntity.scale.z
+                            )
                         ) }
                     >
                         Set to previous inset level

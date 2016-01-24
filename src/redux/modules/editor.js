@@ -30,24 +30,24 @@ const ROTATE_ENTITY = 'dung/ROTATE_ENTITY';
 let hasDeserialized = false;
 
 // Private reducer, only modifies entities themselves. State will be an entity
-function entityPropertyReducer( state, action ) {
+function entityPropertyReducer( entity, action ) {
 
     switch( action.type ) {
 
         case CHANGE_ENTITY_MATERIAL_ID:
 
             return {
-                ...state,
+                ...entity,
                 materialId: action.newMaterialId
             };
 
         case MOVE_ENTITY:
 
             const { field, value } = action;
-            const { position } = state;
+            const { position } = entity;
 
             return {
-                ...state,
+                ...entity,
                 position: new THREE.Vector3(
                     field === 'x' ? value : position.x,
                     field === 'y' ? value : position.y,
@@ -59,10 +59,10 @@ function entityPropertyReducer( state, action ) {
 
             const rField = action.field;
             const rValue = action.value;
-            const { rotation } = state;
+            const { rotation } = entity;
 
             return {
-                ...state,
+                ...entity,
                 rotation: new THREE.Vector3(
                     field === 'x' ? value : rotation.x,
                     field === 'y' ? value : rotation.y,
@@ -70,19 +70,26 @@ function entityPropertyReducer( state, action ) {
                 )
             };
 
+        case INSET_LEVEL:
+            return {
+                ...entity,
+                position: action.position,
+                scale: action.scale
+            };
+
         case DESERIALIZE:
             return {
-                ...state,
-                position: new THREE.Vector3().copy( state.position ),
+                ...entity,
+                position: new THREE.Vector3().copy( entity.position ),
                 // Level entities don't have rotation saved
-                rotation: state.rotation ?
-                    new THREE.Quaternion( state.rotation._x, state.rotation._y, state.rotation._z, state.rotation._w ) :
+                rotation: entity.rotation ?
+                    new THREE.Quaternion( entity.rotation._x, entity.rotation._y, entity.rotation._z, entity.rotation._w ) :
                     new THREE.Quaternion( 0, 0, 0, 1 ),
-                scale: new THREE.Vector3().copy( state.scale )
+                scale: new THREE.Vector3().copy( entity.scale )
             };
 
         default:
-            return state;
+            return entity;
 
     }
 
@@ -129,6 +136,12 @@ export function entitiesReducer( state = {}, action = {} ) {
             return {
                 ...state,
                 [ action.id ]: entityPropertyReducer( state[ action.id ], action )
+            };
+
+        case INSET_LEVEL:
+            return {
+                ...state,
+                [ action.nextLevelEntityId ]: entityPropertyReducer( state[ action.nextLevelEntityId ], action )
             };
 
         case DESERIALIZE:
@@ -377,7 +390,8 @@ export function addNextLevel( levelId, nextLevelId, position, scale ) {
 export function insetLevel( currentLevelId, nextLevelId, nextLevelEntityId, previousLevelNextLevelEntityIdIfAny, position, scale ) {
     return {
         type: INSET_LEVEL,
-        currentLevelId, nextLevelId, nextLevelEntityId, previousLevelNextLevelEntityIdIfAny, position, scale
+        currentLevelId, nextLevelId, nextLevelEntityId,
+        previousLevelNextLevelEntityIdIfAny, position, scale
     };
 }
 
