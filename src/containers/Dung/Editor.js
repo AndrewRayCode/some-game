@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
     addLevel, selectLevel, saveLevel, updateLevel, deserializeLevels,
-    renameLevel, addNextLevel, removeNextLevel
+    renameLevel, addNextLevel, removeNextLevel, insetLevel
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -135,8 +135,9 @@ function snapTo( number, interval ) {
     },
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
-        changeEntityMaterial, addNextLevel, selectLevel, saveLevel, updateLevel,
-        deserializeLevels, renameLevel, addLevel, removeNextLevel
+        changeEntityMaterial, addNextLevel, selectLevel, saveLevel,
+        updateLevel, deserializeLevels, renameLevel, addLevel, removeNextLevel,
+        insetLevel
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -164,7 +165,7 @@ export default class Editor extends Component {
             gridBaseRotation: new THREE.Euler( 0, Math.PI / 2, 0 ),
             gridBaseScale: new THREE.Vector3( 200, 0.00001, 200 ),
 
-            insertLevelId: ( Object.keys( props.levels )[ 0 ] || {} ).id,
+            insertLevelId: Object.keys( props.levels || {} )[ 0 ],
             gridPosition: new THREE.Vector3( 0, 0, 0 )
         };
 
@@ -267,7 +268,7 @@ export default class Editor extends Component {
         // Get the selected level id if levels weren't available on first mount
         if( nextProps.levels && !this.state.insertLevelId ) {
             this.setState({
-                insertLevelId: ( Object.keys( nextProps.levels )[ 0 ] ).id
+                insertLevelId: Object.keys( nextProps.levels )[ 0 ]
             });
         }
 
@@ -760,8 +761,9 @@ export default class Editor extends Component {
 
         const {
             levels, currentLevelId, currentLevel, currentLevelAllEntities,
-            currentLevelStaticEntities, nextLevelEntity, allEntities,
-            currentLevelAllEntitiesArray, currentLevelStaticEntitiesArray
+            currentLevelStaticEntities, nextLevelId, nextLevelEntity,
+            allEntities, currentLevelAllEntitiesArray,
+            currentLevelStaticEntitiesArray
         } = this.props;
 
         if( !currentLevelId ) {
@@ -896,9 +898,9 @@ export default class Editor extends Component {
                         time={ time }
                         position={ new THREE.Vector3( 0, 0, 0 ) }
                         entities={
-                            levels[ this.state.insertLevelId ].entityIds.map(
-                                id => allEntities[ id ]
-                            )
+                            levels[ this.state.insertLevelId ].entityIds
+                                .map( id => allEntities[ id ] )
+                                .filter( entity => entity.type !== 'level' )
                         }
                     />
                 </group>;
@@ -1374,8 +1376,25 @@ export default class Editor extends Component {
             <div>
                 { nextLevelEntity && <div>
                     Next level: { nextLevelEntity.level.name }
-                    <button onClick={ this.props.removeNextLevel.bind( null, currentLevelId, nextLevelEntity.id ) }>
+                    <button
+                        onClick={ this.props.removeNextLevel.bind(
+                            null, currentLevelId, nextLevelEntity.id
+                        ) }
+                    >
                         Remove
+                    </button>
+                    <button
+                        onClick={ this.props.insetLevel.bind(
+                            null, currentLevelId, nextLevelId,
+                            nextLevelEntity.id,
+                            ( levels[ nextLevelId ].entityIds.map(
+                                id => allEntities[ id ]
+                            ).find( entity => entity.type === 'level' ) || {} ).id,
+                            nextLevelEntity.position,
+                            nextLevelEntity.scale
+                        ) }
+                    >
+                        Set to previous inset level
                     </button>
                     <br /><br />
                 </div> }

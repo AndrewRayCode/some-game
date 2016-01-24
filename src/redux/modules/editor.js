@@ -13,6 +13,19 @@ const UPDATE = 'redux-example/UPDATE';
 const UPDATE_SUCCESS = 'redux-example/UPDATE_SUCCESS';
 const UPDATE_FAIL = 'redux-example/UPDATE_FAIL';
 
+const ADD_ENTITY = 'dung/ADD_ENTITY';
+const ADD_LEVEL = 'dung/ADD_LEVEL';
+const ADD_NEXT_LEVEL = 'dung/ADD_NEXT_LEVEL';
+const CHANGE_ENTITY_MATERIAL_ID = 'dung/CHANGE_ENTITY_MATERIAL_ID';
+const DESERIALIZE = 'dung/DESERIALIZE';
+const EDITOR_SELECT_LEVEL = 'dung/EDITOR_SELECT_LEVEL';
+const INSET_LEVEL = 'dung/INSET_LEVEL';
+const MODIFY_LEVEL = 'dung/MODIFY_LEVEL';
+const MOVE_ENTITY = 'dung/MOVE_ENTITY';
+const REMOVE_ENTITY = 'dung/REMOVE_ENTITY';
+const REMOVE_NEXT_LEVEL = 'dung/REMOVE_NEXT_LEVEL';
+const ROTATE_ENTITY = 'dung/ROTATE_ENTITY';
+
 // do NOT do this
 let hasDeserialized = false;
 
@@ -21,14 +34,14 @@ function entityPropertyReducer( state, action ) {
 
     switch( action.type ) {
 
-        case 'CHANGE_ENTITY_MATERIAL_ID':
+        case CHANGE_ENTITY_MATERIAL_ID:
 
             return {
                 ...state,
                 materialId: action.newMaterialId
             };
 
-        case 'MOVE_ENTITY':
+        case MOVE_ENTITY:
 
             const { field, value } = action;
             const { position } = state;
@@ -42,7 +55,7 @@ function entityPropertyReducer( state, action ) {
                 )
             };
 
-        case 'ROTATE_ENTITY':
+        case ROTATE_ENTITY:
 
             const rField = action.field;
             const rValue = action.value;
@@ -57,7 +70,7 @@ function entityPropertyReducer( state, action ) {
                 )
             };
 
-        case 'DESERIALIZE':
+        case DESERIALIZE:
             return {
                 ...state,
                 position: new THREE.Vector3().copy( state.position ),
@@ -86,8 +99,8 @@ export function entitiesReducer( state = {}, action = {} ) {
                 ...action.result.entities
             };
 
-        case 'ADD_NEXT_LEVEL':
-        case 'ADD_ENTITY':
+        case ADD_NEXT_LEVEL:
+        case ADD_ENTITY:
 
             return {
                 ...state,
@@ -101,24 +114,24 @@ export function entitiesReducer( state = {}, action = {} ) {
                 }
             };
 
-        case 'REMOVE_NEXT_LEVEL':
+        case REMOVE_NEXT_LEVEL:
 
             return without( state, action.entityId );
 
-        case 'REMOVE_ENTITY':
+        case REMOVE_ENTITY:
 
             return without( state, action.id );
 
-        case 'ROTATE_ENTITY':
-        case 'MOVE_ENTITY':
-        case 'CHANGE_ENTITY_MATERIAL_ID':
+        case ROTATE_ENTITY:
+        case MOVE_ENTITY:
+        case CHANGE_ENTITY_MATERIAL_ID:
 
             return {
                 ...state,
                 [ action.id ]: entityPropertyReducer( state[ action.id ], action )
             };
 
-        case 'DESERIALIZE':
+        case DESERIALIZE:
             if( hasDeserialized ) {
                 return state;
             }
@@ -135,55 +148,76 @@ export function entitiesReducer( state = {}, action = {} ) {
 
 }
 
+function removeNextLevelFrom( level, entityId ) {
+
+    return {
+        ...level,
+        entityIds: level.entityIds.filter( id => id !== entityId) ,
+        nextLevelId: null
+    };
+
+}
+
 // Private reducer, only modifies levels. state will be an individual level
-function levelEntityReducer( state, action ) {
+function individualLevelReducer( level, action ) {
 
     switch( action.type ) {
 
-        case 'ADD_NEXT_LEVEL':
-        case 'ADD_ENTITY':
+        case ADD_NEXT_LEVEL:
+        case ADD_ENTITY:
             return {
-                ...state,
+                ...level,
                 nextLevelId: action.nextLevelId,
-                entityIds: [ ...state.entityIds, action.id ]
+                entityIds: [ ...level.entityIds, action.id ]
             };
 
-        case 'REMOVE_NEXT_LEVEL':
+        case REMOVE_NEXT_LEVEL:
             return {
-                ...state,
+                ...level,
                 nextLevelId: null,
-                entityIds: state.entityIds.filter( id => id !== action.entityId )
+                entityIds: level.entityIds.filter( id => id !== action.entityId )
             };
 
-        case 'REMOVE_ENTITY':
+        case REMOVE_ENTITY:
             return {
-                ...state,
-                nextLevelId: action.entityType === 'level' ? null : state.nextLevelId,
-                entityIds: state.entityIds.filter( id => id !== action.id )
+                ...level,
+                nextLevelId: action.entityType === 'level' ? null : level.nextLevelId,
+                entityIds: level.entityIds.filter( id => id !== action.id )
+            };
+
+        case INSET_LEVEL:
+            return {
+                ...level,
+                nextLevelId: action.currentLevelId,
+                entityIds: [
+                    ...level.entityIds.filter( id => id !== action.previousLevelNextLevelEntityIdIfAny ),
+                    action.nextLevelEntityId
+                ]
             };
 
         default:
-            return state;
+            return level;
+
     }
 
 }
 
 // Top level levels reducer. State is a key value hash of all levels
-export function levelsReducer( state = {}, action = {} ) {
+export function levelsReducer( levels = {}, action = {} ) {
 
     switch( action.type ) {
 
         case LOAD_SUCCESS:
             return {
-                ...state,
+                ...levels,
                 ...action.result.levels
             };
 
         case SAVE_SUCCESS:
 
-            const oldLevel = state[ action.result.oldId ];
+            const oldLevel = levels[ action.result.oldId ];
             return {
-                ...without( state, oldLevel.id ),
+                ...without( levels, oldLevel.id ),
                 [ action.result.id ]: {
                     ...oldLevel,
                     id: action.result.id,
@@ -191,19 +225,19 @@ export function levelsReducer( state = {}, action = {} ) {
                 }
             };
 
-        case 'MODIFY_LEVEL':
+        case MODIFY_LEVEL:
             return {
-                ...state,
+                ...levels,
                 [ action.id ]: {
-                    ...state[ action.id ],
+                    ...levels[ action.id ],
                     id: action.id,
                     [ action.field ]: action.value
                 }
             };
 
-        case 'ADD_LEVEL':
+        case ADD_LEVEL:
             return {
-                ...state,
+                ...levels,
                 [ action.id ]: {
                     id: action.id,
                     name: action.name,
@@ -211,17 +245,26 @@ export function levelsReducer( state = {}, action = {} ) {
                 }
             };
 
-        case 'REMOVE_NEXT_LEVEL':
-        case 'ADD_NEXT_LEVEL':
-        case 'REMOVE_ENTITY':
-        case 'ADD_ENTITY':
+        case REMOVE_NEXT_LEVEL:
+        case ADD_NEXT_LEVEL:
+        case REMOVE_ENTITY:
+        case ADD_ENTITY:
             return {
-                ...state,
-                [ action.levelId ]: levelEntityReducer( state[ action.levelId ], action )
+                ...levels,
+                [ action.levelId ]: individualLevelReducer( levels[ action.levelId ], action )
+            };
+
+        case INSET_LEVEL:
+            return {
+                ...levels,
+                // remove the next level (the one we're insetting) from the
+                // curent level
+                [ action.currentLevelId ]: removeNextLevelFrom( levels[ action.currentLevelId ], action.nextLevelEntityId ),
+                [ action.nextLevelId ]: individualLevelReducer( levels[ action.nextLevelId ], action )
             };
 
         default:
-            return state;
+            return levels;
 
     }
 
@@ -234,7 +277,7 @@ export function editorLevelReducer( state = null, action = {} ) {
         case SAVE_SUCCESS:
             return action.result.id;
 
-        case 'EDITOR_SELECT_LEVEL':
+        case EDITOR_SELECT_LEVEL:
             return action.id;
 
         default:
@@ -264,7 +307,7 @@ export function loadLevelsReducer( state = {}, action = {} ) {
 // Actions
 export function addLevel( name ) {
     return {
-        type: 'ADD_LEVEL',
+        type: ADD_LEVEL,
         id: Date.now(),
         name
     };
@@ -272,14 +315,14 @@ export function addLevel( name ) {
 
 export function selectLevel( id ) {
     return {
-        type: 'EDITOR_SELECT_LEVEL',
+        type: EDITOR_SELECT_LEVEL,
         id
     };
 }
 
 export function addEntity( levelId, entityType, position, scale, rotation, materialId ) {
     return {
-        type: 'ADD_ENTITY',
+        type: ADD_ENTITY,
         id: Date.now(),
         levelId, entityType, position, scale, rotation, materialId
     };
@@ -287,35 +330,35 @@ export function addEntity( levelId, entityType, position, scale, rotation, mater
 
 export function removeEntity( levelId, id, entityType ) {
     return {
-        type: 'REMOVE_ENTITY',
+        type: REMOVE_ENTITY,
         levelId, id, entityType
     };
 }
 
 export function moveEntity( id, field, value ) {
     return {
-        type: 'MOVE_ENTITY',
+        type: MOVE_ENTITY,
         id, field, value
     };
 }
 
 export function rotateEntity( id, field, value ) {
     return {
-        type: 'ROTATE_ENTITY',
+        type: ROTATE_ENTITY,
         id, field, value
     };
 }
 
 export function changeEntityMaterial( id, newMaterialId ) {
     return {
-        type: 'CHANGE_ENTITY_MATERIAL_ID',
+        type: CHANGE_ENTITY_MATERIAL_ID,
         id, newMaterialId
     };
 }
 
 export function renameLevel( id, name ) {
     return {
-        type: 'MODIFY_LEVEL',
+        type: MODIFY_LEVEL,
         field: 'name',
         value: name,
         id
@@ -324,22 +367,29 @@ export function renameLevel( id, name ) {
 
 export function addNextLevel( levelId, nextLevelId, position, scale ) {
     return {
-        type: 'ADD_NEXT_LEVEL',
+        type: ADD_NEXT_LEVEL,
         entityType: 'level',
         id: Date.now(),
         levelId, nextLevelId, position, scale
     };
 }
 
+export function insetLevel( currentLevelId, nextLevelId, nextLevelEntityId, previousLevelNextLevelEntityIdIfAny, position, scale ) {
+    return {
+        type: INSET_LEVEL,
+        currentLevelId, nextLevelId, nextLevelEntityId, previousLevelNextLevelEntityIdIfAny, position, scale
+    };
+}
+
 export function removeNextLevel( levelId, entityId ) {
     return {
-        type: 'REMOVE_NEXT_LEVEL',
+        type: REMOVE_NEXT_LEVEL,
         levelId, entityId
     };
 }
 
 export function deserializeLevels() {
-    return { type: 'DESERIALIZE' };
+    return { type: DESERIALIZE };
 }
 
 export function loadLevels() {
