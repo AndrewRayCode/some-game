@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
     addLevel, selectLevel, saveLevel, updateLevel, deserializeLevels,
-    renameLevel, addNextLevel
+    renameLevel, addNextLevel, removeNextLevel
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -80,16 +80,63 @@ function snapTo( number, interval ) {
 }
 
 @connect(
-    state => ({
-        levels: state.levels,
-        entities: state.entities,
-        currentLevelId: state.currentEditorLevel,
-        currentLevel: state.levels[ state.currentEditorLevel ]
-    }),
+    ( state ) => {
+
+        const { levels } = state;
+        const currentLevelId = state.currentEditorLevel;
+        const allEntities = state.entities;
+
+        if( currentLevelId ) {
+
+            const currentLevel = levels[ currentLevelId ];
+
+            const {
+                currentLevelAllEntities,
+                currentLevelStaticEntities,
+                nextLevelData
+            } = currentLevel.entityIds
+                .reduce( ( memo, id ) => {
+                    const entity = allEntities[ id ];
+
+                    if( entity.type === 'level' ) {
+                        memo.nextLevelData = allEntities[ id ];
+                        memo.currentLevelAllEntities[ id ] = entity;
+                    } else {
+                        memo.currentLevelAllEntities[ id ] = entity;
+                        memo.currentLevelStaticEntities[ id ] = entity;
+                    }
+
+                    return memo;
+                }, {
+                    currentLevelAllEntities: {},
+                    currentLevelStaticEntities: {}
+                });
+
+            const nextLevelId = currentLevel.nextLevelId;
+            const /* this shit is */nextLevel = nextLevelId && levels[ nextLevelId ];
+
+            const nextLevelEntity = nextLevelId && {
+                level: nextLevel,
+                ...nextLevelData
+            };
+
+            return {
+                levels, currentLevel, currentLevelId, currentLevelAllEntities,
+                currentLevelStaticEntities, allEntities, nextLevelId,
+                nextLevelEntity, nextLevel,
+                currentLevelAllEntitiesArray: Object.values( currentLevelAllEntities ),
+                currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities )
+            };
+
+        }
+
+        return { levels, allEntities };
+
+    },
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
         changeEntityMaterial, addNextLevel, selectLevel, saveLevel, updateLevel,
-        deserializeLevels, renameLevel, addLevel
+        deserializeLevels, renameLevel, addLevel, removeNextLevel
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -162,7 +209,9 @@ export default class Editor extends Component {
     componentDidUpdate( prevProps ) {
 
         if( !this.controls && this.props.currentLevelId ) {
+
             this._setUpOrbitControls();
+
         }
 
     }
@@ -209,6 +258,17 @@ export default class Editor extends Component {
                 this.controls.removeEventListener('change', this._onOrbitChange);
             }
 
+        }
+
+    }
+
+    componentWillReceiveProps( nextProps ) {
+
+        // Get the selected level id if levels weren't available on first mount
+        if( nextProps.levels && !this.state.insertLevelId ) {
+            this.setState({
+                insertLevelId: ( Object.keys( nextProps.levels )[ 0 ] ).id
+            });
         }
 
     }
@@ -406,7 +466,7 @@ export default class Editor extends Component {
             this.props.removeEntity(
                 this.props.currentLevelId,
                 this.state.selectedObjectId,
-                this.props.entities[ this.state.selectedObjectId ].type
+                this.props.currentLevelAllEntities[ this.state.selectedObjectId ].type
             );
             
         }
@@ -451,7 +511,9 @@ export default class Editor extends Component {
 
     onMouseMove( event ) {
         
-        const { levels, currentLevelId, currentLevel } = this.props;
+        const {
+            currentLevelId, currentLevel, nextLevelId, nextLevelEntity
+        } = this.props;
 
         if( !currentLevelId ) {
 
@@ -460,8 +522,8 @@ export default class Editor extends Component {
         }
 
         const {
-            scene, previewPosition, staticEntities, camera, dragCreateBlock,
-            container
+            scene, previewPosition, currentLevelStaticEntities, camera,
+            dragCreateBlock, container, staticEntities
         } = this.refs;
 
         const { entityIds } = currentLevel;
@@ -473,6 +535,7 @@ export default class Editor extends Component {
             x: ( ( event.clientX - bounds.left ) / width ) * 2 - 1,
             y: -( ( event.clientY - bounds.top ) / height ) * 2 + 1
         };
+
 
         raycaster.setFromCamera( mouse, camera );
 
@@ -500,7 +563,7 @@ export default class Editor extends Component {
 
             const objectIntersection = intersections[ 0 ].object;
 
-            let entityTest = entityIds.find( ( id ) => {
+            let objectUnderCursorId = entityIds.find( ( id ) => {
 
                 const ref = staticEntities.refs[ id ];
                 
@@ -508,17 +571,15 @@ export default class Editor extends Component {
 
             });
 
-            if( this.props.currentLevel.nextLevelId && objectIntersection.parent === this.refs.nextLevel.refs.group ) {
-                entityTest = Object.keys( this.props.entities )
-                    .map( id => this.props.entities[ id ] )
-                    .find( entity => entity.type === 'level' );
-                entityTest = entityTest.id;
+            // Did the object we clicked on appear inside our next level ref?
+            // if so, set selected object to the next level entity
+            if( nextLevelId &&
+                    objectIntersection.parent === this.refs.nextLevel.refs.group
+                ) {
+                objectUnderCursorId = nextLevelEntity.id;
             }
 
-            this.setState({
-                objectUnderCursorId: intersections.length && entityTest ?
-                     entityTest : null
-            });
+            this.setState({ objectUnderCursorId });
 
         }
 
@@ -624,15 +685,15 @@ export default class Editor extends Component {
             if( createType === 'level' ) {
 
                 this.props.addNextLevel(
-                    currentLevelId, this.state.insertLevelId || Object.keys( levels )[ 0 ],
+                    currentLevelId, this.state.insertLevelId,
                     createPreviewPosition, createPreviewScale
                 );
 
             } else {
 
                 this.props.addEntity(
-                    currentLevelId, createType, createPreviewPosition, createPreviewScale,
-                    createPreviewRotation, createMaterialId
+                    currentLevelId, createType, createPreviewPosition,
+                    createPreviewScale, createPreviewRotation, createMaterialId
                 );
 
             }
@@ -697,7 +758,11 @@ export default class Editor extends Component {
 
     render() {
 
-        const { entities, levels, currentLevelId, currentLevel } = this.props;
+        const {
+            levels, currentLevelId, currentLevel, currentLevelAllEntities,
+            currentLevelStaticEntities, nextLevelEntity, allEntities,
+            currentLevelAllEntitiesArray, currentLevelStaticEntitiesArray
+        } = this.props;
 
         if( !currentLevelId ) {
 
@@ -721,24 +786,13 @@ export default class Editor extends Component {
 
         const { entityIds } = currentLevel;
 
-        const levelEntities = entityIds
-            .map( id => entities[ id ] )
-            .filter( entity => entity.type !== 'level' );
-
-        const nextLevel = currentLevel.nextLevelId && {
-            level: levels[ currentLevel.nextLevelId ],
-            ...entityIds
-                .map( id => entities[ id ] )
-                .find( entity => entity.type === 'level' )
-        };
-
         const {
             createType, selecting, selectedObjectId, creating, rotateable,
             createPreviewPosition, gridScale, createPreviewRotation, gridSnap,
             rotating, time, lightPosition
         } = this.state;
 
-        const selectedObject = entities[ selectedObjectId ];
+        const selectedObject = allEntities[ selectedObjectId ];
 
         let editorState = 'None';
         if( rotateable ) {
@@ -841,9 +895,11 @@ export default class Editor extends Component {
                     <StaticEntities
                         time={ time }
                         position={ new THREE.Vector3( 0, 0, 0 ) }
-                        entities={ levels[
-                            this.state.insertLevelId || Object.keys( levels )[ 0 ]
-                        ].entityIds.map( id => entities[ id ] ) }
+                        entities={
+                            levels[ this.state.insertLevelId ].entityIds.map(
+                                id => allEntities[ id ]
+                            )
+                        }
                     />
                 </group>;
 
@@ -1086,16 +1142,16 @@ export default class Editor extends Component {
 
                             <StaticEntities
                                 ref="staticEntities"
-                                entities={ levelEntities }
+                                entities={ currentLevelStaticEntitiesArray }
                                 time={ time }
                             />
 
-                            { nextLevel && <StaticEntities
+                            { nextLevelEntity && <StaticEntities
                                 ref="nextLevel"
-                                position={ nextLevel.position }
-                                scale={ nextLevel.scale }
-                                entities={ nextLevel.level.entityIds
-                                    .map( id => entities[ id ] )
+                                position={ nextLevelEntity.position }
+                                scale={ nextLevelEntity.scale }
+                                entities={ nextLevelEntity.level.entityIds
+                                    .map( id => allEntities[ id ] )
                                     .filter( entity => entity.type !== 'level' )
                                 }
                                 time={ time }
@@ -1295,12 +1351,18 @@ export default class Editor extends Component {
                     <input
                         type="text"
                         value={ currentLevel.name }
-                        onChange={ event => this.props.renameLevel( currentLevel.id, event.target.value ) }
+                        onChange={ event => this.props.renameLevel(
+                            currentLevelId, event.target.value
+                        ) }
                     />
                     <div>
-                        { currentLevel.saved ? <button onClick={ this.props.updateLevel.bind( null, currentLevel, entities ) }>
+                        { currentLevel.saved ? <button
+                            onClick={ this.props.updateLevel.bind( null, currentLevel, currentLevelAllEntities ) }
+                        >
                             Update Level "{ currentLevel.name }"
-                        </button> : <button onClick={ this.props.saveLevel.bind( null, currentLevel, entities ) }>
+                        </button> : <button
+                            onClick={ this.props.saveLevel.bind( null, currentLevel, currentLevelAllEntities ) }
+                        >
                             Save Level "{ currentLevel.name }"
                         </button> }
                     </div>
@@ -1310,6 +1372,13 @@ export default class Editor extends Component {
             </div>
 
             <div>
+                { nextLevelEntity && <div>
+                    Next level: { nextLevelEntity.level.name }
+                    <button onClick={ this.props.removeNextLevel.bind( null, currentLevelId, nextLevelEntity.id ) }>
+                        Remove
+                    </button>
+                    <br /><br />
+                </div> }
                 <b>State:</b> { editorState }
                 <br />
                 <b>Grid Snap:</b> { gridSnap }

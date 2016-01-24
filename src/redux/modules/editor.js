@@ -101,6 +101,10 @@ export function entitiesReducer( state = {}, action = {} ) {
                 }
             };
 
+        case 'REMOVE_NEXT_LEVEL':
+
+            return without( state, action.entityId );
+
         case 'REMOVE_ENTITY':
 
             return without( state, action.id );
@@ -144,6 +148,13 @@ function levelEntityReducer( state, action ) {
                 entityIds: [ ...state.entityIds, action.id ]
             };
 
+        case 'REMOVE_NEXT_LEVEL':
+            return {
+                ...state,
+                nextLevelId: null,
+                entityIds: state.entityIds.filter( id => id !== action.entityId )
+            };
+
         case 'REMOVE_ENTITY':
             return {
                 ...state,
@@ -157,6 +168,7 @@ function levelEntityReducer( state, action ) {
 
 }
 
+// Top level levels reducer. State is a key value hash of all levels
 export function levelsReducer( state = {}, action = {} ) {
 
     switch( action.type ) {
@@ -199,6 +211,7 @@ export function levelsReducer( state = {}, action = {} ) {
                 }
             };
 
+        case 'REMOVE_NEXT_LEVEL':
         case 'ADD_NEXT_LEVEL':
         case 'REMOVE_ENTITY':
         case 'ADD_ENTITY':
@@ -318,6 +331,12 @@ export function addNextLevel( levelId, nextLevelId, position, scale ) {
     };
 }
 
+export function removeNextLevel( levelId, entityId ) {
+    return {
+        type: 'REMOVE_NEXT_LEVEL',
+        levelId, entityId
+    };
+}
 
 export function deserializeLevels() {
     return { type: 'DESERIALIZE' };
