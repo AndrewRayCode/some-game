@@ -741,15 +741,14 @@ export default class Game extends Component {
 
         if( !isFlowing ) {
 
+            this.playerBody.applyImpulse(
+                new CANNON.Vec3( forceX, 0, 0 ),
+                new CANNON.Vec3( 0, 0, 0 )
+            );
+
             if( KeyCodes.SPACE in keysDown ) {
 
-                const coolDownKeys = Object.keys( this.wallCoolDowns );
-
                 const jumpableWalls = Object.keys( playerContact ).reduce( ( memo, key ) => {
-
-                    if( coolDownKeys.indexOf( key ) > -1 ) {
-                        return memo;
-                    }
 
                     if( playerContact[ key ] === Cardinality.DOWN ) {
                         memo.down = true;
@@ -764,6 +763,7 @@ export default class Game extends Component {
                     }
 
                     return memo;
+
                 }, {});
 
                 if( Object.keys( jumpableWalls ).length ) {
@@ -785,10 +785,6 @@ export default class Game extends Component {
 
             }
 
-            this.playerBody.applyImpulse(
-                new CANNON.Vec3( forceX, 0, 0 ),
-                new CANNON.Vec3( 0, 0, 0 )
-            );
             this.playerBody.velocity.x = Math.max(
                 Math.min( this.playerBody.velocity.x, velocityMax ),
                 -velocityMax
