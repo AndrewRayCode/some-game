@@ -533,7 +533,7 @@ export default class Game extends Component {
         const contactKeys = Object.keys( playerContact );
         let tubeEntrances;
 
-        if( !this.advancing ) {
+        if( !this.advancing && !this.state.tubeFlow ) {
 
             let transitionToScale;
             let transitionToId;
