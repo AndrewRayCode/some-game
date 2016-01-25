@@ -71,7 +71,7 @@ function getSphereMass( density, radius ) {
 
 function getCameraDistanceToPlayer( aspect, fov, objectSize ) {
 
-    return 1.5 + 6 * Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) );
+    return 1.5 + 4 * Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) );
 
 }
 
@@ -500,9 +500,10 @@ export default class Game extends Component {
         let forceX = 0;
         let forceZ = 0;
 
-        const velocityLimit = 0.5 * playerScale;
+        const velocityMax = 4.0 * playerScale;
         const moveForce = 400 / Math.pow( 1 / playerScale, 3 );
         const airMoveForce = 50 / Math.pow( 1 / playerScale, 3 );
+        const jumpForce = -Math.sqrt( 2.0 * 4 * 9.8 * playerRadius );
 
         const isLeft = ( KeyCodes.A in keysDown ) || ( KeyCodes.LEFT in keysDown );
         const isRight = ( KeyCodes.D in keysDown ) || ( KeyCodes.RIGHT in keysDown );
@@ -565,11 +566,11 @@ export default class Game extends Component {
         }
 
         if( isLeft ) {
-            const percentAwayFromTarget = Math.min( ( Math.abs( -velocityLimit - this.playerBody.velocity.x ) / velocityLimit ) * 4, 1 );
+            const percentAwayFromTarget = Math.min( ( Math.abs( -velocityMax - this.playerBody.velocity.x ) / velocityMax ) * 4, 1 );
             forceX -= moveForce * percentAwayFromTarget;
         }
         if( isRight ) {
-            const percentAwayFromTarget = Math.min( ( Math.abs( velocityLimit - this.playerBody.velocity.x ) / velocityLimit ) * 4, 1 );
+            const percentAwayFromTarget = Math.min( ( Math.abs( velocityMax - this.playerBody.velocity.x ) / velocityMax ) * 4, 1 );
             forceX += moveForce * percentAwayFromTarget;
         }
         if( isUp ) {
@@ -787,6 +788,10 @@ export default class Game extends Component {
             this.playerBody.applyImpulse(
                 new CANNON.Vec3( forceX, 0, 0 ),
                 new CANNON.Vec3( 0, 0, 0 )
+            );
+            this.playerBody.velocity.x = Math.max(
+                Math.min( this.playerBody.velocity.x, velocityMax ),
+                -velocityMax
             );
             
         }
