@@ -93,12 +93,12 @@ function snapTo( number, interval ) {
             const {
                 currentLevelAllEntities,
                 currentLevelStaticEntities,
-                nextLevelData
+                nextLevelEntityData
             } = currentLevel.entityIds.reduce( ( memo, id ) => {
                 const entity = allEntities[ id ];
 
                 if( entity.type === 'level' ) {
-                    memo.nextLevelData = allEntities[ id ];
+                    memo.nextLevelEntityData = allEntities[ id ];
                     memo.currentLevelAllEntities[ id ] = entity;
                 } else {
                     memo.currentLevelAllEntities[ id ] = entity;
@@ -116,10 +116,40 @@ function snapTo( number, interval ) {
 
             const nextLevelEntity = nextLevelId && {
                 level: nextLevel,
-                ...nextLevelData
+                ...nextLevelEntityData
             };
 
             const nextLevelEntitiesArray = nextLevel && nextLevel.entityIds
+                .map( id => allEntities[ id ] )
+                .filter( entity => entity.type !== 'level' );
+
+            const previousLevelId = Object.keys( levels ).find(
+                levelId => levels[ levelId ].nextLevelId === currentLevelId
+            );
+            const previousLevelData = previousLevelId && levels[ previousLevelId ];
+
+            const previousLevelEntityData = previousLevelData && allEntities[
+                previousLevelData.entityIds.find(
+                    id => allEntities[ id ].type === 'level'
+                )
+            ];
+
+            const isPreviousLevelBigger = previousLevelData &&
+                previousLevelEntityData.scale.x > 1;
+            const multiplier = isPreviousLevelBigger ? 0.125 : 8;
+            const previousLevelEntity = previousLevelData && {
+                level: previousLevelData,
+                ...previousLevelEntityData,
+                scale: new THREE.Vector3( multiplier, multiplier, multiplier ),
+                position: previousLevelEntityData.position
+                    .clone()
+                    .multiply(
+                        new THREE.Vector3( -multiplier, multiplier, -multiplier )
+                    )
+                    .setY( isPreviousLevelBigger ? 0.875 : -7 )
+            };
+
+            const previousLevelEntitiesArray = previousLevelData && previousLevelData.entityIds
                 .map( id => allEntities[ id ] )
                 .filter( entity => entity.type !== 'level' );
 
@@ -127,6 +157,7 @@ function snapTo( number, interval ) {
                 levels, currentLevel, currentLevelId, currentLevelAllEntities,
                 currentLevelStaticEntities, allEntities, nextLevelId,
                 nextLevelEntity, nextLevel, nextLevelEntitiesArray,
+                previousLevelEntity, previousLevelEntitiesArray,
                 currentLevelAllEntitiesArray: Object.values( currentLevelAllEntities ),
                 currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             };
@@ -516,7 +547,8 @@ export default class Editor extends Component {
     onMouseMove( event ) {
         
         const {
-            currentLevelId, currentLevel, nextLevelId, nextLevelEntity
+            currentLevelId, currentLevel, nextLevelId, nextLevelEntity,
+            previousLevelEntity,
         } = this.props;
 
         if( !currentLevelId ) {
@@ -581,6 +613,11 @@ export default class Editor extends Component {
                     objectIntersection.parent === this.refs.nextLevel.refs.group
                 ) {
                 objectUnderCursorId = nextLevelEntity.id;
+            }
+            if( previousLevelEntity &&
+                    objectIntersection.parent === this.refs.previousLevel.refs.group
+                ) {
+                objectUnderCursorId = previousLevelEntity.id;
             }
 
             this.setState({ objectUnderCursorId });
@@ -766,7 +803,8 @@ export default class Editor extends Component {
             levels, currentLevelId, currentLevel, currentLevelAllEntities,
             currentLevelStaticEntities, nextLevelId, nextLevelEntity,
             allEntities, currentLevelAllEntitiesArray,
-            currentLevelStaticEntitiesArray, nextLevelEntitiesArray
+            currentLevelStaticEntitiesArray, nextLevelEntitiesArray,
+            previousLevelEntity, previousLevelEntitiesArray
         } = this.props;
 
         if( !currentLevelId ) {
@@ -1159,6 +1197,15 @@ export default class Editor extends Component {
                                 time={ time }
                             /> }
 
+                            { previousLevelEntity && <StaticEntities
+                                ref="previousLevel"
+                                position={ previousLevelEntity.position }
+                                scale={ previousLevelEntity.scale }
+                                entities={ previousLevelEntitiesArray }
+                                time={ time }
+                                opacity={ 0.5 }
+                            /> }
+
                         </scene>
 
                     </React3>
@@ -1168,7 +1215,7 @@ export default class Editor extends Component {
                     <b>Editor</b>
                     <br />
                     <br />
-                    { selecting && selectedObject && selectedObjectId ? <div>
+                    { selecting && selectedObjectId ? <div>
                         <b>Object Seelcted</b>
                         <br />
                         Press [X] to delete this object

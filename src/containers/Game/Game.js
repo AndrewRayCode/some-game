@@ -40,8 +40,6 @@ const coolDownTimeMs = 500;
 
 const raycaster = new THREE.Raycaster();
 
-const cameraMultiplierFromPlayer = 3;
-
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
 const lerp = ( () => {
@@ -73,7 +71,7 @@ function getSphereMass( density, radius ) {
 
 function getCameraDistanceToPlayer( aspect, fov, objectSize ) {
 
-    return Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) );
+    return 1.5 + 6 * Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) );
 
 }
 
@@ -258,7 +256,7 @@ export default class Game extends Component {
         this.state = {
             cameraPosition: new THREE.Vector3(
                 0,
-                cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, 1 ),
+                getCameraDistanceToPlayer( cameraAspect, cameraFov, 1 ),
                 0
             ),
             lightPosition: new THREE.Vector3(),
@@ -381,19 +379,12 @@ export default class Game extends Component {
             const { nextLevelEntity } = this.props;
             const { cameraPosition } = this.state;
 
-            if( this.props.nextLevelEntity.scale.x < 1 ) {
-                this.setState({ cameraPosition: new THREE.Vector3(
-                    ( cameraPosition.x - nextLevelEntity.position.x ) / 0.125,
-                    1.5 + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, nextProps.playerScale ),
-                    ( cameraPosition.z - nextLevelEntity.position.z ) / 0.125
-                ) });
-            } else {
-                this.setState({ cameraPosition: new THREE.Vector3(
-                    ( cameraPosition.x - nextLevelEntity.position.x ) * 0.125,
-                    1.5 + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, nextProps.playerScale ),
-                    ( cameraPosition.z - nextLevelEntity.position.z ) * 0.125
-                ) });
-            }
+            const multiplier = this.props.nextLevelEntity.scale.x < 1 ? 8 : 0.125;
+            this.setState({ cameraPosition: new THREE.Vector3(
+                ( cameraPosition.x - nextLevelEntity.position.x ) * multiplier,
+                getCameraDistanceToPlayer( cameraAspect, cameraFov, nextProps.playerScale ),
+                ( cameraPosition.z - nextLevelEntity.position.z ) * multiplier
+            ) });
 
         }
 
@@ -412,19 +403,12 @@ export default class Game extends Component {
             const { position } = this.playerBody;
             let newPosition;
             
-            if( this.props.nextLevelEntity.scale.x < 1 ) {
-                newPosition = new CANNON.Vec3(
-                    ( position.x - nextLevelEntity.position.x ) / 0.125,
-                    1 + nextProps.playerRadius,
-                    ( position.z - nextLevelEntity.position.z ) / 0.125,
-                );
-            } else {
-                newPosition = new CANNON.Vec3(
-                    ( position.x - nextLevelEntity.position.x ) * 0.125,
-                    1 + nextProps.playerRadius,
-                    ( position.z - nextLevelEntity.position.z ) * 0.125,
-                );
-            }
+            const multiplier = this.props.nextLevelEntity.scale.x < 1 ? 8 : 0.125;
+            newPosition = new CANNON.Vec3(
+                ( position.x - nextLevelEntity.position.x ) * multiplier,
+                1 + nextProps.playerRadius,
+                ( position.z - nextLevelEntity.position.z ) * multiplier,
+            );
 
             this._setupPhysics( nextProps, newPosition );
 
@@ -860,7 +844,7 @@ export default class Game extends Component {
 
         state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
             playerPosition.x,
-            playerPosition.y + cameraMultiplierFromPlayer * getCameraDistanceToPlayer( cameraAspect, cameraFov, playerScale ),
+            getCameraDistanceToPlayer( cameraAspect, cameraFov, playerScale ),
             playerPosition.z
         ), 0.05 / playerScale );
 

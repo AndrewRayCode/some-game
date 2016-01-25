@@ -177,10 +177,15 @@ function individualLevelReducer( level, action ) {
     switch( action.type ) {
 
         case ADD_NEXT_LEVEL:
-        case ADD_ENTITY:
             return {
                 ...level,
                 nextLevelId: action.nextLevelId,
+                entityIds: [ ...level.entityIds, action.id ]
+            };
+
+        case ADD_ENTITY:
+            return {
+                ...level,
                 entityIds: [ ...level.entityIds, action.id ]
             };
 

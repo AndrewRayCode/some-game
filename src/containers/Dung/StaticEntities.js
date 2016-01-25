@@ -16,7 +16,7 @@ export default class StaticEntities extends Component {
 
     render() {
 
-        const { entities, time, position, scale } = this.props;
+        const { entities, time, position, scale, opacity } = this.props;
 
         return <group
             ref="group"
