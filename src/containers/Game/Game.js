@@ -500,8 +500,8 @@ export default class Game extends Component {
         let forceX = 0;
         let forceZ = 0;
 
-        const velocityLimit = 5 * playerScale;
-        const moveForce = 50 * ( playerMass / 16 );
+        const velocityLimit = 2 * playerScale;
+        const moveForce = 400 / Math.pow( 1 / playerScale, 3 );
         const airMoveForce = 5 * ( playerMass / 16 );
 
         const isLeft = ( KeyCodes.A in keysDown ) || ( KeyCodes.LEFT in keysDown );
@@ -816,7 +816,8 @@ export default class Game extends Component {
         const now = Date.now();
 
         const {
-            currentLevelStaticEntitiesArray, playerRadius, playerDensity, playerScale, currentLevel
+            currentLevelStaticEntitiesArray, playerRadius, playerDensity,
+            playerScale, currentLevel
         } = this.props;
         const playerPosition = this.state.currentFlowPosition || this.playerBody.position;
 
@@ -899,7 +900,7 @@ export default class Game extends Component {
 
                     const playerBody = new CANNON.Body({
                         material: wallMaterial,
-                        mass: getSphereMass( playerDensity, playerRadius )
+                        mass: getSphereMass( playerDensity, newRadius )
                     });
                     playerBody.addEventListener( 'collide', this.onPlayerCollide );
 
