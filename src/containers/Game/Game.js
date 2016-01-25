@@ -502,7 +502,7 @@ export default class Game extends Component {
 
         const velocityLimit = 2 * playerScale;
         const moveForce = 400 / Math.pow( 1 / playerScale, 3 );
-        const airMoveForce = 5 * ( playerMass / 16 );
+        const airMoveForce = 50 / Math.pow( 1 / playerScale, 3 );
 
         const isLeft = ( KeyCodes.A in keysDown ) || ( KeyCodes.LEFT in keysDown );
         const isRight = ( KeyCodes.D in keysDown ) || ( KeyCodes.RIGHT in keysDown );
