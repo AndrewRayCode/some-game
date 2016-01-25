@@ -262,7 +262,7 @@ function snapTo( number, interval ) {
             currentLevelStaticEntities, allEntities, nextLevelId,
             nextLevelEntity, nextLevel, nextLevelEntitiesArray,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
-            previousLevelEntity, previousLevelEntitiesArray,
+            previousLevelEntity, previousLevelEntitiesArray, previousLevelId,
 
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
@@ -408,14 +408,21 @@ export default class Game extends Component {
 
         if( nextProps.currentLevel.id !== this.props.currentLevel.id ) {
 
-            const { nextLevelEntity } = this.props;
+            const {
+                nextLevelId, nextLevelEntity, previousLevelId,
+                previousLevelEntity
+            } = this.props;
             const { cameraPosition } = this.state;
 
-            const multiplier = this.props.nextLevelEntity.scale.x < 1 ? 8 : 0.125;
+            const newLevel = nextProps.currentLevel.id === nextLevelId ?
+                nextLevelEntity : previousLevelEntity;
+
+            const multiplier = newLevel.scale.x < 1 ? 8 : 0.125;
+
             this.setState({ cameraPosition: new THREE.Vector3(
-                ( cameraPosition.x - nextLevelEntity.position.x ) * multiplier,
+                ( cameraPosition.x - newLevel.position.x ) * multiplier,
                 getCameraDistanceToPlayer( cameraAspect, cameraFov, nextProps.playerScale ),
-                ( cameraPosition.z - nextLevelEntity.position.z ) * multiplier
+                ( cameraPosition.z - newLevel.position.z ) * multiplier
             ) });
 
         }
@@ -431,15 +438,22 @@ export default class Game extends Component {
 
             this.physicsBodies.map( body => this.world.remove( body ) );
 
-            const { nextLevelEntity } = this.props;
+            const {
+                nextLevelId, nextLevelEntity, previousLevelId,
+                previousLevelEntity
+            } = this.props;
             const { position } = this.playerBody;
             let newPosition;
             
-            const multiplier = this.props.nextLevelEntity.scale.x < 1 ? 8 : 0.125;
+            const newLevel = nextProps.currentLevel.id === nextLevelId ?
+                nextLevelEntity : previousLevelEntity;
+
+            const multiplier = newLevel.scale.x < 1 ? 8 : 0.125;
+
             newPosition = new CANNON.Vec3(
-                ( position.x - nextLevelEntity.position.x ) * multiplier,
+                ( position.x - newLevel.position.x ) * multiplier,
                 1 + nextProps.playerRadius,
-                ( position.z - nextLevelEntity.position.z ) * multiplier,
+                ( position.z - newLevel.position.z ) * multiplier,
             );
 
             this._setupPhysics( nextProps, newPosition );
@@ -493,7 +507,8 @@ export default class Game extends Component {
 
         const {
             playerScale, nextLevelEntity, currentLevel, playerRadius,
-            playerMass, currentLevelStaticEntitiesArray, nextLevelId
+            playerMass, currentLevelStaticEntitiesArray, nextLevelId,
+            previousLevelEntity, previousLevelId
         } = this.props;
         const { playerContact } = this;
         const { keysDown } = this;
@@ -519,22 +534,54 @@ export default class Game extends Component {
         const contactKeys = Object.keys( playerContact );
         let tubeEntrances;
 
-        if( nextLevelEntity ) {
+        if( !this.advancing ) {
 
-            if( !this.advancing && ( (
+            let transitionToScale;
+            let transitionToId;
+
+            // Did the player enter into a smaller next level?
+            if( nextLevelEntity &&
                 ( playerPosition.x > ( nextLevelEntity.position.x - 0.475 ) ) &&
                 ( playerPosition.x < ( nextLevelEntity.position.x + 0.475 ) ) &&
                 ( playerPosition.z > ( nextLevelEntity.position.z - 0.475 ) ) &&
                 ( playerPosition.z < ( nextLevelEntity.position.z + 0.475 ) )
-            ) || (
+            ) {
+                transitionToId = nextLevelId;
+                transitionToScale = nextLevelEntity.scale.x;
+
+            // Or did the player go from a larger wrapping level to the
+            // previous smaller level it exited from? Note we don't currently
+            // have this case
+            } else if( previousLevelEntity &&
+                ( playerPosition.x > ( previousLevelEntity.position.x - 0.475 ) ) &&
+                ( playerPosition.x < ( previousLevelEntity.position.x + 0.475 ) ) &&
+                ( playerPosition.z > ( previousLevelEntity.position.z - 0.475 ) ) &&
+                ( playerPosition.z < ( previousLevelEntity.position.z + 0.475 ) )
+            ) {
+                transitionToId = previousLevelId;
+                transitionToScale = previousLevelEntity.scale.x;
+
+            // Or did the player leave the bounds of this small level?
+            } else if (
                 ( playerPosition.x > 4 ) ||
                 ( playerPosition.x < -4 ) ||
                 ( playerPosition.z > 4 ) ||
                 ( playerPosition.z < -4 )
-            ) ) ) {
+            ) {
+                // If the next level is bigger, that's the one we want
+                if( nextLevelEntity.scale.x > 1 ) {
+                    transitionToId = nextLevelId;
+                    transitionToScale = nextLevelEntity.scale.x;
+                } else {
+                    transitionToId = previousLevelId;
+                    transitionToScale = previousLevelEntity.scale.x;
+                }
+            }
+
+            if( transitionToId ) {
                 this.advancing = true;
                 this.playerContact = {};
-                this.props.advanceLevel( nextLevelId, nextLevelEntity.scale.x );
+                this.props.advanceLevel( transitionToId, transitionToScale );
                 return;
             }
 

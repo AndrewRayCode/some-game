@@ -26,9 +26,6 @@ const REMOVE_ENTITY = 'dung/REMOVE_ENTITY';
 const REMOVE_NEXT_LEVEL = 'dung/REMOVE_NEXT_LEVEL';
 const ROTATE_ENTITY = 'dung/ROTATE_ENTITY';
 
-// do NOT do this
-let hasDeserialized = false;
-
 // Private reducer, only modifies entities themselves. State will be an entity
 function entityPropertyReducer( entity, action ) {
 
@@ -80,6 +77,7 @@ function entityPropertyReducer( entity, action ) {
         case DESERIALIZE:
             return {
                 ...entity,
+                id: entity.id.toString(),
                 position: new THREE.Vector3().copy( entity.position ),
                 // Level entities don't have rotation saved
                 rotation: entity.rotation ?
@@ -96,13 +94,13 @@ function entityPropertyReducer( entity, action ) {
 }
 
 // Handles all entities. State is an object of { id: entity, ... }
-export function entitiesReducer( state = {}, action = {} ) {
+export function entitiesReducer( entities = {}, action = {} ) {
 
     switch( action.type ) {
 
         case LOAD_SUCCESS:
             return {
-                ...state,
+                ...entities,
                 ...action.result.entities
             };
 
@@ -110,7 +108,7 @@ export function entitiesReducer( state = {}, action = {} ) {
         case ADD_ENTITY:
 
             return {
-                ...state,
+                ...entities,
                 [ action.id ]: {
                     id: action.id,
                     type: action.entityType,
@@ -123,39 +121,35 @@ export function entitiesReducer( state = {}, action = {} ) {
 
         case REMOVE_NEXT_LEVEL:
 
-            return without( state, action.entityId );
+            return without( entities, action.entityId );
 
         case REMOVE_ENTITY:
 
-            return without( state, action.id );
+            return without( entities, action.id );
 
         case ROTATE_ENTITY:
         case MOVE_ENTITY:
         case CHANGE_ENTITY_MATERIAL_ID:
 
             return {
-                ...state,
-                [ action.id ]: entityPropertyReducer( state[ action.id ], action )
+                ...entities,
+                [ action.id ]: entityPropertyReducer( entities[ action.id ], action )
             };
 
         case INSET_LEVEL:
             return {
-                ...state,
-                [ action.nextLevelEntityId ]: entityPropertyReducer( state[ action.nextLevelEntityId ], action )
+                ...entities,
+                [ action.nextLevelEntityId ]: entityPropertyReducer( entities[ action.nextLevelEntityId ], action )
             };
 
         case DESERIALIZE:
-            if( hasDeserialized ) {
-                return state;
-            }
-            hasDeserialized = true;
-            return Object.keys( state ).reduce( ( memo, id ) => {
-                memo[ id ] = entityPropertyReducer( state[ id ], action );
+            return Object.keys( entities ).reduce( ( memo, id ) => {
+                memo[ id ] = entityPropertyReducer( entities[ id ], action );
                 return memo;
             }, {} );
 
         default:
-            return state;
+            return entities;
             
     }
 
@@ -211,6 +205,13 @@ function individualLevelReducer( level, action ) {
                     ...level.entityIds.filter( id => id !== action.previousLevelNextLevelEntityIdIfAny ),
                     action.nextLevelEntityId
                 ]
+            };
+
+        case DESERIALIZE:
+            return {
+                ...level,
+                id: level.id.toString(),
+                entityIds: level.entityIds.map( id => id.toString() )
             };
 
         default:
@@ -281,6 +282,13 @@ export function levelsReducer( levels = {}, action = {} ) {
                 [ action.nextLevelId ]: individualLevelReducer( levels[ action.nextLevelId ], action )
             };
 
+        case DESERIALIZE:
+            return Object.keys( levels ).reduce( ( memo, id ) => {
+                memo[ id ] = individualLevelReducer( levels[ id ], action );
+                return memo;
+            }, {} );
+
+
         default:
             return levels;
 
@@ -326,7 +334,7 @@ export function loadLevelsReducer( state = {}, action = {} ) {
 export function addLevel( name ) {
     return {
         type: ADD_LEVEL,
-        id: Date.now(),
+        id: Date.now().toString(),
         name
     };
 }
@@ -341,7 +349,7 @@ export function selectLevel( id ) {
 export function addEntity( levelId, entityType, position, scale, rotation, materialId ) {
     return {
         type: ADD_ENTITY,
-        id: Date.now(),
+        id: Date.now().toString(),
         levelId, entityType, position, scale, rotation, materialId
     };
 }
@@ -387,7 +395,7 @@ export function addNextLevel( levelId, nextLevelId, position, scale ) {
     return {
         type: ADD_NEXT_LEVEL,
         entityType: 'level',
-        id: Date.now(),
+        id: Date.now().toString(),
         levelId, nextLevelId, position, scale
     };
 }
