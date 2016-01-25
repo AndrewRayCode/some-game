@@ -500,7 +500,7 @@ export default class Game extends Component {
         let forceX = 0;
         let forceZ = 0;
 
-        const velocityLimit = 0.75 * playerScale;
+        const velocityLimit = 0.5 * playerScale;
         const moveForce = 400 / Math.pow( 1 / playerScale, 3 );
         const airMoveForce = 50 / Math.pow( 1 / playerScale, 3 );
 
@@ -769,7 +769,7 @@ export default class Game extends Component {
 
                     if( jumpableWalls.down ) {
 
-                        this.playerBody.velocity.z = -Math.sqrt( 1.3 * 4 * 9.8 * playerRadius );
+                        this.playerBody.velocity.z = -Math.sqrt( 1.5 * 4 * 9.8 * playerRadius );
 
                     }
 
