@@ -111,6 +111,7 @@ function snapTo( number, interval ) {
                 currentLevelStaticEntities: {}
             });
 
+            // Determine next level data
             const nextLevelId = currentLevel.nextLevelId;
             const /* this shit is */nextLevel = nextLevelId && levels[ nextLevelId ];
 
@@ -123,6 +124,7 @@ function snapTo( number, interval ) {
                 .map( id => allEntities[ id ] )
                 .filter( entity => entity.type !== 'level' );
 
+            // Determine previous level data
             const previousLevelId = Object.keys( levels ).find(
                 levelId => levels[ levelId ].nextLevelId === currentLevelId
             );

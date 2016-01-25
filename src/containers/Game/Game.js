@@ -226,11 +226,43 @@ function snapTo( number, interval ) {
             .map( id => allEntities[ id ] )
             .filter( entity => entity.type !== 'level' );
 
+        // Determine previous level data
+        const previousLevelId = Object.keys( levels ).find(
+            levelId => levels[ levelId ].nextLevelId === currentLevelId
+        );
+        const previousLevelData = previousLevelId && levels[ previousLevelId ];
+
+        const previousLevelEntityData = previousLevelData && allEntities[
+            previousLevelData.entityIds.find(
+                id => allEntities[ id ].type === 'level'
+            )
+        ];
+
+        const isPreviousLevelBigger = previousLevelData &&
+            previousLevelEntityData.scale.x > 1;
+        const multiplier = isPreviousLevelBigger ? 0.125 : 8;
+        const previousLevelEntity = previousLevelData && {
+            level: previousLevelData,
+            ...previousLevelEntityData,
+            scale: new THREE.Vector3( multiplier, multiplier, multiplier ),
+            position: previousLevelEntityData.position
+                .clone()
+                .multiply(
+                    new THREE.Vector3( -multiplier, multiplier, -multiplier )
+                )
+                .setY( isPreviousLevelBigger ? 0.875 : -7 )
+        };
+
+        const previousLevelEntitiesArray = previousLevelData && previousLevelData.entityIds
+            .map( id => allEntities[ id ] )
+            .filter( entity => entity.type !== 'level' );
+
         return {
             levels, currentLevel, currentLevelId, currentLevelAllEntities,
             currentLevelStaticEntities, allEntities, nextLevelId,
             nextLevelEntity, nextLevel, nextLevelEntitiesArray,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
+            previousLevelEntity, previousLevelEntitiesArray,
 
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
@@ -781,6 +813,8 @@ export default class Game extends Component {
 
     _onAnimate() {
 
+        const now = Date.now();
+
         const {
             currentLevelStaticEntitiesArray, playerRadius, playerDensity, playerScale, currentLevel
         } = this.props;
@@ -789,7 +823,7 @@ export default class Game extends Component {
         this.updatePhysics();
 
         const state = {
-            time: Date.now(),
+            time: now,
             meshStates: this._getMeshStates( this.physicsBodies ),
             lightPosition: new THREE.Vector3(
                 10 * Math.sin( clock.getElapsedTime() * lightRotationSpeed ),
@@ -800,7 +834,7 @@ export default class Game extends Component {
 
         Object.keys( this.wallCoolDowns ).forEach( ( key ) => {
 
-            if( this.wallCoolDowns[ key ] + coolDownTimeMs < Date.now() ) {
+            if( this.wallCoolDowns[ key ] + coolDownTimeMs < now ) {
                 delete this.wallCoolDowns[ key ];
             }
 
@@ -893,6 +927,24 @@ export default class Game extends Component {
             }
 
         }
+        
+        if( !this.lastCalledTime ) {
+           this.lastCalledTime = now;
+           this.counter = 0;
+           state._fps = 0;
+        } else {
+            const smoothing = 0.9;
+            const delta = ( now - this.lastCalledTime ) / 1000;
+            this.lastCalledTime = now;
+
+            state._fps = Math.round(
+                ( ( 1 / delta ) * smoothing ) + ( this.state._fps * ( 1.0 - smoothing ) )
+            );
+
+            if( !( this.counter++ % 15 ) ) {
+                state.fps = state._fps;
+            }
+        }
 
         this.setState( state );
 
@@ -922,12 +974,14 @@ export default class Game extends Component {
     render() {
 
         const {
-            meshStates, time, cameraPosition, currentFlowPosition, debug
+            meshStates, time, cameraPosition, currentFlowPosition, debug, fps
         } = this.state;
 
         const {
-            playerRadius, playerScale, currentLevelStaticEntitiesArray, nextLevelEntity,
-            nextLevelEntities, nextLevelEntitiesArray
+            playerRadius, playerScale, playerMass,
+            currentLevelStaticEntitiesArray, nextLevelEntity,
+            nextLevelEntities, nextLevelEntitiesArray, previousLevelEntity,
+            previousLevelEntitiesArray
         } = this.props;
 
         const playerPosition = new THREE.Vector3().copy(
@@ -1192,6 +1246,15 @@ export default class Game extends Component {
                         time={ time }
                     /> }
 
+                    { previousLevelEntity && <StaticEntities
+                        ref="previousLevel"
+                        position={ previousLevelEntity.position }
+                        scale={ previousLevelEntity.scale }
+                        entities={ previousLevelEntitiesArray }
+                        time={ time }
+                        opacity={ 0.5 }
+                    /> }
+
                     { debug && Object.keys( this.playerContact || {} ).map( ( key ) => {
 
                         return <mesh
@@ -1306,6 +1369,12 @@ export default class Game extends Component {
 
                 </scene>
             </React3>
+            <br />
+            FPS: { fps }
+            <br />
+            Player Scale: <input readOnly value={ playerScale } type="text" />
+            <br />
+            Player Mass: <input readOnly value={ playerMass } type="text" />
         </div>;
     }
 
