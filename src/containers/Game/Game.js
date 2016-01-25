@@ -785,7 +785,7 @@ export default class Game extends Component {
             }
 
             this.playerBody.applyImpulse(
-                new CANNON.Vec3( forceX, 1, 0 ),
+                new CANNON.Vec3( forceX, 0, 0 ),
                 new CANNON.Vec3( 0, 0, 0 )
             );
             
