@@ -12,7 +12,7 @@ import Cardinality from '../Dung/Cardinality';
 import TubeBend from '../Dung/TubeBend';
 import TubeStraight from '../Dung/TubeStraight';
 import Player from '../Dung/Player';
-import { getEntrancesForTube, without } from '../Dung/Utils';
+import { getEntrancesForTube, without, lerp } from '../Dung/Utils';
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
 THREE.ImageUtils.crossOrigin = '';
@@ -42,21 +42,19 @@ const raycaster = new THREE.Raycaster();
 
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
-const lerp = ( () => {
+const lerpVectors = ( () => {
     const v = new THREE.Vector3();
     return v.lerpVectors.bind( v );
 } )();
-
-const cameraAngleScale = 0.9;
 
 const wallMaterial = new CANNON.Material( 'wallMaterial' );
 
 // Adjust constraint equation parameters for ground/ground contact
 const material = new CANNON.ContactMaterial( wallMaterial, wallMaterial, {
-    friction: 1,
+    friction: 0,
     // Bounciness (0-1, higher is bouncier). How much energy is conserved
     // after a collision
-    restitution: 0.3,
+    restitution: 0,
     contactEquationStiffness: 1e8,
     contactEquationRelaxation: 3,
     frictionEquationStiffness: 1e8,
@@ -69,9 +67,9 @@ function getSphereMass( density, radius ) {
 
 }
 
-function getCameraDistanceToPlayer( aspect, fov, objectSize ) {
+function getCameraDistanceToPlayer( playerY, aspect, fov, objectSize ) {
 
-    return 1.5 + 4 * Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) );
+    return playerY + 4 * Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) );
 
 }
 
@@ -288,7 +286,8 @@ export default class Game extends Component {
         this.state = {
             cameraPosition: new THREE.Vector3(
                 0,
-                getCameraDistanceToPlayer( cameraAspect, cameraFov, 1 ),
+                // starting position and scale
+                getCameraDistanceToPlayer( 1.5, cameraAspect, cameraFov, 1 ),
                 0
             ),
             lightPosition: new THREE.Vector3(),
@@ -421,7 +420,7 @@ export default class Game extends Component {
 
             this.setState({ cameraPosition: new THREE.Vector3(
                 ( cameraPosition.x - newLevel.position.x ) * multiplier,
-                getCameraDistanceToPlayer( cameraAspect, cameraFov, nextProps.playerScale ),
+                getCameraDistanceToPlayer( this.playerBody.position.y, cameraAspect, cameraFov, nextProps.playerScale ),
                 ( cameraPosition.z - newLevel.position.z ) * multiplier
             ) });
 
@@ -515,8 +514,8 @@ export default class Game extends Component {
         let forceX = 0;
         let forceZ = 0;
 
-        const velocityMax = 4.0 * playerScale;
-        const moveForce = 400 / Math.pow( 1 / playerScale, 3 );
+        const velocityMax = 5.0 * playerScale;
+        const moveForce = 200 / Math.pow( 1 / playerScale, 3 );
         const airMoveForce = 50 / Math.pow( 1 / playerScale, 3 );
         const jumpForce = -Math.sqrt( 2.0 * 4 * 9.8 * playerRadius );
 
@@ -772,7 +771,7 @@ export default class Game extends Component {
             if( !isDone ) {
 
                 this.setState({
-                    currentFlowPosition: lerp(
+                    currentFlowPosition: lerpVectors(
                         currentTube.start, isLastTube ?
                             currentTube.exit :
                             currentTube.end,
@@ -788,10 +787,14 @@ export default class Game extends Component {
 
         if( !isFlowing ) {
 
-            this.playerBody.applyImpulse(
-                new CANNON.Vec3( forceX, 0, 0 ),
-                new CANNON.Vec3( 0, 0, 0 )
-            );
+            if( forceX ) {
+                this.playerBody.applyImpulse(
+                    new CANNON.Vec3( forceX, 0, 0 ),
+                    new CANNON.Vec3( 0, 0, 0 )
+                );
+            } else {
+                this.playerBody.velocity.x = lerp( this.playerBody.velocity.x, 0, 0.2 );
+            }
 
             if( KeyCodes.SPACE in keysDown ) {
 
@@ -927,7 +930,7 @@ export default class Game extends Component {
 
         state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
             playerPosition.x,
-            getCameraDistanceToPlayer( cameraAspect, cameraFov, playerScale ),
+            getCameraDistanceToPlayer( this.playerBody.position.y, cameraAspect, cameraFov, playerScale ),
             playerPosition.z
         ), 0.05 / playerScale );
 

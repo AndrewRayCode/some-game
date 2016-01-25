@@ -86,3 +86,9 @@ export function without( obj, ...keys ) {
     }, {} );
 
 }
+
+export function lerp( start, target, percent ) {
+
+    return start + percent * ( target - start );
+
+}
