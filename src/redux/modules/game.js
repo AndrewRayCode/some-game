@@ -37,6 +37,7 @@ export function game( state = defaultState, action = {} ) {
                     return memo;
 
                 }, {} ),
+
                 entities: Object.keys( entities ).reduce( ( memo, id ) => {
 
                     if( entities[ id ].type !== 'player' ) {
@@ -54,11 +55,13 @@ export function game( state = defaultState, action = {} ) {
                     return memo;
 
                 }, {} ),
+
                 // Reverse to fix a bug where leftover player entities cause
                 // old starting points to remain
-                playerPosition: ( ( entities[ Object.keys( entities ).reverse().find(
-                    id => entities[ id ].type === 'player'
-                ) ] || {} ).position || new THREE.Vector3( 0, 1.5, 0 ) ).clone(),
+                playerPosition: ( ( levels[ action.levelId ].entityIds
+                    .map( id => entities[ id ] )
+                    .find( entity => entity.type === 'player' ) || {}
+                ).position || new THREE.Vector3( 0, 1.5, 0 ) ).clone()
             };
 
         case 'GAME_SELECT_LEVEL':
