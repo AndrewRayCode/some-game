@@ -284,6 +284,7 @@ export default class Game extends Component {
         this.playerContact = {};
 
         this.state = {
+            touring: false,
             cameraPosition: new THREE.Vector3(
                 0,
                 // starting position and scale
@@ -503,9 +504,11 @@ export default class Game extends Component {
 
     updatePhysics() {
 
-        if( this.advancing ) {
+        if( this.state.touring || this.advancing ) {
             return;
         }
+
+        const now = Date.now();
 
         let state = {
             entrances: []
@@ -720,7 +723,7 @@ export default class Game extends Component {
                     state = {
                         ...state,
                         playerSnapped,
-                        startTime: Date.now(),
+                        startTime: now,
                         tubeFlow: newTubeFlow,
                         currentFlowPosition: newTubeFlow[ 0 ].start,
                         tubeIndex: 0
@@ -736,7 +739,7 @@ export default class Game extends Component {
 
         if( this.state.tubeFlow ) {
 
-            const time = Date.now();
+            const time = now;
             let { startTime, tubeIndex } = this.state;
             const { tubeFlow } = this.state;
 
@@ -772,7 +775,7 @@ export default class Game extends Component {
                 } else {
                     //console.log('NEXT_TUBE');
                     tubeIndex++;
-                    startTime = Date.now();
+                    startTime = now;
                     currentPercent = 0;
                 }
 
@@ -856,7 +859,7 @@ export default class Game extends Component {
 
                     const coolDowns = {};
                     for( const key in playerContact ) {
-                        coolDowns[ key ] = Date.now();
+                        coolDowns[ key ] = now;
                     }
                     this.wallCoolDowns = Object.assign( {}, this.wallCoolDowns, coolDowns );
 
@@ -900,10 +903,11 @@ export default class Game extends Component {
 
         const {
             currentLevelStaticEntitiesArray, playerRadius, playerDensity,
-            playerScale, currentLevel
+            playerScale, currentLevel, nextLevelId, nextLevelEntity
         } = this.props;
         const playerPosition = this.state.currentFlowPosition || this.playerBody.position;
 
+        // needs to be called before _getMeshStates
         this.updatePhysics();
 
         const state = {
@@ -915,6 +919,68 @@ export default class Game extends Component {
                 10 * Math.cos( clock.getElapsedTime() * lightRotationSpeed )
             )
         };
+
+        if( !this.lastCalledTime ) {
+           this.lastCalledTime = now;
+           this.counter = 0;
+           state._fps = 0;
+        } else {
+            const smoothing = 0.9;
+            const delta = ( now - this.lastCalledTime ) / 1000;
+            this.lastCalledTime = now;
+
+            state._fps = Math.round(
+                ( ( 1 / delta ) * smoothing ) + ( this.state._fps * ( 1.0 - smoothing ) )
+            );
+
+            if( !( this.counter++ % 15 ) ) {
+                state.fps = state._fps;
+            }
+        }
+
+        if( KeyCodes.T in this.keysDown ) {
+
+            if( !this.touringSwitch ) {
+                state.currentTourPercent = 0;
+                state.touring = !state.touring;
+                this.touringSwitch = true;
+            }
+
+        } else {
+
+            this.touringSwitch = false;
+
+        }
+
+        if( KeyCodes.ESC in this.keysDown ) {
+
+            this.props.onGameEnd();
+
+        }
+
+        if( this.state.touring ) {
+
+            let currentTourPercent = Math.min( this.state.currentTourPercent + 0.01, 1 );
+
+            state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
+                0,
+                10,
+                0
+            ), currentTourPercent );
+
+            if( currentTourPercent >= 1 && nextLevelId ) {
+
+                currentTourPercent = 0;
+                this.props.advanceLevel( nextLevelId, nextLevelEntity.scale.x );
+
+            }
+
+            state.currentTourPercent = currentTourPercent;
+
+            this.setState( state );
+            return;
+
+        }
 
         Object.keys( this.wallCoolDowns ).forEach( ( key ) => {
 
@@ -934,12 +1000,6 @@ export default class Game extends Component {
         } else {
 
             this.debugSwitch = false;
-
-        }
-
-        if( KeyCodes.ESC in this.keysDown ) {
-
-            this.props.onGameEnd();
 
         }
 
@@ -1012,24 +1072,6 @@ export default class Game extends Component {
 
         }
         
-        if( !this.lastCalledTime ) {
-           this.lastCalledTime = now;
-           this.counter = 0;
-           state._fps = 0;
-        } else {
-            const smoothing = 0.9;
-            const delta = ( now - this.lastCalledTime ) / 1000;
-            this.lastCalledTime = now;
-
-            state._fps = Math.round(
-                ( ( 1 / delta ) * smoothing ) + ( this.state._fps * ( 1.0 - smoothing ) )
-            );
-
-            if( !( this.counter++ % 15 ) ) {
-                state.fps = state._fps;
-            }
-        }
-
         this.setState( state );
 
     }
@@ -1064,7 +1106,8 @@ export default class Game extends Component {
     render() {
 
         const {
-            meshStates, time, cameraPosition, currentFlowPosition, debug, fps
+            meshStates, time, cameraPosition, currentFlowPosition, debug, fps,
+            touring
         } = this.state;
 
         const {
@@ -1079,7 +1122,7 @@ export default class Game extends Component {
         );
         const lookAt = lookAtVector(
             cameraPosition,
-            playerPosition
+            touring ? new THREE.Vector3( 0, 0, 0 ) : playerPosition
         );
 
         return <div>
