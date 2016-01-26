@@ -574,7 +574,7 @@ export default class Game extends Component {
                 ( playerPosition.z < -4 )
             ) {
                 // If the next level is bigger, that's the one we want
-                if( nextLevelEntity.scale.x > 1 ) {
+                if( nextLevelEntity && nextLevelEntity.scale.x > 1 ) {
                     transitionToId = nextLevelId;
                     transitionToScale = nextLevelEntity.scale.x;
                 } else {
