@@ -308,6 +308,7 @@ export default class Game extends Component {
         world.gravity.set( 0, 0, 9.8 );
         world.broadphase = new CANNON.NaiveBroadphase();
 
+        this.onWindowBlur = this.onWindowBlur.bind( this );
         this.onKeyDown = this.onKeyDown.bind( this );
         this.onKeyUp = this.onKeyUp.bind( this );
         this.updatePhysics = this.updatePhysics.bind( this );
@@ -388,6 +389,7 @@ export default class Game extends Component {
 
     componentDidMount() {
 
+        window.addEventListener( 'blur', this.onWindowBlur );
         window.addEventListener( 'keydown', this.onKeyDown );
         window.addEventListener( 'keyup', this.onKeyUp );
 
@@ -395,6 +397,7 @@ export default class Game extends Component {
 
     componentWillUnmount() {
 
+        window.removeEventListener( 'blur', this.onWindowBlur );
         window.removeEventListener( 'keydown', this.onKeyDown );
         window.removeEventListener( 'keyup', this.onKeyUp );
 
@@ -504,6 +507,10 @@ export default class Game extends Component {
             return;
         }
 
+        let state = {
+            entrances: []
+        };
+
         const {
             playerScale, nextLevelEntity, currentLevel, playerRadius,
             playerMass, currentLevelStaticEntitiesArray, nextLevelId,
@@ -531,7 +538,6 @@ export default class Game extends Component {
         ).addScalar( -playerScale / 2 );
 
         const contactKeys = Object.keys( playerContact );
-        let tubeEntrances;
 
         if( !this.advancing && !this.state.tubeFlow ) {
 
@@ -598,12 +604,7 @@ export default class Game extends Component {
                 const { entity } = physicsBody;
                 if( entity && ( entity.type === 'tube' || entity.type === 'tubebend' ) ) {
 
-                    tubeEntrances = getEntrancesForTube( entity, playerScale );
-                    this.setState({
-                        entrance1: tubeEntrances.entrance1,
-                        entrance2: tubeEntrances.entrance2
-                    });
-                    break;
+                    state.entrances.push( getEntrancesForTube( entity, playerScale ) );
 
                 }
 
@@ -627,95 +628,105 @@ export default class Game extends Component {
         }
 
         let newTubeFlow;
-        if( tubeEntrances ) {
+        if( state.entrances.length ) {
 
-            const { tube, entrance1, entrance2, threshold1, threshold2 } = tubeEntrances;
-            const isAtEntrance1 = vec3Equals( playerSnapped, entrance1 );
-            const isAtEntrance2 = vec3Equals( playerSnapped, entrance2 );
-            const isInTubeRange = isAtEntrance1 || isAtEntrance2;
-            const entrancePlayerStartsAt = isAtEntrance1 ? entrance1 : entrance2;
-            const thresholdPlayerStartsAt = isAtEntrance1 ? threshold1 : threshold2;
-            const thresholdPlayerEndsAt = isAtEntrance1 ? threshold2 : threshold1;
+            for( let i = 0; i < state.entrances.length; i++ ) {
 
-            const playerTowardTube = playerSnapped.clone().add(
-                new THREE.Vector3( forceX, 0, forceZ )
-                    .normalize()
-                    .multiplyScalar( playerScale )
-            );
+                const tubeEntrances = state.entrances[ i ];
 
-            if( isInTubeRange && vec3Equals( playerTowardTube, tube.position ) ) {
+                const { tube, entrance1, entrance2, threshold1, threshold2, middle } = tubeEntrances;
+                const isAtEntrance1 = vec3Equals( playerSnapped, entrance1 );
+                const isAtEntrance2 = vec3Equals( playerSnapped, entrance2 );
+                const isInTubeRange = isAtEntrance1 || isAtEntrance2;
+                const entrancePlayerStartsAt = isAtEntrance1 ? entrance1 : entrance2;
+                const thresholdPlayerStartsAt = isAtEntrance1 ? threshold1 : threshold2;
+                const thresholdPlayerEndsAt = isAtEntrance1 ? threshold2 : threshold1;
 
-                this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
-                this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
+                const playerTowardTube = playerSnapped.clone().add(
+                    new THREE.Vector3( forceX, 0, forceZ )
+                        .normalize()
+                        .multiplyScalar( playerScale )
+                );
 
-                const newPlayerContact = Object.keys( playerContact ).reduce( ( memo, key ) => {
+                if( isInTubeRange && vec3Equals( playerTowardTube, tube.position ) ) {
 
-                    const { entity } = this.world.bodies.find( ( search ) => {
-                        return search.id.toString() === key;
-                    });
-                    
+                    this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+                    this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
 
-                    if( entity && ( entity.type !== 'tubebend' && entity.type !== 'tube' ) ) {
-                        memo[ key ] = playerContact[ key ];
+                    const newPlayerContact = Object.keys( playerContact ).reduce( ( memo, key ) => {
+
+                        const { entity } = this.world.bodies.find( ( search ) => {
+                            return search.id.toString() === key;
+                        });
+                        
+
+                        if( entity && ( entity.type !== 'tubebend' && entity.type !== 'tube' ) ) {
+                            memo[ key ] = playerContact[ key ];
+                        }
+
+                        return memo;
+
+                    }, {} );
+
+                    newTubeFlow = [{
+                        start: playerPosition.clone(),
+                        end: thresholdPlayerStartsAt
+                    }, {
+                        start: thresholdPlayerStartsAt,
+                        middle,
+                        end: thresholdPlayerEndsAt,
+                        exit: isAtEntrance1 ? entrance2 : entrance1
+                    }];
+
+                    let nextTube;
+                    let currentTube = tube;
+                    let currentEntrance = entrancePlayerStartsAt;
+
+                    let failSafe = 0;
+                    while( failSafe < 30 && ( nextTube = findNextTube( currentTube, currentEntrance, currentLevelStaticEntitiesArray, playerScale ) ) ) {
+
+                        failSafe++;
+
+                        //console.log('FOUND ANOTHER TUBE');
+
+                        const isAtNextEntrance1 = vec3Equals( nextTube.entrance1, currentTube.position );
+                        const isAtNextEntrance2 = vec3Equals( nextTube.entrance2, currentTube.position );
+
+                        if( !isAtNextEntrance1 && !isAtNextEntrance2 ) {
+                            console.warn('current entrance',currentEntrance,'did not match either',nextTube.entrance1,'or', nextTube.entrance2);
+                            continue;
+                        }
+
+                        newTubeFlow.push({
+                            start: isAtNextEntrance1 ? nextTube.threshold1 : nextTube.threshold2,
+                            middle: nextTube.middle,
+                            end: isAtNextEntrance1 ? nextTube.threshold2 : nextTube.threshold1,
+                            exit: isAtNextEntrance1 ? nextTube.entrance2 : nextTube.entrance1
+                        });
+
+                        currentEntrance = currentTube.position;
+                        currentTube = nextTube.tube;
+
                     }
 
-                    return memo;
-                }, {} );
-
-                newTubeFlow = [{
-                    start: playerPosition.clone(),
-                    end: thresholdPlayerStartsAt
-                }, {
-                    start: thresholdPlayerStartsAt,
-                    end: thresholdPlayerEndsAt,
-                    exit: isAtEntrance1 ? entrance2 : entrance1
-                }];
-
-                let nextTube;
-                let currentTube = tube;
-                let currentEntrance = entrancePlayerStartsAt;
-
-                let failSafe = 0;
-                while( failSafe < 30 && ( nextTube = findNextTube( currentTube, currentEntrance, currentLevelStaticEntitiesArray, playerScale ) ) ) {
-
-                    failSafe++;
-
-                    //console.log('FOUND ANOTHER TUBE');
-
-                    const isAtNextEntrance1 = vec3Equals( nextTube.entrance1, currentTube.position );
-                    const isAtNextEntrance2 = vec3Equals( nextTube.entrance2, currentTube.position );
-
-                    if( !isAtNextEntrance1 && !isAtNextEntrance2 ) {
-                        console.warn('current entrance',currentEntrance,'did not match either',nextTube.entrance1,'or', nextTube.entrance2);
-                        continue;
+                    if( failSafe > 29 ) {
+                        newTubeFlow = null;
                     }
 
-                    newTubeFlow.push({
-                        start: isAtNextEntrance1 ? nextTube.threshold1 : nextTube.threshold2,
-                        end: isAtNextEntrance1 ? nextTube.threshold2 : nextTube.threshold1,
-                        exit: isAtNextEntrance1 ? nextTube.entrance2 : nextTube.entrance1
-                    });
+                    //console.log('traversing',newTubeFlow.length - 1,'tubes');
 
-                    currentEntrance = currentTube.position;
-                    currentTube = nextTube.tube;
+                    this.playerContact = newPlayerContact;
+
+                    state = {
+                        ...state,
+                        playerSnapped,
+                        startTime: Date.now(),
+                        tubeFlow: newTubeFlow,
+                        currentFlowPosition: newTubeFlow[ 0 ].start,
+                        tubeIndex: 0
+                    };
 
                 }
-
-                if( failSafe > 29 ) {
-                    newTubeFlow = null;
-                }
-
-                //console.log('traversing',newTubeFlow.length - 1,'tubes');
-
-                this.playerContact = newPlayerContact;
-
-                this.setState({
-                    playerSnapped,
-                    startTime: Date.now(),
-                    tubeFlow: newTubeFlow,
-                    currentFlowPosition: newTubeFlow[ 0 ].start,
-                    tubeIndex: 0
-                });
 
             }
 
@@ -748,10 +759,11 @@ export default class Game extends Component {
                     this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
 
                     isDone = true;
-                    this.setState({
+                    state = {
+                        ...state,
                         tubeFlow: null,
                         currentFlowPosition: null
-                    });
+                    };
                     resetBodyPhysics( this.playerBody, new CANNON.Vec3(
                         lastTube.exit.x,
                         lastTube.exit.y,
@@ -770,16 +782,34 @@ export default class Game extends Component {
 
             if( !isDone ) {
 
-                this.setState({
-                    currentFlowPosition: lerpVectors(
+                let currentFlowPosition;
+
+                // For a bent tube, we first tween to the middle position, then
+                // tween to the end position. Our percent counter goes from 0
+                // to 1, so scale it to go from 0-1, 0-1
+                if( currentTube.middle ) {
+                    const pastMiddle = currentPercent > 0.5;
+                    currentFlowPosition = lerpVectors(
+                        pastMiddle ? currentTube.middle : currentTube.start,
+                        pastMiddle ? ( isLastTube ?
+                            currentTube.exit :
+                            currentTube.end
+                        ) : currentTube.middle,
+                        ( currentPercent * 2 ) % 1
+                    );
+                } else {
+                    currentFlowPosition = lerpVectors(
                         currentTube.start, isLastTube ?
                             currentTube.exit :
                             currentTube.end,
                         currentPercent
-                    ),
-                    tubeIndex,
-                    startTime
-                });
+                    );
+                }
+
+                state = {
+                    ...state,
+                    currentFlowPosition, tubeIndex, startTime
+                };
 
             }
 
@@ -841,6 +871,8 @@ export default class Game extends Component {
             );
             
         }
+
+        this.setState( state );
 
         // Step the physics world
         const delta = clock.getDelta();
@@ -1002,6 +1034,12 @@ export default class Game extends Component {
 
     }
 
+    onWindowBlur( event ) {
+
+        this.keysDown = {};
+
+    }
+
     onKeyDown( event ) {
 
         const which = { [ event.which ]: true };
@@ -1080,6 +1118,10 @@ export default class Game extends Component {
                         <meshPhongMaterial
                             resourceId="playerMaterial"
                             color={ 0xFADE95 }
+                        />
+                        <meshPhongMaterial
+                            resourceId="middleMaterial"
+                            color={ 0x6E0AF2 }
                         />
                         <meshPhongMaterial
                             resourceId="entranceMaterial"
@@ -1224,29 +1266,40 @@ export default class Game extends Component {
                         materialId="playerMaterial"
                     />
 
-                    { debug && this.state.tubeFlow && <mesh
-                        position={ this.state.tubeFlow[ this.state.tubeIndex ].start }
-                        scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
+                    { debug && this.state.tubeFlow && this.state.tubeFlow[ this.state.tubeIndex ].middle && <mesh
+                        position={ this.state.tubeFlow[ this.state.tubeIndex ].middle }
+                        scale={ new THREE.Vector3( 0.25, 2, 0.25 ).multiplyScalar( playerScale ) }
                     >
                         <geometryResource
                             resourceId="playerGeometry"
                         />
                         <materialResource
-                            resourceId="entranceMaterial"
+                            resourceId="middleMaterial"
                         />
                     </mesh> }
                     { debug && this.state.tubeFlow && <mesh
-                        position={ this.state.tubeIndex === this.state.tubeFlow.length - 1 ?
+                        position={ ( this.state.tubeIndex === this.state.tubeFlow.length - 1 ?
                             this.state.tubeFlow[ this.state.tubeIndex ].exit :
                             this.state.tubeFlow[ this.state.tubeIndex ].end
-                        }
-                        scale={ new THREE.Vector3( 2, 0.5, 2 )}
+                        ) }
+                        scale={ new THREE.Vector3( 0.15, 2, 0.15 ).multiplyScalar( playerScale ) }
                     >
                         <geometryResource
                             resourceId="playerGeometry"
                         />
                         <materialResource
                             resourceId="exitMaterial"
+                        />
+                    </mesh> }
+                    { debug && this.state.tubeFlow && <mesh
+                        position={ this.state.tubeFlow[ this.state.tubeIndex ].start }
+                        scale={ new THREE.Vector3( 0.15, 2, 0.15 ).multiplyScalar( playerScale ) }
+                    >
+                        <geometryResource
+                            resourceId="playerGeometry"
+                        />
+                        <materialResource
+                            resourceId="entranceMaterial"
                         />
                     </mesh> }
 
@@ -1311,7 +1364,7 @@ export default class Game extends Component {
 
                         return <mesh
                             position={ playerPosition.clone().add( this.playerContact[ key ] ) }
-                            scale={ new THREE.Vector3( 0.5, 7, 0.5 ).multiplyScalar( playerScale ) }
+                            scale={ new THREE.Vector3( 0.1, 3, 0.15 ).multiplyScalar( playerScale ) }
                             key={ key }
                         >
                             <geometryResource
@@ -1323,101 +1376,6 @@ export default class Game extends Component {
                         </mesh>;
 
                     }) }
-
-                    { debug && [1,2,3,4].map( ( i ) => {
-
-                        let e;
-                        switch(i) {
-                            case 1:
-                                e = new THREE.Quaternion( 0, 0, 0, 1 )
-                                    .clone()
-                                    .multiply( new THREE.Quaternion()
-                                        .setFromEuler( new THREE.Euler(
-                                            THREE.Math.degToRad( 90 ),
-                                            THREE.Math.degToRad( 0 ),
-                                            0
-                                        ) )
-                                    );
-                                break;
-                            case 2:
-                                e = new THREE.Quaternion( 0, 0, 0, 1 )
-                                    .clone()
-                                    .multiply( new THREE.Quaternion()
-                                        .setFromEuler( new THREE.Euler(
-                                            THREE.Math.degToRad( 0 ),
-                                            THREE.Math.degToRad( -90 ),
-                                            0
-                                        ) )
-                                    );
-                                break;
-                            case 3:
-                                e = new THREE.Quaternion( 0, 0, 0, 1 )
-                                    .clone()
-                                    .multiply( new THREE.Quaternion()
-                                        .setFromEuler( new THREE.Euler(
-                                            THREE.Math.degToRad( -90 ),
-                                            THREE.Math.degToRad( 90 ),
-                                            0
-                                        ) )
-                                    );
-                                break;
-                            case 4:
-                                e = new THREE.Quaternion( 0, 0, 0, 1 )
-                                    .clone()
-                                    .multiply( new THREE.Quaternion()
-                                        .setFromEuler( new THREE.Euler(
-                                            THREE.Math.degToRad( 180 ),
-                                            THREE.Math.degToRad( -90 ),
-                                            0
-                                        ) )
-                                    );
-                                break;
-                            default:
-                                console.log('gfy');
-                        }
-
-                        const position = new THREE.Vector3( ( i * 3 ) - 7, 3, 0 );
-
-                        const { entrance1, entrance2 } = getEntrancesForTube({
-                            position, rotation: e, type: 'tubebend'
-                        }, playerScale );
-
-                        return <group key={ i }>
-
-                            <mesh
-                                position={ entrance1 }
-                                scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
-                            >
-                                <geometryResource
-                                    resourceId="playerGeometry"
-                                />
-                                <materialResource
-                                    resourceId="playerMaterial"
-                                />
-                            </mesh>
-                            <mesh
-                                position={ entrance2 }
-                                scale={ new THREE.Vector3( 0.5, 2, 0.5 )}
-                            >
-                                <geometryResource
-                                    resourceId="playerGeometry"
-                                />
-                                <materialResource
-                                    resourceId="exitMaterial"
-                                />
-                            </mesh>
-
-                            <TubeBend
-                                key={ i }
-                                position={ position }
-                                rotation={ e }
-                                scale={ new THREE.Vector3(1,1,1)}
-                                materialId="tubeMaterial"
-                            />
-
-                        </group>;
-
-                    } ) }
 
                 </scene>
             </React3>

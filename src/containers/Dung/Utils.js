@@ -61,16 +61,30 @@ export function getEntrancesForTube( tube, scaleFactor ) {
 
         const directionVectorScaled = directionVector
             .clone()
-            .multiplyScalar( 0.5 * scaleFactor );
+            .multiplyScalar( 0.5 );
 
         const bentDirectionVectorScaled = directionVectorBent
             .clone()
-            .multiplyScalar( 0.5 * scaleFactor );
+            .multiplyScalar( 0.5 );
 
         const threshold1 = position.clone().add( directionVectorScaled );
         const threshold2 = position.clone().add( bentDirectionVectorScaled );
 
-        return { tube, entrance1, entrance2, threshold1, threshold2 };
+        const average = entrance1.clone()
+            .add( entrance2 )
+            .multiplyScalar( 0.5 );
+
+        // Since I don't know how to / am currently too lazy to figure out how
+        // to do arc math to calculate the midpoint of the arc of a bent tube,
+        // this formula approximates the position of the arc midpoint
+        const middle = position
+            .clone()
+            .add( average )
+            .add( position )
+            .add( position )
+            .divideScalar( 4 );
+
+        return { tube, entrance1, entrance2, threshold1, threshold2, middle };
 
     }
 

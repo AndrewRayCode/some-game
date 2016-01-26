@@ -25,6 +25,7 @@
     "import/namespace": 0,
     "import/no-unresolved": 0,
     "import/no-named-as-default": 2,
+    "no-loop-func": 0,
     // Temporarirly disabled due to a possible bug in babel-eslint (todomvc example)
     "block-scoped-var": 0,
     // Temporarily disabled for test/* until babel/babel-eslint#33 is resolved
