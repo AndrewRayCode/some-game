@@ -978,11 +978,11 @@ export default class Game extends Component {
 
         if( this.state.touring ) {
 
-            let currentTourPercent = Math.min( this.state.currentTourPercent + 0.015, 1 );
+            let currentTourPercent = Math.min( this.state.currentTourPercent + 0.01, 1 );
 
             state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
                 0,
-                7,
+                6,
                 0,
             ), 0.05 );
 
