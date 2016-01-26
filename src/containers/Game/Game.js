@@ -978,30 +978,26 @@ export default class Game extends Component {
 
         if( this.state.touring ) {
 
-            let currentTourPercent = Math.min( this.state.currentTourPercent + 0.02, 1 );
+            let currentTourPercent = Math.min( this.state.currentTourPercent + 0.015, 1 );
 
-            if( nextLevelId ) {
+            state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
+                0,
+                7,
+                0,
+            ), 0.05 );
 
-                state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
-                    0,
-                    7,
-                    0,
-                ), 0.05 );
+            state.cameraTourTarget = this.state.cameraTourTarget.clone().lerp( new THREE.Vector3(
+                0, 0, 0
+            ), 0.05 );
 
-                state.cameraTourTarget = this.state.cameraTourTarget.clone().lerp( new THREE.Vector3(
-                    0, 0, 0
-                ), 0.05 );
+            if( currentTourPercent >= 1 && nextLevelId ) {
 
-                if( currentTourPercent >= 1 && nextLevelId ) {
-
-                    currentTourPercent = 0;
-                    this.props.advanceLevel( nextLevelId, nextLevelEntity.scale.x );
-
-                }
-
-                state.currentTourPercent = currentTourPercent;
+                currentTourPercent = 0;
+                this.props.advanceLevel( nextLevelId, nextLevelEntity.scale.x );
 
             }
+
+            state.currentTourPercent = currentTourPercent;
 
             this.setState( state );
             return;
