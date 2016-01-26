@@ -943,6 +943,7 @@ export default class Game extends Component {
             if( !this.touringSwitch ) {
                 state.currentTourPercent = 0;
                 state.touring = !state.touring;
+                state.cameraTourTarget = new THREE.Vector3().copy( playerPosition );
                 this.touringSwitch = true;
             }
 
@@ -962,20 +963,30 @@ export default class Game extends Component {
 
             let currentTourPercent = Math.min( this.state.currentTourPercent + 0.01, 1 );
 
-            state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
-                0,
-                10,
-                0
-            ), currentTourPercent );
+            if( nextLevelId ) {
 
-            if( currentTourPercent >= 1 && nextLevelId ) {
+                state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
+                    nextLevelEntity.position.x,
+                    nextLevelEntity.scale.x > 1 ? 30 : 7,
+                    nextLevelEntity.position.z
+                ), 0.05 );
 
-                currentTourPercent = 0;
-                this.props.advanceLevel( nextLevelId, nextLevelEntity.scale.x );
+                state.cameraTourTarget = this.state.cameraTourTarget.clone().lerp( new THREE.Vector3(
+                    nextLevelEntity.position.x,
+                    nextLevelEntity.scale.x > 1 ? -7 : 1.5,
+                    nextLevelEntity.position.z
+                ), 0.05 );
+
+                if( currentTourPercent >= 1 && nextLevelId ) {
+
+                    currentTourPercent = 0;
+                    this.props.advanceLevel( nextLevelId, nextLevelEntity.scale.x );
+
+                }
+
+                state.currentTourPercent = currentTourPercent;
 
             }
-
-            state.currentTourPercent = currentTourPercent;
 
             this.setState( state );
             return;
@@ -1107,7 +1118,7 @@ export default class Game extends Component {
 
         const {
             meshStates, time, cameraPosition, currentFlowPosition, debug, fps,
-            touring
+            touring, cameraTourTarget
         } = this.state;
 
         const {
@@ -1122,7 +1133,7 @@ export default class Game extends Component {
         );
         const lookAt = lookAtVector(
             cameraPosition,
-            touring ? new THREE.Vector3( 0, 0, 0 ) : playerPosition
+            touring ? cameraTourTarget : playerPosition
         );
 
         return <div>
