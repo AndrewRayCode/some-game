@@ -944,6 +944,7 @@ export default class Game extends Component {
                 state.currentTourPercent = 0;
                 state.touring = !state.touring;
                 state.cameraTourTarget = new THREE.Vector3().copy( playerPosition );
+                this.props.advanceLevel( nextLevelId, nextLevelEntity.scale.x );
                 this.touringSwitch = true;
             }
 
