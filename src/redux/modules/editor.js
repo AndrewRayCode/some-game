@@ -159,7 +159,7 @@ function removeNextLevelFrom( level, entityId ) {
 
     return {
         ...level,
-        entityIds: level.entityIds.filter( id => id !== entityId) ,
+        entityIds: level.entityIds.filter( id => id !== entityId ),
         nextLevelId: null
     };
 
