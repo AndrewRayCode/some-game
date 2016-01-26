@@ -415,18 +415,35 @@ export default class Game extends Component {
                 nextLevelId, nextLevelEntity, previousLevelId,
                 previousLevelEntity
             } = this.props;
-            const { cameraPosition } = this.state;
+            const { cameraPosition, cameraTourTarget } = this.state;
 
             const newLevel = nextProps.currentLevel.id === nextLevelId ?
                 nextLevelEntity : previousLevelEntity;
 
             const multiplier = newLevel.scale.x < 1 ? 8 : 0.125;
 
-            this.setState({ cameraPosition: new THREE.Vector3(
-                ( cameraPosition.x - newLevel.position.x ) * multiplier,
-                getCameraDistanceToPlayer( this.playerBody.position.y, cameraAspect, cameraFov, nextProps.playerScale ),
-                ( cameraPosition.z - newLevel.position.z ) * multiplier
-            ) });
+            if( this.state.touring ) {
+                this.setState({
+                    cameraPosition: new THREE.Vector3(
+                        ( cameraPosition.x - newLevel.position.x ) * multiplier,
+                        ( cameraPosition.y ) * multiplier,
+                        ( cameraPosition.z - newLevel.position.z ) * multiplier
+                    ),
+                    cameraTourTarget: new THREE.Vector3(
+                        ( cameraTourTarget.x - newLevel.position.x ) * multiplier,
+                        ( cameraTourTarget.y ) * multiplier,
+                        ( cameraTourTarget.z - newLevel.position.z ) * multiplier
+                    ),
+                });
+            } else {
+                this.setState({
+                    cameraPosition: new THREE.Vector3(
+                        ( cameraPosition.x - newLevel.position.x ) * multiplier,
+                        getCameraDistanceToPlayer( this.playerBody.position.y, cameraAspect, cameraFov, nextProps.playerScale ),
+                        ( cameraPosition.z - newLevel.position.z ) * multiplier
+                    )
+                });
+            }
 
         }
 
@@ -944,7 +961,6 @@ export default class Game extends Component {
                 state.currentTourPercent = 0;
                 state.touring = !state.touring;
                 state.cameraTourTarget = new THREE.Vector3().copy( playerPosition );
-                this.props.advanceLevel( nextLevelId, nextLevelEntity.scale.x );
                 this.touringSwitch = true;
             }
 
@@ -962,20 +978,18 @@ export default class Game extends Component {
 
         if( this.state.touring ) {
 
-            let currentTourPercent = Math.min( this.state.currentTourPercent + 0.01, 1 );
+            let currentTourPercent = Math.min( this.state.currentTourPercent + 0.02, 1 );
 
             if( nextLevelId ) {
 
                 state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
-                    nextLevelEntity.position.x,
-                    nextLevelEntity.scale.x > 1 ? 30 : 7,
-                    nextLevelEntity.position.z
+                    0,
+                    7,
+                    0,
                 ), 0.05 );
 
                 state.cameraTourTarget = this.state.cameraTourTarget.clone().lerp( new THREE.Vector3(
-                    nextLevelEntity.position.x,
-                    nextLevelEntity.scale.x > 1 ? -7 : 1.5,
-                    nextLevelEntity.position.z
+                    0, 0, 0
                 ), 0.05 );
 
                 if( currentTourPercent >= 1 && nextLevelId ) {
