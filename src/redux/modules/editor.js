@@ -17,6 +17,7 @@ const ADD_ENTITY = 'dung/ADD_ENTITY';
 const ADD_LEVEL = 'dung/ADD_LEVEL';
 const ADD_NEXT_LEVEL = 'dung/ADD_NEXT_LEVEL';
 const CHANGE_ENTITY_MATERIAL_ID = 'dung/CHANGE_ENTITY_MATERIAL_ID';
+const CHANGE_ENTITY_TYPE = 'dung/CHANGE_ENTITY_TYPE';
 const DESERIALIZE = 'dung/DESERIALIZE';
 const EDITOR_SELECT_LEVEL = 'dung/EDITOR_SELECT_LEVEL';
 const INSET_LEVEL = 'dung/INSET_LEVEL';
@@ -30,6 +31,13 @@ const ROTATE_ENTITY = 'dung/ROTATE_ENTITY';
 function entityPropertyReducer( entity, action ) {
 
     switch( action.type ) {
+
+        case CHANGE_ENTITY_TYPE:
+
+            return {
+                ...entity,
+                type: action.newType
+            };
 
         case CHANGE_ENTITY_MATERIAL_ID:
 
@@ -129,6 +137,7 @@ export function entitiesReducer( entities = {}, action = {} ) {
 
         case ROTATE_ENTITY:
         case MOVE_ENTITY:
+        case CHANGE_ENTITY_TYPE:
         case CHANGE_ENTITY_MATERIAL_ID:
 
             return {
@@ -444,4 +453,11 @@ export function areLevelsLoaded( globalState ) {
 
     return globalState.levelsLoaded && globalState.levelsLoaded.loaded;
 
+}
+
+export function changeEntityType( id, newType ) {
+    return {
+        type: CHANGE_ENTITY_TYPE,
+        id, newType
+    };
 }

@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import THREE from 'three';
 
+const topPosition = new THREE.Vector3( 0, 0.51, 0 );
+const topRotation = new THREE.Euler( -THREE.Math.degToRad( 90 ), 0, 0 );
+
 export default class Wall extends Component {
 
     constructor( props, context ) {
@@ -9,23 +12,36 @@ export default class Wall extends Component {
 
     render() {
 
-        const { position, rotation, scale, materialId } = this.props;
+        const { position, rotation, scale, materialId, time } = this.props;
 
-        return <mesh
+        return <group
             position={ position }
-            rotation={ new THREE.Euler().setFromQuaternion( rotation || new THREE.Quaternion( 0, 0, 0, 1 ) ) }
+            quaternion={ rotation || new THREE.Quaternion( 0, 0, 0, 1 ) }
             scale={ scale }
-            ref="mesh"
-            castShadow
-            receiveShadow
         >
-            <geometryResource
-                resourceId="1x1box"
-            />
-            <materialResource
-                resourceId={ materialId }
-            />
-        </mesh>;
+            <mesh
+                ref="mesh"
+                position={ topPosition }
+                rotation={ topRotation }
+            >
+                <geometryResource
+                    resourceId="planeGeometry"
+                />
+                <materialResource
+                    resourceId="wallSideMaterial"
+                />
+            </mesh>
+            <mesh
+                ref="block"
+            >
+                <geometryResource
+                    resourceId="1x1box"
+                />
+                <materialResource
+                    resourceId={ materialId }
+                />
+            </mesh>
+        </group>;
 
     }
 

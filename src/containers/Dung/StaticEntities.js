@@ -3,6 +3,7 @@ import THREE from 'three';
 import Shrink from './Shrink';
 import Grow from './Grow';
 import Wall from './Wall';
+import Floor from './Floor';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
 import Player from './Player';
@@ -81,6 +82,19 @@ export default class StaticEntities extends Component {
                 if( entity.type === 'wall' ) {
 
                     return <Wall
+                        time={ time }
+                        ref={ entity.id }
+                        key={ entity.id }
+                        position={ entity.position }
+                        rotation={ entity.rotation }
+                        scale={ entity.scale }
+                        materialId={ entity.materialId }
+                    />;
+
+                } else if( entity.type === 'floor' ) {
+
+                    return <Floor
+                        time={ time }
                         ref={ entity.id }
                         key={ entity.id }
                         position={ entity.position }

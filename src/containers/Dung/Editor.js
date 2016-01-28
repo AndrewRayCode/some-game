@@ -7,12 +7,13 @@ import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
     addLevel, selectLevel, saveLevel, updateLevel, deserializeLevels,
-    renameLevel, addNextLevel, removeNextLevel, insetLevel
+    renameLevel, addNextLevel, removeNextLevel, insetLevel, changeEntityType
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
 import styles from './Dung.scss';
 import Wall from './Wall';
+import Floor from './Floor';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
 import Player from './Player';
@@ -173,7 +174,7 @@ function snapTo( number, interval ) {
         addEntity, removeEntity, moveEntity, rotateEntity,
         changeEntityMaterial, addNextLevel, selectLevel, saveLevel,
         updateLevel, deserializeLevels, renameLevel, addLevel, removeNextLevel,
-        insetLevel
+        insetLevel, changeEntityType
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -340,6 +341,10 @@ export default class Editor extends Component {
             if( KeyCodes.W in keys ) {
 
                 createType = 'wall';
+
+            } else if( KeyCodes.F in keys ) {
+
+                createType = 'floor';
 
             } else if( KeyCodes.T in keys ) {
 
@@ -892,6 +897,16 @@ export default class Editor extends Component {
                     materialId="ghostMaterial"
                 />;
 
+            } else if( createType === 'floor' ) {
+
+                previewObject = <Floor
+                    scale={ gridScale }
+                    rotation={ createPreviewRotation }
+                    position={ createPreviewPosition }
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                />;
+
             } else if( createType === 'tube' ) {
 
                 previewObject = <TubeStraight
@@ -1124,6 +1139,13 @@ export default class Editor extends Component {
                                     color={ 0xFADE95 }
                                 />
 
+                                <meshPhongMaterial
+                                    resourceId="wallSideMaterial"
+                                    color={ 0x000000 }
+                                    transparent
+                                    opacity={ 0.5 }
+                                />
+
                             </resources>
 
                             <ambientLight
@@ -1312,6 +1334,21 @@ export default class Editor extends Component {
 
                         })}
 
+                        { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) && <div>
+                            <br /><br />
+                            <button
+                                onClick={
+                                    this.props.changeEntityType.bind(
+                                        null,
+                                        selectedObjectId,
+                                        selectedObject.type === 'wall' ? 'floor' : 'wall'
+                                    )
+                                }
+                            >
+                                Switch type to { selectedObject.type === 'wall' ? 'Floor' : 'Wall' }
+                            </button>
+                        </div> }
+
                     </div> : null }
 
                     { creating ? <div>
@@ -1320,6 +1357,10 @@ export default class Editor extends Component {
                         [W] { createType === 'wall' && '✓' }
                         <button onClick={ this.selectType( 'wall' ) }>
                             Wall
+                        </button>
+                        [F] { createType === 'floor' && '✓' }
+                        <button onClick={ this.selectType( 'floor' ) }>
+                            Floor
                         </button>
                         <br />
                         [T] { createType === 'tube' && '✓' }
@@ -1364,7 +1405,7 @@ export default class Editor extends Component {
                             Level
                         </button>
 
-                        { createType === 'wall' && <div>
+                        { ( createType === 'wall' || createType === 'floor' ) && <div>
 
                             { Object.keys( Textures ).map( ( key ) => {
 

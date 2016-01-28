@@ -1212,6 +1212,13 @@ export default class Game extends Component {
                             heightSegments={1}
                         />
 
+                        <meshPhongMaterial
+                            resourceId="wallSideMaterial"
+                            color={ 0xffffff }
+                            transparent
+                            opacity={ 0.5 }
+                        />
+
                         <shape resourceId="tubeWall">
                             <absArc
                                 x={0}
