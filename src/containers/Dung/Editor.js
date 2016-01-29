@@ -1136,14 +1136,21 @@ export default class Editor extends Component {
 
                                 <meshPhongMaterial
                                     resourceId="playerMaterial"
-                                    color={ 0xFADE95 }
+                                    color={ 0xfade95 }
+                                />
+
+                                <meshPhongMaterial
+                                    resourceId="floorSideMaterial"
+                                    color={ 0xee8a6f }
+                                    transparent
+                                    opacity={ 0.12 }
                                 />
 
                                 <meshPhongMaterial
                                     resourceId="wallSideMaterial"
-                                    color={ 0x000000 }
+                                    color={ 0xc1baa8 }
                                     transparent
-                                    opacity={ 0.5 }
+                                    opacity={ 0.12 }
                                 />
 
                             </resources>

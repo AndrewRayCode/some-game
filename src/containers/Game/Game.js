@@ -14,6 +14,8 @@ import TubeStraight from '../Dung/TubeStraight';
 import Player from '../Dung/Player';
 import { getEntrancesForTube, without, lerp } from '../Dung/Utils';
 
+let debuggingReplay = [];
+
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
 THREE.ImageUtils.crossOrigin = '';
 THREE.TextureLoader.crossOrigin = '';
@@ -42,10 +44,9 @@ const raycaster = new THREE.Raycaster();
 
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
-const lerpVectors = ( () => {
-    const v = new THREE.Vector3();
-    return v.lerpVectors.bind( v );
-} )();
+function lerpVectors( vectorA, vectorB, alpha ) {
+    return new THREE.Vector3().lerpVectors( vectorA, vectorB, alpha );
+}
 
 const wallMaterial = new CANNON.Material( 'wallMaterial' );
 
@@ -688,6 +689,8 @@ export default class Game extends Component {
 
                     }, {} );
 
+                    debuggingReplay = [];
+
                     newTubeFlow = [{
                         start: playerPosition.clone(),
                         end: thresholdPlayerStartsAt
@@ -808,7 +811,7 @@ export default class Game extends Component {
                 // tween to the end position. Our percent counter goes from 0
                 // to 1, so scale it to go from 0-1, 0-1
                 if( currentTube.middle ) {
-                    const pastMiddle = currentPercent > 0.5;
+                    const pastMiddle = currentPercent >= 0.5;
                     currentFlowPosition = lerpVectors(
                         pastMiddle ? currentTube.middle : currentTube.start,
                         pastMiddle ? ( isLastTube ?
@@ -828,8 +831,10 @@ export default class Game extends Component {
 
                 state = {
                     ...state,
-                    currentFlowPosition, tubeIndex, startTime
+                    currentFlowPosition, tubeIndex, startTime, currentPercent,
+                    modPercent: ( currentPercent * 2 ) % 1,
                 };
+                debuggingReplay.push({ ...this.state, ...state, debug: true });
 
             }
 
@@ -955,6 +960,33 @@ export default class Game extends Component {
             }
         }
 
+        //if( KeyCodes.V in this.keysDown ) {
+            //if( !this.dingingv ) {
+                //state.debuggingReplay = debuggingReplay;
+                //state.debuggingIndex = 0;
+                //window.debuggingReplay = debuggingReplay;
+                //this.dingingv = true;
+            //}
+        //} else {
+            //this.dingingv = false;
+        //}
+        //if( KeyCodes.M in this.keysDown ) {
+            //if( !this.dingingm && this.state.debuggingIndex < this.state.debuggingReplay.length - 1 ) {
+                //state.debuggingIndex = this.state.debuggingIndex + 1;
+                //this.dingingm = true;
+            //}
+        //} else {
+            //this.dingingm = false;
+        //}
+        //if( KeyCodes.L in this.keysDown ) {
+            //if( !this.dingingl && this.state.debuggingIndex > 1 ) {
+                //state.debuggingIndex = this.state.debuggingIndex - 1;
+                //this.dingingl = true;
+            //}
+        //} else {
+            //this.dingingl = false;
+        //}
+
         if( KeyCodes.T in this.keysDown ) {
 
             if( !this.touringSwitch ) {
@@ -1073,7 +1105,7 @@ export default class Game extends Component {
 
                     playerBody.addShape( playerShape );
                     const newPosition = playerPosition;
-                    playerBody.position.set(
+                    playerBody.position = new CANNON.Vec3(
                         newPosition.x,
                         1 + playerRadius,
                         newPosition.z - ( isShrinking ? 0 : playerRadius ),
@@ -1129,8 +1161,9 @@ export default class Game extends Component {
 
         const {
             meshStates, time, cameraPosition, currentFlowPosition, debug, fps,
-            touring, cameraTourTarget
-        } = this.state;
+            touring, cameraTourTarget, entrance1, entrance2, tubeFlow,
+            tubeIndex
+        } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
             playerRadius, playerScale, playerMass,
@@ -1213,10 +1246,17 @@ export default class Game extends Component {
                         />
 
                         <meshPhongMaterial
-                            resourceId="wallSideMaterial"
-                            color={ 0xffffff }
+                            resourceId="floorSideMaterial"
+                            color={ 0xee8a6f }
                             transparent
-                            opacity={ 0.5 }
+                            opacity={ 0.12 }
+                        />
+
+                        <meshPhongMaterial
+                            resourceId="wallSideMaterial"
+                            color={ 0xc1baa8 }
+                            transparent
+                            opacity={ 0.12 }
                         />
 
                         <shape resourceId="tubeWall">
@@ -1338,8 +1378,8 @@ export default class Game extends Component {
                         materialId="playerMaterial"
                     />
 
-                    { debug && this.state.tubeFlow && this.state.tubeFlow[ this.state.tubeIndex ].middle && <mesh
-                        position={ this.state.tubeFlow[ this.state.tubeIndex ].middle }
+                    { debug && tubeFlow && tubeFlow[ tubeIndex ].middle && <mesh
+                        position={ tubeFlow[ tubeIndex ].middle }
                         scale={ new THREE.Vector3( 0.25, 2, 0.25 ).multiplyScalar( playerScale ) }
                     >
                         <geometryResource
@@ -1349,10 +1389,10 @@ export default class Game extends Component {
                             resourceId="middleMaterial"
                         />
                     </mesh> }
-                    { debug && this.state.tubeFlow && <mesh
-                        position={ ( this.state.tubeIndex === this.state.tubeFlow.length - 1 ?
-                            this.state.tubeFlow[ this.state.tubeIndex ].exit :
-                            this.state.tubeFlow[ this.state.tubeIndex ].end
+                    { debug && tubeFlow && <mesh
+                        position={ ( tubeIndex === tubeFlow.length - 1 ?
+                            tubeFlow[ tubeIndex ].exit :
+                            tubeFlow[ tubeIndex ].end
                         ) }
                         scale={ new THREE.Vector3( 0.15, 2, 0.15 ).multiplyScalar( playerScale ) }
                     >
@@ -1363,8 +1403,8 @@ export default class Game extends Component {
                             resourceId="exitMaterial"
                         />
                     </mesh> }
-                    { debug && this.state.tubeFlow && <mesh
-                        position={ this.state.tubeFlow[ this.state.tubeIndex ].start }
+                    { debug && tubeFlow && <mesh
+                        position={ tubeFlow[ tubeIndex ].start }
                         scale={ new THREE.Vector3( 0.15, 2, 0.15 ).multiplyScalar( playerScale ) }
                     >
                         <geometryResource
@@ -1375,8 +1415,8 @@ export default class Game extends Component {
                         />
                     </mesh> }
 
-                    { debug && this.state.entrance1 && <mesh
-                        position={ this.state.entrance1 }
+                    { debug && entrance1 && <mesh
+                        position={ entrance1 }
                         scale={ new THREE.Vector3( 0.5, 2, 0.5 ).multiplyScalar( playerScale )}
                     >
                         <geometryResource
@@ -1386,8 +1426,8 @@ export default class Game extends Component {
                             resourceId="playerMaterial"
                         />
                     </mesh> }
-                    { debug && this.state.entrance2 && <mesh
-                        position={ this.state.entrance2 }
+                    { debug && entrance2 && <mesh
+                        position={ entrance2 }
                         scale={ new THREE.Vector3( 0.5, 2, 0.5 ).multiplyScalar( playerScale )}
                     >
                         <geometryResource
