@@ -64,7 +64,7 @@ const wallContactMaterial = new CANNON.ContactMaterial( wallMaterial, wallMateri
 const pushyMaterial = new CANNON.Material( 'pushyMaterial' );
 
 const pushyContactMaterial = new CANNON.ContactMaterial( wallMaterial, pushyMaterial, {
-    friction: 0.3,
+    friction: 1.0,
     // Bounciness (0-1, higher is bouncier). How much energy is conserved
     // after a collision
     restitution: 0.5,
@@ -374,15 +374,15 @@ export default class Game extends Component {
 
         this.pushies = Object.values( props.currentLevelMovableEntities ).map( ( entity ) => {
             const body = new CANNON.Body({
-                mass: 1,
+                mass: 10,
                 material: pushyMaterial
             });
             const { position, scale } = entity;
 
             const pushyShape = new CANNON.Box( new CANNON.Vec3(
-                0.45 * scale.x,
-                0.45 * scale.y,
-                0.45 * scale.z
+                0.4 * scale.x,
+                0.4 * scale.y,
+                0.4 * scale.z
             ) );
             
             body.addShape( pushyShape );
