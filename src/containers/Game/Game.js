@@ -13,6 +13,12 @@ import Pushy from '../Dung/Pushy';
 import Player from '../Dung/Player';
 import { getEntrancesForTube, without, lerp } from '../Dung/Utils';
 
+// These must be integers to work with the bitwise operator. Also must be
+// powers of four...
+const COLLISION_GROUP_ENTITIES = 1;
+const COLLISION_GROUP_PLAYER = 2;
+const COLLISION_GROUP_TOPWALL = 4;
+
 let debuggingReplay = [];
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
@@ -55,10 +61,11 @@ const wallContactMaterial = new CANNON.ContactMaterial( wallMaterial, wallMateri
     // Bounciness (0-1, higher is bouncier). How much energy is conserved
     // after a collision
     restitution: 0,
-    contactEquationStiffness: 1e8,
-    contactEquationRelaxation: 3,
+    contactEquationStiffness: 1e12,
+    contactEquationRelaxation: 1,
     frictionEquationStiffness: 1e8,
     frictionEquationRegularizationTime: 3,
+    contactEquationRegularizationTime: 3,
 });
 
 const pushyMaterial = new CANNON.Material( 'pushyMaterial' );
@@ -68,10 +75,11 @@ const pushyContactMaterial = new CANNON.ContactMaterial( wallMaterial, pushyMate
     // Bounciness (0-1, higher is bouncier). How much energy is conserved
     // after a collision
     restitution: 0.5,
-    contactEquationStiffness: 1e8,
-    contactEquationRelaxation: 3,
+    contactEquationStiffness: 1e12,
+    contactEquationRelaxation: 1,
     frictionEquationStiffness: 1e8,
     frictionEquationRegularizationTime: 3,
+    contactEquationRegularizationTime: 3,
 });
 
 function getSphereMass( density, radius ) {
@@ -358,6 +366,8 @@ export default class Game extends Component {
         });
         this.playerBody = playerBody;
         playerBody.linearDamping = 0.0;
+        //playerBody.collisionFilterGroup = COLLISION_GROUP_PLAYER;
+        //playerBody.collisionFilterMask = COLLISION_GROUP_TOPWALL | COLLISION_GROUP_ENTITIES;
 
         const playerShape = new CANNON.Sphere( playerRadius );
 
@@ -369,26 +379,31 @@ export default class Game extends Component {
         const topWallShape = new CANNON.Box( new CANNON.Vec3( 100, 1, 100 ) );
         topWall.addShape( topWallShape );
         topWall.position.set( -50, 2.001 + ( playerRadius * 2 ), -50 );
+        //topWall.collisionFilterGroup = COLLISION_GROUP_TOPWALL;
+        //topWall.collisionFilterMask = COLLISION_GROUP_PLAYER;
+
         this.topWall = topWall;
         this.world.addBody( topWall );
 
         this.pushies = Object.values( props.currentLevelMovableEntities ).map( ( entity ) => {
-            const body = new CANNON.Body({
+            const pushyBody = new CANNON.Body({
                 mass: 10,
                 material: pushyMaterial
             });
             const { position, scale } = entity;
 
             const pushyShape = new CANNON.Box( new CANNON.Vec3(
-                0.4 * scale.x,
-                0.4 * scale.y,
-                0.4 * scale.z
+                0.43 * scale.x,
+                0.43 * scale.y,
+                0.43 * scale.z
             ) );
+            //pushyBody.collisionFilterGroup = COLLISION_GROUP_ENTITIES;
+            //pushyBody.collisionFilterMask = COLLISION_GROUP_PLAYER | COLLISION_GROUP_ENTITIES | COLLISION_GROUP_TOPWALL;
             
-            body.addShape( pushyShape );
-            body.position.copy( entity.position );
-            this.world.addBody( body );
-            return body;
+            pushyBody.addShape( pushyShape );
+            pushyBody.position.copy( entity.position );
+            this.world.addBody( pushyBody );
+            return pushyBody;
 
         });
 
@@ -418,6 +433,8 @@ export default class Game extends Component {
                 position.z
             );
             entityBody.entity = entity;
+            //entityBody.collisionFilterGroup = COLLISION_GROUP_ENTITIES;
+            //entityBody.collisionFilterMask = COLLISION_GROUP_PLAYER | COLLISION_GROUP_ENTITIES;
             this.world.addBody( entityBody );
             return ents.concat( entityBody );
 
@@ -1151,6 +1168,8 @@ export default class Game extends Component {
                         1 + playerRadius,
                         newPosition.z - ( isShrinking ? 0 : playerRadius ),
                     );
+                    //playerBody.collisionFilterGroup = COLLISION_GROUP_PLAYER;
+                    //playerBody.collisionFilterMask = COLLISION_GROUP_TOPWALL | COLLISION_GROUP_ENTITIES;
 
                     this.world.addBody( playerBody );
 

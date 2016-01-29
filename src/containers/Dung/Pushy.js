@@ -6,6 +6,8 @@ const modifier = new SubdivisionModifier( 2 );
 const geo = new THREE.BoxGeometry( 1, 1, 1, 2, 2, 2 );
 modifier.modify( geo );
 
+const defaultScale = new THREE.Vector3( 1, 1, 1 );
+
 export default class Pushy extends Component {
 
     constructor( props, context ) {
@@ -20,7 +22,7 @@ export default class Pushy extends Component {
             ref="mesh"
             position={ position }
             quaternion={ rotation || new THREE.Quaternion( 0, 0, 0, 1 ) }
-            scale={ scale }
+            scale={ ( scale || defaultScale ).clone().multiplyScalar( 0.9 ) }
         >
             <geometry
                 resourceId="pushyGeometry"
