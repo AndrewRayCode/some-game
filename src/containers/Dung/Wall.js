@@ -32,7 +32,7 @@ export default class Wall extends Component {
                 />
             </mesh>
             <mesh
-                ref="block"
+                ref="mesh2"
             >
                 <geometryResource
                     resourceId="1x1box"

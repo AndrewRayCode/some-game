@@ -129,6 +129,7 @@
     "superagent": "^1.4.0",
     "three": "^0.73.0",
     "three-orbit-controls": "^72.0.0",
+    "three-subdivision-modifier": "^1.0.2",
     "underscore": "^1.8.3",
     "url-loader": "^0.5.7",
     "warning": "^2.1.0",

@@ -4,6 +4,7 @@ import Shrink from './Shrink';
 import Grow from './Grow';
 import Wall from './Wall';
 import Floor from './Floor';
+import Pushy from './Pushy';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
 import Player from './Player';
@@ -89,6 +90,18 @@ export default class StaticEntities extends Component {
                         rotation={ entity.rotation }
                         scale={ entity.scale }
                         materialId={ entity.materialId }
+                    />;
+
+                } else if( entity.type === 'pushy' ) {
+
+                    return <Pushy
+                        time={ time }
+                        ref={ entity.id }
+                        key={ entity.id }
+                        position={ entity.position }
+                        rotation={ entity.rotation }
+                        scale={ entity.scale }
+                        materialId="pushyMaterial"
                     />;
 
                 } else if( entity.type === 'floor' ) {

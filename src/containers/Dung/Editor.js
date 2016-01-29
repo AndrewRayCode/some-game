@@ -14,6 +14,7 @@ import classNames from 'classnames/bind';
 import styles from './Dung.scss';
 import Wall from './Wall';
 import Floor from './Floor';
+import Pushy from './Pushy';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
 import Player from './Player';
@@ -341,6 +342,10 @@ export default class Editor extends Component {
             if( KeyCodes.W in keys ) {
 
                 createType = 'wall';
+
+            } else if( KeyCodes.P in keys ) {
+
+                createType = 'pushy';
 
             } else if( KeyCodes.F in keys ) {
 
@@ -897,6 +902,16 @@ export default class Editor extends Component {
                     materialId="ghostMaterial"
                 />;
 
+            } else if( createType === 'pushy' ) {
+
+                previewObject = <Pushy
+                    scale={ gridScale }
+                    rotation={ createPreviewRotation }
+                    position={ createPreviewPosition }
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                />;
+
             } else if( createType === 'floor' ) {
 
                 previewObject = <Floor
@@ -1153,6 +1168,11 @@ export default class Editor extends Component {
                                     opacity={ 0.12 }
                                 />
 
+                                <meshPhongMaterial
+                                    resourceId="pushyMaterial"
+                                    color={ 0x462b2b }
+                                />
+
                             </resources>
 
                             <ambientLight
@@ -1365,9 +1385,15 @@ export default class Editor extends Component {
                         <button onClick={ this.selectType( 'wall' ) }>
                             Wall
                         </button>
+                        <br />
                         [F] { createType === 'floor' && '✓' }
                         <button onClick={ this.selectType( 'floor' ) }>
                             Floor
+                        </button>
+                        <br />
+                        [P] { createType === 'pushy' && '✓' }
+                        <button onClick={ this.selectType( 'pushy' ) }>
+                            Pushy
                         </button>
                         <br />
                         [T] { createType === 'tube' && '✓' }

@@ -9,8 +9,7 @@ import { bindActionCreators } from 'redux';
 import { scalePlayer, advanceLevel } from '../../redux/modules/game';
 import KeyCodes from '../Dung/KeyCodes';
 import Cardinality from '../Dung/Cardinality';
-import TubeBend from '../Dung/TubeBend';
-import TubeStraight from '../Dung/TubeStraight';
+import Pushy from '../Dung/Pushy';
 import Player from '../Dung/Player';
 import { getEntrancesForTube, without, lerp } from '../Dung/Utils';
 
@@ -51,11 +50,24 @@ function lerpVectors( vectorA, vectorB, alpha ) {
 const wallMaterial = new CANNON.Material( 'wallMaterial' );
 
 // Adjust constraint equation parameters for ground/ground contact
-const material = new CANNON.ContactMaterial( wallMaterial, wallMaterial, {
+const wallContactMaterial = new CANNON.ContactMaterial( wallMaterial, wallMaterial, {
     friction: 0,
     // Bounciness (0-1, higher is bouncier). How much energy is conserved
     // after a collision
     restitution: 0,
+    contactEquationStiffness: 1e8,
+    contactEquationRelaxation: 3,
+    frictionEquationStiffness: 1e8,
+    frictionEquationRegularizationTime: 3,
+});
+
+const pushyMaterial = new CANNON.Material( 'pushyMaterial' );
+
+const pushyContactMaterial = new CANNON.ContactMaterial( wallMaterial, pushyMaterial, {
+    friction: 0.3,
+    // Bounciness (0-1, higher is bouncier). How much energy is conserved
+    // after a collision
+    restitution: 0.5,
     contactEquationStiffness: 1e8,
     contactEquationRelaxation: 3,
     frictionEquationStiffness: 1e8,
@@ -195,6 +207,7 @@ function snapTo( number, interval ) {
         const {
             currentLevelAllEntities,
             currentLevelStaticEntities,
+            currentLevelMovableEntities,
             nextLevelData
         } = currentLevel.entityIds.reduce( ( memo, id ) => {
             const entity = allEntities[ id ];
@@ -203,12 +216,17 @@ function snapTo( number, interval ) {
                 memo.nextLevelData = allEntities[ id ];
                 memo.currentLevelAllEntities[ id ] = entity;
             } else {
+                if( entity.type === 'pushy' ) {
+                    memo.currentLevelMovableEntities[ id ] = entity;
+                } else {
+                    memo.currentLevelStaticEntities[ id ] = entity;
+                }
                 memo.currentLevelAllEntities[ id ] = entity;
-                memo.currentLevelStaticEntities[ id ] = entity;
             }
 
             return memo;
         }, {
+            currentLevelMovableEntities: {},
             currentLevelAllEntities: {},
             currentLevelStaticEntities: {}
         });
@@ -262,6 +280,7 @@ function snapTo( number, interval ) {
             nextLevelEntity, nextLevel, nextLevelEntitiesArray,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             previousLevelEntity, previousLevelEntitiesArray, previousLevelId,
+            currentLevelMovableEntities,
 
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
@@ -293,7 +312,7 @@ export default class Game extends Component {
                 0
             ),
             lightPosition: new THREE.Vector3(),
-            meshStates: []
+            pushyPositions: []
         };
 
         this.wallCoolDowns = {};
@@ -302,7 +321,7 @@ export default class Game extends Component {
         const world = this.world;
 
         // Add contact material to the world
-        world.addContactMaterial( material );
+        world.addContactMaterial( wallContactMaterial );
 
         world.quatNormalizeSkip = 0;
         world.quatNormalizeFast = false;
@@ -328,7 +347,8 @@ export default class Game extends Component {
     _setupPhysics( props, playerPosition ) {
 
         const {
-            currentLevel, allEntities, playerRadius, playerDensity, playerMass
+            currentLevel, allEntities, playerRadius, playerDensity, playerMass,
+            currentLevelStaticEntitiesArray
         } = props;
         const { entityIds } = currentLevel;
 
@@ -352,11 +372,32 @@ export default class Game extends Component {
         this.topWall = topWall;
         this.world.addBody( topWall );
 
-        const physicsBodies = [ playerBody, topWall ].concat( entityIds.reduce( ( ents, id ) => {
+        this.pushies = Object.values( props.currentLevelMovableEntities ).map( ( entity ) => {
+            const body = new CANNON.Body({
+                mass: 1,
+                material: pushyMaterial
+            });
+            const { position, scale } = entity;
+
+            const pushyShape = new CANNON.Box( new CANNON.Vec3(
+                0.45 * scale.x,
+                0.45 * scale.y,
+                0.45 * scale.z
+            ) );
+            
+            body.addShape( pushyShape );
+            body.position.copy( entity.position );
+            this.world.addBody( body );
+            return body;
+
+        });
+
+        const physicsBodies = [ playerBody, topWall ].concat( this.pushies, entityIds.reduce( ( ents, id ) => {
 
             const entity = allEntities[ id ];
 
-            if( entity.type === 'shrink' || entity.type === 'grow' ) {
+            if( entity.type === 'shrink' || entity.type === 'grow' ||
+                    entity.type === 'pushy' ) {
                 return ents;
             }
 
@@ -907,9 +948,9 @@ export default class Game extends Component {
 
     }
 
-    _getMeshStates( physicsBodies ) {
+    _getMeshStates( bodies ) {
 
-        return physicsBodies.map( ( body ) => {
+        return bodies.map( ( body ) => {
             const { position, quaternion } = body;
             return {
                 position: new THREE.Vector3().copy( position ),
@@ -934,7 +975,7 @@ export default class Game extends Component {
 
         const state = {
             time: now,
-            meshStates: this._getMeshStates( this.physicsBodies ),
+            pushyPositions: this._getMeshStates( this.pushies ),
             lightPosition: new THREE.Vector3(
                 10 * Math.sin( clock.getElapsedTime() * lightRotationSpeed ),
                 10,
@@ -1160,7 +1201,7 @@ export default class Game extends Component {
     render() {
 
         const {
-            meshStates, time, cameraPosition, currentFlowPosition, debug, fps,
+            pushyPositions, time, cameraPosition, currentFlowPosition, debug, fps,
             touring, cameraTourTarget, entrance1, entrance2, tubeFlow,
             tubeIndex
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
@@ -1243,6 +1284,11 @@ export default class Game extends Component {
                             height={1}
                             widthSegments={1}
                             heightSegments={1}
+                        />
+
+                        <meshPhongMaterial
+                            resourceId="pushyMaterial"
+                            color={ 0x462b2b }
                         />
 
                         <meshPhongMaterial
@@ -1448,6 +1494,13 @@ export default class Game extends Component {
                             resourceId="exitMaterial"
                         />
                     </mesh> }
+
+                    { pushyPositions.map( ( body, index ) => <Pushy
+                        key={ index }
+                        materialId="pushyMaterial"
+                        position={ body.position }
+                        quaternion={ body.quaternion }
+                    /> ) }
 
                     <StaticEntities
                         ref="staticEntities"
