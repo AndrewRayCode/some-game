@@ -390,9 +390,9 @@ export default class Game extends Component {
             });
 
             const pushyShape = new CANNON.Box( new CANNON.Vec3(
-                0.49 * scale.x,
+                0.48 * scale.x,
                 0.4 * scale.y,
-                0.49 * scale.z,
+                0.48 * scale.z,
             ) );
             
             pushyBody.addShape( pushyShape );
