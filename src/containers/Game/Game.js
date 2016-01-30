@@ -50,10 +50,25 @@ function lerpVectors( vectorA, vectorB, alpha ) {
     return new THREE.Vector3().lerpVectors( vectorA, vectorB, alpha );
 }
 
+const playerMaterial = new CANNON.Material( 'playerMaterial' );
+const pushyMaterial = new CANNON.Material( 'pushyMaterial' );
 const wallMaterial = new CANNON.Material( 'wallMaterial' );
 
-// Adjust constraint equation parameters for ground/ground contact
-const wallContactMaterial = new CANNON.ContactMaterial( wallMaterial, wallMaterial, {
+// Player to wall
+const playerToWallContact = new CANNON.ContactMaterial( playerMaterial, wallMaterial, {
+    friction: 0.0,
+    // Bounciness (0-1, higher is bouncier). How much energy is conserved
+    // after a collision
+    restitution: 0,
+    contactEquationStiffness: 1e12,
+    contactEquationRelaxation: 1,
+    frictionEquationStiffness: 1e8,
+    frictionEquationRegularizationTime: 3,
+    contactEquationRegularizationTime: 3,
+});
+
+// Player to pushy
+const playerToPushyContact = new CANNON.ContactMaterial( playerMaterial, pushyMaterial, {
     friction: 0,
     // Bounciness (0-1, higher is bouncier). How much energy is conserved
     // after a collision
@@ -65,9 +80,8 @@ const wallContactMaterial = new CANNON.ContactMaterial( wallMaterial, wallMateri
     contactEquationRegularizationTime: 3,
 });
 
-const pushyMaterial = new CANNON.Material( 'pushyMaterial' );
-
-const pushyContactMaterial = new CANNON.ContactMaterial( wallMaterial, pushyMaterial, {
+// Pushy to wall
+const puhshyToWallContact = new CANNON.ContactMaterial( pushyMaterial, wallMaterial, {
     friction: 0.3,
     // Bounciness (0-1, higher is bouncier). How much energy is conserved
     // after a collision
@@ -332,8 +346,9 @@ export default class Game extends Component {
         this.world = new CANNON.World();
         const world = this.world;
 
-        // Add contact material to the world
-        world.addContactMaterial( wallContactMaterial );
+        world.addContactMaterial( playerToPushyContact );
+        world.addContactMaterial( playerToWallContact );
+        world.addContactMaterial( puhshyToWallContact );
 
         world.quatNormalizeSkip = 0;
         world.quatNormalizeFast = false;
@@ -971,7 +986,7 @@ export default class Game extends Component {
     _createPlayerBody( position, radius, density ) {
 
         const playerBody = new CANNON.Body({
-            material: wallMaterial,
+            material: playerMaterial,
             mass: getSphereMass( density, radius ),
             angularFactor: factorConstraint,
             linearFactor: factorConstraint,
