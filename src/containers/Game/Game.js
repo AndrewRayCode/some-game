@@ -13,11 +13,8 @@ import Pushy from '../Dung/Pushy';
 import Player from '../Dung/Player';
 import { getEntrancesForTube, without, lerp } from '../Dung/Utils';
 
-// These must be integers to work with the bitwise operator. Also must be
-// powers of four...
-const COLLISION_GROUP_ENTITIES = 1;
-const COLLISION_GROUP_PLAYER = 2;
-const COLLISION_GROUP_TOPWALL = 4;
+const factorConstraint = new CANNON.Vec3( 1, 0, 1 );
+const angularUprightConstraint = new CANNON.Vec3( 0, 0, 0 );
 
 let debuggingReplay = [];
 
@@ -71,10 +68,10 @@ const wallContactMaterial = new CANNON.ContactMaterial( wallMaterial, wallMateri
 const pushyMaterial = new CANNON.Material( 'pushyMaterial' );
 
 const pushyContactMaterial = new CANNON.ContactMaterial( wallMaterial, pushyMaterial, {
-    friction: 1.0,
+    friction: 0.1,
     // Bounciness (0-1, higher is bouncier). How much energy is conserved
     // after a collision
-    restitution: 0.5,
+    restitution: 0.1,
     contactEquationStiffness: 1e12,
     contactEquationRelaxation: 1,
     frictionEquationStiffness: 1e8,
@@ -368,13 +365,13 @@ export default class Game extends Component {
         const { entityIds } = currentLevel;
 
         const playerBody = new CANNON.Body({
+            linearFactor: factorConstraint,
+            angularFactor: factorConstraint,
             material: wallMaterial,
             mass: playerMass
         });
         this.playerBody = playerBody;
         playerBody.linearDamping = 0.0;
-        //playerBody.collisionFilterGroup = COLLISION_GROUP_PLAYER;
-        //playerBody.collisionFilterMask = COLLISION_GROUP_TOPWALL | COLLISION_GROUP_ENTITIES;
 
         const playerShape = new CANNON.Sphere( playerRadius );
 
@@ -382,32 +379,21 @@ export default class Game extends Component {
         playerBody.position.copy( playerPosition || props.playerPosition );
         this.world.addBody( playerBody );
 
-        const topWall = new CANNON.Body({ mass: 0 });
-        const topWallShape = new CANNON.Box( new CANNON.Vec3( 100, 1, 100 ) );
-        topWall.addShape( topWallShape );
-        topWall.position.set( -50, 2.001 + ( playerRadius * 2 ), -50 );
-        //topWall.collisionFilterGroup = COLLISION_GROUP_TOPWALL;
-        //topWall.collisionFilterMask = COLLISION_GROUP_PLAYER;
-
-        this.topWall = topWall;
-        this.world.addBody( topWall );
-
         this.pushies = Object.values( props.currentLevelMovableEntities ).map( ( entity ) => {
             const { position, scale } = entity;
 
             const pushyBody = new CANNON.Body({
                 mass: getCubeMass( pushyDensity, scale.x * 0.5 ),
                 material: pushyMaterial,
-                angularFactor: new CANNON.Vec3( 0, 0, 0 )
+                linearFactor: factorConstraint,
+                angularFactor: angularUprightConstraint,
             });
 
             const pushyShape = new CANNON.Box( new CANNON.Vec3(
                 0.49 * scale.x,
                 0.4 * scale.y,
-                0.49 * scale.z
+                0.49 * scale.z,
             ) );
-            //pushyBody.collisionFilterGroup = COLLISION_GROUP_ENTITIES;
-            //pushyBody.collisionFilterMask = COLLISION_GROUP_PLAYER | COLLISION_GROUP_ENTITIES | COLLISION_GROUP_TOPWALL;
             
             pushyBody.addShape( pushyShape );
             pushyBody.position.copy( entity.position );
@@ -416,7 +402,7 @@ export default class Game extends Component {
 
         });
 
-        const physicsBodies = [ playerBody, topWall ].concat( this.pushies, entityIds.reduce( ( ents, id ) => {
+        const physicsBodies = [ playerBody ].concat( this.pushies, entityIds.reduce( ( ents, id ) => {
 
             const entity = allEntities[ id ];
 
@@ -428,7 +414,9 @@ export default class Game extends Component {
             const { position, scale } = entity;
             const entityBody = new CANNON.Body({
                 mass: 0,
-                material: wallMaterial
+                material: wallMaterial,
+                linearFactor: factorConstraint,
+                angularFactor: factorConstraint,
             });
             const boxShape = new CANNON.Box( new CANNON.Vec3(
                 scale.x / 2,
@@ -442,8 +430,6 @@ export default class Game extends Component {
                 position.z
             );
             entityBody.entity = entity;
-            //entityBody.collisionFilterGroup = COLLISION_GROUP_ENTITIES;
-            //entityBody.collisionFilterMask = COLLISION_GROUP_PLAYER | COLLISION_GROUP_ENTITIES;
             this.world.addBody( entityBody );
             return ents.concat( entityBody );
 
@@ -1177,15 +1163,11 @@ export default class Game extends Component {
                         1 + playerRadius,
                         newPosition.z - ( isShrinking ? 0 : playerRadius ),
                     );
-                    //playerBody.collisionFilterGroup = COLLISION_GROUP_PLAYER;
-                    //playerBody.collisionFilterMask = COLLISION_GROUP_TOPWALL | COLLISION_GROUP_ENTITIES;
 
                     this.world.addBody( playerBody );
 
                     this.playerBody = playerBody;
                     this.physicsBodies[ 0 ] = playerBody;
-
-                    this.topWall.position.set( -50, 2.001 + newRadius * 2, -50 );
 
                     this.props.scalePlayer( currentLevel.id, entity.id, multiplier );
 
