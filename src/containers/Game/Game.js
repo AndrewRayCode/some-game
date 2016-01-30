@@ -68,7 +68,7 @@ const wallContactMaterial = new CANNON.ContactMaterial( wallMaterial, wallMateri
 const pushyMaterial = new CANNON.Material( 'pushyMaterial' );
 
 const pushyContactMaterial = new CANNON.ContactMaterial( wallMaterial, pushyMaterial, {
-    friction: 0.1,
+    friction: 0.3,
     // Bounciness (0-1, higher is bouncier). How much energy is conserved
     // after a collision
     restitution: 0.1,
