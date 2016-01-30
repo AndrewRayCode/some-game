@@ -3,7 +3,7 @@ import THREE from 'three';
 const playerScale = 1;
 const playerRadius = 0.45;
 const playerDensity = 1000; // kg / m^3
-const pushyDensity = 500; // kg / m^3
+const pushyDensity = 750; // kg / m^3
 
 const shrinkForceMultiplier = 1 / ( 8 * Math.sqrt( 2 ) );
 
