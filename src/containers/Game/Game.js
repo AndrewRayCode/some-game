@@ -85,7 +85,7 @@ const puhshyToWallContact = new CANNON.ContactMaterial( pushyMaterial, wallMater
     friction: 0.3,
     // Bounciness (0-1, higher is bouncier). How much energy is conserved
     // after a collision
-    restitution: 0.1,
+    restitution: 0,
     contactEquationStiffness: 1e12,
     contactEquationRelaxation: 1,
     frictionEquationStiffness: 1e8,
@@ -427,9 +427,7 @@ export default class Game extends Component {
             const { position, scale } = entity;
             const entityBody = new CANNON.Body({
                 mass: 0,
-                material: wallMaterial,
-                linearFactor: factorConstraint,
-                angularFactor: factorConstraint,
+                material: wallMaterial
             });
             const boxShape = new CANNON.Box( new CANNON.Vec3(
                 scale.x / 2,
@@ -989,7 +987,7 @@ export default class Game extends Component {
             material: playerMaterial,
             mass: getSphereMass( density, radius ),
             angularFactor: factorConstraint,
-            linearFactor: factorConstraint,
+            linearFactor: angularUprightConstraint,
         });
         playerBody.addEventListener( 'collide', this.onPlayerCollide );
 
