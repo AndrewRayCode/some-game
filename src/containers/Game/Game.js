@@ -388,6 +388,9 @@ export default class Game extends Component {
                 linearFactor: factorConstraint,
                 angularFactor: angularUprightConstraint,
             });
+            // Copy scale to pushyBody so _getMeshStates can access it to pass
+            // to three
+            pushyBody.scale = scale;
 
             const pushyShape = new CANNON.Box( new CANNON.Vec3(
                 0.48 * scale.x,
@@ -963,8 +966,9 @@ export default class Game extends Component {
     _getMeshStates( bodies ) {
 
         return bodies.map( ( body ) => {
-            const { position, quaternion } = body;
+            const { position, quaternion, scale } = body;
             return {
+                scale: new THREE.Vector3().copy( scale ),
                 position: new THREE.Vector3().copy( position ),
                 quaternion: new THREE.Quaternion().copy( quaternion )
             };
@@ -1505,11 +1509,12 @@ export default class Game extends Component {
                         />
                     </mesh> }
 
-                    { pushyPositions.map( ( body, index ) => <Pushy
+                    { pushyPositions.map( ( entity, index ) => <Pushy
                         key={ index }
+                        scale={ entity.scale }
                         materialId="pushyMaterial"
-                        position={ body.position }
-                        quaternion={ body.quaternion }
+                        position={ entity.position }
+                        quaternion={ entity.quaternion }
                     /> ) }
 
                     <StaticEntities
