@@ -356,7 +356,7 @@ export default class Game extends Component {
 
     }
 
-    _setupPhysics( props, playerPosition ) {
+    _setupPhysics( props, playerPositionOverride ) {
 
         const {
             currentLevel, allEntities, playerRadius, playerDensity, playerMass,
@@ -364,20 +364,14 @@ export default class Game extends Component {
         } = props;
         const { entityIds } = currentLevel;
 
-        const playerBody = new CANNON.Body({
-            linearFactor: factorConstraint,
-            angularFactor: factorConstraint,
-            material: wallMaterial,
-            mass: playerMass
-        });
-        this.playerBody = playerBody;
-        playerBody.linearDamping = 0.0;
+        const playerPosition = playerPositionOverride || props.playerPosition;
 
-        const playerShape = new CANNON.Sphere( playerRadius );
+        const playerBody = this._createPlayerBody(
+            playerPosition, playerRadius, playerDensity
+        );
 
-        playerBody.addShape( playerShape );
-        playerBody.position.copy( playerPosition || props.playerPosition );
         this.world.addBody( playerBody );
+        this.playerBody = playerBody;
 
         this.pushies = Object.values( props.currentLevelMovableEntities ).map( ( entity ) => {
             const { position, scale } = entity;
@@ -393,9 +387,9 @@ export default class Game extends Component {
             pushyBody.scale = scale;
 
             const pushyShape = new CANNON.Box( new CANNON.Vec3(
-                0.48 * scale.x,
+                0.45 * scale.x,
                 0.4 * scale.y,
-                0.48 * scale.z,
+                0.49 * scale.z,
             ) );
             
             pushyBody.addShape( pushyShape );
@@ -405,13 +399,14 @@ export default class Game extends Component {
 
         });
 
-        const physicsBodies = [ playerBody ].concat( this.pushies, entityIds.reduce( ( ents, id ) => {
+        entityIds.forEach( id => {
 
             const entity = allEntities[ id ];
 
-            if( entity.type === 'shrink' || entity.type === 'grow' ||
+            if( entity.type === 'shrink' ||
+                    entity.type === 'grow' ||
                     entity.type === 'pushy' ) {
-                return ents;
+                return;
             }
 
             const { position, scale } = entity;
@@ -434,11 +429,8 @@ export default class Game extends Component {
             );
             entityBody.entity = entity;
             this.world.addBody( entityBody );
-            return ents.concat( entityBody );
 
-        }, [] ));
-
-        this.physicsBodies = physicsBodies;
+        } );
 
         this.playerBody.addEventListener( 'collide', this.onPlayerCollide );
         this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
@@ -513,7 +505,7 @@ export default class Game extends Component {
             this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
             this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
-            this.physicsBodies.map( body => this.world.remove( body ) );
+            this.world.bodies.map( body => this.world.removeBody( body ) );
 
             const {
                 nextLevelId, nextLevelEntity, previousLevelId,
@@ -976,6 +968,25 @@ export default class Game extends Component {
 
     }
 
+    _createPlayerBody( position, radius, density ) {
+
+        const playerBody = new CANNON.Body({
+            material: wallMaterial,
+            mass: getSphereMass( density, radius ),
+            angularFactor: factorConstraint,
+            linearFactor: factorConstraint,
+        });
+        playerBody.addEventListener( 'collide', this.onPlayerCollide );
+
+        const playerShape = new CANNON.Sphere( radius );
+
+        playerBody.addShape( playerShape );
+        playerBody.position = new CANNON.Vec3().copy( position );
+
+        return playerBody;
+
+    }
+
     _onAnimate() {
 
         const now = Date.now();
@@ -1150,30 +1161,24 @@ export default class Game extends Component {
                     const multiplier = isShrinking ? 0.5 : 2;
                     const newRadius = multiplier * playerRadius;
 
-                    this.world.remove( this.playerBody );
+                    this.world.removeBody( this.playerBody );
 
-                    const playerBody = new CANNON.Body({
-                        material: wallMaterial,
-                        mass: getSphereMass( playerDensity, newRadius ),
-                        angularFactor: factorConstraint,
-                        linearFactor: factorConstraint,
-                    });
-                    playerBody.addEventListener( 'collide', this.onPlayerCollide );
-
-                    const playerShape = new CANNON.Sphere( newRadius );
-
-                    playerBody.addShape( playerShape );
-                    const newPosition = playerPosition;
-                    playerBody.position = new CANNON.Vec3(
-                        newPosition.x,
-                        1 + playerRadius,
-                        newPosition.z - ( isShrinking ? 0 : playerRadius ),
+                    const playerBody = this._createPlayerBody(
+                        new CANNON.Vec3(
+                            playerPosition.x,
+                            1 + playerRadius,
+                            playerPosition.z - ( isShrinking ? 0 : playerRadius ),
+                        ),
+                        newRadius,
+                        playerDensity
                     );
 
                     this.world.addBody( playerBody );
 
                     this.playerBody = playerBody;
-                    this.physicsBodies[ 0 ] = playerBody;
+
+                    // Reset contact points
+                    this.playerContact = {};
 
                     this.props.scalePlayer( currentLevel.id, entity.id, multiplier );
 
