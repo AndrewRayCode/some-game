@@ -986,8 +986,8 @@ export default class Game extends Component {
         const playerBody = new CANNON.Body({
             material: playerMaterial,
             mass: getSphereMass( density, radius ),
-            angularFactor: factorConstraint,
-            linearFactor: angularUprightConstraint,
+            angularFactor: angularUprightConstraint,
+            linearFactor: factorConstraint,
         });
         playerBody.addEventListener( 'collide', this.onPlayerCollide );
 
