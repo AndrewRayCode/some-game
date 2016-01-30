@@ -88,6 +88,12 @@ function getSphereMass( density, radius ) {
 
 }
 
+function getCubeMass( density, side ) {
+
+    return density * Math.pow( side, 3 );
+
+}
+
 function getCameraDistanceToPlayer( playerY, aspect, fov, objectSize ) {
 
     return playerY + 4 * Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) );
@@ -294,6 +300,7 @@ function snapTo( number, interval ) {
             playerRadius: state.game.playerRadius,
             playerScale: state.game.playerScale,
             playerDensity: state.game.playerDensity,
+            pushyDensity: state.game.pushyDensity,
             playerMass: getSphereMass(
                 state.game.playerDensity, state.game.playerRadius
             )
@@ -356,7 +363,7 @@ export default class Game extends Component {
 
         const {
             currentLevel, allEntities, playerRadius, playerDensity, playerMass,
-            currentLevelStaticEntitiesArray
+            currentLevelStaticEntitiesArray, pushyDensity
         } = props;
         const { entityIds } = currentLevel;
 
@@ -386,16 +393,18 @@ export default class Game extends Component {
         this.world.addBody( topWall );
 
         this.pushies = Object.values( props.currentLevelMovableEntities ).map( ( entity ) => {
-            const pushyBody = new CANNON.Body({
-                mass: 10,
-                material: pushyMaterial
-            });
             const { position, scale } = entity;
 
+            const pushyBody = new CANNON.Body({
+                mass: getCubeMass( pushyDensity, scale.x * 0.5 ),
+                material: pushyMaterial,
+                angularFactor: new CANNON.Vec3( 0, 0, 0 )
+            });
+
             const pushyShape = new CANNON.Box( new CANNON.Vec3(
-                0.43 * scale.x,
-                0.43 * scale.y,
-                0.43 * scale.z
+                0.49 * scale.x,
+                0.4 * scale.y,
+                0.49 * scale.z
             ) );
             //pushyBody.collisionFilterGroup = COLLISION_GROUP_ENTITIES;
             //pushyBody.collisionFilterMask = COLLISION_GROUP_PLAYER | COLLISION_GROUP_ENTITIES | COLLISION_GROUP_TOPWALL;
