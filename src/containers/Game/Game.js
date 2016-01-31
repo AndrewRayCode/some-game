@@ -518,7 +518,7 @@ export default class Game extends Component {
             this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
             this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
-            this.world.bodies.map( body => this.world.removeBody( body ) );
+            this.world.bodies = [];
 
             const {
                 nextLevelId, nextLevelEntity, previousLevelId,
