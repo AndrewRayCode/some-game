@@ -109,7 +109,10 @@ function getCubeMass( density, side ) {
 
 function getCameraDistanceToPlayer( playerY, aspect, fov, objectSize ) {
 
-    return playerY + 4 * Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) );
+    return playerY + Math.max(
+        5 * Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) ),
+        1.5
+    );
 
 }
 
@@ -1014,7 +1017,12 @@ export default class Game extends Component {
             currentLevelStaticEntitiesArray, playerRadius, playerDensity,
             playerScale, currentLevel, nextLevelId, nextLevelEntity
         } = this.props;
-        const playerPosition = this.state.currentFlowPosition || this.playerBody.position;
+
+        const {
+            playerBoyd, currentFlowPosition, _fps, cameraPosition
+        } = this.state;
+
+        const playerPosition = currentFlowPosition || this.playerBody.position;
 
         // needs to be called before _getMeshStates
         this.updatePhysics();
@@ -1039,7 +1047,7 @@ export default class Game extends Component {
             this.lastCalledTime = now;
 
             state._fps = Math.round(
-                ( ( 1 / delta ) * smoothing ) + ( this.state._fps * ( 1.0 - smoothing ) )
+                ( ( 1 / delta ) * smoothing ) + ( _fps * ( 1.0 - smoothing ) )
             );
 
             if( !( this.counter++ % 15 ) ) {
@@ -1161,11 +1169,18 @@ export default class Game extends Component {
 
         //}
 
-        state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
-            playerPosition.x,
-            getCameraDistanceToPlayer( this.playerBody.position.y, cameraAspect, cameraFov, playerScale ),
-            playerPosition.z
-        ), 0.05 / playerScale );
+        // Lerp the camera position to the correct follow position. Lerp
+        // components individually to make the (y) camera zoom to player
+        // different
+        state.cameraPosition = new THREE.Vector3(
+                 lerp( cameraPosition.x, playerPosition.x, 0.05 / playerScale ),
+            lerp(
+                cameraPosition.y,
+                getCameraDistanceToPlayer( this.playerBody.position.y, cameraAspect, cameraFov, playerScale ),
+                0.025 / playerScale,
+            ),
+            lerp( cameraPosition.z, playerPosition.z, 0.05 / playerScale ),
+        );
 
         for( let i = 0; i < currentLevelStaticEntitiesArray.length; i++ ) {
 
