@@ -38,6 +38,8 @@ const boxes = 5;
 const tubeTravelDurationMs = 200;
 const tubeStartTravelDurationMs = 50;
 
+const scaleDurationMs = 300;
+
 const wallJumpVerticalDampen = 0.4;
 
 const coolDownTimeMs = 500;
@@ -1177,6 +1179,7 @@ export default class Game extends Component {
                     const isShrinking = entity.type === 'shrink';
                     const multiplier = isShrinking ? 0.5 : 2;
                     const newRadius = multiplier * playerRadius;
+                    const radiusDiff = playerRadius - newRadius;
 
                     this.world.removeBody( this.playerBody );
                     this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
@@ -1185,7 +1188,7 @@ export default class Game extends Component {
                         new CANNON.Vec3(
                             playerPosition.x,
                             1 + playerRadius,
-                            playerPosition.z - ( isShrinking ? 0 : playerRadius ),
+                            playerPosition.z + radiusDiff
                         ),
                         newRadius,
                         playerDensity
@@ -1200,7 +1203,28 @@ export default class Game extends Component {
 
                     this.props.scalePlayer( currentLevel.id, entity.id, multiplier );
 
+                    state.scaleStartTime = now;
+                    state.radiusDiff = radiusDiff;
+
                 }
+
+            }
+
+        }
+
+        if( state.scaleStartTime || this.state.scaleStartTime ) {
+
+            const scaleStartTime = state.scaleStartTime || this.state.scaleStartTime;
+            const currentScalePercent = 1 - ( ( now - scaleStartTime ) / scaleDurationMs );
+
+            if( currentScalePercent <= 0 ) {
+
+                state.scaleStartTime = null;
+                state.radiusDiff = null;
+
+            } else {
+
+                state.currentScalePercent = currentScalePercent;
 
             }
 
@@ -1242,7 +1266,7 @@ export default class Game extends Component {
         const {
             pushyPositions, time, cameraPosition, currentFlowPosition, debug, fps,
             touring, cameraTourTarget, entrance1, entrance2, tubeFlow,
-            tubeIndex
+            tubeIndex, currentScalePercent, radiusDiff
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1252,9 +1276,18 @@ export default class Game extends Component {
             previousLevelEntitiesArray
         } = this.props;
 
-        const playerPosition = new THREE.Vector3().copy(
-            currentFlowPosition || this.playerBody.position
-        );
+        const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;
+        const adjustedPlayerRadius = playerRadius + scaleValue;
+
+        const playerPosition = new THREE.Vector3()
+            .copy(
+                currentFlowPosition || this.playerBody.position
+            ).sub(
+                new THREE.Vector3(
+                    0, 0, radiusDiff ? currentScalePercent * radiusDiff : 0
+                )
+            );
+
         const lookAt = lookAtVector(
             cameraPosition,
             touring ? cameraTourTarget : playerPosition
@@ -1458,7 +1491,7 @@ export default class Game extends Component {
                     <Player
                         ref="player"
                         position={ playerPosition }
-                        radius={ playerRadius }
+                        radius={ adjustedPlayerRadius }
                         quaternion={ new THREE.Quaternion().copy( this.playerBody.quaternion ) }
                         materialId="playerMaterial"
                     />
