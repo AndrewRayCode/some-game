@@ -238,6 +238,7 @@ function snapTo( number, interval ) {
             currentLevelAllEntities,
             currentLevelStaticEntities,
             currentLevelMovableEntities,
+            currentLevelTouchyEntities,
             nextLevelData
         } = currentLevel.entityIds.reduce( ( memo, id ) => {
             const entity = allEntities[ id ];
@@ -249,6 +250,9 @@ function snapTo( number, interval ) {
                 if( entity.type === 'pushy' ) {
                     memo.currentLevelMovableEntities[ id ] = entity;
                 } else {
+                    if( entity.type === 'shrink' || entity.type === 'grow' ) {
+                        memo.currentLevelTouchyEntities[ id ] = entity;
+                    }
                     memo.currentLevelStaticEntities[ id ] = entity;
                 }
                 memo.currentLevelAllEntities[ id ] = entity;
@@ -258,7 +262,8 @@ function snapTo( number, interval ) {
         }, {
             currentLevelMovableEntities: {},
             currentLevelAllEntities: {},
-            currentLevelStaticEntities: {}
+            currentLevelStaticEntities: {},
+            currentLevelTouchyEntities: {},
         });
 
         const nextLevelId = currentLevel.nextLevelId;
@@ -309,6 +314,7 @@ function snapTo( number, interval ) {
             currentLevelStaticEntities, allEntities, nextLevelId,
             nextLevelEntity, nextLevel, nextLevelEntitiesArray,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
+            currentLevelTouchyArray: Object.values( currentLevelTouchyEntities ),
             previousLevelEntity, previousLevelEntitiesArray, previousLevelId,
             currentLevelMovableEntities,
 
@@ -1014,7 +1020,7 @@ export default class Game extends Component {
         const now = Date.now();
 
         const {
-            currentLevelStaticEntitiesArray, playerRadius, playerDensity,
+            currentLevelTouchyArray, playerRadius, playerDensity,
             playerScale, currentLevel, nextLevelId, nextLevelEntity
         } = this.props;
 
@@ -1182,46 +1188,45 @@ export default class Game extends Component {
             lerp( cameraPosition.z, playerPosition.z, 0.05 / playerScale ),
         );
 
-        for( let i = 0; i < currentLevelStaticEntitiesArray.length; i++ ) {
+        for( let i = 0; i < currentLevelTouchyArray.length; i++ ) {
 
-            const entity = currentLevelStaticEntitiesArray[ i ];
+            const entity = currentLevelTouchyArray[ i ];
 
-            if( ( entity.type === 'shrink' || entity.type === 'grow' ) &&
-                    entity.scale.x === playerScale ) {
+            if( entity.scale.x === playerScale &&
+                    entity.position.distanceTo( playerPosition ) < playerRadius * 1.8
+                ) {
 
-                if( entity.position.distanceTo( playerPosition ) < playerRadius ) {
+                const isShrinking = entity.type === 'shrink';
+                const multiplier = isShrinking ? 0.5 : 2;
+                const newRadius = multiplier * playerRadius;
+                const radiusDiff = playerRadius - newRadius;
 
-                    const isShrinking = entity.type === 'shrink';
-                    const multiplier = isShrinking ? 0.5 : 2;
-                    const newRadius = multiplier * playerRadius;
-                    const radiusDiff = playerRadius - newRadius;
+                this.world.removeBody( this.playerBody );
+                this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
-                    this.world.removeBody( this.playerBody );
-                    this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+                const playerBody = this._createPlayerBody(
+                    new CANNON.Vec3(
+                        playerPosition.x,
+                        1 + playerRadius,
+                        playerPosition.z + radiusDiff
+                    ),
+                    newRadius,
+                    playerDensity
+                );
 
-                    const playerBody = this._createPlayerBody(
-                        new CANNON.Vec3(
-                            playerPosition.x,
-                            1 + playerRadius,
-                            playerPosition.z + radiusDiff
-                        ),
-                        newRadius,
-                        playerDensity
-                    );
+                this.world.addBody( playerBody );
 
-                    this.world.addBody( playerBody );
+                this.playerBody = playerBody;
 
-                    this.playerBody = playerBody;
+                // Reset contact points
+                this.playerContact = {};
 
-                    // Reset contact points
-                    this.playerContact = {};
+                this.props.scalePlayer( currentLevel.id, entity.id, multiplier );
 
-                    this.props.scalePlayer( currentLevel.id, entity.id, multiplier );
+                state.scaleStartTime = now;
+                state.radiusDiff = radiusDiff;
 
-                    state.scaleStartTime = now;
-                    state.radiusDiff = radiusDiff;
-
-                }
+                break;
 
             }
 
