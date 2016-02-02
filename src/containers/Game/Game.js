@@ -59,9 +59,9 @@ const playerToWallContact = new CANNON.ContactMaterial( playerMaterial, wallMate
     friction: 0.0,
     // Bounciness (0-1, higher is bouncier). How much energy is conserved
     // after a collision
-    restitution: 0,
+    restitution: 0.1,
     contactEquationStiffness: 1e12,
-    contactEquationRelaxation: 1,
+    contactEquationRelaxation: 3,
     frictionEquationStiffness: 1e8,
     frictionEquationRegularizationTime: 3,
     contactEquationRegularizationTime: 3,
@@ -74,7 +74,7 @@ const playerToPushyContact = new CANNON.ContactMaterial( playerMaterial, pushyMa
     // after a collision
     restitution: 0,
     contactEquationStiffness: 1e12,
-    contactEquationRelaxation: 1,
+    contactEquationRelaxation: 3,
     frictionEquationStiffness: 1e8,
     frictionEquationRegularizationTime: 3,
     contactEquationRegularizationTime: 3,
@@ -87,7 +87,7 @@ const puhshyToWallContact = new CANNON.ContactMaterial( pushyMaterial, wallMater
     // after a collision
     restitution: 0,
     contactEquationStiffness: 1e12,
-    contactEquationRelaxation: 1,
+    contactEquationRelaxation: 3,
     frictionEquationStiffness: 1e8,
     frictionEquationRegularizationTime: 3,
     contactEquationRegularizationTime: 3,
@@ -343,8 +343,11 @@ export default class Game extends Component {
 
         this.wallCoolDowns = {};
 
-        this.world = new CANNON.World();
-        const world = this.world;
+        const world = new CANNON.World();
+        this.world = world;
+
+        world.solver.iterations = 20; // Increase solver iterations (default is 10)
+        world.solver.tolerance = 0;   // Force solver to use all iterations
 
         world.addContactMaterial( playerToPushyContact );
         world.addContactMaterial( playerToWallContact );
@@ -577,6 +580,7 @@ export default class Game extends Component {
         const assign = {
             [ otherBody.id ]: contactNormal
         };
+        //console.log('onPlayerColide with',otherBody.id, contactNormal);
         this.playerContact = { ...playerContact, ...assign };
 
     }
@@ -1175,6 +1179,7 @@ export default class Game extends Component {
                     const newRadius = multiplier * playerRadius;
 
                     this.world.removeBody( this.playerBody );
+                    this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
                     const playerBody = this._createPlayerBody(
                         new CANNON.Vec3(
