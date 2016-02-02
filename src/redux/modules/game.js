@@ -68,8 +68,8 @@ export function game( state = defaultState, action = {} ) {
         case 'GAME_SELECT_LEVEL':
             return {
                 ...state,
-                playerRadius: action.levelScale < 1 ? playerRadius : playerRadius * 0.125,
-                playerScale: action.levelScale < 1 ? playerScale : playerScale * 0.125
+                playerRadius: state.playerRadius * ( action.levelScale < 1 ? 8 : 0.125 ),
+                playerScale: state.playerScale * ( action.levelScale < 1 ? 8 : 0.125 ),
             };
 
         case 'SCALE_PLAYER':
