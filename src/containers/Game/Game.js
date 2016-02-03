@@ -40,7 +40,7 @@ const boxes = 5;
 const tubeTravelDurationMs = 200;
 const tubeStartTravelDurationMs = 50;
 
-const levelTransitionDuration = 500;
+const levelTransitionDuration = 1000;
 
 const scaleDurationMs = 300;
 
@@ -315,6 +315,26 @@ function snapTo( number, interval ) {
             .map( id => allEntities[ id ] )
             .filter( entity => entity.type !== 'level' );
 
+        const previousLevelFinishData = previousLevelData && previousLevelData.entityIds
+            .map( id => allEntities[ id ] )
+            .find( entity => entity.type === 'finish' );
+
+        const previousLevelFinishEntity = previousLevelFinishData && {
+            ...previousLevelFinishData,
+            scale: previousLevelFinishData.scale
+                .clone()
+                .multiplyScalar( multiplier ),
+            position: previousLevelEntity.position.clone().add(
+                previousLevelFinishData.position
+                    .clone()
+                    .multiplyScalar( multiplier )
+            )
+        };
+
+        if( previousLevelFinishEntity ) {
+            currentLevelTouchyEntities[ previousLevelFinishData.id ] = previousLevelFinishEntity;
+        }
+
         return {
             levels, currentLevel, currentLevelId, currentLevelAllEntities,
             currentLevelStaticEntities, allEntities, nextLevelId,
@@ -326,6 +346,7 @@ function snapTo( number, interval ) {
             currentLevelMovableEntitiesArray: Object.values( currentLevelMovableEntities ),
             currentLevelRenderableEntities,
             currentLevelRenderableEntitiesArray: Object.values( currentLevelRenderableEntities ),
+            previousLevelFinishEntity,
 
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
@@ -1019,8 +1040,9 @@ export default class Game extends Component {
         const now = Date.now();
 
         const {
-            currentLevelTouchyArray, playerRadius, playerDensity,
-            playerScale, currentLevel, nextLevelId, nextLevelEntity
+            currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
+            currentLevel, nextLevelId, nextLevelEntity,
+            previousLevelFinishEntity, previousLevelEntity, previousLevelId
         } = this.props;
 
         const {
@@ -1123,7 +1145,7 @@ export default class Game extends Component {
             if( transitionPercent >= 1 ) {
 
                 this.advancing = false;
-                this.props.advanceLevel( nextLevelId, nextLevelEntity.scale.x );
+                this.props.advanceLevel( this.state.advanceToId, this.state.advanceToScale );
                 this.playerBody.position.copy( newState.currentTransitionPosition );
 
                 newState.currentTransitionPosition = null;
@@ -1222,23 +1244,42 @@ export default class Game extends Component {
 
             if( entity.type === 'finish' ) {
 
-                if( distance < playerRadius + entity.scale.x ) {
+                // Dumb sphere to cube collision
+                if( distance < playerRadius + ( entity.scale.x / 2 )  ) {
+
                     this.advancing = true;
                     this.playerContact = {};
 
-                    // this is almost certainly wrong
+                    // this is almost certainly wrong to determine which way
+                    // the finish line element is facing
                     const isUp = Math.abs( entity.rotation.y ) >= 1;
 
-                    const currentPosition = new THREE.Vector3().copy( this.playerBody.position );
+                    const currentPosition = new THREE.Vector3().copy(
+                        this.playerBody.position
+                    );
 
+                    // Calculate where to tween the player to. *2.4 to move
+                    // past the hit box for the level exit/entrance
                     newState.startTransitionPosition = currentPosition;
                     newState.currentTransitionPosition = currentPosition;
                     newState.currentTransitionTarget = new THREE.Vector3(
-                        lerp( currentPosition.x, entity.position.x, isUp ? 0 : 2 ),
+                        lerp( currentPosition.x, entity.position.x, isUp ? 0 : 2.4 ),
                         currentPosition.y,
-                        lerp( currentPosition.z, entity.position.z, isUp ? 2 : 0 ),
+                        lerp( currentPosition.z, entity.position.z, isUp ? 2.4 : 0 ),
                     );
                     newState.currentTransitionStartTime = now;
+
+                    if( entity === previousLevelFinishEntity ) {
+
+                        newState.advanceToId = previousLevelId;
+                        newState.advanceToScale = previousLevelEntity.scale.x;
+
+                    } else {
+
+                        newState.advanceToId = nextLevelId;
+                        newState.advanceToScale = nextLevelEntity.scale.x;
+                    
+                    }
 
                     this.setState( newState );
                     return;
@@ -1345,7 +1386,8 @@ export default class Game extends Component {
         const {
             playerRadius, playerScale, playerMass, nextLevelEntity,
             nextLevelEntities, nextLevelEntitiesArray, previousLevelEntity,
-            previousLevelEntitiesArray, currentLevelRenderableEntitiesArray
+            previousLevelEntitiesArray, currentLevelRenderableEntitiesArray,
+            previousLevelFinishEntity
         } = this.props;
 
         const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;
@@ -1568,6 +1610,49 @@ export default class Game extends Component {
                         materialId="playerMaterial"
                     />
 
+                    { pushyPositions.map( ( entity, index ) => <Pushy
+                        key={ index }
+                        scale={ entity.scale }
+                        materialId="pushyMaterial"
+                        position={ entity.position }
+                        quaternion={ entity.quaternion }
+                    /> ) }
+
+                    <StaticEntities
+                        ref="staticEntities"
+                        entities={ currentLevelRenderableEntitiesArray }
+                        time={ time }
+                    />
+
+                    { nextLevelEntity && <StaticEntities
+                        position={ nextLevelEntity.position }
+                        scale={ nextLevelEntity.scale }
+                        ref="nextLevel"
+                        entities={ nextLevelEntitiesArray }
+                        time={ time }
+                    /> }
+
+                    { previousLevelEntity && <StaticEntities
+                        ref="previousLevel"
+                        position={ previousLevelEntity.position }
+                        scale={ previousLevelEntity.scale }
+                        entities={ previousLevelEntitiesArray }
+                        time={ time }
+                        opacity={ 0.5 }
+                    /> }
+
+                    { debug && previousLevelFinishEntity && <mesh
+                        position={ previousLevelFinishEntity.position }
+                        scale={ previousLevelFinishEntity.scale.clone().multiply( new THREE.Vector3( 1, 2, 1 ) ) }
+                    >
+                        <geometryResource
+                            resourceId="1x1box"
+                        />
+                        <materialResource
+                            resourceId="middleMaterial"
+                        />
+                    </mesh> }
+
                     { debug && tubeFlow && tubeFlow[ tubeIndex ].middle && <mesh
                         position={ tubeFlow[ tubeIndex ].middle }
                         scale={ new THREE.Vector3( 0.25, 2, 0.25 ).multiplyScalar( playerScale ) }
@@ -1639,41 +1724,10 @@ export default class Game extends Component {
                         />
                     </mesh> }
 
-                    { pushyPositions.map( ( entity, index ) => <Pushy
-                        key={ index }
-                        scale={ entity.scale }
-                        materialId="pushyMaterial"
-                        position={ entity.position }
-                        quaternion={ entity.quaternion }
-                    /> ) }
-
-                    <StaticEntities
-                        ref="staticEntities"
-                        entities={ currentLevelRenderableEntitiesArray }
-                        time={ time }
-                    />
-
-                    { nextLevelEntity && <StaticEntities
-                        position={ nextLevelEntity.position }
-                        scale={ nextLevelEntity.scale }
-                        ref="nextLevel"
-                        entities={ nextLevelEntitiesArray }
-                        time={ time }
-                    /> }
-
-                    { previousLevelEntity && <StaticEntities
-                        ref="previousLevel"
-                        position={ previousLevelEntity.position }
-                        scale={ previousLevelEntity.scale }
-                        entities={ previousLevelEntitiesArray }
-                        time={ time }
-                        opacity={ 0.5 }
-                    /> }
-
                     { debug && Object.keys( this.playerContact || {} ).map( ( key ) => {
 
                         return <mesh
-                            position={ playerPosition.clone().add( this.playerContact[ key ] ) }
+                            position={ playerPosition.clone().add( this.playerContact[ key ].clone().multiplyScalar( playerScale ) ) }
                             scale={ new THREE.Vector3( 0.1, 3, 0.15 ).multiplyScalar( playerScale ) }
                             key={ key }
                         >
