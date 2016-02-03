@@ -656,59 +656,6 @@ export default class Game extends Component {
 
         const contactKeys = Object.keys( playerContact );
 
-        //if( !this.advancing && !this.state.tubeFlow ) {
-
-            //let transitionToScale;
-            //let transitionToId;
-
-            //// Did the player enter into a smaller next level?
-            //if( nextLevelEntity &&
-                //( playerPosition.x > ( nextLevelEntity.position.x - 0.475 ) ) &&
-                //( playerPosition.x < ( nextLevelEntity.position.x + 0.475 ) ) &&
-                //( playerPosition.z > ( nextLevelEntity.position.z - 0.475 ) ) &&
-                //( playerPosition.z < ( nextLevelEntity.position.z + 0.475 ) )
-            //) {
-                //transitionToId = nextLevelId;
-                //transitionToScale = nextLevelEntity.scale.x;
-
-            //// Or did the player go from a larger wrapping level to the
-            //// previous smaller level it exited from? Note we don't currently
-            //// have this case
-            //} else if( previousLevelEntity &&
-                //( playerPosition.x > ( previousLevelEntity.position.x - 0.475 ) ) &&
-                //( playerPosition.x < ( previousLevelEntity.position.x + 0.475 ) ) &&
-                //( playerPosition.z > ( previousLevelEntity.position.z - 0.475 ) ) &&
-                //( playerPosition.z < ( previousLevelEntity.position.z + 0.475 ) )
-            //) {
-                //transitionToId = previousLevelId;
-                //transitionToScale = previousLevelEntity.scale.x;
-
-            //// Or did the player leave the bounds of this small level?
-            //} else if (
-                //( playerPosition.x > 4 ) ||
-                //( playerPosition.x < -4 ) ||
-                //( playerPosition.z > 4 ) ||
-                //( playerPosition.z < -4 )
-            //) {
-                //// If the next level is bigger, that's the one we want
-                //if( nextLevelEntity && nextLevelEntity.scale.x > 1 ) {
-                    //transitionToId = nextLevelId;
-                    //transitionToScale = nextLevelEntity.scale.x;
-                //} else {
-                    //transitionToId = previousLevelId;
-                    //transitionToScale = previousLevelEntity.scale.x;
-                //}
-            //}
-
-            //if( transitionToId ) {
-                //this.advancing = true;
-                //this.playerContact = {};
-                //this.props.advanceLevel( transitionToId, transitionToScale );
-                //return;
-            //}
-
-        //}
-
         if( !this.state.tubeFlow ) {
 
             for( let i = 0; i < contactKeys.length; i++ ) {
