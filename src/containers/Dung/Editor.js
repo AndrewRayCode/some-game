@@ -22,6 +22,7 @@ import StaticEntities from './StaticEntities';
 import KeyCodes from './KeyCodes';
 import Shrink from './Shrink';
 import Grow from './Grow';
+import FinishLine from './FinishLine';
 import Textures from './Textures';
 const cx = classNames.bind( styles );
 
@@ -367,9 +368,13 @@ export default class Editor extends Component {
 
                 createType = 'grow';
 
-            } else if( KeyCodes.P in keys ) {
+            } else if( KeyCodes.A in keys ) {
 
                 createType = 'player';
+
+            } else if( KeyCodes.H in keys ) {
+
+                createType = 'finish';
 
             } else if( KeyCodes.L in keys ) {
 
@@ -503,6 +508,8 @@ export default class Editor extends Component {
                         0
                     ) )
                 );
+
+                console.log(state.createPreviewRotation);
         }
 
         state = this._setStateFromKey( state, this.keysPressed );
@@ -892,6 +899,17 @@ export default class Editor extends Component {
                     materialId="ghostMaterial"
                 />;
 
+            } else if( createType === 'finish' ) {
+
+                previewObject = <FinishLine
+                    scale={ gridScale }
+                    rotation={ createPreviewRotation }
+                    position={ createPreviewPosition }
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                    floorMaterialId="ghostMaterial"
+                />;
+
             } else if( createType === 'wall' ) {
 
                 previewObject = <Wall
@@ -1097,6 +1115,7 @@ export default class Editor extends Component {
                                     resourceId="ghostMaterial"
                                     color={0xff0000}
                                     opacity={0.5}
+                                    side={ THREE.DoubleSide }
                                     transparent
                                 />
 
@@ -1410,14 +1429,20 @@ export default class Editor extends Component {
                         <button onClick={ this.selectType( 'shrink' ) }>
                             Shrink
                         </button>
+                        <br />
                         [O] { createType === 'grow' && '✓' }
                         <button onClick={ this.selectType( 'grow' ) }>
                             Grow
                         </button>
                         <br />
-                        [P] { createType === 'player' && '✓' }
+                        [A] { createType === 'player' && '✓' }
                         <button onClick={ this.selectType( 'player' ) }>
                             Player
+                        </button>
+                        <br />
+                        [H] { createType === 'finish' && '✓' }
+                        <button onClick={ this.selectType( 'finish' ) }>
+                            Finish
                         </button>
                         <br />
                         [L] { createType === 'level' && '✓' }

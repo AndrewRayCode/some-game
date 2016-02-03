@@ -11,7 +11,9 @@ import KeyCodes from '../Dung/KeyCodes';
 import Cardinality from '../Dung/Cardinality';
 import Pushy from '../Dung/Pushy';
 import Player from '../Dung/Player';
-import { getEntrancesForTube, without, lerp } from '../Dung/Utils';
+import {
+    getEntrancesForTube, without, lerp
+} from '../Dung/Utils';
 
 const factorConstraint = new CANNON.Vec3( 1, 0, 1 );
 const angularUprightConstraint = new CANNON.Vec3( 0, 0, 0 );
@@ -37,6 +39,8 @@ const boxes = 5;
 
 const tubeTravelDurationMs = 200;
 const tubeStartTravelDurationMs = 50;
+
+const levelTransitionDuration = 500;
 
 const scaleDurationMs = 300;
 
@@ -187,7 +191,7 @@ function resetBodyPhysics( body, position ) {
 }
 
 function lookAtVector( sourcePoint, destPoint ) {
-    
+
     return new THREE.Quaternion().setFromRotationMatrix(
         new THREE.Matrix4().lookAt( sourcePoint, destPoint, Cardinality.UP )
     );
@@ -237,29 +241,31 @@ function snapTo( number, interval ) {
         const {
             currentLevelAllEntities,
             currentLevelStaticEntities,
+            currentLevelRenderableEntities,
             currentLevelMovableEntities,
             currentLevelTouchyEntities,
             nextLevelData
         } = currentLevel.entityIds.reduce( ( memo, id ) => {
             const entity = allEntities[ id ];
+            memo.currentLevelAllEntities[ id ] = entity;
 
             if( entity.type === 'level' ) {
                 memo.nextLevelData = allEntities[ id ];
-                memo.currentLevelAllEntities[ id ] = entity;
+            } else if( entity.type === 'shrink' || entity.type === 'grow' || entity.type === 'finish' ) {
+                memo.currentLevelTouchyEntities[ id ] = entity;
+                // needs to go into static to render
+                memo.currentLevelRenderableEntities[ id ] = entity;
+            } else if( entity.type === 'pushy' ) {
+                memo.currentLevelMovableEntities[ id ] = entity;
+            // walls, floors, etc
             } else {
-                if( entity.type === 'pushy' ) {
-                    memo.currentLevelMovableEntities[ id ] = entity;
-                } else {
-                    if( entity.type === 'shrink' || entity.type === 'grow' ) {
-                        memo.currentLevelTouchyEntities[ id ] = entity;
-                    }
-                    memo.currentLevelStaticEntities[ id ] = entity;
-                }
-                memo.currentLevelAllEntities[ id ] = entity;
+                memo.currentLevelStaticEntities[ id ] = entity;
+                memo.currentLevelRenderableEntities[ id ] = entity;
             }
 
             return memo;
         }, {
+            currentLevelRenderableEntities: {},
             currentLevelMovableEntities: {},
             currentLevelAllEntities: {},
             currentLevelStaticEntities: {},
@@ -317,6 +323,9 @@ function snapTo( number, interval ) {
             currentLevelTouchyArray: Object.values( currentLevelTouchyEntities ),
             previousLevelEntity, previousLevelEntitiesArray, previousLevelId,
             currentLevelMovableEntities,
+            currentLevelMovableEntitiesArray: Object.values( currentLevelMovableEntities ),
+            currentLevelRenderableEntities,
+            currentLevelRenderableEntitiesArray: Object.values( currentLevelRenderableEntities ),
 
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
@@ -389,9 +398,9 @@ export default class Game extends Component {
 
         const {
             currentLevel, allEntities, playerRadius, playerDensity, playerMass,
-            currentLevelStaticEntitiesArray, pushyDensity
+            currentLevelStaticEntitiesArray, pushyDensity,
+            currentLevelMovableEntitiesArray
         } = props;
-        const { entityIds } = currentLevel;
 
         const playerPosition = playerPositionOverride || props.playerPosition;
 
@@ -402,7 +411,7 @@ export default class Game extends Component {
         this.world.addBody( playerBody );
         this.playerBody = playerBody;
 
-        this.pushies = Object.values( props.currentLevelMovableEntities ).map( ( entity ) => {
+        this.pushies = currentLevelMovableEntitiesArray.map( ( entity ) => {
             const { position, scale } = entity;
 
             const pushyBody = new CANNON.Body({
@@ -420,7 +429,7 @@ export default class Game extends Component {
                 0.4 * scale.y,
                 0.49 * scale.z,
             ) );
-            
+
             pushyBody.addShape( pushyShape );
             pushyBody.position.copy( entity.position );
             this.world.addBody( pushyBody );
@@ -428,15 +437,7 @@ export default class Game extends Component {
 
         });
 
-        entityIds.forEach( id => {
-
-            const entity = allEntities[ id ];
-
-            if( entity.type === 'shrink' ||
-                    entity.type === 'grow' ||
-                    entity.type === 'pushy' ) {
-                return;
-            }
+        currentLevelStaticEntitiesArray.forEach( entity => {
 
             const { position, scale } = entity;
             const entityBody = new CANNON.Body({
@@ -540,7 +541,7 @@ export default class Game extends Component {
             } = this.props;
             const { position } = this.playerBody;
             let newPosition;
-            
+
             const newLevel = nextProps.currentLevel.id === nextLevelId ?
                 nextLevelEntity : previousLevelEntity;
 
@@ -553,8 +554,6 @@ export default class Game extends Component {
             );
 
             this._setupPhysics( nextProps, newPosition );
-
-            this.advancing = false;
 
         }
 
@@ -636,58 +635,58 @@ export default class Game extends Component {
 
         const contactKeys = Object.keys( playerContact );
 
-        if( !this.advancing && !this.state.tubeFlow ) {
+        //if( !this.advancing && !this.state.tubeFlow ) {
 
-            let transitionToScale;
-            let transitionToId;
+            //let transitionToScale;
+            //let transitionToId;
 
-            // Did the player enter into a smaller next level?
-            if( nextLevelEntity &&
-                ( playerPosition.x > ( nextLevelEntity.position.x - 0.475 ) ) &&
-                ( playerPosition.x < ( nextLevelEntity.position.x + 0.475 ) ) &&
-                ( playerPosition.z > ( nextLevelEntity.position.z - 0.475 ) ) &&
-                ( playerPosition.z < ( nextLevelEntity.position.z + 0.475 ) )
-            ) {
-                transitionToId = nextLevelId;
-                transitionToScale = nextLevelEntity.scale.x;
+            //// Did the player enter into a smaller next level?
+            //if( nextLevelEntity &&
+                //( playerPosition.x > ( nextLevelEntity.position.x - 0.475 ) ) &&
+                //( playerPosition.x < ( nextLevelEntity.position.x + 0.475 ) ) &&
+                //( playerPosition.z > ( nextLevelEntity.position.z - 0.475 ) ) &&
+                //( playerPosition.z < ( nextLevelEntity.position.z + 0.475 ) )
+            //) {
+                //transitionToId = nextLevelId;
+                //transitionToScale = nextLevelEntity.scale.x;
 
-            // Or did the player go from a larger wrapping level to the
-            // previous smaller level it exited from? Note we don't currently
-            // have this case
-            } else if( previousLevelEntity &&
-                ( playerPosition.x > ( previousLevelEntity.position.x - 0.475 ) ) &&
-                ( playerPosition.x < ( previousLevelEntity.position.x + 0.475 ) ) &&
-                ( playerPosition.z > ( previousLevelEntity.position.z - 0.475 ) ) &&
-                ( playerPosition.z < ( previousLevelEntity.position.z + 0.475 ) )
-            ) {
-                transitionToId = previousLevelId;
-                transitionToScale = previousLevelEntity.scale.x;
+            //// Or did the player go from a larger wrapping level to the
+            //// previous smaller level it exited from? Note we don't currently
+            //// have this case
+            //} else if( previousLevelEntity &&
+                //( playerPosition.x > ( previousLevelEntity.position.x - 0.475 ) ) &&
+                //( playerPosition.x < ( previousLevelEntity.position.x + 0.475 ) ) &&
+                //( playerPosition.z > ( previousLevelEntity.position.z - 0.475 ) ) &&
+                //( playerPosition.z < ( previousLevelEntity.position.z + 0.475 ) )
+            //) {
+                //transitionToId = previousLevelId;
+                //transitionToScale = previousLevelEntity.scale.x;
 
-            // Or did the player leave the bounds of this small level?
-            } else if (
-                ( playerPosition.x > 4 ) ||
-                ( playerPosition.x < -4 ) ||
-                ( playerPosition.z > 4 ) ||
-                ( playerPosition.z < -4 )
-            ) {
-                // If the next level is bigger, that's the one we want
-                if( nextLevelEntity && nextLevelEntity.scale.x > 1 ) {
-                    transitionToId = nextLevelId;
-                    transitionToScale = nextLevelEntity.scale.x;
-                } else {
-                    transitionToId = previousLevelId;
-                    transitionToScale = previousLevelEntity.scale.x;
-                }
-            }
+            //// Or did the player leave the bounds of this small level?
+            //} else if (
+                //( playerPosition.x > 4 ) ||
+                //( playerPosition.x < -4 ) ||
+                //( playerPosition.z > 4 ) ||
+                //( playerPosition.z < -4 )
+            //) {
+                //// If the next level is bigger, that's the one we want
+                //if( nextLevelEntity && nextLevelEntity.scale.x > 1 ) {
+                    //transitionToId = nextLevelId;
+                    //transitionToScale = nextLevelEntity.scale.x;
+                //} else {
+                    //transitionToId = previousLevelId;
+                    //transitionToScale = previousLevelEntity.scale.x;
+                //}
+            //}
 
-            if( transitionToId ) {
-                this.advancing = true;
-                this.playerContact = {};
-                this.props.advanceLevel( transitionToId, transitionToScale );
-                return;
-            }
+            //if( transitionToId ) {
+                //this.advancing = true;
+                //this.playerContact = {};
+                //this.props.advanceLevel( transitionToId, transitionToScale );
+                //return;
+            //}
 
-        }
+        //}
 
         if( !this.state.tubeFlow ) {
 
@@ -706,7 +705,7 @@ export default class Game extends Component {
                 }
 
             }
-            
+
         }
 
         if( isLeft ) {
@@ -755,7 +754,7 @@ export default class Game extends Component {
                         const { entity } = this.world.bodies.find( ( search ) => {
                             return search.id.toString() === key;
                         });
-                        
+
 
                         if( entity && ( entity.type !== 'tubebend' && entity.type !== 'tube' ) ) {
                             memo[ key ] = playerContact[ key ];
@@ -970,7 +969,7 @@ export default class Game extends Component {
                 Math.min( this.playerBody.velocity.x, velocityMax ),
                 -velocityMax
             );
-            
+
         }
 
         this.setState( state );
@@ -1033,7 +1032,7 @@ export default class Game extends Component {
         // needs to be called before _getMeshStates
         this.updatePhysics();
 
-        const state = {
+        const newState = {
             time: now,
             pushyPositions: this._getMeshStates( this.pushies ),
             lightPosition: new THREE.Vector3(
@@ -1046,18 +1045,18 @@ export default class Game extends Component {
         if( !this.lastCalledTime ) {
            this.lastCalledTime = now;
            this.counter = 0;
-           state._fps = 0;
+           newState._fps = 0;
         } else {
             const smoothing = 0.9;
             const delta = ( now - this.lastCalledTime ) / 1000;
             this.lastCalledTime = now;
 
-            state._fps = Math.round(
+            newState._fps = Math.round(
                 ( ( 1 / delta ) * smoothing ) + ( _fps * ( 1.0 - smoothing ) )
             );
 
             if( !( this.counter++ % 15 ) ) {
-                state.fps = state._fps;
+                newState.fps = newState._fps;
             }
         }
 
@@ -1091,9 +1090,9 @@ export default class Game extends Component {
         if( KeyCodes.T in this.keysDown ) {
 
             if( !this.touringSwitch ) {
-                state.currentTourPercent = 0;
-                state.touring = !state.touring;
-                state.cameraTourTarget = new THREE.Vector3().copy( playerPosition );
+                newState.currentTourPercent = 0;
+                newState.touring = !newState.touring;
+                newState.cameraTourTarget = new THREE.Vector3().copy( playerPosition );
                 this.touringSwitch = true;
             }
 
@@ -1109,17 +1108,45 @@ export default class Game extends Component {
 
         }
 
+        if( this.advancing ) {
+
+            const currentPosition = new THREE.Vector3().copy( this.playerBody.position );
+            const transitionPercent = Math.min(
+                ( now - this.state.currentTransitionStartTime ) / levelTransitionDuration,
+                1
+            );
+
+            newState.currentTransitionPosition = this.state.startTransitionPosition
+                .clone()
+                .lerp( this.state.currentTransitionTarget, transitionPercent );
+
+            if( transitionPercent >= 1 ) {
+
+                this.advancing = false;
+                this.props.advanceLevel( nextLevelId, nextLevelEntity.scale.x );
+                this.playerBody.position.copy( newState.currentTransitionPosition );
+
+                newState.currentTransitionPosition = null;
+                newState.currentTransitionTarget = null;
+
+            }
+
+            this.setState( newState );
+            return;
+
+        }
+
         if( this.state.touring ) {
 
             let currentTourPercent = Math.min( this.state.currentTourPercent + 0.01, 1 );
 
-            state.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
+            newState.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
                 0,
                 6,
                 0,
             ), 0.05 );
 
-            state.cameraTourTarget = this.state.cameraTourTarget.clone().lerp( new THREE.Vector3(
+            newState.cameraTourTarget = this.state.cameraTourTarget.clone().lerp( new THREE.Vector3(
                 0, 0, 0
             ), 0.05 );
 
@@ -1130,9 +1157,9 @@ export default class Game extends Component {
 
             }
 
-            state.currentTourPercent = currentTourPercent;
+            newState.currentTourPercent = currentTourPercent;
 
-            this.setState( state );
+            this.setState( newState );
             return;
 
         }
@@ -1148,7 +1175,7 @@ export default class Game extends Component {
         if( KeyCodes['`'] in this.keysDown ) {
 
             if( !this.debugSwitch ) {
-                state.debug = !this.state.debug;
+                newState.debug = !this.state.debug;
                 this.debugSwitch = true;
             }
 
@@ -1178,7 +1205,7 @@ export default class Game extends Component {
         // Lerp the camera position to the correct follow position. Lerp
         // components individually to make the (y) camera zoom to player
         // different
-        state.cameraPosition = new THREE.Vector3(
+        newState.cameraPosition = new THREE.Vector3(
                  lerp( cameraPosition.x, playerPosition.x, 0.05 / playerScale ),
             lerp(
                 cameraPosition.y,
@@ -1191,8 +1218,33 @@ export default class Game extends Component {
         for( let i = 0; i < currentLevelTouchyArray.length; i++ ) {
 
             const entity = currentLevelTouchyArray[ i ];
+            const distance = entity.position.distanceTo( playerPosition );
 
-            if( entity.scale.x === playerScale &&
+            if( entity.type === 'finish' ) {
+
+                if( distance < playerRadius + entity.scale.x ) {
+                    this.advancing = true;
+                    this.playerContact = {};
+
+                    // this is almost certainly wrong
+                    const isUp = Math.abs( entity.rotation.y ) >= 1;
+
+                    const currentPosition = new THREE.Vector3().copy( this.playerBody.position );
+
+                    newState.startTransitionPosition = currentPosition;
+                    newState.currentTransitionPosition = currentPosition;
+                    newState.currentTransitionTarget = new THREE.Vector3(
+                        lerp( currentPosition.x, entity.position.x, isUp ? 0 : 2 ),
+                        currentPosition.y,
+                        lerp( currentPosition.z, entity.position.z, isUp ? 2 : 0 ),
+                    );
+                    newState.currentTransitionStartTime = now;
+
+                    this.setState( newState );
+                    return;
+                }
+
+            } else if( entity.scale.x === playerScale &&
                     entity.position.distanceTo( playerPosition ) < playerRadius * 1.8
                 ) {
 
@@ -1223,8 +1275,8 @@ export default class Game extends Component {
 
                 this.props.scalePlayer( currentLevel.id, entity.id, multiplier );
 
-                state.scaleStartTime = now;
-                state.radiusDiff = radiusDiff;
+                newState.scaleStartTime = now;
+                newState.radiusDiff = radiusDiff;
 
                 break;
 
@@ -1232,25 +1284,25 @@ export default class Game extends Component {
 
         }
 
-        if( state.scaleStartTime || this.state.scaleStartTime ) {
+        if( newState.scaleStartTime || this.state.scaleStartTime ) {
 
-            const scaleStartTime = state.scaleStartTime || this.state.scaleStartTime;
+            const scaleStartTime = newState.scaleStartTime || this.state.scaleStartTime;
             const currentScalePercent = 1 - ( ( now - scaleStartTime ) / scaleDurationMs );
 
             if( currentScalePercent <= 0 ) {
 
-                state.scaleStartTime = null;
-                state.radiusDiff = null;
+                newState.scaleStartTime = null;
+                newState.radiusDiff = null;
 
             } else {
 
-                state.currentScalePercent = currentScalePercent;
+                newState.currentScalePercent = currentScalePercent;
 
             }
 
         }
-        
-        this.setState( state );
+
+        this.setState( newState );
 
     }
 
@@ -1284,16 +1336,16 @@ export default class Game extends Component {
     render() {
 
         const {
-            pushyPositions, time, cameraPosition, currentFlowPosition, debug, fps,
-            touring, cameraTourTarget, entrance1, entrance2, tubeFlow,
-            tubeIndex, currentScalePercent, radiusDiff
+            pushyPositions, time, cameraPosition, currentFlowPosition, debug,
+            fps, touring, cameraTourTarget, entrance1, entrance2, tubeFlow,
+            tubeIndex, currentScalePercent, radiusDiff,
+            currentTransitionPosition
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
-            playerRadius, playerScale, playerMass,
-            currentLevelStaticEntitiesArray, nextLevelEntity,
+            playerRadius, playerScale, playerMass, nextLevelEntity,
             nextLevelEntities, nextLevelEntitiesArray, previousLevelEntity,
-            previousLevelEntitiesArray
+            previousLevelEntitiesArray, currentLevelRenderableEntitiesArray
         } = this.props;
 
         const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;
@@ -1301,7 +1353,7 @@ export default class Game extends Component {
 
         const playerPosition = new THREE.Vector3()
             .copy(
-                currentFlowPosition || this.playerBody.position
+                currentTransitionPosition || currentFlowPosition || this.playerBody.position
             ).sub(
                 new THREE.Vector3(
                     0, 0, radiusDiff ? currentScalePercent * radiusDiff : 0
@@ -1597,10 +1649,10 @@ export default class Game extends Component {
 
                     <StaticEntities
                         ref="staticEntities"
-                        entities={ currentLevelStaticEntitiesArray }
+                        entities={ currentLevelRenderableEntitiesArray }
                         time={ time }
                     />
-                    
+
                     { nextLevelEntity && <StaticEntities
                         position={ nextLevelEntity.position }
                         scale={ nextLevelEntity.scale }

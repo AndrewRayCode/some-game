@@ -8,6 +8,7 @@ import Pushy from './Pushy';
 import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
 import Player from './Player';
+import FinishLine from './FinishLine';
 import Textures from './Textures';
 
 export default class StaticEntities extends Component {
@@ -63,8 +64,15 @@ export default class StaticEntities extends Component {
                 }) }
 
                 <meshPhongMaterial
+                    resourceId="finishFlag"
+                    side={ THREE.DoubleSide }
+                    transparent
+                    opacity={ 0.7 }
+                />
+
+
+                <meshPhongMaterial
                     resourceId="tubeMaterial"
-                    color={0xffffff}
                     side={ THREE.DoubleSide }
                     transparent
                 >
@@ -72,7 +80,7 @@ export default class StaticEntities extends Component {
                         url={ require( '../Game/tube-pattern-1.png' ) }
                         wrapS={ THREE.RepeatWrapping }
                         wrapT={ THREE.RepeatWrapping }
-                        anisotropy={16}
+                        anisotropy={ 16 }
                     />
                 </meshPhongMaterial>
 
@@ -136,6 +144,18 @@ export default class StaticEntities extends Component {
                         rotation={ entity.rotation }
                         scale={ entity.scale }
                         materialId="tubeMaterial"
+                    />;
+
+                } else if( entity.type === 'finish' ) {
+
+                    return <FinishLine
+                        ref={ entity.id }
+                        key={ entity.id }
+                        position={ entity.position }
+                        rotation={ entity.rotation }
+                        scale={ entity.scale }
+                        materialId="finishFlag"
+                        floorMaterialId="ornateWall1"
                     />;
 
                 } else if( entity.type === 'shrink' ) {

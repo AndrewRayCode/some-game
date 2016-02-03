@@ -1,5 +1,25 @@
 import THREE from 'three';
 
+export function cubeToPlayerCollision( entityA, player, radius ):boolean {
+
+    const positionA = entityA.position;
+    const scaleA = entityA.scale;
+
+    const positionB = player.position;
+    const sizeB = radius * 2;
+
+    if( Math.abs( positionA.x - positionB.x ) < scaleA.x + sizeB ) {
+        if( Math.abs( positionA.y - positionB.y ) < scaleA.y + sizeB ) {
+            if( Math.abs( positionA.z - positionB.z ) < scaleA.z + sizeB ) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+
+}
+
 export function getEntrancesForTube( tube, scaleFactor ) {
 
     const { position, rotation, type } = tube;
