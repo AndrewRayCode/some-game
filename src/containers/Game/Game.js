@@ -1192,7 +1192,7 @@ export default class Game extends Component {
             if( entity.type === 'finish' ) {
 
                 // Dumb sphere to cube collision
-                if( distance < playerRadius + ( entity.scale.x / 2 )  ) {
+                if( distance < playerRadius + ( entity.scale.x / 2 ) - playerScale * 0.1 ) {
 
                     this.advancing = true;
                     this.playerContact = {};
@@ -1210,9 +1210,9 @@ export default class Game extends Component {
                     newState.startTransitionPosition = currentPosition;
                     newState.currentTransitionPosition = currentPosition;
                     newState.currentTransitionTarget = new THREE.Vector3(
-                        lerp( currentPosition.x, entity.position.x, isUp ? 0 : 2.4 ),
+                        lerp( currentPosition.x, entity.position.x, isUp ? 0 : 2.2 ),
                         currentPosition.y,
-                        lerp( currentPosition.z, entity.position.z, isUp ? 2.4 : 0 ),
+                        lerp( currentPosition.z, entity.position.z, isUp ? 2.2 : 0 ),
                     );
                     newState.currentTransitionStartTime = now;
 
