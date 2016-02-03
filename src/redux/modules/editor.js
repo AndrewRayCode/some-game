@@ -129,7 +129,7 @@ export function entitiesReducer( entities = {}, action = {} ) {
 
         case REMOVE_NEXT_LEVEL:
 
-            return without( entities, action.entityId );
+            return without( entities, action.nextLevelEntityId );
 
         case REMOVE_ENTITY:
 
@@ -164,12 +164,14 @@ export function entitiesReducer( entities = {}, action = {} ) {
 
 }
 
-function removeNextLevelFrom( level, entityId ) {
+function removeNextLevelFrom( level, nextLevelId ) {
+
+    const nextData = level.nextLevels.find( data => data.levelid === nextLevelId );
 
     return {
         ...level,
-        entityIds: level.entityIds.filter( id => id !== entityId ),
-        nextLevelId: null
+        entityIds: level.entityIds.filter( id => id !== nextData.entityId ),
+        nextLevelIds: level.nextLevelIds.filter( data => data.levelId !== nextLevelId )
     };
 
 }
@@ -182,7 +184,10 @@ function individualLevelReducer( level, action ) {
         case ADD_NEXT_LEVEL:
             return {
                 ...level,
-                nextLevelId: action.nextLevelId,
+                nextLevelIds: [ ...level.nextLevelIds, {
+                    levelId: action.nextLevelId,
+                    entityId: action.id,
+                } ],
                 entityIds: [ ...level.entityIds, action.id ]
             };
 
@@ -193,23 +198,21 @@ function individualLevelReducer( level, action ) {
             };
 
         case REMOVE_NEXT_LEVEL:
-            return {
-                ...level,
-                nextLevelId: null,
-                entityIds: level.entityIds.filter( id => id !== action.entityId )
-            };
+            return removeNextLevelFrom( level, action.nextLevelId, action.nextLevelEntityId );
 
         case REMOVE_ENTITY:
             return {
                 ...level,
-                nextLevelId: action.entityType === 'level' ? null : level.nextLevelId,
                 entityIds: level.entityIds.filter( id => id !== action.id )
             };
 
         case INSET_LEVEL:
             return {
                 ...level,
-                nextLevelId: action.currentLevelId,
+                nextLevelIds: [ ...level.nextLevelIds, {
+                    levelId: action.currentLevelId,
+                    entityId: action.nextLevelEntityId,
+                }],
                 entityIds: [
                     ...level.entityIds.filter( id => id !== action.previousLevelNextLevelEntityIdIfAny ),
                     action.nextLevelEntityId
@@ -217,10 +220,18 @@ function individualLevelReducer( level, action ) {
             };
 
         case DESERIALIZE:
+            // Old levels will have a nextLevelId key
+            const hasLegacyId = 'nextLevelId' in level.nextLevelId;
+            const nextLevelId = level.nextLevelId;
+
             return {
-                ...level,
+                ...without( level, 'nextLevelId' ),
                 id: level.id.toString(),
-                entityIds: level.entityIds.map( id => id.toString() )
+                entityIds: level.entityIds.map( id => id.toString() ),
+                nextLevelIds: hasLegacyId ? [{
+                    levelId: nextLevelId,
+                    entityId: level.entityIds.find( entity => entity.type === 'level' ).id
+                }] : level.nextLevelIds
             };
 
         default:
@@ -287,7 +298,7 @@ export function levelsReducer( levels = {}, action = {} ) {
                 ...levels,
                 // remove the next level (the one we're insetting) from the
                 // curent level
-                [ action.currentLevelId ]: removeNextLevelFrom( levels[ action.currentLevelId ], action.nextLevelEntityId ),
+                [ action.currentLevelId ]: removeNextLevelFrom( levels[ action.currentLevelId ], action.previousLevelNextLevelEntityIdIfAny, action.nextLevelEntityId ),
                 [ action.nextLevelId ]: individualLevelReducer( levels[ action.nextLevelId ], action )
             };
 
@@ -417,10 +428,10 @@ export function insetLevel( currentLevelId, nextLevelId, nextLevelEntityId, prev
     };
 }
 
-export function removeNextLevel( levelId, entityId ) {
+export function removeNextLevel( levelId, nextLevelId, nextLevelEntityId ) {
     return {
         type: REMOVE_NEXT_LEVEL,
-        levelId, entityId
+        levelId, nextLevelId, nextLevelEntityId
     };
 }
 

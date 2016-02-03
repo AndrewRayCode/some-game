@@ -96,7 +96,7 @@ function snapTo( number, interval ) {
             const {
                 currentLevelAllEntities,
                 currentLevelStaticEntities,
-                nextLevelEntityData
+                nextLevelEntityData,
             } = currentLevel.entityIds.reduce( ( memo, id ) => {
                 const entity = allEntities[ id ];
 
@@ -115,21 +115,26 @@ function snapTo( number, interval ) {
             });
 
             // Determine next level data
-            const nextLevelId = currentLevel.nextLevelId;
-            const /* this shit is */nextLevel = nextLevelId && levels[ nextLevelId ];
+            const nextLevels = currentLevel.nextLevelIds.map( data => ({
+                level: levels[ data.levelId ],
+                entity: allEntities[ data.entityId ],
+            }));
 
-            const nextLevelEntity = nextLevelId && {
-                level: nextLevel,
-                ...nextLevelEntityData
-            };
+            // Build all the next level entities. It's all next level entities
+            // combined together
+            const nextLevelsEntitiesArray = nextLevels.reduce( ( memo, data ) => {
+                return memo.concat(
+                    data.level.entityIds.map( id => allEntities[ id ] )
+                );
+            }, [] );
 
-            const nextLevelEntitiesArray = nextLevel && nextLevel.entityIds
-                .map( id => allEntities[ id ] )
-                .filter( entity => entity.type !== 'level' );
-
-            // Determine previous level data
-            const previousLevelId = Object.keys( levels ).find(
-                levelId => levels[ levelId ].nextLevelId === currentLevelId
+            // Determine previous level data. There will be only one of these
+            // due to the tree structure nature of level setups, even if we
+            // implement physically impossible branching
+            const previousLevelId = Object.values( levels ).find(
+                level => level.nextLevels.find(
+                    data => data.levelId === currentLevelId
+                )
             );
             const previousLevelData = previousLevelId && levels[ previousLevelId ];
 
@@ -160,9 +165,9 @@ function snapTo( number, interval ) {
 
             return {
                 levels, currentLevel, currentLevelId, currentLevelAllEntities,
-                currentLevelStaticEntities, allEntities, nextLevelId,
-                nextLevelEntity, nextLevel, nextLevelEntitiesArray,
-                previousLevelEntity, previousLevelEntitiesArray,
+                currentLevelStaticEntities, allEntities, nextLevels,
+                nextLevelsEntitiesArray, previousLevelEntity,
+                previousLevelEntitiesArray,
                 currentLevelAllEntitiesArray: Object.values( currentLevelAllEntities ),
                 currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             };
@@ -277,7 +282,7 @@ export default class Editor extends Component {
         controls.zoomSpeed = 1.2;
         controls.panSpeed = 0.8;
         controls.enableZoom = true;
-        controls.enablePan = false;
+        controls.enablePan = true;
         controls.enableDamping = true;
         controls.dampingFactor = 0.3;
 
@@ -514,7 +519,11 @@ export default class Editor extends Component {
 
         state = this._setStateFromKey( state, this.keysPressed );
 
-        if( this.state.selecting && ( KeyCodes.X in this.keysPressed ) && this.state.selectedObjectId ) {
+        if( this.state.selecting && ( KeyCodes.X in this.keysPressed ) &&
+                this.state.selectedObjectId &&
+                // levels are special case
+                this.props.currentLevelAllEntities[ this.state.selectedObjectId ].type !== 'level'
+                ) {
 
             this.setState({ selectedObjectId: null });
             this.props.removeEntity(
@@ -566,7 +575,7 @@ export default class Editor extends Component {
     onMouseMove( event ) {
         
         const {
-            currentLevelId, currentLevel, nextLevelId, nextLevelEntity,
+            currentLevelId, currentLevel, nextLevels, nextLevelsEntitiesArray,
             previousLevelEntity,
         } = this.props;
 
@@ -607,8 +616,11 @@ export default class Editor extends Component {
                     ) &&
                     intersection.object !== dragCreateBlock &&
                     !( intersection.object instanceof THREE.Line ) &&
-                    ( intersection.object.parent !== this.refs.previewGroup ) &&
-                    ( intersection.object.parent && intersection.object.parent.parent !== this.refs.previewGroup );
+                    ( !this.refs.previewGroup || (
+                        ( intersection.object.parent !== this.refs.previewGroup ) &&
+                        ( intersection.object.parent && intersection.object.parent.parent !== this.refs.previewGroup ) &&
+                        ( intersection.object.parent.parent && intersection.object.parent.parent.parent !== this.refs.previewGroup )
+                    ) );
             })
             .sort( ( a, b ) => {
                 return a.distance - b.distance;
@@ -628,11 +640,10 @@ export default class Editor extends Component {
 
             // Did the object we clicked on appear inside our next level ref?
             // if so, set selected object to the next level entity
-            if( nextLevelId &&
-                    objectIntersection.parent === this.refs.nextLevel.refs.group
-                ) {
-                objectUnderCursorId = nextLevelEntity.id;
-            }
+            objectUnderCursorId = nextLevels.find( data =>
+                objectIntersection.parent === this.refs[ `nextLevel_${ data.level.id }` ].refs.group
+            ) || objectUnderCursorId;
+
             if( previousLevelEntity &&
                     objectIntersection.parent === this.refs.previousLevel.refs.group
                 ) {
@@ -1524,6 +1535,7 @@ export default class Editor extends Component {
             <div>
                 { nextLevelEntity && <div>
                     Next level: { nextLevelEntity.level.name }
+                    TODO: DO ALL THIS SHIT INCLUDING FUNCTION ARGS
                     <button
                         onClick={ this.props.removeNextLevel.bind(
                             null, currentLevelId, nextLevelEntity.id
