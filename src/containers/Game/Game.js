@@ -288,14 +288,16 @@ function snapTo( number, interval ) {
 
         // Determine previous level data
         const previousLevelId = Object.keys( levels ).find(
-            levelId => levels[ levelId ].nextLevelIds.some( data => data.levelId === currentLevelId )
+            levelId => levels[ levelId ].nextLevelIds.some(
+                data => data.levelId === currentLevelId
+            )
         );
         const previousLevelData = previousLevelId && levels[ previousLevelId ];
 
         const previousLevelEntityData = previousLevelData && allEntities[
-            previousLevelData.entityIds.find(
-                id => allEntities[ id ].type === 'level'
-            )
+            previousLevelData.nextLevelIds.find(
+                data => data.levelId === currentLevelId
+            ).entityId
         ];
 
         const isPreviousLevelBigger = previousLevelData &&
