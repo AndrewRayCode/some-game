@@ -118,21 +118,22 @@ function snapTo( number, interval ) {
             const nextLevels = currentLevel.nextLevelIds.map( data => ({
                 level: levels[ data.levelId ],
                 entity: allEntities[ data.entityId ],
+                entities: levels[ data.levelId ].entityIds
+                    .map( id => allEntities[ id ] )
+                    .filter( entity => entity.type !== 'level' )
             }));
 
             // Build all the next level entities. It's all next level entities
             // combined together
             const nextLevelsEntitiesArray = nextLevels.reduce( ( memo, data ) => {
-                return memo.concat(
-                    data.level.entityIds.map( id => allEntities[ id ] )
-                );
+                return memo.concat( data.level.entities );
             }, [] );
 
             // Determine previous level data. There will be only one of these
             // due to the tree structure nature of level setups, even if we
             // implement physically impossible branching
             const previousLevelId = Object.values( levels ).find(
-                level => level.nextLevels.find(
+                level => level.nextLevelIds.find(
                     data => data.levelId === currentLevelId
                 )
             );
@@ -641,7 +642,7 @@ export default class Editor extends Component {
             // Did the object we clicked on appear inside our next level ref?
             // if so, set selected object to the next level entity
             objectUnderCursorId = nextLevels.find( data =>
-                objectIntersection.parent === this.refs[ `nextLevel_${ data.level.id }` ].refs.group
+                objectIntersection.parent === this.refs[ `nextLevel${ data.level.id }` ].refs.group
             ) || objectUnderCursorId;
 
             if( previousLevelEntity &&
@@ -831,10 +832,10 @@ export default class Editor extends Component {
 
         const {
             levels, currentLevelId, currentLevel, currentLevelAllEntities,
-            currentLevelStaticEntities, nextLevelId, nextLevelEntity,
+            currentLevelStaticEntities, nextLevels, nextLevelsEntitiesArray,
             allEntities, currentLevelAllEntitiesArray,
-            currentLevelStaticEntitiesArray, nextLevelEntitiesArray,
-            previousLevelEntity, previousLevelEntitiesArray
+            currentLevelStaticEntitiesArray, previousLevelEntity,
+            previousLevelEntitiesArray
         } = this.props;
 
         if( !currentLevelId ) {
@@ -1270,13 +1271,14 @@ export default class Editor extends Component {
                                 time={ time }
                             />
 
-                            { nextLevelEntity && <StaticEntities
-                                ref="nextLevel"
-                                position={ nextLevelEntity.position }
-                                scale={ nextLevelEntity.scale }
-                                entities={ nextLevelEntitiesArray }
+                            { nextLevels.map( data => <StaticEntities
+                                key={ data.level.id }
+                                ref={ `nextLevel${ data.level.id }` }
+                                position={ data.entity.position }
+                                scale={ data.entity.scale }
+                                entities={ data.entities }
                                 time={ time }
-                            /> }
+                            /> )}
 
                             { previousLevelEntity && <StaticEntities
                                 ref="previousLevel"
@@ -1533,40 +1535,38 @@ export default class Editor extends Component {
             </div>
 
             <div>
-                { nextLevelEntity && <div>
-                    Next level: { nextLevelEntity.level.name }
-                    TODO: DO ALL THIS SHIT INCLUDING FUNCTION ARGS
+                { nextLevels.map( data => <div key={ data.level.id }>
+                    Next level: { data.level.name }
                     <button
-                        onClick={ this.props.removeNextLevel.bind(
-                            null, currentLevelId, nextLevelEntity.id
+                        onClick={ event => this.props.removeNextLevel(
+                            currentLevelId, data.level.id, data.entity.id
                         ) }
                     >
                         Remove
                     </button>
                     <button
-                        onClick={ this.props.insetLevel.bind(
-                            null, currentLevelId, nextLevelId,
-                            nextLevelEntity.id,
-                            ( levels[ nextLevelId ].entityIds.map(
-                                id => allEntities[ id ]
-                            ).find( entity => entity.type === 'level' ) || {} ).id,
-                            nextLevelEntity.position.clone()
+                        onClick={ event => this.props.insetLevel(
+                            currentLevelId, data.level.id,
+                            data.entity.id,
+                            previousLevelEntity.id,
+                            data.entity.position.clone()
                                 .multiply(
                                     new THREE.Vector3( -1, 1, -1 )
                                 )
-                                .multiplyScalar( 1 / nextLevelEntity.scale.x )
+                                .multiplyScalar( 1 / data.entity.scale.x )
                                 .setY( -7 ),
                             new THREE.Vector3(
-                                1 / nextLevelEntity.scale.x,
-                                1 / nextLevelEntity.scale.y,
-                                1 / nextLevelEntity.scale.z
+                                1 / data.entity.scale.x,
+                                1 / data.entity.scale.y,
+                                1 / data.entity.scale.z
                             )
                         ) }
                     >
                         Set to previous inset level
                     </button>
                     <br /><br />
-                </div> }
+                </div> )}
+
                 <b>State:</b> { editorState }
                 <br />
                 <b>Grid Snap:</b> { gridSnap }

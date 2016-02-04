@@ -220,18 +220,11 @@ function individualLevelReducer( level, action ) {
             };
 
         case DESERIALIZE:
-            // Old levels will have a nextLevelId key
-            const hasLegacyId = 'nextLevelId' in level.nextLevelId;
-            const nextLevelId = level.nextLevelId;
-
+            // Levacy levels could have numeric IDs
             return {
-                ...without( level, 'nextLevelId' ),
+                ...level,
                 id: level.id.toString(),
-                entityIds: level.entityIds.map( id => id.toString() ),
-                nextLevelIds: hasLegacyId ? [{
-                    levelId: nextLevelId,
-                    entityId: level.entityIds.find( entity => entity.type === 'level' ).id
-                }] : level.nextLevelIds
+                entityIds: level.entityIds.map( id => id.toString() )
             };
 
         default:
