@@ -122,6 +122,11 @@ function getCameraDistanceToPlayer( playerY, aspect, fov, objectSize ) {
 
 function getCardinalityOfVector( v3 ) {
 
+    // Not rotated
+    if( v3.length() === 0 ) {
+        return Cardinality.NULL;
+    }
+
     const { field, value } = [
         { field: 'x', value: v3.x },
         { field: 'y', value: v3.y },
