@@ -96,12 +96,10 @@ function snapTo( number, interval ) {
             const {
                 currentLevelAllEntities,
                 currentLevelStaticEntities,
-                nextLevelEntityData,
             } = currentLevel.entityIds.reduce( ( memo, id ) => {
                 const entity = allEntities[ id ];
 
                 if( entity.type === 'level' ) {
-                    memo.nextLevelEntityData = allEntities[ id ];
                     memo.currentLevelAllEntities[ id ] = entity;
                 } else {
                     memo.currentLevelAllEntities[ id ] = entity;
@@ -514,8 +512,6 @@ export default class Editor extends Component {
                         0
                     ) )
                 );
-
-                console.log(state.createPreviewRotation);
         }
 
         state = this._setStateFromKey( state, this.keysPressed );

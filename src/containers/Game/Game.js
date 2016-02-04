@@ -244,26 +244,25 @@ function snapTo( number, interval ) {
             currentLevelRenderableEntities,
             currentLevelMovableEntities,
             currentLevelTouchyEntities,
-            nextLevelData
         } = currentLevel.entityIds.reduce( ( memo, id ) => {
+
             const entity = allEntities[ id ];
             memo.currentLevelAllEntities[ id ] = entity;
 
-            if( entity.type === 'level' ) {
-                memo.nextLevelData = allEntities[ id ];
-            } else if( entity.type === 'shrink' || entity.type === 'grow' || entity.type === 'finish' ) {
+            if( entity.type === 'shrink' || entity.type === 'grow' || entity.type === 'finish' ) {
                 memo.currentLevelTouchyEntities[ id ] = entity;
                 // needs to go into static to render
                 memo.currentLevelRenderableEntities[ id ] = entity;
             } else if( entity.type === 'pushy' ) {
                 memo.currentLevelMovableEntities[ id ] = entity;
             // walls, floors, etc
-            } else {
+            } else if( entity.type !== 'level' ) {
                 memo.currentLevelStaticEntities[ id ] = entity;
                 memo.currentLevelRenderableEntities[ id ] = entity;
             }
 
             return memo;
+
         }, {
             currentLevelRenderableEntities: {},
             currentLevelMovableEntities: {},
@@ -272,21 +271,24 @@ function snapTo( number, interval ) {
             currentLevelTouchyEntities: {},
         });
 
-        const nextLevelId = currentLevel.nextLevelId;
-        const /* this shit is */nextLevel = nextLevelId && levels[ nextLevelId ];
+        // Determine next level data
+        const nextLevels = currentLevel.nextLevelIds.map( data => ({
+            level: levels[ data.levelId ],
+            entity: allEntities[ data.entityId ],
+            entities: levels[ data.levelId ].entityIds
+                .map( id => allEntities[ id ] )
+                .filter( entity => entity.type !== 'level' )
+        }));
 
-        const nextLevelEntity = nextLevelId && {
-            level: nextLevel,
-            ...nextLevelData
-        };
-
-        const nextLevelEntitiesArray = nextLevelId && nextLevel.entityIds
-            .map( id => allEntities[ id ] )
-            .filter( entity => entity.type !== 'level' );
+        // Build all the next level entities. It's all next level entities
+        // combined together
+        const nextLevelsEntitiesArray = nextLevels.reduce( ( memo, data ) => {
+            return memo.concat( data.level.entities );
+        }, [] );
 
         // Determine previous level data
         const previousLevelId = Object.keys( levels ).find(
-            levelId => levels[ levelId ].nextLevelId === currentLevelId
+            levelId => levels[ levelId ].nextLevelIds.some( data => data.levelId === currentLevelId )
         );
         const previousLevelData = previousLevelId && levels[ previousLevelId ];
 
@@ -299,16 +301,18 @@ function snapTo( number, interval ) {
         const isPreviousLevelBigger = previousLevelData &&
             previousLevelEntityData.scale.x > 1;
         const multiplier = isPreviousLevelBigger ? 0.125 : 8;
-        const previousLevelEntity = previousLevelData && {
+        const previousLevel = previousLevelData && {
             level: previousLevelData,
-            ...previousLevelEntityData,
-            scale: new THREE.Vector3( multiplier, multiplier, multiplier ),
-            position: previousLevelEntityData.position
-                .clone()
-                .multiply(
-                    new THREE.Vector3( -multiplier, multiplier, -multiplier )
-                )
-                .setY( isPreviousLevelBigger ? 0.875 : -7 )
+            entity: {
+                ...previousLevelEntityData,
+                scale: new THREE.Vector3( multiplier, multiplier, multiplier ),
+                position: previousLevelEntityData.position
+                    .clone()
+                    .multiply(
+                        new THREE.Vector3( -multiplier, multiplier, -multiplier )
+                    )
+                    .setY( isPreviousLevelBigger ? 0.875 : -7 )
+            }
         };
 
         const previousLevelEntitiesArray = previousLevelData && previousLevelData.entityIds
@@ -324,7 +328,7 @@ function snapTo( number, interval ) {
             scale: previousLevelFinishData.scale
                 .clone()
                 .multiplyScalar( multiplier ),
-            position: previousLevelEntity.position.clone().add(
+            position: previousLevel.entity.position.clone().add(
                 previousLevelFinishData.position
                     .clone()
                     .multiplyScalar( multiplier )
@@ -337,11 +341,11 @@ function snapTo( number, interval ) {
 
         return {
             levels, currentLevel, currentLevelId, currentLevelAllEntities,
-            currentLevelStaticEntities, allEntities, nextLevelId,
-            nextLevelEntity, nextLevel, nextLevelEntitiesArray,
+            currentLevelStaticEntities, allEntities, nextLevels,
+            nextLevelsEntitiesArray,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray: Object.values( currentLevelTouchyEntities ),
-            previousLevelEntity, previousLevelEntitiesArray, previousLevelId,
+            previousLevel, previousLevelEntitiesArray, previousLevelId,
             currentLevelMovableEntities,
             currentLevelMovableEntitiesArray: Object.values( currentLevelMovableEntities ),
             currentLevelRenderableEntities,
@@ -510,13 +514,14 @@ export default class Game extends Component {
         if( nextProps.currentLevel.id !== this.props.currentLevel.id ) {
 
             const {
-                nextLevelId, nextLevelEntity, previousLevelId,
-                previousLevelEntity
+                nextLevels, previousLevelId, previousLevel
             } = this.props;
             const { cameraPosition, cameraTourTarget } = this.state;
 
-            const newLevel = nextProps.currentLevel.id === nextLevelId ?
-                nextLevelEntity : previousLevelEntity;
+            const maybeNextLevel = nextLevels.find(
+                data => data.level.id === nextProps.currentLevel.id
+            );
+            const newLevel = maybeNextLevel ? maybeNextLevel.entity : previousLevel.entity;
 
             const multiplier = newLevel.scale.x < 1 ? 8 : 0.125;
 
@@ -557,14 +562,15 @@ export default class Game extends Component {
             this.world.bodies = [];
 
             const {
-                nextLevelId, nextLevelEntity, previousLevelId,
-                previousLevelEntity
+                nextLevels, previousLevelId, previousLevel
             } = this.props;
             const { position } = this.playerBody;
             let newPosition;
 
-            const newLevel = nextProps.currentLevel.id === nextLevelId ?
-                nextLevelEntity : previousLevelEntity;
+            const maybeNextLevel = nextLevels.find(
+                data => data.level.id === nextProps.currentLevel.id
+            );
+            const newLevel = maybeNextLevel ? maybeNextLevel.entity : previousLevel.entity;
 
             const multiplier = newLevel.scale.x < 1 ? 8 : 0.125;
 
@@ -629,9 +635,8 @@ export default class Game extends Component {
         };
 
         const {
-            playerScale, nextLevelEntity, currentLevel, playerRadius,
-            playerMass, currentLevelStaticEntitiesArray, nextLevelId,
-            previousLevelEntity, previousLevelId
+            playerScale, currentLevel, playerRadius, playerMass,
+            currentLevelStaticEntitiesArray, previousLevelId
         } = this.props;
         const { playerContact } = this;
         const { keysDown } = this;
@@ -988,8 +993,8 @@ export default class Game extends Component {
 
         const {
             currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
-            currentLevel, nextLevelId, nextLevelEntity,
-            previousLevelFinishEntity, previousLevelEntity, previousLevelId
+            currentLevel, nextLevels, previousLevelFinishEntity,
+            previousLevel, previousLevelId
         } = this.props;
 
         const {
@@ -1119,10 +1124,10 @@ export default class Game extends Component {
                 0, 0, 0
             ), 0.05 );
 
-            if( currentTourPercent >= 1 && nextLevelId ) {
+            if( currentTourPercent >= 1 && nextLevels.length ) {
 
                 currentTourPercent = 0;
-                this.props.advanceLevel( nextLevelId, nextLevelEntity.scale.x );
+                this.props.advanceLevel( nextLevels[ 0 ].level.id, nextLevels[ 0 ].entity.scale.x );
 
             }
 
@@ -1199,32 +1204,40 @@ export default class Game extends Component {
 
                     // this is almost certainly wrong to determine which way
                     // the finish line element is facing
-                    const isUp = Math.abs( entity.rotation.y ) >= 1;
+                    const cardinality = getCardinalityOfVector(
+                        new THREE.Vector3().applyQuaternion( entity.rotation )
+                    );
+                    const isUp = cardinality === Cardinality.DOWN || cardinality === Cardinality.UP;
 
                     const currentPosition = new THREE.Vector3().copy(
                         this.playerBody.position
                     );
 
-                    // Calculate where to tween the player to. *2.4 to move
+                    // Calculate where to tween the player to. *>2 to move
                     // past the hit box for the level exit/entrance
                     newState.startTransitionPosition = currentPosition;
                     newState.currentTransitionPosition = currentPosition;
                     newState.currentTransitionTarget = new THREE.Vector3(
-                        lerp( currentPosition.x, entity.position.x, isUp ? 0 : 2.2 ),
+                        lerp( currentPosition.x, entity.position.x, isUp ? 0 : 2.5 ),
                         currentPosition.y,
-                        lerp( currentPosition.z, entity.position.z, isUp ? 2.2 : 0 ),
+                        lerp( currentPosition.z, entity.position.z, isUp ? 2.5 : 0 ),
                     );
                     newState.currentTransitionStartTime = now;
 
                     if( entity === previousLevelFinishEntity ) {
 
                         newState.advanceToId = previousLevelId;
-                        newState.advanceToScale = previousLevelEntity.scale.x;
+                        newState.advanceToScale = previousLevel.entity.scale.x;
 
                     } else {
 
-                        newState.advanceToId = nextLevelId;
-                        newState.advanceToScale = nextLevelEntity.scale.x;
+                        const nextLevel = [ ...nextLevels ].sort( ( a, b ) =>
+                            a.entity.position.distanceTo( entity.position ) -
+                            b.entity.position.distanceTo( entity.position )
+                        )[ 0 ] || previousLevel;
+
+                        newState.advanceToId = nextLevel.level.id;
+                        newState.advanceToScale = nextLevel.entity.scale.x;
                     
                     }
 
@@ -1327,12 +1340,12 @@ export default class Game extends Component {
             pushyPositions, time, cameraPosition, currentFlowPosition, debug,
             fps, touring, cameraTourTarget, entrance1, entrance2, tubeFlow,
             tubeIndex, currentScalePercent, radiusDiff,
-            currentTransitionPosition
+            currentTransitionPosition, currentTransitionTarget
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
-            playerRadius, playerScale, playerMass, nextLevelEntity,
-            nextLevelEntities, nextLevelEntitiesArray, previousLevelEntity,
+            playerRadius, playerScale, playerMass, nextLevels,
+            nextLevelsEntitiesArray, previousLevel,
             previousLevelEntitiesArray, currentLevelRenderableEntitiesArray,
             previousLevelFinishEntity
         } = this.props;
@@ -1571,18 +1584,19 @@ export default class Game extends Component {
                         time={ time }
                     />
 
-                    { nextLevelEntity && <StaticEntities
-                        position={ nextLevelEntity.position }
-                        scale={ nextLevelEntity.scale }
+                    { nextLevels.map( data => <StaticEntities
+                        key={ data.level.id }
+                        position={ data.entity.position }
+                        scale={ data.entity.scale }
                         ref="nextLevel"
-                        entities={ nextLevelEntitiesArray }
+                        entities={ data.entities }
                         time={ time }
-                    /> }
+                    /> )}
 
-                    { previousLevelEntity && <StaticEntities
+                    { previousLevel && <StaticEntities
                         ref="previousLevel"
-                        position={ previousLevelEntity.position }
-                        scale={ previousLevelEntity.scale }
+                        position={ previousLevel.entity.position }
+                        scale={ previousLevel.entity.scale }
                         entities={ previousLevelEntitiesArray }
                         time={ time }
                         opacity={ 0.5 }
@@ -1597,6 +1611,18 @@ export default class Game extends Component {
                         />
                         <materialResource
                             resourceId="middleMaterial"
+                        />
+                    </mesh> }
+
+                    { debug && currentTransitionTarget && <mesh
+                        position={ currentTransitionTarget }
+                        scale={ new THREE.Vector3( 0.2, 2, 0.2 ).multiplyScalar( playerScale ) }
+                    >
+                        <geometryResource
+                            resourceId="1x1box"
+                        />
+                        <materialResource
+                            resourceId="exitMaterial"
                         />
                     </mesh> }
 
