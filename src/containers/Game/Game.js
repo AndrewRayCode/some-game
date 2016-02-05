@@ -236,7 +236,7 @@ function snapTo( number, interval ) {
 }
 
 @connect(
-    ( state ) => {
+    state => {
 
         const { levels } = state.game;
         const currentLevelId = state.currentGameLevel;
@@ -359,6 +359,7 @@ function snapTo( number, interval ) {
             currentLevelRenderableEntitiesArray: Object.values( currentLevelRenderableEntities ),
             previousLevelFinishEntity,
 
+            levelTime: state.game.levelTime,
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
             playerScale: state.game.playerScale,
@@ -522,7 +523,7 @@ export default class Game extends Component {
 
     componentWillReceiveProps( nextProps ) {
 
-        if( nextProps.currentLevel.id !== this.props.currentLevel.id ) {
+        if( nextProps.levelTime !== this.props.levelTime ) {
 
             const {
                 nextLevels, previousLevelId, previousLevel
@@ -565,7 +566,7 @@ export default class Game extends Component {
 
     componentWillUpdate( nextProps, nextState ) {
 
-        if( nextProps.currentLevel.id !== this.props.currentLevel.id ) {
+        if( nextProps.levelTime !== this.props.levelTime ) {
 
             this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
             this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
@@ -1216,7 +1217,7 @@ export default class Game extends Component {
                     // this is almost certainly wrong to determine which way
                     // the finish line element is facing
                     const cardinality = getCardinalityOfVector(
-                        new THREE.Vector3().applyQuaternion( entity.rotation )
+                        Cardinality.RIGHT.clone().applyQuaternion( entity.rotation )
                     );
                     const isUp = cardinality === Cardinality.DOWN || cardinality === Cardinality.UP;
 

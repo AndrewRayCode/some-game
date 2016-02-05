@@ -33,7 +33,7 @@ export default class Grid extends Component {
                     resourceId="row"
                     type="points"
                 />
-                <lineBasicMaterial
+                <materialResource
                     resourceId="gridLineMaterial"
                 />
             </line>);
@@ -54,7 +54,7 @@ export default class Grid extends Component {
                     resourceId="col"
                     type="points"
                 />
-                <lineBasicMaterial
+                <materialResource
                     resourceId="gridLineMaterial"
                 />
             </line>);

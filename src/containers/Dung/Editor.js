@@ -609,12 +609,10 @@ export default class Editor extends Component {
             .intersectObjects( scene.children, true )
             .filter( ( intersection ) => {
                 return intersection.object !== (
-                        previewPosition &&
-                        previewPosition.refs.mesh
+                        previewPosition && previewPosition.refs.mesh
                     ) &&
                     intersection.object !== (
-                        previewPosition &&
-                        previewPosition.refs.mesh2
+                        previewPosition && previewPosition.refs.mesh2
                     ) &&
                     intersection.object !== dragCreateBlock &&
                     !( intersection.object instanceof THREE.Line ) &&
@@ -636,7 +634,11 @@ export default class Editor extends Component {
 
                 const ref = staticEntities.refs[ id ];
                 
-                return ref && ref.refs.mesh === objectIntersection;
+                return ref && ref.refs && (
+                    ( ref.refs.mesh === objectIntersection ) ||
+                    ( ref.refs.mesh === objectIntersection.parent ) ||
+                    ( ref.refs.mesh === objectIntersection.parent.parent )
+                );
 
             });
 

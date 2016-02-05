@@ -73,7 +73,6 @@ export default class StaticEntities extends Component {
                     opacity={ 0.7 }
                 />
 
-
                 <meshPhongMaterial
                     resourceId="tubeMaterial"
                     side={ THREE.DoubleSide }
