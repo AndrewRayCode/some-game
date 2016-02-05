@@ -273,7 +273,8 @@ export function levelsReducer( levels = {}, action = {} ) {
                 [ action.id ]: {
                     id: action.id,
                     name: action.name,
-                    entityIds: []
+                    entityIds: [],
+                    nextLevelIds: []
                 }
             };
 
