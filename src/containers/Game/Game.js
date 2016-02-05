@@ -1,5 +1,5 @@
 import 'babel/polyfill';
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
@@ -374,6 +374,10 @@ function snapTo( number, interval ) {
 )
 export default class Game extends Component {
 
+    static contextTypes = {
+        store: PropTypes.object.isRequired
+    }
+
     constructor( props, context ) {
 
         super( props, context );
@@ -477,9 +481,9 @@ export default class Game extends Component {
                 material: wallMaterial
             });
             const boxShape = new CANNON.Box( new CANNON.Vec3(
-                scale.x / 2,
-                scale.y / 2,
-                scale.z / 2
+                scale.x * 0.5,
+                scale.y * 0.5,
+                scale.z * ( entity.type === 'house' ? 1.5 : 0.5 ),
             ));
             entityBody.addShape( boxShape );
             entityBody.position.set(
@@ -1587,6 +1591,7 @@ export default class Game extends Component {
 
                     <StaticEntities
                         ref="staticEntities"
+                        store={ this.context.store }
                         entities={ currentLevelRenderableEntitiesArray }
                         time={ time }
                     />
@@ -1594,6 +1599,7 @@ export default class Game extends Component {
                     { nextLevels.map( data => <StaticEntities
                         key={ data.level.id }
                         position={ data.entity.position }
+                        store={ this.context.store }
                         scale={ data.entity.scale }
                         ref="nextLevel"
                         entities={ data.entities }
@@ -1602,6 +1608,7 @@ export default class Game extends Component {
 
                     { previousLevel && <StaticEntities
                         ref="previousLevel"
+                        store={ this.context.store }
                         position={ previousLevel.entity.position }
                         scale={ previousLevel.entity.scale }
                         entities={ previousLevelEntitiesArray }

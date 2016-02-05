@@ -1,5 +1,9 @@
 import THREE from 'three';
 
+// Garbage library https://github.com/sohamkamani/three-object-loader/issues/1
+import mutateThreeWithObjLoader from 'three-obj-loader';
+mutateThreeWithObjLoader( THREE );
+
 export function cubeToPlayerCollision( entityA, player, radius ):boolean {
 
     const positionA = entityA.position;
@@ -124,5 +128,32 @@ export function without( obj, ...keys ) {
 export function lerp( start, target, percent ) {
 
     return start + percent * ( target - start );
+
+}
+
+const loaders = {
+    obj: new THREE.OBJLoader()
+};
+
+function getLoader( url:string ) {
+
+    const extension:string = url.match( /\.(\w+)$/ )[ 1 ].toLowerCase();
+    return loaders[ extension ];
+
+}
+
+export function loadModel( modelPath, data ) {
+
+    return new Promise( ( resolve, reject ) => {
+
+        const loader = getLoader( modelPath );
+        loader.load(
+            modelPath,
+            ( model ) => resolve({ model, ...data }),
+            () => null,
+            ( error ) => reject({ error, ...data })
+        );
+
+    });
 
 }

@@ -4,7 +4,8 @@ const Textures = {
     brownStuco: require( '../Game/brown-stucco.png' ),
     purpleStucco: require( '../Game/purple-stucco.png' ),
     brownStuccoBorder: require( '../Game/brown-stucco-border.png' ),
-    purpleStuccoBorder: require( '../Game/purple-stucco-border.png' )
+    purpleStuccoBorder: require( '../Game/purple-stucco-border.png' ),
+    sfHouse: require( '../../../assets/sf-house.png' ),
 };
 
 export default Textures;

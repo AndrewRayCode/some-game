@@ -9,12 +9,15 @@ import TubeBend from './TubeBend';
 import TubeStraight from './TubeStraight';
 import Player from './Player';
 import FinishLine from './FinishLine';
+import House from './House';
 import Textures from './Textures';
 
 export default class StaticEntities extends Component {
 
     constructor(props, context) {
+
         super(props, context);
+
     }
 
     render() {
@@ -144,6 +147,18 @@ export default class StaticEntities extends Component {
                         rotation={ entity.rotation }
                         scale={ entity.scale }
                         materialId="tubeMaterial"
+                    />;
+
+                } else if( entity.type === 'house' ) {
+
+                    return <House
+                        store={ this.props.store }
+                        ref={ entity.id }
+                        key={ entity.id }
+                        position={ entity.position }
+                        rotation={ entity.rotation }
+                        scale={ entity.scale }
+                        materialId="sfHouse"
                     />;
 
                 } else if( entity.type === 'finish' ) {

@@ -25,7 +25,6 @@ export default class Pushy extends Component {
             scale={ scale || defaultScale }
         >
             <geometry
-                resourceId="pushyGeometry"
                 faces={ geo.faces }
                 vertices={ geo.vertices }
                 colors={ geo.colors }

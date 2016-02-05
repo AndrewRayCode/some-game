@@ -1,10 +1,11 @@
 import 'babel/polyfill';
-import React, { Component } from 'react';
+import React, { PropTypes, Component } from 'react';
 import React3 from 'react-three-renderer';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { startGame, endGame } from '../../redux/modules/game';
 import { areLevelsLoaded, loadLevels } from '../../redux/modules/editor';
+import { loadAsset } from '../../redux/modules/assets';
 import connectData from '../../helpers/connectData';
 import THREE from 'three';
 import Editor from './Editor';
@@ -25,7 +26,7 @@ function fetchData( getState, dispatch ) {
         entities: state.entities,
         currentLevelId: state.currentEditorLevel
     }),
-    dispatch => bindActionCreators( { startGame, endGame }, dispatch )
+    dispatch => bindActionCreators( { startGame, endGame, loadAsset }, dispatch )
 )
 export default class Dung extends Component {
 
@@ -49,6 +50,7 @@ export default class Dung extends Component {
 
             window.THREE = THREE;
             this.setState({ isClient: true });
+            this.props.loadAsset( require( '../../../assets/houseSF.obj' ), { name: 'house' } );
 
         }
 

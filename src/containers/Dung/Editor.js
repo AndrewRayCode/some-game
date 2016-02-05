@@ -1,5 +1,5 @@
 import 'babel/polyfill';
-import React, { Component } from 'react';
+import React, { PropTypes, Component } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three';
 import Grid from './Grid';
@@ -21,6 +21,7 @@ import Player from './Player';
 import StaticEntities from './StaticEntities';
 import KeyCodes from './KeyCodes';
 import Shrink from './Shrink';
+import House from './House';
 import Grow from './Grow';
 import FinishLine from './FinishLine';
 import Textures from './Textures';
@@ -83,7 +84,7 @@ function snapTo( number, interval ) {
 }
 
 @connect(
-    ( state ) => {
+    state => {
 
         const { levels } = state;
         const currentLevelId = state.currentEditorLevel;
@@ -184,6 +185,10 @@ function snapTo( number, interval ) {
     }, dispatch )
 )
 export default class Editor extends Component {
+
+    static contextTypes = {
+        store: PropTypes.object.isRequired
+    }
 
     constructor( props, context ) {
 
@@ -938,6 +943,17 @@ export default class Editor extends Component {
                     materialId="ghostMaterial"
                 />;
 
+            } else if( createType === 'house' ) {
+
+                previewObject = <House
+                    store={ this.context.store }
+                    scale={ gridScale }
+                    rotation={ createPreviewRotation }
+                    position={ createPreviewPosition }
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                />;
+
             } else if( createType === 'floor' ) {
 
                 previewObject = <Floor
@@ -994,6 +1010,7 @@ export default class Editor extends Component {
                         scale={ new THREE.Vector3( 8.01, 2.01, 8.01 ) }
                     />
                     <StaticEntities
+                        store={ this.context.store }
                         time={ time }
                         position={ new THREE.Vector3( 0, 0, 0 ) }
                         entities={
@@ -1032,17 +1049,6 @@ export default class Editor extends Component {
                         <scene
                             ref="scene"
                         >
-                            <perspectiveCamera
-                                name="camera"
-                                fov={75}
-                                aspect={width / height}
-                                near={0.1}
-                                far={1000}
-                                position={this.state.cameraPosition}
-                                rotation={this.state.cameraRotation}
-                                ref="camera"
-                            />
-
                             <resources>
                                 <sphereGeometry
                                     resourceId="sphereGeometry"
@@ -1077,6 +1083,7 @@ export default class Editor extends Component {
                                         y={height / 2}
                                     />
                                 </shape>
+
                                 <lineBasicMaterial
                                     resourceId="gridLineMaterial"
                                     color={0x222222}
@@ -1202,6 +1209,17 @@ export default class Editor extends Component {
 
                             </resources>
 
+                            <perspectiveCamera
+                                name="camera"
+                                fov={75}
+                                aspect={width / height}
+                                near={0.1}
+                                far={1000}
+                                position={this.state.cameraPosition}
+                                rotation={this.state.cameraRotation}
+                                ref="camera"
+                            />
+
                             <ambientLight
                                 color={ 0x777777 }
                             />
@@ -1263,6 +1281,7 @@ export default class Editor extends Component {
 
                             <StaticEntities
                                 ref="staticEntities"
+                                store={ this.context.store }
                                 entities={ currentLevelStaticEntitiesArray }
                                 time={ time }
                             />
@@ -1270,6 +1289,7 @@ export default class Editor extends Component {
                             { nextLevels.map( data => <StaticEntities
                                 key={ data.level.id }
                                 ref={ `nextLevel${ data.level.id }` }
+                                store={ this.context.store }
                                 position={ data.entity.position }
                                 scale={ data.entity.scale }
                                 entities={ data.entities }
@@ -1279,6 +1299,7 @@ export default class Editor extends Component {
                             { previousLevelEntity && <StaticEntities
                                 ref="previousLevel"
                                 position={ previousLevelEntity.position }
+                                store={ this.context.store }
                                 scale={ previousLevelEntity.scale }
                                 entities={ previousLevelEntitiesArray }
                                 time={ time }
@@ -1452,6 +1473,13 @@ export default class Editor extends Component {
                         [H] { createType === 'finish' && '✓' }
                         <button onClick={ this.selectType( 'finish' ) }>
                             Finish
+                        </button>
+                        <br />
+                        <b>Extras</b>
+                        <br />
+                        { createType === 'house' && '✓' }
+                        <button onClick={ this.selectType( 'house' ) }>
+                            House
                         </button>
                         <br />
                         [L] { createType === 'level' && '✓' }
