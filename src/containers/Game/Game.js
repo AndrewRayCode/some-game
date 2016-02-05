@@ -248,14 +248,16 @@ function snapTo( number, interval ) {
             currentLevelStaticEntities,
             currentLevelRenderableEntities,
             currentLevelMovableEntities,
-            currentLevelTouchyEntities,
+            currentLevelTouchyArray,
         } = currentLevel.entityIds.reduce( ( memo, id ) => {
 
             const entity = allEntities[ id ];
             memo.currentLevelAllEntities[ id ] = entity;
 
             if( entity.type === 'shrink' || entity.type === 'grow' || entity.type === 'finish' ) {
-                memo.currentLevelTouchyEntities[ id ] = entity;
+                memo.currentLevelTouchyArray = [
+                    ...memo.currentLevelTouchyArray, entity
+                ];
                 // needs to go into static to render
                 memo.currentLevelRenderableEntities[ id ] = entity;
             } else if( entity.type === 'pushy' ) {
@@ -273,7 +275,7 @@ function snapTo( number, interval ) {
             currentLevelMovableEntities: {},
             currentLevelAllEntities: {},
             currentLevelStaticEntities: {},
-            currentLevelTouchyEntities: {},
+            currentLevelTouchyArray: [],
         });
 
         // Determine next level data
@@ -343,7 +345,7 @@ function snapTo( number, interval ) {
         };
 
         if( previousLevelFinishEntity ) {
-            currentLevelTouchyEntities[ previousLevelFinishData.id ] = previousLevelFinishEntity;
+            currentLevelTouchyArray.push( previousLevelFinishEntity );
         }
 
         return {
@@ -351,7 +353,7 @@ function snapTo( number, interval ) {
             currentLevelStaticEntities, allEntities, nextLevels,
             nextLevelsEntitiesArray,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
-            currentLevelTouchyArray: Object.values( currentLevelTouchyEntities ),
+            currentLevelTouchyArray,
             previousLevel, previousLevelEntitiesArray, previousLevelId,
             currentLevelMovableEntities,
             currentLevelMovableEntitiesArray: Object.values( currentLevelMovableEntities ),
