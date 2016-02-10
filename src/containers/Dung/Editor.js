@@ -6,8 +6,8 @@ import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
-    addLevel, selectLevel, saveLevel, updateLevel, deserializeLevels,
-    renameLevel, addNextLevel, removeNextLevel, insetLevel, changeEntityType
+    addLevel, selectLevel, saveLevelAndBook, updateLevel, deserializeLevels,
+    renameLevel, addNextLevel, removeNextBook, insetChapter, changeEntityType
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -179,9 +179,9 @@ function snapTo( number, interval ) {
     },
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
-        changeEntityMaterial, addNextLevel, selectLevel, saveLevel,
-        updateLevel, deserializeLevels, renameLevel, addLevel, removeNextLevel,
-        insetLevel, changeEntityType
+        changeEntityMaterial, addNextLevel, selectLevel, saveLevelAndBook,
+        updateLevel, deserializeLevels, renameLevel, addLevel, removeNextBook,
+        insetChapter, changeEntityType
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -1550,7 +1550,7 @@ export default class Editor extends Component {
                         >
                             Update Level "{ currentLevel.name }"
                         </button> : <button
-                            onClick={ this.props.saveLevel.bind( null, currentLevel, currentLevelAllEntities ) }
+                            onClick={ this.props.saveLevelAndBook.bind( null, currentLevel, currentLevelAllEntities ) }
                         >
                             Save Level "{ currentLevel.name }"
                         </button> }
@@ -1564,14 +1564,14 @@ export default class Editor extends Component {
                 { nextLevels.map( data => <div key={ data.level.id }>
                     Next level: { data.level.name }
                     <button
-                        onClick={ event => this.props.removeNextLevel(
+                        onClick={ event => this.props.removeNextBook(
                             currentLevelId, data.level.id, data.entity.id
                         ) }
                     >
                         Remove
                     </button>
                     <button
-                        onClick={ event => this.props.insetLevel(
+                        onClick={ event => this.props.insetChapter(
                             currentLevelId, data.level.id,
                             data.entity.id,
                             previousLevelEntity.id,

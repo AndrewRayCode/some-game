@@ -20,12 +20,15 @@ const CHANGE_ENTITY_MATERIAL_ID = 'dung/CHANGE_ENTITY_MATERIAL_ID';
 const CHANGE_ENTITY_TYPE = 'dung/CHANGE_ENTITY_TYPE';
 const DESERIALIZE = 'dung/DESERIALIZE';
 const EDITOR_SELECT_LEVEL = 'dung/EDITOR_SELECT_LEVEL';
-const INSET_LEVEL = 'dung/INSET_LEVEL';
 const MODIFY_LEVEL = 'dung/MODIFY_LEVEL';
 const MOVE_ENTITY = 'dung/MOVE_ENTITY';
 const REMOVE_ENTITY = 'dung/REMOVE_ENTITY';
 const REMOVE_NEXT_LEVEL = 'dung/REMOVE_NEXT_LEVEL';
 const ROTATE_ENTITY = 'dung/ROTATE_ENTITY';
+
+const INSET_CHAPTER = 'dung/INSET_CHAPTER';
+const ADD_BOOK = 'dung/ADD_BOOK';
+const MODIFY_BOOK = 'dung/MODIFY_BOOK';
 
 // Private reducer, only modifies entities themselves. State will be an entity
 function entityPropertyReducer( entity, action ) {
@@ -75,7 +78,7 @@ function entityPropertyReducer( entity, action ) {
                 )
             };
 
-        case INSET_LEVEL:
+        case INSET_CHAPTER:
             return {
                 ...entity,
                 position: action.position,
@@ -145,7 +148,7 @@ export function entitiesReducer( entities = {}, action = {} ) {
                 [ action.id ]: entityPropertyReducer( entities[ action.id ], action )
             };
 
-        case INSET_LEVEL:
+        case INSET_CHAPTER:
             return {
                 ...entities,
                 [ action.nextLevelEntityId ]: entityPropertyReducer( entities[ action.nextLevelEntityId ], action )
@@ -206,7 +209,7 @@ function individualLevelReducer( level, action ) {
                 entityIds: level.entityIds.filter( id => id !== action.id )
             };
 
-        case INSET_LEVEL:
+        case INSET_CHAPTER:
             return {
                 ...level,
                 nextLevelIds: [ ...level.nextLevelIds, {
@@ -247,12 +250,12 @@ export function levelsReducer( levels = {}, action = {} ) {
 
         case SAVE_SUCCESS:
 
-            const oldLevel = levels[ action.result.oldId ];
+            const oldLevel = levels[ action.result.oldLevelId ];
             return {
                 ...without( levels, oldLevel.id ),
-                [ action.result.id ]: {
+                [ action.result.newLevelId ]: {
                     ...oldLevel,
-                    id: action.result.id,
+                    id: action.result.newLevelId,
                     saved: true
                 }
             };
@@ -287,7 +290,7 @@ export function levelsReducer( levels = {}, action = {} ) {
                 [ action.levelId ]: individualLevelReducer( levels[ action.levelId ], action )
             };
 
-        case INSET_LEVEL:
+        case INSET_CHAPTER:
             return {
                 ...levels,
                 // remove the next level (the one we're insetting) from the
@@ -305,6 +308,82 @@ export function levelsReducer( levels = {}, action = {} ) {
 
         default:
             return levels;
+
+    }
+
+}
+
+function chaptersReducer( chapter, action ) {
+}
+
+export function booksReducer( books = {}, action = {} ) {
+
+    switch( action.type ) {
+
+        case LOAD_SUCCESS:
+            return {
+                ...books,
+                ...action.result.books
+            };
+
+        case SAVE_SUCCESS:
+
+            const oldBook = books[ action.result.oldBookId ];
+            return {
+                ...without( books, oldBook.id ),
+                [ action.result.id ]: {
+                    ...oldBook,
+                    id: action.result.newBookId,
+                    saved: true
+                }
+            };
+
+        case MODIFY_BOOK:
+            return {
+                ...books,
+                [ action.id ]: {
+                    ...books[ action.id ],
+                    id: action.id,
+                    [ action.field ]: action.value
+                }
+            };
+
+        case ADD_BOOK:
+            return {
+                ...books,
+                [ action.id ]: {
+                    id: action.id,
+                    name: action.name,
+                    entityIds: [],
+                    nextBookIds: []
+                }
+            };
+
+        case REMOVE_NEXT_LEVEL:
+        case ADD_NEXT_LEVEL:
+            return {
+                ...books,
+                [ action.bookId ]: chaptersReducer( books[ action.bookId ], action )
+            };
+
+        case INSET_CHAPTER:
+            return {
+                ...books,
+                // remove the next level (the one we're insetting) from the
+                // curent level
+                [ action.currentLevelId ]: removeNextLevelFrom( books[ action.currentLevelId ], action.previousLevelNextLevelEntityIdIfAny, action.nextLevelEntityId ),
+                [ action.nextLevelId ]: individualLevelReducer( books[ action.nextLevelId ], action )
+            };
+
+        case DESERIALIZE:
+            return Object.keys( levels ).reduce( ( memo, id ) => {
+                memo[ id ] = individualLevelReducer( levels[ id ], action );
+                return memo;
+            }, {} );
+
+
+        default:
+            return chapters;
 
     }
 
@@ -414,15 +493,15 @@ export function addNextLevel( levelId, nextLevelId, position, scale ) {
     };
 }
 
-export function insetLevel( currentLevelId, nextLevelId, nextLevelEntityId, previousLevelNextLevelEntityIdIfAny, position, scale ) {
+export function insetChapter( currentLevelId, nextLevelId, nextLevelEntityId, previousLevelNextLevelEntityIdIfAny, position, scale ) {
     return {
-        type: INSET_LEVEL,
+        type: INSET_CHAPTER,
         currentLevelId, nextLevelId, nextLevelEntityId,
         previousLevelNextLevelEntityIdIfAny, position, scale
     };
 }
 
-export function removeNextLevel( levelId, nextLevelId, nextLevelEntityId ) {
+export function removeNextBook( levelId, nextLevelId, nextLevelEntityId ) {
     return {
         type: REMOVE_NEXT_LEVEL,
         levelId, nextLevelId, nextLevelEntityId
@@ -440,17 +519,17 @@ export function loadLevels() {
     };
 }
 
-export function saveLevel( levelData, entities ) {
+export function saveLevelAndBook( levelData, entities, bookData ) {
     return {
         types: [ SAVE, SAVE_SUCCESS, SAVE_FAIL ],
-        promise: client => client.post( '/saveLevel', { data: { levelData, entities } } )
+        promise: client => client.post( '/saveLevelAndBook', { data: { levelData, entities, bookData } } )
     };
 }
 
-export function updateLevel( levelData, entities ) {
+export function updateLevelAndBook( levelData, entities, bookData ) {
     return {
         types: [ UPDATE, UPDATE_SUCCESS, UPDATE_FAIL ],
-        promise: client => client.post( '/updateLevel', { data: { levelData, entities } } )
+        promise: client => client.post( '/updateLevelAndBook', { data: { levelData, entities } } )
     };
 }
 
