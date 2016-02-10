@@ -6,8 +6,9 @@ import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
-    addLevel, selectLevel, saveLevelAndBook, updateLevel, deserializeLevels,
-    renameLevel, addNextLevel, removeNextBook, insetChapter, changeEntityType
+    addLevel, selectChapter, saveLevelAndBook, updateLevel, deserializeLevels,
+    renameLevel, addNextLevel, removeNextBook, insetChapter, changeEntityType,
+    addBook
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -179,9 +180,9 @@ function snapTo( number, interval ) {
     },
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
-        changeEntityMaterial, addNextLevel, selectLevel, saveLevelAndBook,
+        changeEntityMaterial, addNextLevel, selectChapter, saveLevelAndBook,
         updateLevel, deserializeLevels, renameLevel, addLevel, removeNextBook,
-        insetChapter, changeEntityType
+        insetChapter, changeEntityType, addBook
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -834,9 +835,9 @@ export default class Editor extends Component {
     render() {
 
         const {
-            levels, currentLevelId, currentLevel, currentLevelAllEntities,
-            currentLevelStaticEntities, nextLevels, nextLevelsEntitiesArray,
-            allEntities, currentLevelAllEntitiesArray,
+            chapters, books, levels, currentLevelId, currentLevel, currentBook,
+            currentLevelAllEntities, currentLevelStaticEntities, nextLevels,
+            nextLevelsEntitiesArray, allEntities, currentLevelAllEntitiesArray,
             currentLevelStaticEntitiesArray, previousLevelEntity,
             previousLevelEntitiesArray
         } = this.props;
@@ -848,7 +849,7 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( levels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectLevel.bind( null, id ) }>
+                        <a onClick={ this.props.selectChapter.bind( null, id ) }>
                             { levels[ id ].name }
                         </a>
                     </li>;
@@ -1601,7 +1602,7 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( levels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectLevel.bind( null, id ) }>
+                        <a onClick={ this.props.selectChapter.bind( null, id ) }>
                             { levels[ id ].name }
                         </a>
                     </li>;
@@ -1610,6 +1611,37 @@ export default class Editor extends Component {
                 <button onClick={ this.props.addLevel.bind( null, 'New Level' ) }>
                     Create Level
                 </button>
+
+                <b>Books:</b>
+                <ul>
+                { ( Object.keys( books ) || [] ).map( id => {
+                    return <li key={ id }>
+                        <a onClick={ this.props.selectBook.bind( null, id ) }>
+                            { books[ id ].name }
+                        </a>
+                    </li>;
+                }) }
+                </ul>
+                <button onClick={ this.props.addBook.bind( null, 'New Book' ) }>
+                    Create Book
+                </button>
+
+                { currentBook && <div>
+                    <b>Chpaters:</b>
+                    <ul>
+                    { ( Object.keys( currentBook.chapters ) || [] ).map( chapter => {
+                        return <li key={ chapter.id }>
+                            <a onClick={ this.props.selectChapter.bind( null, chapter.id ) }>
+                                { chapter.name }
+                            </a>
+                        </li>;
+                    }) }
+                    </ul>
+                    <button onClick={ () => alert('todo') }>
+                        Create Chapter
+                    </button>
+                </div> }
+
             </div>
 
         </div>;

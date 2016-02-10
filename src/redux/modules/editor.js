@@ -27,6 +27,9 @@ const REMOVE_NEXT_LEVEL = 'dung/REMOVE_NEXT_LEVEL';
 const ROTATE_ENTITY = 'dung/ROTATE_ENTITY';
 
 const INSET_CHAPTER = 'dung/INSET_CHAPTER';
+const ADD_CHAPTER = 'dung/ADD_CHAPTER';
+const MODIFY_CHAPTER = 'dung/MODIFY_CHAPTER';
+
 const ADD_BOOK = 'dung/ADD_BOOK';
 const MODIFY_BOOK = 'dung/MODIFY_BOOK';
 
@@ -375,15 +378,9 @@ export function booksReducer( books = {}, action = {} ) {
                 [ action.nextLevelId ]: individualLevelReducer( books[ action.nextLevelId ], action )
             };
 
-        case DESERIALIZE:
-            return Object.keys( levels ).reduce( ( memo, id ) => {
-                memo[ id ] = individualLevelReducer( levels[ id ], action );
-                return memo;
-            }, {} );
-
 
         default:
-            return chapters;
+            return books;
 
     }
 

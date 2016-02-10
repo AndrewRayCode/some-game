@@ -9,13 +9,18 @@ import info from './info';
 import widgets from './widgets';
 import { assetsReducer } from './assets';
 import { game, gameLevelReducer } from './game';
-import { loadLevelsReducer, levelsReducer, entitiesReducer, editorLevelReducer } from './editor';
+import {
+    loadLevelsReducer, levelsReducer, entitiesReducer, editorLevelReducer,
+    booksReducer, chaptersReducer
+} from './editor';
 
 export default combineReducers({
     router: routerStateReducer,
     auth,
     form,
     levelsLoaded: loadLevelsReducer,
+    books: booksReducer,
+    chapters: chaptersReducer,
     levels: levelsReducer,
     assets: assetsReducer,
     entities: entitiesReducer,
