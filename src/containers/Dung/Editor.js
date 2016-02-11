@@ -8,7 +8,7 @@ import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
     createLevel, selectLevel, selectChapter, saveLevelAndBook, updateLevel,
     deserializeLevels, renameLevel, addNextLevel, removeNextBook, insetChapter,
-    changeEntityType, createBook, selectBook
+    changeEntityType, createBook, selectBook, renameChapter
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -100,13 +100,21 @@ function snapTo( number, interval ) {
 
         if( currentLevelId ) {
 
+            const { chapterIds } = currentBook;
+
             // Books and chapters
-            const currentBookChapters = currentBook.chapterIds.reduce(
+            const currentBookChapters = chapterIds.reduce(
                 ( memo, id ) => ({ ...memo, [ id ]: allChapters[ id ] }),
                 {}
             );
 
             const currentChapter = currentBookChapters[ currentChapterId ];
+
+            const firstChapterContainingLevelId = currentBookChapters[
+                chapterIds.find(
+                    id => currentBookChapters[ id ].levelId === currentLevelId
+                )
+            ];
 
             // Levels and entities
             const currentLevel = levels[ currentLevelId ];
@@ -182,10 +190,11 @@ function snapTo( number, interval ) {
 
             return {
                 books, currentBook, currentBookId, levels, currentLevel,
-                currentLevelId, currentLevelAllEntities,
-                currentLevelStaticEntities, allEntities, nextLevels,
-                nextLevelsEntitiesArray, previousLevelEntity,
+                currentLevelId, currentLevelAllEntities, currentChapterId,
+                currentChapter, currentLevelStaticEntities, allEntities,
+                nextLevels, nextLevelsEntitiesArray, previousLevelEntity,
                 previousLevelEntitiesArray, currentBookChapters,
+                firstChapterContainingLevelId,
                 currentLevelAllEntitiesArray: Object.values( currentLevelAllEntities ),
                 currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             };
@@ -198,7 +207,7 @@ function snapTo( number, interval ) {
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
         changeEntityMaterial, addNextLevel, selectChapter, saveLevelAndBook,
-        updateLevel, deserializeLevels, renameLevel, createLevel,
+        updateLevel, deserializeLevels, renameLevel, createLevel, renameChapter,
         removeNextBook, insetChapter, changeEntityType, createBook, selectBook,
         selectLevel
     }, dispatch )
@@ -857,7 +866,8 @@ export default class Editor extends Component {
             currentLevelAllEntities, currentLevelStaticEntities, nextLevels,
             nextLevelsEntitiesArray, allEntities, currentLevelAllEntitiesArray,
             currentLevelStaticEntitiesArray, previousLevelEntity,
-            previousLevelEntitiesArray, currentBookId, currentBookChapters
+            previousLevelEntitiesArray, currentBookId, currentBookChapters,
+            currentChapterId, currentChapter, firstChapterContainingLevelId
         } = this.props;
 
         if( !currentBookId ) {
@@ -887,7 +897,7 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( levels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectLevel.bind( null, id ) }>
+                        <a onClick={ this.props.selectLevel.bind( null, id, firstChapterContainingLevelId.id ) }>
                             { levels[ id ].name }
                         </a>
                     </li>;
@@ -1587,9 +1597,9 @@ export default class Editor extends Component {
                     <b>Chapter Name</b>
                     <input
                         type="text"
-                        value={ currentLevel.name }
-                        onChange={ event => this.props.renameLevel(
-                            currentLevelId, event.target.value
+                        value={ currentChapter.name }
+                        onChange={ event => this.props.renameChapter(
+                            currentChapterId, event.target.value
                         ) }
                     />
                     <div>
@@ -1649,7 +1659,7 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( levels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectLevel.bind( null, id ) }>
+                        <a onClick={ this.props.selectLevel.bind( null, id, firstChapterContainingLevelId.id ) }>
                             { levels[ id ].name }
                         </a>
                     </li>;

@@ -329,6 +329,7 @@ export function chaptersReducer( chapters = {}, action = {} ) {
                 [ action.id ]: {
                     id: action.id,
                     name: action.name,
+                    levelId: action.id,
                     nextChapters: []
                 }
             };
@@ -339,6 +340,7 @@ export function chaptersReducer( chapters = {}, action = {} ) {
                 [ action.id ]: {
                     id: action.id,
                     name: 'Chapter for ' + action.name,
+                    levelId: action.id,
                     nextChapters: []
                 }
             };
@@ -471,6 +473,10 @@ export function editorSelectedLevelReducer( levelId = null, action = {} ) {
         case EDITOR_SELECT_LEVEL:
             return action.id;
 
+        // Reset selected level on new book selection
+        case EDITOR_SELECT_BOOK:
+            return null;
+
         default:
             return levelId;
 
@@ -485,8 +491,18 @@ export function editorSelectedChapterReducer( chapterId = null, action = {} ) {
         //case SAVE_SUCCESS:
             //return action.result.id;
 
+        // The chapter id and level id are identical and we auto-select level
+        // and chapter on level creation
+        case CREATE_LEVEL:
+            return action.id;
+
         case EDITOR_SELECT_LEVEL:
             return action.chapterId;
+
+        // Reset selected chapter on new book selection
+        case EDITOR_SELECT_BOOK:
+            return null;
+
 
         default:
             return chapterId;
@@ -528,11 +544,11 @@ export function selectBook( id ) {
     };
 }
 
-export function createChapter( name ) {
+export function createChapter( name, levelId ) {
     return {
         type: CREATE_CHAPTER,
         id: Date.now().toString(),
-        name
+        levelId, name
     };
 }
 
@@ -547,8 +563,7 @@ export function createLevel( name, bookId ) {
     return {
         type: CREATE_LEVEL,
         id: Date.now().toString(),
-        bookId,
-        name
+        bookId, name
     };
 }
 
