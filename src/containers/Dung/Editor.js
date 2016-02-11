@@ -6,9 +6,9 @@ import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
-    addLevel, selectChapter, saveLevelAndBook, updateLevel, deserializeLevels,
-    renameLevel, addNextLevel, removeNextBook, insetChapter, changeEntityType,
-    createBook, selectBook
+    createLevel, selectLevel, selectChapter, saveLevelAndBook, updateLevel,
+    deserializeLevels, renameLevel, addNextLevel, removeNextBook, insetChapter,
+    changeEntityType, createBook, selectBook
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -91,11 +91,18 @@ function snapTo( number, interval ) {
         const currentLevelId = state.currentEditorLevel;
         const currentBookId = state.currentEditorBook;
         const allEntities = state.entities;
-
+        const allChapters = state.chapters;
         const currentBook = books[ currentBookId ];
 
         if( currentLevelId ) {
 
+            // Books and chapters
+            const currentBookChapters = currentBook.chapterIds.reduce(
+                ( memo, id ) => ({ ...memo, [ id ]: allChapters[ id ] }),
+                {}
+            );
+
+            // Levels and entities
             const currentLevel = levels[ currentLevelId ];
 
             const {
@@ -172,6 +179,7 @@ function snapTo( number, interval ) {
                 currentLevelAllEntities, currentLevelStaticEntities,
                 allEntities, nextLevels, nextLevelsEntitiesArray,
                 previousLevelEntity, previousLevelEntitiesArray,
+                currentBookChapters,
                 currentLevelAllEntitiesArray: Object.values( currentLevelAllEntities ),
                 currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             };
@@ -184,8 +192,9 @@ function snapTo( number, interval ) {
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
         changeEntityMaterial, addNextLevel, selectChapter, saveLevelAndBook,
-        updateLevel, deserializeLevels, renameLevel, addLevel, removeNextBook,
-        insetChapter, changeEntityType, createBook, selectBook
+        updateLevel, deserializeLevels, renameLevel, createLevel,
+        removeNextBook, insetChapter, changeEntityType, createBook, selectBook,
+        selectLevel
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -842,7 +851,7 @@ export default class Editor extends Component {
             currentLevelAllEntities, currentLevelStaticEntities, nextLevels,
             nextLevelsEntitiesArray, allEntities, currentLevelAllEntitiesArray,
             currentLevelStaticEntitiesArray, previousLevelEntity,
-            previousLevelEntitiesArray, currentBookId
+            previousLevelEntitiesArray, currentBookId, currentBookChapters
         } = this.props;
 
         if( !currentBookId ) {
@@ -872,14 +881,14 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( levels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectChapter.bind( null, id ) }>
+                        <a onClick={ this.props.selectLevel.bind( null, id ) }>
                             { levels[ id ].name }
                         </a>
                     </li>;
                 }) }
                 </ul>
-                <button onClick={ this.props.addLevel.bind( null, 'New Level' ) }>
-                    Create Level and Book
+                <button onClick={ this.props.createLevel.bind( null, 'New Level', currentBookId ) }>
+                    Create Level and Corresponding Chapter
                 </button>
             </div>;
 
@@ -1625,16 +1634,17 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( levels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectChapter.bind( null, id ) }>
+                        <a onClick={ this.props.selectLevel.bind( null, id ) }>
                             { levels[ id ].name }
                         </a>
                     </li>;
                 }) }
                 </ul>
-                <button onClick={ this.props.addLevel.bind( null, 'New Level' ) }>
+                <button onClick={ this.props.createLevel.bind( null, 'New Level', currentBookId ) }>
                     Create Level
                 </button>
 
+                <br /><br />
                 <b>Books:</b>
                 <ul>
                 { ( Object.keys( books ) || [] ).map( id => {
@@ -1649,10 +1659,11 @@ export default class Editor extends Component {
                     Create Book
                 </button>
 
-                { currentBook && <div>
-                    <b>Chpaters:</b>
+                <br /><br />
+                { currentBookChapters && <div>
+                    <b>Chapters:</b>
                     <ul>
-                    { ( Object.keys( currentBook.chapters ) || [] ).map( chapter => {
+                    { ( Object.keys( currentBookChapters ) || [] ).map( chapter => {
                         return <li key={ chapter.id }>
                             <a onClick={ this.props.selectChapter.bind( null, chapter.id ) }>
                                 { chapter.name }

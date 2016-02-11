@@ -10,8 +10,9 @@ import widgets from './widgets';
 import { assetsReducer } from './assets';
 import { game, gameLevelReducer } from './game';
 import {
-    loadLevelsReducer, levelsReducer, entitiesReducer, editorLevelReducer,
-    booksReducer, chaptersReducer, editorBookReducer
+    loadLevelsReducer, levelsReducer, entitiesReducer,
+    editorSelectedLevelReducer, booksReducer, chaptersReducer,
+    editorSelectedBookReducer, editorSelectedChapterReducer
 } from './editor';
 
 export default combineReducers({
@@ -24,8 +25,9 @@ export default combineReducers({
     levels: levelsReducer,
     assets: assetsReducer,
     entities: entitiesReducer,
-    currentEditorLevel: editorLevelReducer,
-    currentEditorBook: editorBookReducer,
+    currentEditorLevel: editorSelectedLevelReducer,
+    currentEditorBook: editorSelectedBookReducer,
+    currentEditorChapter: editorSelectedChapterReducer,
     currentGameLevel: gameLevelReducer,
     game,
     multireducer: multireducer({
