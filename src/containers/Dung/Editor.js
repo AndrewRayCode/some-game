@@ -87,11 +87,15 @@ function snapTo( number, interval ) {
 @connect(
     state => {
 
-        const { levels, books } = state;
-        const currentLevelId = state.currentEditorLevel;
-        const currentBookId = state.currentEditorBook;
-        const allEntities = state.entities;
-        const allChapters = state.chapters;
+        const {
+            levels, books,
+            currentEditorLevel: currentLevelId,
+            currentEditorBook: currentBookId,
+            currentEditorChapter: currentChapterId,
+            entities: allEntities,
+            chapters: allChapters,
+        } = state;
+
         const currentBook = books[ currentBookId ];
 
         if( currentLevelId ) {
@@ -101,6 +105,8 @@ function snapTo( number, interval ) {
                 ( memo, id ) => ({ ...memo, [ id ]: allChapters[ id ] }),
                 {}
             );
+
+            const currentChapter = currentBookChapters[ currentChapterId ];
 
             // Levels and entities
             const currentLevel = levels[ currentLevelId ];
@@ -175,11 +181,11 @@ function snapTo( number, interval ) {
                 .filter( entity => entity.type !== 'level' );
 
             return {
-                books, currentBook, currentBookId, levels, currentLevel, currentLevelId,
-                currentLevelAllEntities, currentLevelStaticEntities,
-                allEntities, nextLevels, nextLevelsEntitiesArray,
-                previousLevelEntity, previousLevelEntitiesArray,
-                currentBookChapters,
+                books, currentBook, currentBookId, levels, currentLevel,
+                currentLevelId, currentLevelAllEntities,
+                currentLevelStaticEntities, allEntities, nextLevels,
+                nextLevelsEntitiesArray, previousLevelEntity,
+                previousLevelEntitiesArray, currentBookChapters,
                 currentLevelAllEntitiesArray: Object.values( currentLevelAllEntities ),
                 currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             };
@@ -1570,6 +1576,15 @@ export default class Editor extends Component {
 
                     <br />
                     <b>Level Name</b>
+                    <input
+                        type="text"
+                        value={ currentLevel.name }
+                        onChange={ event => this.props.renameLevel(
+                            currentLevelId, event.target.value
+                        ) }
+                    />
+                    <br />
+                    <b>Chapter Name</b>
                     <input
                         type="text"
                         value={ currentLevel.name }

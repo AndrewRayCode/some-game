@@ -467,6 +467,7 @@ export function editorSelectedLevelReducer( levelId = null, action = {} ) {
         case SAVE_SUCCESS:
             return action.result.id;
 
+        case CREATE_LEVEL:
         case EDITOR_SELECT_LEVEL:
             return action.id;
 
