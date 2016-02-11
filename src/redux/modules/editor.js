@@ -27,11 +27,13 @@ const REMOVE_NEXT_LEVEL = 'dung/REMOVE_NEXT_LEVEL';
 const ROTATE_ENTITY = 'dung/ROTATE_ENTITY';
 
 const INSET_CHAPTER = 'dung/INSET_CHAPTER';
-const ADD_CHAPTER = 'dung/ADD_CHAPTER';
+const CREATE_CHAPTER = 'dung/CREATE_CHAPTER';
 const MODIFY_CHAPTER = 'dung/MODIFY_CHAPTER';
+const SELECT_CHAPTER = 'dung/SELECT_CHAPTER';
 
-const ADD_BOOK = 'dung/ADD_BOOK';
+const CREATE_BOOK = 'dung/CREATE_BOOK';
 const MODIFY_BOOK = 'dung/MODIFY_BOOK';
+const EDITOR_SELECT_BOOK = 'dung/EDITOR_SELECT_BOOK';
 
 // Private reducer, only modifies entities themselves. State will be an entity
 function entityPropertyReducer( entity, action ) {
@@ -316,7 +318,25 @@ export function levelsReducer( levels = {}, action = {} ) {
 
 }
 
-function chaptersReducer( chapter, action ) {
+function chaptersReducer( chapters = {}, action = {} ) {
+
+    switch( action.type ) {
+
+        case ADD_LEVEL:
+            return {
+                ...chapters,
+                [ action.id ]: {
+                    id: action.id,
+                    name: 'Chapter for ' + action.name,
+                    nextChapters: []
+                }
+            };
+
+        default:
+            return chapters;
+
+    }
+
 }
 
 export function booksReducer( books = {}, action = {} ) {
@@ -351,13 +371,13 @@ export function booksReducer( books = {}, action = {} ) {
                 }
             };
 
-        case ADD_BOOK:
+        case CREATE_BOOK:
             return {
                 ...books,
                 [ action.id ]: {
                     id: action.id,
                     name: action.name,
-                    entityIds: [],
+                    chapterIds: [],
                     nextBookIds: []
                 }
             };
@@ -381,6 +401,20 @@ export function booksReducer( books = {}, action = {} ) {
 
         default:
             return books;
+
+    }
+
+}
+
+export function editorBookReducer( state = null, action = {} ) {
+
+    switch( action.type ) {
+
+        case EDITOR_SELECT_BOOK:
+            return action.id;
+
+        default:
+            return state;
 
     }
 
@@ -421,6 +455,36 @@ export function loadLevelsReducer( state = {}, action = {} ) {
 }
 
 // Actions
+export function createBook( name ) {
+    return {
+        type: CREATE_BOOK,
+        id: Date.now().toString(),
+        name
+    };
+}
+
+export function selectBook( id ) {
+    return {
+        type: EDITOR_SELECT_BOOK,
+        id
+    };
+}
+
+export function createChapter( name ) {
+    return {
+        type: CREATE_CHAPTER,
+        id: Date.now().toString(),
+        name
+    };
+}
+
+export function selectChapter( id ) {
+    return {
+        type: SELECT_CHAPTER,
+        id
+    };
+}
+
 export function addLevel( name ) {
     return {
         type: ADD_LEVEL,

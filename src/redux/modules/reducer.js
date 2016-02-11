@@ -11,7 +11,7 @@ import { assetsReducer } from './assets';
 import { game, gameLevelReducer } from './game';
 import {
     loadLevelsReducer, levelsReducer, entitiesReducer, editorLevelReducer,
-    booksReducer, chaptersReducer
+    booksReducer, chaptersReducer, editorBookReducer
 } from './editor';
 
 export default combineReducers({
@@ -25,6 +25,7 @@ export default combineReducers({
     assets: assetsReducer,
     entities: entitiesReducer,
     currentEditorLevel: editorLevelReducer,
+    currentEditorBook: editorBookReducer,
     currentGameLevel: gameLevelReducer,
     game,
     multireducer: multireducer({

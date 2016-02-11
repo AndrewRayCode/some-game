@@ -8,7 +8,7 @@ import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
     addLevel, selectChapter, saveLevelAndBook, updateLevel, deserializeLevels,
     renameLevel, addNextLevel, removeNextBook, insetChapter, changeEntityType,
-    addBook
+    createBook, selectBook
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -87,9 +87,12 @@ function snapTo( number, interval ) {
 @connect(
     state => {
 
-        const { levels } = state;
+        const { levels, books } = state;
         const currentLevelId = state.currentEditorLevel;
+        const currentBookId = state.currentEditorBook;
         const allEntities = state.entities;
+
+        const currentBook = books[ currentBookId ];
 
         if( currentLevelId ) {
 
@@ -165,24 +168,24 @@ function snapTo( number, interval ) {
                 .filter( entity => entity.type !== 'level' );
 
             return {
-                levels, currentLevel, currentLevelId, currentLevelAllEntities,
-                currentLevelStaticEntities, allEntities, nextLevels,
-                nextLevelsEntitiesArray, previousLevelEntity,
-                previousLevelEntitiesArray,
+                books, currentBook, currentBookId, levels, currentLevel, currentLevelId,
+                currentLevelAllEntities, currentLevelStaticEntities,
+                allEntities, nextLevels, nextLevelsEntitiesArray,
+                previousLevelEntity, previousLevelEntitiesArray,
                 currentLevelAllEntitiesArray: Object.values( currentLevelAllEntities ),
                 currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             };
 
         }
 
-        return { levels, allEntities };
+        return { currentBook, currentBookId, books, levels, allEntities };
 
     },
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
         changeEntityMaterial, addNextLevel, selectChapter, saveLevelAndBook,
         updateLevel, deserializeLevels, renameLevel, addLevel, removeNextBook,
-        insetChapter, changeEntityType, addBook
+        insetChapter, changeEntityType, createBook, selectBook
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -839,8 +842,28 @@ export default class Editor extends Component {
             currentLevelAllEntities, currentLevelStaticEntities, nextLevels,
             nextLevelsEntitiesArray, allEntities, currentLevelAllEntitiesArray,
             currentLevelStaticEntitiesArray, previousLevelEntity,
-            previousLevelEntitiesArray
+            previousLevelEntitiesArray, currentBookId
         } = this.props;
+
+        if( !currentBookId ) {
+
+            return <div>
+                No book selected
+                <ul>
+                { ( Object.keys( books ) || [] ).map( id => {
+                    return <li key={ id }>
+                        <a onClick={ this.props.selectBook.bind( null, id ) }>
+                            { books[ id ].name }
+                        </a>
+                    </li>;
+                }) }
+                </ul>
+                <button onClick={ this.props.createBook.bind( null, 'New Book' ) }>
+                    Create Book
+                </button>
+            </div>;
+
+        }
 
         if( !currentLevelId ) {
 
@@ -856,7 +879,7 @@ export default class Editor extends Component {
                 }) }
                 </ul>
                 <button onClick={ this.props.addLevel.bind( null, 'New Level' ) }>
-                    Create Level
+                    Create Level and Book
                 </button>
             </div>;
 
@@ -1622,7 +1645,7 @@ export default class Editor extends Component {
                     </li>;
                 }) }
                 </ul>
-                <button onClick={ this.props.addBook.bind( null, 'New Book' ) }>
+                <button onClick={ this.props.createBook.bind( null, 'New Book' ) }>
                     Create Book
                 </button>
 
