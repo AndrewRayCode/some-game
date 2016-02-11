@@ -319,7 +319,7 @@ export function levelsReducer( levels = {}, action = {} ) {
 }
 
 // Handle all normalized chapters. chapters is a key value hash of all chapters
-function chaptersReducer( chapters = {}, action = {} ) {
+export function chaptersReducer( chapters = {}, action = {} ) {
 
     switch( action.type ) {
 
@@ -417,14 +417,14 @@ export function booksReducer( books = {}, action = {} ) {
         case CREATE_LEVEL:
             return {
                 ...books,
-                [ action.levelId ]: individualBookReducer( books[ action.bookId ], action )
+                [ action.bookId ]: individualBookReducer( books[ action.bookId ], action )
             };
 
         case REMOVE_NEXT_LEVEL:
         case ADD_NEXT_LEVEL:
             return {
                 ...books,
-                [ action.bookId ]: chaptersReducer( books[ action.bookId ], action )
+                [ action.bookId ]: individualBookReducer( books[ action.bookId ], action )
             };
 
         case INSET_CHAPTER:

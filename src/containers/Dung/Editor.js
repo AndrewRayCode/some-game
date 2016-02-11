@@ -1678,10 +1678,10 @@ export default class Editor extends Component {
                 { currentBookChapters && <div>
                     <b>Chapters:</b>
                     <ul>
-                    { ( Object.keys( currentBookChapters ) || [] ).map( chapter => {
-                        return <li key={ chapter.id }>
-                            <a onClick={ this.props.selectChapter.bind( null, chapter.id ) }>
-                                { chapter.name }
+                    { ( Object.keys( currentBookChapters ) || [] ).map( id => {
+                        return <li key={ id }>
+                            <a onClick={ this.props.selectChapter.bind( null, id ) }>
+                                { currentBookChapters[ id ].name }
                             </a>
                         </li>;
                     }) }
