@@ -116,8 +116,10 @@ export function getEntrancesForTube( tube, scaleFactor ) {
 
 export function without( obj, ...keys ) {
 
+    const stringKeys = keys.map( key => key.toString() );
+
     return Object.keys( obj ).reduce( ( memo, key ) => {
-        if( keys.indexOf( parseFloat( key ) ) === -1 ) {
+        if( stringKeys.indexOf( key ) === -1 ) {
             memo[ key ] = obj[ key ];
         }
         return memo;

@@ -6,9 +6,10 @@ import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
-    createLevel, selectLevel, selectChapter, saveLevelAndBook, updateLevel,
-    deserializeLevels, renameLevel, addNextLevel, removeNextBook, insetChapter,
-    changeEntityType, createBook, selectBook, renameChapter
+    createLevel, selectLevel, selectChapter, saveLevelAndBook,
+    updateLevelAndBook, deserializeLevels, renameLevel, addNextLevel,
+    removeNextBook, insetChapter, changeEntityType, createBook, selectBook,
+    renameChapter
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -26,6 +27,9 @@ import House from './House';
 import Grow from './Grow';
 import FinishLine from './FinishLine';
 import Textures from './Textures';
+
+import { without } from './Utils';
+
 const cx = classNames.bind( styles );
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
@@ -66,17 +70,6 @@ const extrudeSettings = {
 };
 
 const raycaster = new THREE.Raycaster();
-
-function without( obj, ...keys ) {
-
-    return Object.keys( obj ).reduce( ( memo, key ) => {
-        if( keys.indexOf( parseFloat( key ) ) === -1 ) {
-            memo[ key ] = obj[ key ];
-        }
-        return memo;
-    }, {} );
-
-}
 
 function snapTo( number, interval ) {
 
@@ -207,9 +200,9 @@ function snapTo( number, interval ) {
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
         changeEntityMaterial, addNextLevel, selectChapter, saveLevelAndBook,
-        updateLevel, deserializeLevels, renameLevel, createLevel, renameChapter,
-        removeNextBook, insetChapter, changeEntityType, createBook, selectBook,
-        selectLevel
+        updateLevelAndBook, deserializeLevels, renameLevel, createLevel,
+        renameChapter, removeNextBook, insetChapter, changeEntityType,
+        createBook, selectBook, selectLevel
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -1604,13 +1597,13 @@ export default class Editor extends Component {
                     />
                     <div>
                         { currentLevel.saved ? <button
-                            onClick={ this.props.updateLevel.bind( null, currentLevel, currentLevelAllEntities ) }
+                            onClick={ this.props.updateLevelAndBook.bind( null, currentLevel, currentLevelAllEntities, currentBook, currentBookChapters ) }
                         >
                             Update Level "{ currentLevel.name }"
                         </button> : <button
-                            onClick={ this.props.saveLevelAndBook.bind( null, currentLevel, currentLevelAllEntities ) }
+                            onClick={ this.props.saveLevelAndBook.bind( null, currentLevel, currentLevelAllEntities, currentBook, currentBookChapters ) }
                         >
-                            Save Level "{ currentLevel.name }"
+                            Save Book "{ currentBook.name }"
                         </button> }
                     </div>
 

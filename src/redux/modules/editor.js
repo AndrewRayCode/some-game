@@ -253,6 +253,11 @@ export function levelsReducer( levels = {}, action = {} ) {
                 ...action.result.levels
             };
 
+        case SAVE_FAIL:
+
+            console.error( 'Save fail', action );
+            return levels;
+
         case SAVE_SUCCESS:
 
             const oldLevel = levels[ action.result.oldLevelId ];
@@ -345,6 +350,28 @@ export function chaptersReducer( chapters = {}, action = {} ) {
                 }
             };
 
+        // A chapter contains a reference to a level id. We need to update that
+        // id on save, because levelid changes
+        case SAVE_SUCCESS:
+            return Object.keys( chapters ).reduce( ( memo, id ) => {
+
+                if( chapters[ id ].levelId === action.result.oldLevelId ) {
+
+                    memo[ id ] = {
+                        ...chapters[ id ],
+                        levelId: action.result.newLevelId
+                    };
+
+                } else {
+
+                    memo[ id ] = chapters[ id ];
+
+                }
+
+                return memo;
+
+            }, {} );
+
         default:
             return chapters;
 
@@ -388,7 +415,7 @@ export function booksReducer( books = {}, action = {} ) {
             const oldBook = books[ action.result.oldBookId ];
             return {
                 ...without( books, oldBook.id ),
-                [ action.result.id ]: {
+                [ action.result.newBookId ]: {
                     ...oldBook,
                     id: action.result.newBookId,
                     saved: true
@@ -455,6 +482,10 @@ export function editorSelectedBookReducer( state = null, action = {} ) {
         case EDITOR_SELECT_BOOK:
             return action.id;
 
+        // Select the newest id because it will change
+        case SAVE_SUCCESS:
+            return action.result.newBookId;
+
         default:
             return state;
 
@@ -466,8 +497,9 @@ export function editorSelectedLevelReducer( levelId = null, action = {} ) {
 
     switch( action.type ) {
 
+        // Select the newest id because it will change
         case SAVE_SUCCESS:
-            return action.result.id;
+            return action.result.newLevelId;
 
         case CREATE_LEVEL:
         case EDITOR_SELECT_LEVEL:
@@ -487,9 +519,6 @@ export function editorSelectedLevelReducer( levelId = null, action = {} ) {
 export function editorSelectedChapterReducer( chapterId = null, action = {} ) {
 
     switch( action.type ) {
-
-        //case SAVE_SUCCESS:
-            //return action.result.id;
 
         // The chapter id and level id are identical and we auto-select level
         // and chapter on level creation
@@ -654,17 +683,17 @@ export function loadLevels() {
     };
 }
 
-export function saveLevelAndBook( levelData, entities, bookData ) {
+export function saveLevelAndBook( levelData, entities, bookData, chapters ) {
     return {
         types: [ SAVE, SAVE_SUCCESS, SAVE_FAIL ],
-        promise: client => client.post( '/saveLevelAndBook', { data: { levelData, entities, bookData } } )
+        promise: client => client.post( '/saveLevelAndBook', { data: { levelData, entities, bookData, chapters } } )
     };
 }
 
-export function updateLevelAndBook( levelData, entities, bookData ) {
+export function updateLevelAndBook( levelData, entities, bookData, chapters ) {
     return {
         types: [ UPDATE, UPDATE_SUCCESS, UPDATE_FAIL ],
-        promise: client => client.post( '/updateLevelAndBook', { data: { levelData, entities } } )
+        promise: client => client.post( '/updateLevelAndBook', { data: { levelData, entities, bookData, chapters } } )
     };
 }
 

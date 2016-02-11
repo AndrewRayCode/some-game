@@ -1,10 +1,11 @@
 import db from '../../src/db';
+import knex from 'knex';
 
 export function saveLevelAndBook( request ) {
 
     return new Promise( ( resolve, reject ) => {
 
-        const { levelData, entities, bookData } = request.body;
+        const { levelData, entities, bookData, chapters } = request.body;
 
         // Construct the new level object to insert into the db. We manipulate
         // the fields because some fields, like title, are columns in postgres.
@@ -20,77 +21,97 @@ export function saveLevelAndBook( request ) {
         bookData.saved = true;
         const newBook = {
             title: bookTitle,
-            data: bookData
+            data: { bookData, chapters }
         };
 
-        // Insert the new level but we're not done with it yet...
-        return db.insert( newLevel )
-            .into( 'levels' )
-            .returning( 'id' )
-            .then( insertedLevelIds => {
 
-                const id = insertedLevelIds[ 0 ];
+        return db.transaction( transaction =>
 
-                return {
-                    title: name,
-                    data: {
-                        levelData: {
-                            ...levelData,
-                            id
-                        },
-                        entities
-                    }
-                };
+            // Insert the new level but we're not done with it yet...
+            transaction
+                .insert( newLevel )
+                .into( 'levels' )
+                .returning( 'id' )
+                .then( insertedLevelIds => {
 
-            // Update the level json to have the new id hard coded inside it
-            }).then( levelWithUpdatedId =>
+                    const id = insertedLevelIds[ 0 ].toString();
 
-                db( 'levels' )
-                    .where({ id: levelWithUpdatedId.data.id })
-                    .update( levelWithUpdatedId )
-                    .then( () => levelWithUpdatedId )
-
-            // Then insert this book, which contains all the level chapters,
-            // but again we aren't done yet...
-            ).then( levelWithUpdatedId =>
-                   
-                db.insert( bookData )
-                    .into( 'books' )
-                    .returning( 'id' )
-                    .then( insertedBookIds => ({
-                        insertedBookIds, levelWithUpdatedId
-                    }))
-
-            // Grab the latest inserted book id and construct a new book object
-            // with the id copied into it...
-            ).then( continuationData => {
-                 
-                const id = continuationData.insertedBookIds[ 0 ];
-                return {
-                    ...continuationData,
-                    bookWithUpdatedId: {
-                        ...bookData,
+                    return {
+                        ...newLevel,
                         data: {
-                            ...bookData.data,
-                            id
+                            ...newLevel.data,
+                            levelData: {
+                                ...levelData,
+                                id
+                            }
                         }
-                    }
-                };
+                    };
 
-            // Then update the newly inserted book with the latest id
-            }).then( continuationData =>
+                // Update the level json to have the new id hard coded inside it
+                }).then( levelWithUpdatedId =>
 
-                db( 'books' )
-                    .where({ id: continuationData.bookWithUpdatedId.id })
-                    .update( continuationData.bookWithUpdatedId )
-                    .then( () => continuationData )
-                
-            ).then( continuationData => resolve({
-                oldLevelId: levelData.id,
-                oldBookId: bookData.id,
-                newLevelId: continuationData.levelWithUpdatedId.data.id,
-                newBookId: continuationData.bookWithUpdatedId.id,
-            }) ).catch( reject );
+                    db( 'levels' )
+                        .transacting( transaction )
+                        .where({ id: levelWithUpdatedId.data.id })
+                        .update( levelWithUpdatedId )
+                        .then( () => levelWithUpdatedId )
+
+                // Then insert this book, which contains all the level chapters,
+                // but again we aren't done yet...
+                ).then( levelWithUpdatedId =>
+                    
+                    transaction
+                        .insert( newBook )
+                        .into( 'books' )
+                        .returning( 'id' )
+                        .then( insertedBookIds => ({
+                            insertedBookIds, levelWithUpdatedId
+                        }))
+
+                // Grab the latest inserted book id and construct a new book object
+                // with the id copied into it...
+                ).then( continuationData => {
+                    
+                    const id = continuationData.insertedBookIds[ 0 ].toString();
+
+                    return {
+                        ...continuationData,
+                        bookWithUpdatedId: {
+                            ...newBook,
+                            data: {
+                                ...newBook.data,
+                                bookData: {
+                                    ...bookData,
+                                    id
+                                }
+                            }
+                        }
+                    };
+
+                // Then update the newly inserted book with the latest id
+                }).then( continuationData =>
+
+                    db( 'books' )
+                        .transacting( transaction )
+                        .where({ id: continuationData.bookWithUpdatedId.id })
+                        .update( continuationData.bookWithUpdatedId )
+                        .then( () => continuationData )
+
+                ).then( continuationData =>
+
+                    transaction
+                        .commit()
+                        .then( () => continuationData )
+                    
+                ).then( continuationData => resolve({
+                    oldLevelId: levelData.id,
+                    oldBookId: bookData.id,
+                    newLevelId: continuationData.levelWithUpdatedId.data.levelData.id,
+                    newBookId: continuationData.bookWithUpdatedId.data.bookData.id,
+                }) )
+                .catch( transaction.rollback )
+
+        ).catch( reject );
         
     });
 
@@ -100,19 +121,38 @@ export function updateLevelAndBook( request ) {
 
     return new Promise( ( resolve, reject ) => {
 
-        const { levelData, entities } = request.body;
-        const { name } = levelData;
+        const { levelData, entities, bookData, chapters } = request.body;
 
+        const { name: levelName } = levelData;
         const updatedLevel = {
             title: name,
             data: { levelData, entities }
         };
 
-        return db( 'levels' )
-            .where({ id: levelData.id })
-            .update( updatedLevel )
-            .then( resolve )
-            .catch( reject );
+        const { name: bookName } = bookData;
+        const updatedBook = {
+            title: bookName,
+            data: { bookData, chapters }
+        };
+
+        return db.transaction( transaction =>
+
+            db( 'levels' )
+                .transacting( transaction )
+                .where({ id: levelData.id })
+                .update( updatedLevel )
+                .then( () =>
+
+                    db( 'books' )
+                        .transacting( transaction )
+                        .where({ id: bookData.id })
+                        .update( updatedLevel )
+
+                ).then( resolve )
+                .catch( transaction.rollback )
+                .catch( reject )
+
+        );
         
     });
 
