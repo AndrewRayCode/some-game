@@ -81,7 +81,8 @@ function snapTo( number, interval ) {
     state => {
 
         const {
-            levels, books,
+            levels: allLevels,
+            books,
             currentEditorLevel: currentLevelId,
             currentEditorBook: currentBookId,
             currentEditorChapter: currentChapterId,
@@ -102,13 +103,18 @@ function snapTo( number, interval ) {
                 {}
             );
 
+            const currentLevels = chapterIds.reduce(
+                ( memo, id ) => ({ ...memo, [ id ]: allLevels[ allChapters[ id ].levelId ] }),
+                {}
+            );
+
             const allChaptersArray = Object.values( allChapters );
 
             const currentChapter = currentBookChapters[ currentChapterId ];
 
             bookState = {
                 currentBookId, currentChapterId, currentChapter,
-                currentBookChapters, currentBook,
+                currentBookChapters, currentBook, currentLevels
             };
 
         }
@@ -118,7 +124,7 @@ function snapTo( number, interval ) {
         if( currentLevelId ) {
 
             // Levels and entities
-            const currentLevel = levels[ currentLevelId ];
+            const currentLevel = allLevels[ currentLevelId ];
 
             const {
                 currentLevelAllEntities,
@@ -141,9 +147,9 @@ function snapTo( number, interval ) {
 
             // Determine next level data
             const nextLevels = currentLevel.nextLevelIds.map( data => ({
-                level: levels[ data.levelId ],
+                level: allLevels[ data.levelId ],
                 entity: allEntities[ data.entityId ],
-                entities: levels[ data.levelId ].entityIds
+                entities: allLevels[ data.levelId ].entityIds
                     .map( id => allEntities[ id ] )
                     .filter( entity => entity.type !== 'level' )
             }));
@@ -157,12 +163,12 @@ function snapTo( number, interval ) {
             // Determine previous level data. There will be only one of these
             // due to the tree structure nature of level setups, even if we
             // implement physically impossible branching
-            const previousLevelId = Object.values( levels ).find(
+            const previousLevelId = Object.values( allLevels ).find(
                 level => level.nextLevelIds.find(
                     data => data.levelId === currentLevelId
                 )
             );
-            const previousLevelData = previousLevelId && levels[ previousLevelId ];
+            const previousLevelData = previousLevelId && allLevels[ previousLevelId ];
 
             const previousLevelEntityData = previousLevelData && allEntities[
                 previousLevelData.entityIds.find(
@@ -190,7 +196,7 @@ function snapTo( number, interval ) {
                 .filter( entity => entity.type !== 'level' );
 
             levelState = {
-                levels, currentLevel, currentLevelId, currentLevelAllEntities,
+                currentLevel, currentLevelId, currentLevelAllEntities,
                 currentLevelStaticEntities, allEntities, nextLevels,
                 nextLevelsEntitiesArray, previousLevelEntity,
                 previousLevelEntitiesArray,
@@ -200,7 +206,7 @@ function snapTo( number, interval ) {
 
         }
 
-        return { ...bookState, ...levelState, books, levels };
+        return { ...bookState, ...levelState, books, allLevels };
 
     },
     dispatch => bindActionCreators({
@@ -240,7 +246,7 @@ export default class Editor extends Component {
             gridBaseRotation: new THREE.Euler( 0, Math.PI / 2, 0 ),
             gridBaseScale: new THREE.Vector3( 200, 0.00001, 200 ),
 
-            insertLevelId: Object.keys( props.levels || {} )[ 0 ],
+            insertLevelId: Object.keys( props.allLevels || {} )[ 0 ],
             gridPosition: new THREE.Vector3( 0, 0, 0 )
         };
 
@@ -341,9 +347,9 @@ export default class Editor extends Component {
     componentWillReceiveProps( nextProps ) {
 
         // Get the selected level id if levels weren't available on first mount
-        if( nextProps.levels && !this.state.insertLevelId ) {
+        if( nextProps.allLevels && !this.state.insertLevelId ) {
             this.setState({
-                insertLevelId: Object.keys( nextProps.levels )[ 0 ]
+                insertLevelId: Object.keys( nextProps.allLevels )[ 0 ]
             });
         }
 
@@ -772,7 +778,7 @@ export default class Editor extends Component {
             createPreviewScale, createPreviewRotation, createMaterialId
         } = this.state;
 
-        const { currentLevelId, levels } = this.props;
+        const { currentLevelId, allLevels: levels } = this.props;
 
         if( rotateable ) {
 
@@ -861,9 +867,10 @@ export default class Editor extends Component {
     render() {
 
         const {
-            chapters, books, levels, currentLevelId, currentLevel, currentBook,
-            currentLevelAllEntities, currentLevelStaticEntities, nextLevels,
-            nextLevelsEntitiesArray, allEntities, currentLevelAllEntitiesArray,
+            chapters, books, currentLevels, currentLevelId,
+            currentLevel, currentBook, currentLevelAllEntities,
+            currentLevelStaticEntities, nextLevels, nextLevelsEntitiesArray,
+            allEntities, currentLevelAllEntitiesArray,
             currentLevelStaticEntitiesArray, previousLevelEntity,
             previousLevelEntitiesArray, currentBookId, currentBookChapters,
             currentChapterId, currentChapter
@@ -894,10 +901,10 @@ export default class Editor extends Component {
             return <div>
                 No level selected
                 <ul>
-                { ( Object.keys( levels ) || [] ).map( id => {
+                { ( Object.keys( currentLevels ) || [] ).map( id => {
                     return <li key={ id }>
                         <a onClick={ this.props.selectLevel.bind( null, id, id ) }>
-                            { levels[ id ].name }
+                            { currentLevels[ id ].name }
                         </a>
                     </li>;
                 }) }
@@ -1064,7 +1071,7 @@ export default class Editor extends Component {
                         time={ time }
                         position={ new THREE.Vector3( 0, 0, 0 ) }
                         entities={
-                            levels[ this.state.insertLevelId ].entityIds
+                            currentLevels[ this.state.insertLevelId ].entityIds
                                 .map( id => allEntities[ id ] )
                                 .filter( entity => entity.type !== 'level' )
                         }
@@ -1537,12 +1544,12 @@ export default class Editor extends Component {
                             onChange={ this.onLevelCreateChange }
                             value={ this.state.insertLevelId }
                         >
-                            { ( Object.keys( levels ) || [] ).map( id => {
+                            { ( Object.keys( currentLevels ) || [] ).map( id => {
                                 return <option
                                     key={ id }
                                     value={ id }
                                 >
-                                    { levels[ id ].name }
+                                    { currentLevels[ id ].name }
                                 </option>;
                             }) }
                         </select>
@@ -1656,10 +1663,10 @@ export default class Editor extends Component {
                 <br />
                 <b>Levels:</b>
                 <ul>
-                { ( Object.keys( levels ) || [] ).map( id => {
+                { ( Object.keys( currentLevels ) || [] ).map( id => {
                     return <li key={ id }>
                         <a onClick={ this.props.selectLevel.bind( null, id, id ) }>
-                            { levels[ id ].name }
+                            { currentLevels[ id ].name }
                         </a>
                     </li>;
                 }) }
