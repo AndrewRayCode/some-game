@@ -159,3 +159,11 @@ export function loadModel( modelPath, data ) {
     });
 
 }
+
+let counter = 0;
+
+export function uid() {
+
+    return Date.now() + '_' + ( counter++ );
+
+}

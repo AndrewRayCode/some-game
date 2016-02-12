@@ -6,7 +6,7 @@ import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
-    createLevel, selectLevel, selectChapter, saveLevelAndBook,
+    createLevel, selectLevelAndChapter, selectChapter, saveLevelAndBook,
     updateLevelAndBook, deserializeLevels, renameLevel, addNextLevel,
     removeNextBook, insetChapter, changeEntityType, createBook, selectBook,
     renameChapter, renameBook
@@ -103,18 +103,34 @@ function snapTo( number, interval ) {
                 {}
             );
 
-            const currentLevels = chapterIds.reduce(
-                ( memo, id ) => ({ ...memo, [ id ]: allLevels[ allChapters[ id ].levelId ] }),
-                {}
-            );
+            const currentLevels = chapterIds.reduce( ( memo, id ) => ({
+                ...memo, [ id ]: allLevels[ allChapters[ id ].levelId ]
+            }), {} );
 
             const allChaptersArray = Object.values( allChapters );
 
             const currentChapter = currentBookChapters[ currentChapterId ];
 
+            // Find the first chapter for any level, so that when we select a
+            // level, we can easily look up an arbitrary chapter to go with it.
+            // You can't edit/have a level without a chapter.
+            const firstChapterIdsContainingLevel = chapterIds.reduce( ( memo, id ) => {
+
+                const chapter = allChapters[ id ];
+                const { levelId } = chapter;
+
+                if( !( levelId in memo ) ) {
+                    memo[ levelId ] = chapter.id;
+                }
+
+                return memo;
+
+            }, {} );
+
             bookState = {
                 currentBookId, currentChapterId, currentChapter,
-                currentBookChapters, currentBook, currentLevels
+                currentBookChapters, currentBook, currentLevels,
+                firstChapterIdsContainingLevel
             };
 
         }
@@ -214,7 +230,7 @@ function snapTo( number, interval ) {
         changeEntityMaterial, addNextLevel, selectChapter, saveLevelAndBook,
         updateLevelAndBook, deserializeLevels, renameLevel, createLevel,
         renameChapter, renameBook, removeNextBook, insetChapter,
-        changeEntityType, createBook, selectBook, selectLevel
+        changeEntityType, createBook, selectBook, selectLevelAndChapter
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -903,7 +919,7 @@ export default class Editor extends Component {
             allEntities, currentLevelAllEntitiesArray,
             currentLevelStaticEntitiesArray, previousLevelEntity,
             previousLevelEntitiesArray, currentBookId, currentBookChapters,
-            currentChapterId, currentChapter
+            currentChapterId, currentChapter, firstChapterIdsContainingLevel
         } = this.props;
 
         if( !currentBookId ) {
@@ -933,7 +949,7 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( currentLevels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectLevel.bind( null, id, id ) }>
+                        <a onClick={ this.props.selectLevelAndChapter.bind( null, id, firstChapterIdsContainingLevel[ id ] ) }>
                             { currentLevels[ id ].name }
                         </a>
                     </li>;
@@ -1653,7 +1669,7 @@ export default class Editor extends Component {
                         { currentLevel.saved ? <button
                             onClick={ this.props.updateLevelAndBook.bind( null, currentLevel, currentLevelAllEntities, currentBook, currentBookChapters ) }
                         >
-                            Update Level "{ currentLevel.name }"
+                            Update Book "{ currentBook.name }"
                         </button> : <button
                             onClick={ this.props.saveLevelAndBook.bind( null, currentLevel, currentLevelAllEntities, currentBook, currentBookChapters ) }
                         >
@@ -1706,7 +1722,7 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( currentLevels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectLevel.bind( null, id, id ) }>
+                        <a onClick={ this.props.selectLevelAndChapter.bind( null, id, firstChapterIdsContainingLevel[ id ] ) }>
                             { currentLevels[ id ].name }
                         </a>
                     </li>;

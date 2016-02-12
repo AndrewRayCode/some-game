@@ -1,5 +1,5 @@
 import THREE from 'three';
-import { without } from '../../containers/Dung/Utils';
+import { without, uid } from '../../containers/Dung/Utils';
 
 const LOAD = 'redux-example/LEVEL_LOAD';
 const LOAD_SUCCESS = 'redux-example/LEVEL_LOAD_SUCCESS';
@@ -14,12 +14,12 @@ const UPDATE_SUCCESS = 'redux-example/UPDATE_SUCCESS';
 const UPDATE_FAIL = 'redux-example/UPDATE_FAIL';
 
 const ADD_ENTITY = 'dung/ADD_ENTITY';
-const CREATE_LEVEL = 'dung/CREATE_LEVEL';
+const CREATE_LEVEL_AND_CHAPTER = 'dung/CREATE_LEVEL_AND_CHAPTER';
 const ADD_NEXT_LEVEL = 'dung/ADD_NEXT_LEVEL';
 const CHANGE_ENTITY_MATERIAL_ID = 'dung/CHANGE_ENTITY_MATERIAL_ID';
 const CHANGE_ENTITY_TYPE = 'dung/CHANGE_ENTITY_TYPE';
 const DESERIALIZE = 'dung/DESERIALIZE';
-const EDITOR_SELECT_LEVEL = 'dung/EDITOR_SELECT_LEVEL';
+const EDITOR_SELECT_LEVEL_AND_CHAPTER = 'dung/EDITOR_SELECT_LEVEL_AND_CHAPTER';
 const MODIFY_LEVEL = 'dung/MODIFY_LEVEL';
 const MOVE_ENTITY = 'dung/MOVE_ENTITY';
 const REMOVE_ENTITY = 'dung/REMOVE_ENTITY';
@@ -279,11 +279,11 @@ export function levelsReducer( levels = {}, action = {} ) {
                 }
             };
 
-        case CREATE_LEVEL:
+        case CREATE_LEVEL_AND_CHAPTER:
             return {
                 ...levels,
-                [ action.id ]: {
-                    id: action.id,
+                [ action.levelId ]: {
+                    id: action.levelId,
                     name: action.name,
                     entityIds: [],
                     nextLevelIds: []
@@ -343,11 +343,11 @@ export function chaptersReducer( chapters = {}, action = {} ) {
                 }
             };
 
-        case CREATE_LEVEL:
+        case CREATE_LEVEL_AND_CHAPTER:
             return {
                 ...chapters,
-                [ action.id ]: {
-                    id: action.id,
+                [ action.chapterId ]: {
+                    id: action.chapterId,
                     name: 'Chapter for ' + action.name,
                     levelId: action.id,
                     nextChapters: []
@@ -398,12 +398,12 @@ function individualBookReducer( book = {}, action ) {
 
         // Currently level id is just duplicated to chapter id, because they're
         // in different domains
-        case CREATE_LEVEL:
+        case CREATE_LEVEL_AND_CHAPTER:
             return {
                 ...book,
                 chapterIds: [
                     ...book.chapterIds,
-                    action.id
+                    action.chapterId
                 ]
             };
 
@@ -456,7 +456,7 @@ export function booksReducer( books = {}, action = {} ) {
                 }
             };
 
-        case CREATE_LEVEL:
+        case CREATE_LEVEL_AND_CHAPTER:
             return {
                 ...books,
                 [ action.bookId ]: individualBookReducer( books[ action.bookId ], action )
@@ -513,9 +513,9 @@ export function editorSelectedLevelReducer( levelId = null, action = {} ) {
         case SAVE_SUCCESS:
             return action.result.newLevelId;
 
-        case CREATE_LEVEL:
-        case EDITOR_SELECT_LEVEL:
-            return action.id;
+        case CREATE_LEVEL_AND_CHAPTER:
+        case EDITOR_SELECT_LEVEL_AND_CHAPTER:
+            return action.levelId;
 
         // Reset selected level on new book selection
         case EDITOR_SELECT_BOOK:
@@ -533,12 +533,9 @@ export function editorSelectedChapterReducer( chapterId = null, action = {} ) {
 
     switch( action.type ) {
 
-        // The chapter id and level id are identical and we auto-select level
-        // and chapter on level creation
-        case CREATE_LEVEL:
-            return action.id;
-
-        case EDITOR_SELECT_LEVEL:
+        // Auto select the chapter when created with a level
+        case CREATE_LEVEL_AND_CHAPTER:
+        case EDITOR_SELECT_LEVEL_AND_CHAPTER:
             return action.chapterId;
 
         // Reset selected chapter on new book selection
@@ -574,7 +571,7 @@ export function loadLevelsReducer( state = {}, action = {} ) {
 export function createBook( name ) {
     return {
         type: CREATE_BOOK,
-        id: Date.now().toString(),
+        id: uid()
         name
     };
 }
@@ -589,7 +586,7 @@ export function selectBook( id ) {
 export function createChapter( name, levelId ) {
     return {
         type: CREATE_CHAPTER,
-        id: Date.now().toString(),
+        id: uid(),
         levelId, name
     };
 }
@@ -603,23 +600,24 @@ export function selectChapter( id ) {
 
 export function createLevel( name, bookId ) {
     return {
-        type: CREATE_LEVEL,
-        id: Date.now().toString(),
+        type: CREATE_LEVEL_AND_CHAPTER,
+        levelId: uid(),
+        chapterId: uid(),
         bookId, name
     };
 }
 
-export function selectLevel( id, chapterId ) {
+export function selectLevelAndChapter( levelId, chapterId ) {
     return {
-        type: EDITOR_SELECT_LEVEL,
-        id, chapterId
+        type: EDITOR_SELECT_LEVEL_AND_CHAPTER,
+        levelId, chapterId
     };
 }
 
 export function addEntity( levelId, entityType, position, scale, rotation, materialId ) {
     return {
         type: ADD_ENTITY,
-        id: Date.now().toString(),
+        id: uid(),
         levelId, entityType, position, scale, rotation, materialId
     };
 }
@@ -683,7 +681,7 @@ export function addNextLevel( levelId, nextLevelId, position, scale ) {
     return {
         type: ADD_NEXT_LEVEL,
         entityType: 'level',
-        id: Date.now().toString(),
+        id: uid(),
         levelId, nextLevelId, position, scale
     };
 }

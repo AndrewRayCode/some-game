@@ -52,7 +52,7 @@ export function saveLevelAndBook( request ) {
 
                     db( 'levels' )
                         .transacting( transaction )
-                        .where({ id: levelWithUpdatedId.data.id })
+                        .where({ id: levelWithUpdatedId.data.levelData.id })
                         .update( levelWithUpdatedId )
                         .then( () => levelWithUpdatedId )
 
@@ -93,7 +93,7 @@ export function saveLevelAndBook( request ) {
 
                     db( 'books' )
                         .transacting( transaction )
-                        .where({ id: continuationData.bookWithUpdatedId.id })
+                        .where({ id: continuationData.bookWithUpdatedId.data.bookData.id })
                         .update( continuationData.bookWithUpdatedId )
                         .then( () => continuationData )
 
@@ -125,7 +125,7 @@ export function updateLevelAndBook( request ) {
 
         const { name: levelName } = levelData;
         const updatedLevel = {
-            title: name,
+            title: levelName,
             data: { levelData, entities }
         };
 
@@ -146,7 +146,7 @@ export function updateLevelAndBook( request ) {
                     db( 'books' )
                         .transacting( transaction )
                         .where({ id: bookData.id })
-                        .update( updatedLevel )
+                        .update( updatedBook )
 
                 ).then( resolve )
                 .catch( transaction.rollback )
@@ -215,6 +215,7 @@ export function loadAllData( request ) {
 
                 const books = jsonRows.reduce( ( memo, json ) => {
 
+                    console.log(json);
                     const { bookData } = json;
                     memo[ bookData.id ] = bookData;
                     return memo;
