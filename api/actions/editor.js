@@ -1,6 +1,6 @@
 import db from '../../src/db';
 import knex from 'knex';
-import without from '../../src/containers/Dung/Utils';
+import { without } from '../../src/containers/Dung/Utils';
 
 // Level management
 
@@ -90,9 +90,9 @@ export function saveBook( request ) {
 
     return new Promise( ( resolve, reject ) => {
 
-        const { bookData: unsanitizedBookData, entities } = request.body;
+        const { bookData: unsanitizedBookData, chapters } = request.body;
 
-        const newBook = denormalizeBook( unsanitizedBookData, entities );
+        const newBook = denormalizeBook( unsanitizedBookData, chapters );
 
         return db
             .insert( newBook )
@@ -115,10 +115,10 @@ export function updateBook( request ) {
 
     return new Promise( ( resolve, reject ) => {
 
-        const { bookData: unsanitizedBookData, entities } = request.body;
+        const { bookData: unsanitizedBookData, chapters } = request.body;
         const { id } = unsanitizedBookData;
 
-        const updatedBook = denormalizeBook( unsanitizedBookData, entities );
+        const updatedBook = denormalizeBook( unsanitizedBookData, chapters );
 
         return db( 'books' )
             .where({ id })
@@ -143,21 +143,26 @@ export function loadAllData( request ) {
                 // Parse rows from strings in sql to json
                 const jsonRows = levelRows.map( row => ({
                     id: row.id,
-                    ...JSON.parse( row.data )
+                    name: row.title,
+                    data: JSON.parse( row.data )
                 }));
 
                 // Collect all entities by id
-                const allEntities = jsonRows.reduce( ( memo, json ) => ({
+                const allEntities = jsonRows.reduce( ( memo, row ) => ({
                     ...memo,
-                    ...json.entities,
+                    ...row.data.entities,
                 }), {} );
 
-                return jsonRows.reduce( ( memo, json ) => {
+                // Merge the contents of levelData into the top level object
+                return jsonRows.reduce( ( memo, row ) => {
 
-                    const { levelData } = json;
-                    memo.levels[ levelData.id ] = levelData;
-
+                    memo.levels[ row.id ] = {
+                        id: row.id,
+                        name: row.name,
+                        ...row.data.levelData
+                    };
                     return memo;
+
                 }, { levels: {}, entities: allEntities } );
 
             }).then( allLevelData =>
@@ -173,19 +178,24 @@ export function loadAllData( request ) {
                 // Parse rows from strings in sql to json
                 const jsonRows = bookRows.map( row => ({
                     id: row.id,
-                    ...JSON.parse( row.data )
+                    name: row.title,
+                    data: JSON.parse( row.data )
                 }));
 
                 // Normalize books and chapters
-                const chapters = jsonRows.reduce( ( memo, json ) => ({
+                const chapters = jsonRows.reduce( ( memo, row ) => ({
                     ...memo,
-                    ...json.chapters,
+                    ...row.data.chapters,
                 }), {} );
 
-                const books = jsonRows.reduce( ( memo, json ) => {
+                // Merge the contents of bookData into the top level object
+                const books = jsonRows.reduce( ( memo, row ) => {
 
-                    const { bookData } = json;
-                    memo[ bookData.id ] = bookData;
+                    memo[ row.id ] = {
+                        id: row.id,
+                        name: row.name,
+                        ...row.data.bookData
+                    };
                     return memo;
 
                 }, {} );

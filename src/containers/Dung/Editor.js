@@ -103,9 +103,13 @@ function snapTo( number, interval ) {
                 {}
             );
 
-            const currentLevels = chapterIds.reduce( ( memo, id ) => ({
-                ...memo, [ id ]: allLevels[ allChapters[ id ].levelId ]
-            }), {} );
+            const currentLevels = chapterIds.reduce( ( memo, id ) => {
+                const { levelId } = allChapters[ id ];
+                return {
+                    ...memo,
+                    [ levelId ]: allLevels[ levelId ]
+                };
+            }, {} );
 
             const allChaptersArray = Object.values( allChapters );
 
@@ -352,7 +356,7 @@ export default class Editor extends Component {
 
         if( event.target.tagName === 'INPUT' ) {
 
-            this.keysDown = {};
+            this.keysPressed = {};
             this.blurred = true;
             window.removeEventListener( 'keyup', this.onKeyUp );
             window.removeEventListener( 'keyDown', this.onKeyDown );
@@ -1674,7 +1678,7 @@ export default class Editor extends Component {
                         </button> : <button
                             onClick={ this.props.saveLevel.bind( null, currentLevel, currentLevelAllEntities ) }
                         >
-                            Save Level "{ currentLevel.name }"
+                            Save Level "{ currentLevel.name }"{ currentLevel.needsUpdate ? '*' : null }
                         </button> }
 
                         { currentBook.saved ? <button
@@ -1684,7 +1688,7 @@ export default class Editor extends Component {
                         </button> : <button
                             onClick={ this.props.saveBook.bind( null, currentBook, currentBookChapters ) }
                         >
-                            Save Book "{ currentBook.name }"
+                            Save Book "{ currentBook.name }"{ currentBook.needsUpdate ? '*' : null }
                         </button> }
 
                     </div>

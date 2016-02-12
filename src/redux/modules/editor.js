@@ -357,7 +357,7 @@ export function chaptersReducer( chapters = {}, action = {} ) {
                 [ action.chapterId ]: {
                     id: action.chapterId,
                     name: 'Chapter for ' + action.name,
-                    levelId: action.id,
+                    levelId: action.levelId,
                     nextChapters: []
                 }
             };
