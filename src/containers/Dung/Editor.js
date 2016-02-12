@@ -89,17 +89,20 @@ function snapTo( number, interval ) {
             chapters: allChapters,
         } = state;
 
-        const currentBook = books[ currentBookId ];
+        let bookState = {};
 
-        if( currentLevelId ) {
+        // Books and chapters
+        if( currentBookId ) {
 
+            const currentBook = books[ currentBookId ];
             const { chapterIds } = currentBook;
 
-            // Books and chapters
             const currentBookChapters = chapterIds.reduce(
                 ( memo, id ) => ({ ...memo, [ id ]: allChapters[ id ] }),
                 {}
             );
+
+            const allChaptersArray = Object.values( allChapters );
 
             const currentChapter = currentBookChapters[ currentChapterId ];
 
@@ -109,9 +112,15 @@ function snapTo( number, interval ) {
                 )
             ] || {};
 
-            if( !firstChapterContainingLevelId ) {
-                console.error( 'did not find ',currentLevelId, ' in ',currentBookChapters );
-            }
+            bookState = {
+                currentChapterId, currentChapter, currentBookChapters,
+            };
+
+        }
+
+        let levelState = {};
+
+        if( currentLevelId ) {
 
             // Levels and entities
             const currentLevel = levels[ currentLevelId ];
@@ -185,20 +194,18 @@ function snapTo( number, interval ) {
                 .map( id => allEntities[ id ] )
                 .filter( entity => entity.type !== 'level' );
 
-            return {
-                books, currentBook, currentBookId, levels, currentLevel,
-                currentLevelId, currentLevelAllEntities, currentChapterId,
-                currentChapter, currentLevelStaticEntities, allEntities,
-                nextLevels, nextLevelsEntitiesArray, previousLevelEntity,
-                previousLevelEntitiesArray, currentBookChapters,
-                firstChapterContainingLevelId,
+            levelState = {
+                levels, currentLevel, currentLevelId, currentLevelAllEntities,
+                currentLevelStaticEntities, allEntities, nextLevels,
+                nextLevelsEntitiesArray, previousLevelEntity,
+                previousLevelEntitiesArray,
                 currentLevelAllEntitiesArray: Object.values( currentLevelAllEntities ),
                 currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             };
 
         }
 
-        return { currentBook, currentBookId, books, levels, allEntities };
+        return { ...bookState, ...levelState, books, levels };
 
     },
     dispatch => bindActionCreators({
@@ -864,10 +871,8 @@ export default class Editor extends Component {
             nextLevelsEntitiesArray, allEntities, currentLevelAllEntitiesArray,
             currentLevelStaticEntitiesArray, previousLevelEntity,
             previousLevelEntitiesArray, currentBookId, currentBookChapters,
-            currentChapterId, currentChapter, firstChapterContainingLevelId
+            currentChapterId, currentChapter
         } = this.props;
-
-        const firstChapter = firstChapterContainingLevelId || {};
 
         if( !currentBookId ) {
 
@@ -896,7 +901,7 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( levels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectLevel.bind( null, id, firstChapter.id ) }>
+                        <a onClick={ this.props.selectLevel.bind( null, id, id ) }>
                             { levels[ id ].name }
                         </a>
                     </li>;
@@ -1658,7 +1663,7 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( levels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectLevel.bind( null, id, firstChapter.id ) }>
+                        <a onClick={ this.props.selectLevel.bind( null, id, id ) }>
                             { levels[ id ].name }
                         </a>
                     </li>;

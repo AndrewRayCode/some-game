@@ -48,7 +48,6 @@ export default class Dung extends Component {
 
         if( typeof window !== 'undefined' ) {
 
-            console.log( 'LOL', process.ENV );
             window.THREE = THREE;
             this.setState({ isClient: true });
             this.props.loadAsset( require( '../../../assets/houseSF.obj' ), { name: 'house' } );
