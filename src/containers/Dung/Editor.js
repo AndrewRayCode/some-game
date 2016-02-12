@@ -106,14 +106,9 @@ function snapTo( number, interval ) {
 
             const currentChapter = currentBookChapters[ currentChapterId ];
 
-            const firstChapterContainingLevelId = currentBookChapters[
-                chapterIds.find(
-                    id => currentBookChapters[ id ].levelId === currentLevelId
-                )
-            ] || {};
-
             bookState = {
-                currentChapterId, currentChapter, currentBookChapters,
+                currentBookId, currentChapterId, currentChapter,
+                currentBookChapters, currentBook,
             };
 
         }

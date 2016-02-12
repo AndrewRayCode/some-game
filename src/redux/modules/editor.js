@@ -513,6 +513,7 @@ export function editorSelectedLevelReducer( levelId = null, action = {} ) {
 
         // Reset selected level on new book selection
         case EDITOR_SELECT_BOOK:
+        case CREATE_BOOK:
             return null;
 
         default:
@@ -536,6 +537,7 @@ export function editorSelectedChapterReducer( chapterId = null, action = {} ) {
 
         // Reset selected chapter on new book selection
         case EDITOR_SELECT_BOOK:
+        case CREATE_BOOK:
             return null;
 
 
