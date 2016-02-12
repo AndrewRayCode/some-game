@@ -9,7 +9,7 @@ import {
     createLevel, selectLevel, selectChapter, saveLevelAndBook,
     updateLevelAndBook, deserializeLevels, renameLevel, addNextLevel,
     removeNextBook, insetChapter, changeEntityType, createBook, selectBook,
-    renameChapter
+    renameChapter, renameBook
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -213,8 +213,8 @@ function snapTo( number, interval ) {
         addEntity, removeEntity, moveEntity, rotateEntity,
         changeEntityMaterial, addNextLevel, selectChapter, saveLevelAndBook,
         updateLevelAndBook, deserializeLevels, renameLevel, createLevel,
-        renameChapter, removeNextBook, insetChapter, changeEntityType,
-        createBook, selectBook, selectLevel
+        renameChapter, renameBook, removeNextBook, insetChapter,
+        changeEntityType, createBook, selectBook, selectLevel
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -250,6 +250,8 @@ export default class Editor extends Component {
             gridPosition: new THREE.Vector3( 0, 0, 0 )
         };
 
+        this.onInputFocus = this.onInputFocus.bind( this );
+        this.onInputBlur = this.onInputBlur.bind( this );
         this.onKeyDown = this.onKeyDown.bind( this );
         this.onKeyUp = this.onKeyUp.bind( this );
         this._onAnimate = this._onAnimate.bind( this );
@@ -278,6 +280,9 @@ export default class Editor extends Component {
                 this._setUpOrbitControls();
 
             }
+            console.log('binding',this.onInputFocus);
+            window.addEventListener( 'focusin', this.onInputFocus );
+            window.addEventListener( 'focusout', this.onInputBlur );
 
             // This is bad. Fix it later
             setTimeout( () => {
@@ -288,11 +293,53 @@ export default class Editor extends Component {
 
     }
 
+    componentWillUnmount() {
+
+        if( typeof window !== 'undefined' ) {
+
+            window.removeEventListener( 'keydown', this.onKeyDown );
+            window.removeEventListener( 'keyup', this.onKeyUp );
+
+            window.removeEventListener( 'focusin', this.onInputFocus );
+            window.removeEventListener( 'focusout', this.onInputBlur );
+
+            if( this.controls ) {
+                this.controls.removeEventListener('change', this._onOrbitChange);
+            }
+
+        }
+
+    }
+
     componentDidUpdate( prevProps ) {
 
         if( !this.controls && this.props.currentLevelId ) {
 
             this._setUpOrbitControls();
+
+        }
+
+    }
+
+    onInputBlur( event ) {
+
+        if( this.blurred ) {
+
+            window.addEventListener( 'keyup', this.onKeyUp );
+            window.addEventListener( 'keydown', this.onKeyDown );
+
+        }
+
+    }
+
+    onInputFocus( event ) {
+
+        if( event.target.tagName === 'INPUT' ) {
+
+            this.keysDown = {};
+            this.blurred = true;
+            window.removeEventListener( 'keyup', this.onKeyUp );
+            window.removeEventListener( 'keyDown', this.onKeyDown );
 
         }
 
@@ -326,21 +373,6 @@ export default class Editor extends Component {
         this.controls = controls;
 
         this.controls.addEventListener( 'change', this._onOrbitChange );
-
-    }
-
-    componentWillUnmount() {
-
-        if( typeof window !== 'undefined' ) {
-
-            window.removeEventListener( 'keydown', this.onKeyDown );
-            window.removeEventListener( 'keyup', this.onKeyUp );
-
-            if( this.controls ) {
-                this.controls.removeEventListener('change', this._onOrbitChange);
-            }
-
-        }
 
     }
 
@@ -587,7 +619,6 @@ export default class Editor extends Component {
             );
         }
 
-
         this.setState( state );
 
     }
@@ -634,7 +665,6 @@ export default class Editor extends Component {
             x: ( ( event.clientX - bounds.left ) / width ) * 2 - 1,
             y: -( ( event.clientY - bounds.top ) / height ) * 2 + 1
         };
-
 
         raycaster.setFromCamera( mouse, camera );
 
@@ -1591,6 +1621,16 @@ export default class Editor extends Component {
                     [Esc] Return to editor.
 
                     <br />
+                    <b>Book Name</b>
+                    <input
+                        type="text"
+                        value={ currentBook.name }
+                        onChange={ event => this.props.renameBook(
+                            currentBookId, event.target.value
+                        ) }
+                    />
+
+                    <br />
                     <b>Level Name</b>
                     <input
                         type="text"
@@ -1599,6 +1639,7 @@ export default class Editor extends Component {
                             currentLevelId, event.target.value
                         ) }
                     />
+
                     <br />
                     <b>Chapter Name</b>
                     <input

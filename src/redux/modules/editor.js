@@ -275,7 +275,6 @@ export function levelsReducer( levels = {}, action = {} ) {
                 ...levels,
                 [ action.id ]: {
                     ...levels[ action.id ],
-                    id: action.id,
                     [ action.field ]: action.value
                 }
             };
@@ -314,7 +313,6 @@ export function levelsReducer( levels = {}, action = {} ) {
                 memo[ id ] = individualLevelReducer( levels[ id ], action );
                 return memo;
             }, {} );
-
 
         default:
             return levels;
@@ -377,6 +375,15 @@ export function chaptersReducer( chapters = {}, action = {} ) {
                 return memo;
 
             }, {} );
+
+        case MODIFY_CHAPTER:
+            return {
+                ...chapters,
+                [ action.id ]: {
+                    ...chapters[ action.id ],
+                    [ action.field ]: action.value
+                }
+            };
 
         default:
             return chapters;
@@ -471,7 +478,6 @@ export function booksReducer( books = {}, action = {} ) {
                 [ action.nextLevelId ]: individualLevelReducer( books[ action.nextLevelId ], action )
             };
 
-
         default:
             return books;
 
@@ -539,7 +545,6 @@ export function editorSelectedChapterReducer( chapterId = null, action = {} ) {
         case EDITOR_SELECT_BOOK:
         case CREATE_BOOK:
             return null;
-
 
         default:
             return chapterId;
@@ -650,6 +655,24 @@ export function changeEntityMaterial( id, newMaterialId ) {
 export function renameLevel( id, name ) {
     return {
         type: MODIFY_LEVEL,
+        field: 'name',
+        value: name,
+        id
+    };
+}
+
+export function renameBook( id, name ) {
+    return {
+        type: MODIFY_BOOK,
+        field: 'name',
+        value: name,
+        id
+    };
+}
+
+export function renameChapter( id, name ) {
+    return {
+        type: MODIFY_CHAPTER,
         field: 'name',
         value: name,
         id

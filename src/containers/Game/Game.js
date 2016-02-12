@@ -418,6 +418,8 @@ export default class Game extends Component {
         world.gravity.set( 0, 0, 9.8 );
         world.broadphase = new CANNON.NaiveBroadphase();
 
+        this.onInputFocus = this.onInputFocus.bind( this );
+        this.onInputBlur = this.onInputBlur.bind( this );
         this.onWindowBlur = this.onWindowBlur.bind( this );
         this.onKeyDown = this.onKeyDown.bind( this );
         this.onKeyUp = this.onKeyUp.bind( this );
@@ -742,7 +744,6 @@ export default class Game extends Component {
                             return search.id.toString() === key;
                         });
 
-
                         if( entity && ( entity.type !== 'tubebend' && entity.type !== 'tube' ) ) {
                             memo[ key ] = playerContact[ key ];
                         }
@@ -946,7 +947,6 @@ export default class Game extends Component {
                         coolDowns[ key ] = now;
                     }
                     this.wallCoolDowns = Object.assign( {}, this.wallCoolDowns, coolDowns );
-
 
                 }
 
