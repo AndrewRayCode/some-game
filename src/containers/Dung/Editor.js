@@ -297,11 +297,7 @@ export default class Editor extends Component {
             window.addEventListener( 'keydown', this.onKeyDown );
             window.addEventListener( 'keyup', this.onKeyUp );
 
-            if( this.props.currentLevelId ) {
-
-                this._setUpOrbitControls();
-
-            }
+            this._setUpOrbitControls();
 
             window.addEventListener( 'blur', this.onWindowBlur );
             window.addEventListener( 'focusin', this.onInputFocus );
@@ -337,11 +333,7 @@ export default class Editor extends Component {
 
     componentDidUpdate( prevProps ) {
 
-        if( !this.controls && this.props.currentLevelId ) {
-
-            this._setUpOrbitControls();
-
-        }
+        this._setUpOrbitControls();
 
     }
 
@@ -391,19 +383,34 @@ export default class Editor extends Component {
             camera,
         } = this.refs;
 
-        const controls = new OrbitControlsThree( camera, container );
+        if( ( camera && container ) &&
+                 ( camera !== this.currentCamera ||
+                    container !== this.currentContainer )
+            ) {
 
-        controls.rotateSpeed = 1.0;
-        controls.zoomSpeed = 1.2;
-        controls.panSpeed = 0.8;
-        controls.enableZoom = true;
-        controls.enablePan = true;
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.3;
+            if( this.controls ) {
 
-        this.controls = controls;
+                this.controls.removeEventListener( 'change', this._onOrbitChange );
 
-        this.controls.addEventListener( 'change', this._onOrbitChange );
+            }
+            console.log('building');
+
+            const controls = new OrbitControlsThree( camera, container );
+
+            controls.rotateSpeed = 1.0;
+            controls.zoomSpeed = 1.2;
+            controls.panSpeed = 0.8;
+            controls.enableZoom = true;
+            controls.enablePan = true;
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.3;
+            controls.addEventListener( 'change', this._onOrbitChange );
+
+            this.controls = controls;
+            this.currentCamera = camera;
+            this.currentContainer = container;
+
+        }
 
     }
 
@@ -1751,7 +1758,7 @@ export default class Editor extends Component {
                     const { name } = currentLevels[ id ];
                     return <li key={ id }>
                         { id === currentLevelId ?
-                            <b>name</b> :
+                            <b>{ name }</b> :
                             <a onClick={ this.props.selectLevelAndChapter.bind( null, id, firstChapterIdsContainingLevel[ id ] ) }>
                                 { name }
                             </a>
@@ -1772,7 +1779,7 @@ export default class Editor extends Component {
                         const { name } = chapter;
                         return <li key={ id }>
                             { id === currentChapterId ?
-                                <b>name</b> :
+                                <b>{ name }</b> :
                                 <a onClick={ this.props.selectLevelAndChapter.bind( null, chapter.levelId, id ) }>
                                     { name }
                                 </a>
@@ -1792,7 +1799,7 @@ export default class Editor extends Component {
                     const { name } = books[ id ];
                     return <li key={ id }>
                         { id === currentBookId ?
-                            <b>name</b> :
+                            <b>{ name }</b> :
                             <a onClick={ this.props.selectBook.bind( null, id ) }>
                                 { name }
                             </a>
