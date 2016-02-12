@@ -5,13 +5,21 @@ const LOAD = 'redux-example/LEVEL_LOAD';
 const LOAD_SUCCESS = 'redux-example/LEVEL_LOAD_SUCCESS';
 const LOAD_FAIL = 'redux-example/LEVEL_LOAD_FAIL';
 
-const SAVE = 'redux-example/SAVE';
-const SAVE_SUCCESS = 'redux-example/SAVE_SUCCESS';
-const SAVE_FAIL = 'redux-example/SAVE_FAIL';
+const SAVE_LEVEL = 'redux-example/SAVE_LEVEL';
+const SAVE_LEVEL_SUCCESS = 'redux-example/SAVE_LEVEL_SUCCESS';
+const SAVE_LEVEL_FAIL = 'redux-example/SAVE_LEVEL_FAIL';
 
-const UPDATE = 'redux-example/UPDATE';
-const UPDATE_SUCCESS = 'redux-example/UPDATE_SUCCESS';
-const UPDATE_FAIL = 'redux-example/UPDATE_FAIL';
+const SAVE_BOOK = 'redux-example/SAVE_BOOK';
+const SAVE_BOOK_SUCCESS = 'redux-example/SAVE_BOOK_SUCCESS';
+const SAVE_BOOK_FAIL = 'redux-example/SAVE_BOOK_FAIL';
+
+const UPDATE_LEVEL = 'redux-example/UPDATE_LEVEL';
+const UPDATE_LEVEL_SUCCESS = 'redux-example/UPDATE_LEVEL_SUCCESS';
+const UPDATE_LEVEL_FAIL = 'redux-example/UPDATE_LEVEL_FAIL';
+
+const UPDATE_BOOK = 'redux-example/UPDATE_BOOK';
+const UPDATE_BOOK_SUCCESS = 'redux-example/UPDATE_BOOK_SUCCESS';
+const UPDATE_BOOK_FAIL = 'redux-example/UPDATE_BOOK_FAIL';
 
 const ADD_ENTITY = 'dung/ADD_ENTITY';
 const CREATE_LEVEL_AND_CHAPTER = 'dung/CREATE_LEVEL_AND_CHAPTER';
@@ -253,12 +261,12 @@ export function levelsReducer( levels = {}, action = {} ) {
                 ...action.result.levels
             };
 
-        case SAVE_FAIL:
+        case SAVE_LEVEL_FAIL:
 
             console.error( 'Save fail', action );
             return levels;
 
-        case SAVE_SUCCESS:
+        case SAVE_LEVEL_SUCCESS:
 
             const oldLevel = levels[ action.result.oldLevelId ];
             return {
@@ -355,8 +363,8 @@ export function chaptersReducer( chapters = {}, action = {} ) {
             };
 
         // A chapter contains a reference to a level id. We need to update that
-        // id on save, because levelid changes
-        case SAVE_SUCCESS:
+        // id on level save, because levelId changes
+        case SAVE_LEVEL_SUCCESS:
             return Object.keys( chapters ).reduce( ( memo, id ) => {
 
                 if( chapters[ id ].levelId === action.result.oldLevelId ) {
@@ -423,7 +431,7 @@ export function booksReducer( books = {}, action = {} ) {
                 ...action.result.books
             };
 
-        case SAVE_SUCCESS:
+        case SAVE_BOOK_SUCCESS:
 
             const oldBook = books[ action.result.oldBookId ];
             return {
@@ -495,7 +503,7 @@ export function editorSelectedBookReducer( state = null, action = {} ) {
             return action.id;
 
         // Select the newest id because it will change
-        case SAVE_SUCCESS:
+        case SAVE_BOOK_SUCCESS:
             return action.result.newBookId;
 
         default:
@@ -510,7 +518,7 @@ export function editorSelectedLevelReducer( levelId = null, action = {} ) {
     switch( action.type ) {
 
         // Select the newest id because it will change
-        case SAVE_SUCCESS:
+        case SAVE_LEVEL_SUCCESS:
             return action.result.newLevelId;
 
         case CREATE_LEVEL_AND_CHAPTER:
@@ -571,7 +579,7 @@ export function loadLevelsReducer( state = {}, action = {} ) {
 export function createBook( name ) {
     return {
         type: CREATE_BOOK,
-        id: uid()
+        id: uid(),
         name
     };
 }
@@ -712,17 +720,31 @@ export function loadAllData() {
     };
 }
 
-export function saveLevelAndBook( levelData, entities, bookData, chapters ) {
+export function saveLevel( levelData, entities ) {
     return {
-        types: [ SAVE, SAVE_SUCCESS, SAVE_FAIL ],
-        promise: client => client.post( '/saveLevelAndBook', { data: { levelData, entities, bookData, chapters } } )
+        types: [ SAVE_LEVEL, SAVE_LEVEL_SUCCESS, SAVE_LEVEL_FAIL ],
+        promise: client => client.post( '/saveLevel', { data: { levelData, entities } } )
     };
 }
 
-export function updateLevelAndBook( levelData, entities, bookData, chapters ) {
+export function saveBook( bookData, chapters ) {
     return {
-        types: [ UPDATE, UPDATE_SUCCESS, UPDATE_FAIL ],
-        promise: client => client.post( '/updateLevelAndBook', { data: { levelData, entities, bookData, chapters } } )
+        types: [ SAVE_BOOK, SAVE_BOOK_SUCCESS, SAVE_BOOK_FAIL ],
+        promise: client => client.post( '/saveBook', { data: { bookData, chapters } } )
+    };
+}
+
+export function updateLevel( levelData, entities ) {
+    return {
+        types: [ UPDATE_LEVEL, UPDATE_LEVEL_SUCCESS, UPDATE_LEVEL_FAIL ],
+        promise: client => client.post( '/updateLevel', { data: { levelData, entities } } )
+    };
+}
+
+export function updateBook( bookData, chapters ) {
+    return {
+        types: [ UPDATE_BOOK, UPDATE_BOOK_SUCCESS, UPDATE_BOOK_FAIL ],
+        promise: client => client.post( '/updateBook', { data: { bookData, chapters } } )
     };
 }
 

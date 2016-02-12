@@ -1,159 +1,133 @@
 import db from '../../src/db';
 import knex from 'knex';
+import without from '../../src/containers/Dung/Utils';
 
-export function saveLevelAndBook( request ) {
+// Level management
+
+function denormalizeLevel( unsanitizedLevelData, entities ) {
+
+    // Construct the new level object to insert into the db. We manipulate
+    // the fields because some fields, like title, are columns in postgres.
+    const { name: levelTitle } = unsanitizedLevelData;
+
+    // Create the json column data. Make sure we don't duplicate id into json
+    // in postgres, that's only for client side
+    const levelData = {
+        ...without( unsanitizedLevelData, 'id' ),
+        saved: true
+    };
+
+    return {
+        title: levelTitle,
+        data: { levelData, entities }
+    };
+
+}
+
+export function saveLevel( request ) {
 
     return new Promise( ( resolve, reject ) => {
 
-        const { levelData, entities, bookData, chapters } = request.body;
+        const { levelData: unsanitizedLevelData, entities } = request.body;
 
-        // Construct the new level object to insert into the db. We manipulate
-        // the fields because some fields, like title, are columns in postgres.
-        const { name: levelTitle } = levelData;
-        levelData.saved = true;
-        const newLevel = {
-            title: levelTitle,
-            data: { levelData, entities }
-        };
+        const newLevel = denormalizeLevel( unsanitizedLevelData, entities );
 
-        // Same for the book
-        const { name: bookTitle } = bookData;
-        bookData.saved = true;
-        const newBook = {
-            title: bookTitle,
-            data: { bookData, chapters }
-        };
-
-
-        return db.transaction( transaction =>
-
-            // Insert the new level but we're not done with it yet...
-            transaction
-                .insert( newLevel )
-                .into( 'levels' )
-                .returning( 'id' )
-                .then( insertedLevelIds => {
-
-                    const id = insertedLevelIds[ 0 ].toString();
-
-                    return {
-                        ...newLevel,
-                        data: {
-                            ...newLevel.data,
-                            levelData: {
-                                ...levelData,
-                                id
-                            }
-                        }
-                    };
-
-                // Update the level json to have the new id hard coded inside it
-                }).then( levelWithUpdatedId =>
-
-                    db( 'levels' )
-                        .transacting( transaction )
-                        .where({ id: levelWithUpdatedId.data.levelData.id })
-                        .update( levelWithUpdatedId )
-                        .then( () => levelWithUpdatedId )
-
-                // Then insert this book, which contains all the level chapters,
-                // but again we aren't done yet...
-                ).then( levelWithUpdatedId =>
-                    
-                    transaction
-                        .insert( newBook )
-                        .into( 'books' )
-                        .returning( 'id' )
-                        .then( insertedBookIds => ({
-                            insertedBookIds, levelWithUpdatedId
-                        }))
-
-                // Grab the latest inserted book id and construct a new book object
-                // with the id copied into it...
-                ).then( continuationData => {
-                    
-                    const id = continuationData.insertedBookIds[ 0 ].toString();
-
-                    return {
-                        ...continuationData,
-                        bookWithUpdatedId: {
-                            ...newBook,
-                            data: {
-                                ...newBook.data,
-                                bookData: {
-                                    ...bookData,
-                                    id
-                                }
-                            }
-                        }
-                    };
-
-                // Then update the newly inserted book with the latest id
-                }).then( continuationData =>
-
-                    db( 'books' )
-                        .transacting( transaction )
-                        .where({ id: continuationData.bookWithUpdatedId.data.bookData.id })
-                        .update( continuationData.bookWithUpdatedId )
-                        .then( () => continuationData )
-
-                ).then( continuationData =>
-
-                    transaction
-                        .commit()
-                        .then( () => continuationData )
-                    
-                ).then( continuationData => resolve({
-                    oldLevelId: levelData.id,
-                    oldBookId: bookData.id,
-                    newLevelId: continuationData.levelWithUpdatedId.data.levelData.id,
-                    newBookId: continuationData.bookWithUpdatedId.data.bookData.id,
-                }) )
-                .catch( transaction.rollback )
-
-        ).catch( reject );
+        return db
+            .insert( newLevel )
+            .into( 'levels' )
+            .returning( 'id' )
+            .then( insertedLevelIds => resolve({
+                oldLevelId: unsanitizedLevelData.id,
+                newLevelId: insertedLevelIds[ 0 ].toString(),
+            }) )
+            .catch( reject );
         
     });
 
 }
 
-export function updateLevelAndBook( request ) {
+export function updateLevel( request ) {
 
     return new Promise( ( resolve, reject ) => {
 
-        const { levelData, entities, bookData, chapters } = request.body;
+        const { levelData: unsanitizedLevelData, entities } = request.body;
+        const { id } = unsanitizedLevelData;
 
-        const { name: levelName } = levelData;
-        const updatedLevel = {
-            title: levelName,
-            data: { levelData, entities }
-        };
+        const updatedLevel = denormalizeLevel( unsanitizedLevelData, entities );
 
-        const { name: bookName } = bookData;
-        const updatedBook = {
-            title: bookName,
-            data: { bookData, chapters }
-        };
+        return db( 'levels' )
+            .where({ id })
+            .update( updatedLevel )
+            .catch( reject );
 
-        return db.transaction( transaction =>
+    });
 
-            db( 'levels' )
-                .transacting( transaction )
-                .where({ id: levelData.id })
-                .update( updatedLevel )
-                .then( () =>
+}
 
-                    db( 'books' )
-                        .transacting( transaction )
-                        .where({ id: bookData.id })
-                        .update( updatedBook )
+// Book management
 
-                ).then( resolve )
-                .catch( transaction.rollback )
-                .catch( reject )
+function denormalizeBook( unsanitizedBookData, chapters ) {
 
-        );
+    // Construct the new level object to insert into the db. We manipulate
+    // the fields because some fields, like title, are columns in postgres.
+    const { name: bookTitle } = unsanitizedBookData;
+
+    // Create the json column data. Make sure we don't duplicate id into json
+    // in postgres, that's only for client side
+    const bookData = {
+        ...without( unsanitizedBookData, 'id' ),
+        saved: true
+    };
+
+    return {
+        title: bookTitle,
+        data: { bookData, chapters }
+    };
+
+}
+
+export function saveBook( request ) {
+
+    return new Promise( ( resolve, reject ) => {
+
+        const { bookData: unsanitizedBookData, entities } = request.body;
+
+        const newBook = denormalizeBook( unsanitizedBookData, entities );
+
+        return db
+            .insert( newBook )
+            .into( 'books' )
+            .returning( 'id' )
+            .then( insertedBookIds => resolve({
+                oldBookId: unsanitizedBookData.id,
+                newBookId: insertedBookIds[ 0 ].toString(),
+            }) )
+            .catch( error => {
+                console.error( error );
+                reject( error );
+            });
         
+    });
+
+}
+
+export function updateBook( request ) {
+
+    return new Promise( ( resolve, reject ) => {
+
+        const { bookData: unsanitizedBookData, entities } = request.body;
+        const { id } = unsanitizedBookData;
+
+        const updatedBook = denormalizeBook( unsanitizedBookData, entities );
+
+        return db( 'books' )
+            .where({ id })
+            .update( updatedBook )
+            .catch( error => {
+                console.error( error );
+                reject( error );
+            });
+
     });
 
 }
@@ -178,17 +152,6 @@ export function loadAllData( request ) {
                 return jsonRows.reduce( ( memo, json ) => {
 
                     const { levelData } = json;
-
-                    // Old levels will have a nextLevelId key
-                    const hasLegacyId = 'nextLevelId' in levelData;
-                    const nextLevelId = levelData.nextLevelId;
-                    delete levelData.nextLevelId;
-
-                    levelData.nextLevelIds = hasLegacyId ? [{
-                        levelId: nextLevelId,
-                        entityId: levelData.entityIds.find( id => allEntities[ id ].type === 'level' ),
-                    }] : levelData.nextLevelIds || [];
-
                     memo.levels[ levelData.id ] = levelData;
 
                     return memo;
@@ -215,7 +178,6 @@ export function loadAllData( request ) {
 
                 const books = jsonRows.reduce( ( memo, json ) => {
 
-                    console.log(json);
                     const { bookData } = json;
                     memo[ bookData.id ] = bookData;
                     return memo;

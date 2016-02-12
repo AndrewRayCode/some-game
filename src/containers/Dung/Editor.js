@@ -6,10 +6,10 @@ import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
-    createLevel, selectLevelAndChapter, selectChapter, saveLevelAndBook,
-    updateLevelAndBook, deserializeLevels, renameLevel, addNextLevel,
-    removeNextBook, insetChapter, changeEntityType, createBook, selectBook,
-    renameChapter, renameBook
+    createLevel, selectLevelAndChapter, selectChapter, saveLevel,
+    updateLevel, saveBook, updateBook, deserializeLevels, renameLevel,
+    addNextLevel, removeNextBook, insetChapter, changeEntityType, createBook,
+    selectBook, renameChapter, renameBook
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -227,9 +227,9 @@ function snapTo( number, interval ) {
     },
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
-        changeEntityMaterial, addNextLevel, selectChapter, saveLevelAndBook,
-        updateLevelAndBook, deserializeLevels, renameLevel, createLevel,
-        renameChapter, renameBook, removeNextBook, insetChapter,
+        changeEntityMaterial, addNextLevel, selectChapter, saveLevel,
+        updateLevel, saveBook, updateBook, deserializeLevels, renameLevel,
+        createLevel, renameChapter, renameBook, removeNextBook, insetChapter,
         changeEntityType, createBook, selectBook, selectLevelAndChapter
     }, dispatch )
 )
@@ -1666,15 +1666,27 @@ export default class Editor extends Component {
                         ) }
                     />
                     <div>
+
                         { currentLevel.saved ? <button
-                            onClick={ this.props.updateLevelAndBook.bind( null, currentLevel, currentLevelAllEntities, currentBook, currentBookChapters ) }
+                            onClick={ this.props.updateLevel.bind( null, currentLevel, currentLevelAllEntities ) }
+                        >
+                            Update Level "{ currentLevel.name }"
+                        </button> : <button
+                            onClick={ this.props.saveLevel.bind( null, currentLevel, currentLevelAllEntities ) }
+                        >
+                            Save Level "{ currentLevel.name }"
+                        </button> }
+
+                        { currentBook.saved ? <button
+                            onClick={ this.props.updateBook.bind( null, currentBook, currentBookChapters ) }
                         >
                             Update Book "{ currentBook.name }"
                         </button> : <button
-                            onClick={ this.props.saveLevelAndBook.bind( null, currentLevel, currentLevelAllEntities, currentBook, currentBookChapters ) }
+                            onClick={ this.props.saveBook.bind( null, currentBook, currentBookChapters ) }
                         >
                             Save Book "{ currentBook.name }"
                         </button> }
+
                     </div>
 
                 </div>
