@@ -158,16 +158,16 @@ export function updateLevelAndBook( request ) {
 
 }
 
-export function loadLevels( request ) {
+export function loadAllData( request ) {
 
     return new Promise( ( resolve, reject ) => {
 
         return db( 'levels' )
             .select( '*' )
-            .then( results => {
+            .then( levelRows => {
 
                 // Parse rows from strings in sql to json
-                const jsonRows = results.map( row => JSON.parse( row.data ) );
+                const jsonRows = levelRows.map( row => JSON.parse( row.data ) );
 
                 // Collect all entities by id, to do legacy lookup below
                 const allEntities = jsonRows.reduce( ( memo, json ) => ({
@@ -175,7 +175,7 @@ export function loadLevels( request ) {
                     ...json.entities,
                 }), {} );
 
-                resolve( jsonRows.reduce( ( memo, json ) => {
+                return jsonRows.reduce( ( memo, json ) => {
 
                     const { levelData } = json;
 
@@ -192,10 +192,42 @@ export function loadLevels( request ) {
                     memo.levels[ levelData.id ] = levelData;
 
                     return memo;
-                  }, { levels: {}, entities: allEntities } ) );
+                  }, { levels: {}, entities: allEntities } );
+
+            }).then( allLevelData =>
+
+                db( 'books' )
+                    .select( '*' )
+                    .then( bookRows => ({ bookRows, allLevelData }) )
+
+            ).then( continuationData => {
+
+                const { bookRows, allLevelData } = continuationData;
+
+                // Parse rows from strings in sql to json
+                const jsonRows = bookRows.map( row => JSON.parse( row.data ) );
+
+                // Normalize books and chapters
+                const chapters = jsonRows.reduce( ( memo, json ) => ({
+                    ...memo,
+                    ...json.chapters,
+                }), {} );
+
+                const books = jsonRows.reduce( ( memo, json ) => {
+
+                    const { bookData } = json;
+                    memo[ bookData.id ] = bookData;
+                    return memo;
+
+                }, {} );
+
+                resolve({ ...allLevelData, books, chapters });
 
             })
-            .catch( reject );
+            .catch( error => {
+                console.error( error );
+                reject( error );
+            });
         
     });
 

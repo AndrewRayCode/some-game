@@ -4,7 +4,7 @@ import React3 from 'react-three-renderer';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { startGame, endGame } from '../../redux/modules/game';
-import { areLevelsLoaded, loadLevels } from '../../redux/modules/editor';
+import { areLevelsLoaded, loadAllData } from '../../redux/modules/editor';
 import { loadAsset } from '../../redux/modules/assets';
 import connectData from '../../helpers/connectData';
 import THREE from 'three';
@@ -14,7 +14,7 @@ import Game from '../Game/Game';
 function fetchData( getState, dispatch ) {
     const promises = [];
     if( !areLevelsLoaded( getState() ) ) {
-        promises.push( dispatch( loadLevels() ) );
+        promises.push( dispatch( loadAllData() ) );
     }
     return Promise.all( promises );
 }
@@ -48,6 +48,7 @@ export default class Dung extends Component {
 
         if( typeof window !== 'undefined' ) {
 
+            console.log( 'LOL', process.ENV );
             window.THREE = THREE;
             this.setState({ isClient: true });
             this.props.loadAsset( require( '../../../assets/houseSF.obj' ), { name: 'house' } );

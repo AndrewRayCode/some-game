@@ -1,4 +1,4 @@
-export { saveLevelAndBook, loadLevels, updateLevel } from './editor';
+export { saveLevelAndBook, loadAllData, updateLevel } from './editor';
 export loadInfo from './loadInfo';
 export loadAuth from './loadAuth';
 export login from './login';

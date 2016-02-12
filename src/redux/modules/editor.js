@@ -328,6 +328,12 @@ export function chaptersReducer( chapters = {}, action = {} ) {
 
     switch( action.type ) {
 
+        case LOAD_SUCCESS:
+            return {
+                ...chapters,
+                ...action.result.chapters
+            };
+
         case CREATE_CHAPTER:
             return {
                 ...chapters,
@@ -676,10 +682,10 @@ export function deserializeLevels() {
     return { type: DESERIALIZE };
 }
 
-export function loadLevels() {
+export function loadAllData() {
     return {
         types: [ LOAD, LOAD_SUCCESS, LOAD_FAIL ],
-        promise: client => client.get( '/loadLevels' )
+        promise: client => client.get( '/loadAllData' )
     };
 }
 

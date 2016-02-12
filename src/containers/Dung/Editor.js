@@ -107,7 +107,11 @@ function snapTo( number, interval ) {
                 chapterIds.find(
                     id => currentBookChapters[ id ].levelId === currentLevelId
                 )
-            ];
+            ] || {};
+
+            if( !firstChapterContainingLevelId ) {
+                console.error( 'did not find ',currentLevelId, ' in ',currentBookChapters );
+            }
 
             // Levels and entities
             const currentLevel = levels[ currentLevelId ];
@@ -863,6 +867,8 @@ export default class Editor extends Component {
             currentChapterId, currentChapter, firstChapterContainingLevelId
         } = this.props;
 
+        const firstChapter = firstChapterContainingLevelId || {};
+
         if( !currentBookId ) {
 
             return <div>
@@ -890,7 +896,7 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( levels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectLevel.bind( null, id, firstChapterContainingLevelId.id ) }>
+                        <a onClick={ this.props.selectLevel.bind( null, id, firstChapter.id ) }>
                             { levels[ id ].name }
                         </a>
                     </li>;
@@ -1652,7 +1658,7 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( levels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectLevel.bind( null, id, firstChapterContainingLevelId.id ) }>
+                        <a onClick={ this.props.selectLevel.bind( null, id, firstChapter.id ) }>
                             { levels[ id ].name }
                         </a>
                     </li>;
