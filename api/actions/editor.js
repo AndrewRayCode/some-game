@@ -141,9 +141,12 @@ export function loadAllData( request ) {
             .then( levelRows => {
 
                 // Parse rows from strings in sql to json
-                const jsonRows = levelRows.map( row => JSON.parse( row.data ) );
+                const jsonRows = levelRows.map( row => ({
+                    id: row.id,
+                    ...JSON.parse( row.data )
+                }));
 
-                // Collect all entities by id, to do legacy lookup below
+                // Collect all entities by id
                 const allEntities = jsonRows.reduce( ( memo, json ) => ({
                     ...memo,
                     ...json.entities,
@@ -155,7 +158,7 @@ export function loadAllData( request ) {
                     memo.levels[ levelData.id ] = levelData;
 
                     return memo;
-                  }, { levels: {}, entities: allEntities } );
+                }, { levels: {}, entities: allEntities } );
 
             }).then( allLevelData =>
 
@@ -168,7 +171,10 @@ export function loadAllData( request ) {
                 const { bookRows, allLevelData } = continuationData;
 
                 // Parse rows from strings in sql to json
-                const jsonRows = bookRows.map( row => JSON.parse( row.data ) );
+                const jsonRows = bookRows.map( row => ({
+                    id: row.id,
+                    ...JSON.parse( row.data )
+                }));
 
                 // Normalize books and chapters
                 const chapters = jsonRows.reduce( ( memo, json ) => ({
@@ -186,8 +192,7 @@ export function loadAllData( request ) {
 
                 resolve({ ...allLevelData, books, chapters });
 
-            })
-            .catch( error => {
+            }).catch( error => {
                 console.error( error );
                 reject( error );
             });
