@@ -35,9 +35,8 @@ const REMOVE_NEXT_LEVEL = 'dung/REMOVE_NEXT_LEVEL';
 const ROTATE_ENTITY = 'dung/ROTATE_ENTITY';
 
 const INSET_CHAPTER = 'dung/INSET_CHAPTER';
-const CREATE_CHAPTER = 'dung/CREATE_CHAPTER';
+const CREATE_CHAPTER_FROM_LEVEL = 'dung/CREATE_CHAPTER_FROM_LEVEL';
 const MODIFY_CHAPTER = 'dung/MODIFY_CHAPTER';
-const SELECT_CHAPTER = 'dung/SELECT_CHAPTER';
 
 const CREATE_BOOK = 'dung/CREATE_BOOK';
 const MODIFY_BOOK = 'dung/MODIFY_BOOK';
@@ -340,13 +339,13 @@ export function chaptersReducer( chapters = {}, action = {} ) {
                 ...action.result.chapters
             };
 
-        case CREATE_CHAPTER:
+        case CREATE_CHAPTER_FROM_LEVEL:
             return {
                 ...chapters,
-                [ action.id ]: {
-                    id: action.id,
-                    name: action.name,
-                    levelId: action.id,
+                [ action.chapterId ]: {
+                    id: action.chapterId,
+                    name: 'Chapter for ' + action.name,
+                    levelId: action.levelId,
                     nextChapters: []
                 }
             };
@@ -406,6 +405,7 @@ function individualBookReducer( book = {}, action ) {
 
         // Currently level id is just duplicated to chapter id, because they're
         // in different domains
+        case CREATE_CHAPTER_FROM_LEVEL:
         case CREATE_LEVEL_AND_CHAPTER:
             return {
                 ...book,
@@ -464,6 +464,7 @@ export function booksReducer( books = {}, action = {} ) {
                 }
             };
 
+        case CREATE_CHAPTER_FROM_LEVEL:
         case CREATE_LEVEL_AND_CHAPTER:
             return {
                 ...books,
@@ -591,18 +592,11 @@ export function selectBook( id ) {
     };
 }
 
-export function createChapter( name, levelId ) {
+export function createChapterFromLevel( name, levelId, bookId ) {
     return {
-        type: CREATE_CHAPTER,
-        id: uid(),
-        levelId, name
-    };
-}
-
-export function selectChapter( id ) {
-    return {
-        type: SELECT_CHAPTER,
-        id
+        type: CREATE_CHAPTER_FROM_LEVEL,
+        chapterId: uid(),
+        levelId, bookId, name
     };
 }
 

@@ -6,10 +6,10 @@ import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
-    createLevel, selectLevelAndChapter, selectChapter, saveLevel,
-    updateLevel, saveBook, updateBook, deserializeLevels, renameLevel,
-    addNextLevel, removeNextBook, insetChapter, changeEntityType, createBook,
-    selectBook, renameChapter, renameBook
+    createLevel, selectLevelAndChapter, saveLevel, updateLevel, saveBook,
+    updateBook, deserializeLevels, renameLevel, addNextLevel, removeNextBook,
+    insetChapter, changeEntityType, createBook, selectBook, renameChapter,
+    renameBook, createChapterFromLevel
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -231,10 +231,11 @@ function snapTo( number, interval ) {
     },
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
-        changeEntityMaterial, addNextLevel, selectChapter, saveLevel,
+        changeEntityMaterial, addNextLevel, saveLevel,
         updateLevel, saveBook, updateBook, deserializeLevels, renameLevel,
         createLevel, renameChapter, renameBook, removeNextBook, insetChapter,
-        changeEntityType, createBook, selectBook, selectLevelAndChapter
+        changeEntityType, createBook, selectBook, selectLevelAndChapter,
+        createChapterFromLevel
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -270,6 +271,7 @@ export default class Editor extends Component {
             gridPosition: new THREE.Vector3( 0, 0, 0 )
         };
 
+        this.onWindowBlur = this.onWindowBlur.bind( this );
         this.onInputFocus = this.onInputFocus.bind( this );
         this.onInputBlur = this.onInputBlur.bind( this );
         this.onKeyDown = this.onKeyDown.bind( this );
@@ -301,6 +303,7 @@ export default class Editor extends Component {
 
             }
 
+            window.addEventListener( 'blur', this.onWindowBlur );
             window.addEventListener( 'focusin', this.onInputFocus );
             window.addEventListener( 'focusout', this.onInputBlur );
 
@@ -320,6 +323,7 @@ export default class Editor extends Component {
             window.removeEventListener( 'keydown', this.onKeyDown );
             window.removeEventListener( 'keyup', this.onKeyUp );
 
+            window.removeEventListener( 'blur', this.onWindowBlur );
             window.removeEventListener( 'focusin', this.onInputFocus );
             window.removeEventListener( 'focusout', this.onInputBlur );
 
@@ -341,10 +345,17 @@ export default class Editor extends Component {
 
     }
 
+    onWindowBlur( event ) {
+
+        this.keysPressed = {};
+
+    }
+
     onInputBlur( event ) {
 
         if( this.blurred ) {
 
+            this.blurred = false;
             window.addEventListener( 'keyup', this.onKeyUp );
             window.addEventListener( 'keydown', this.onKeyDown );
 
@@ -917,13 +928,13 @@ export default class Editor extends Component {
     render() {
 
         const {
-            chapters, books, currentLevels, currentLevelId,
-            currentLevel, currentBook, currentLevelAllEntities,
-            currentLevelStaticEntities, nextLevels, nextLevelsEntitiesArray,
-            allEntities, currentLevelAllEntitiesArray,
-            currentLevelStaticEntitiesArray, previousLevelEntity,
-            previousLevelEntitiesArray, currentBookId, currentBookChapters,
-            currentChapterId, currentChapter, firstChapterIdsContainingLevel
+            chapters, books, currentLevels, currentLevelId, currentLevel,
+            currentBook, currentLevelAllEntities, currentLevelStaticEntities,
+            nextLevels, nextLevelsEntitiesArray, allEntities,
+            currentLevelAllEntitiesArray, currentLevelStaticEntitiesArray,
+            previousLevelEntity, previousLevelEntitiesArray, currentBookId,
+            currentBookChapters, currentChapterId, currentChapter,
+            firstChapterIdsContainingLevel
         } = this.props;
 
         if( !currentBookId ) {
@@ -1734,13 +1745,17 @@ export default class Editor extends Component {
                 <br />
                 <b>Grid Snap:</b> { gridSnap }
                 <br />
-                <b>Levels:</b>
+                <b>Levels in "{ currentBook.name }":</b>
                 <ul>
                 { ( Object.keys( currentLevels ) || [] ).map( id => {
+                    const { name } = currentLevels[ id ];
                     return <li key={ id }>
-                        <a onClick={ this.props.selectLevelAndChapter.bind( null, id, firstChapterIdsContainingLevel[ id ] ) }>
-                            { currentLevels[ id ].name }
-                        </a>
+                        { id === currentLevelId ?
+                            <b>name</b> :
+                            <a onClick={ this.props.selectLevelAndChapter.bind( null, id, firstChapterIdsContainingLevel[ id ] ) }>
+                                { name }
+                            </a>
+                        }
                     </li>;
                 }) }
                 </ul>
@@ -1749,36 +1764,45 @@ export default class Editor extends Component {
                 </button>
 
                 <br /><br />
+                { currentBookChapters && <div>
+                    <b>Chapters in "{ currentBook.name }":</b>
+                    <ul>
+                    { ( Object.keys( currentBookChapters ) || [] ).map( id => {
+                        const chapter = currentBookChapters[ id ];
+                        const { name } = chapter;
+                        return <li key={ id }>
+                            { id === currentChapterId ?
+                                <b>name</b> :
+                                <a onClick={ this.props.selectLevelAndChapter.bind( null, chapter.levelId, id ) }>
+                                    { name }
+                                </a>
+                            }
+                        </li>;
+                    }) }
+                    </ul>
+                    <button onClick={ this.props.createChapterFromLevel.bind( null, currentLevel.name, currentLevelId, currentBookId ) }>
+                        Create New Chapter From Level
+                    </button>
+                </div> }
+
+                <br /><br />
                 <b>Books:</b>
                 <ul>
                 { ( Object.keys( books ) || [] ).map( id => {
+                    const { name } = books[ id ];
                     return <li key={ id }>
-                        <a onClick={ this.props.selectBook.bind( null, id ) }>
-                            { books[ id ].name }
-                        </a>
+                        { id === currentBookId ?
+                            <b>name</b> :
+                            <a onClick={ this.props.selectBook.bind( null, id ) }>
+                                { name }
+                            </a>
+                        }
                     </li>;
                 }) }
                 </ul>
                 <button onClick={ this.props.createBook.bind( null, 'New Book' ) }>
                     Create Book
                 </button>
-
-                <br /><br />
-                { currentBookChapters && <div>
-                    <b>Chapters:</b>
-                    <ul>
-                    { ( Object.keys( currentBookChapters ) || [] ).map( id => {
-                        return <li key={ id }>
-                            <a onClick={ this.props.selectChapter.bind( null, id ) }>
-                                { currentBookChapters[ id ].name }
-                            </a>
-                        </li>;
-                    }) }
-                    </ul>
-                    <button onClick={ () => alert('todo') }>
-                        Create Chapter
-                    </button>
-                </div> }
 
             </div>
 
