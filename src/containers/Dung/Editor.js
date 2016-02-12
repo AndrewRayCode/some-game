@@ -280,7 +280,7 @@ export default class Editor extends Component {
                 this._setUpOrbitControls();
 
             }
-            console.log('binding',this.onInputFocus);
+
             window.addEventListener( 'focusin', this.onInputFocus );
             window.addEventListener( 'focusout', this.onInputBlur );
 
