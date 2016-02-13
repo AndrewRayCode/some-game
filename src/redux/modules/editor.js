@@ -260,9 +260,10 @@ export function levelsReducer( levels = {}, action = {} ) {
                 ...action.result.levels
             };
 
+        case UPDATE_LEVEL_FAIL:
         case SAVE_LEVEL_FAIL:
 
-            console.error( 'Save fail', action );
+            console.error( 'Levels api fail', action );
             return levels;
 
         case SAVE_LEVEL_SUCCESS:
@@ -430,6 +431,10 @@ export function booksReducer( books = {}, action = {} ) {
                 ...books,
                 ...action.result.books
             };
+
+        case SAVE_BOOK_FAIL:
+            console.error( 'Save error', action );
+            return books;
 
         case SAVE_BOOK_SUCCESS:
 
@@ -740,6 +745,33 @@ export function updateBook( bookData, chapters ) {
         types: [ UPDATE_BOOK, UPDATE_BOOK_SUCCESS, UPDATE_BOOK_FAIL ],
         promise: client => client.post( '/updateBook', { data: { bookData, chapters } } )
     };
+}
+
+export function saveAll( levelData, entities, bookData, chapters ) {
+
+    return ( dispatch, getState, client ) =>
+        dispatch( levelData.saved ?
+            updateLevel( levelData, entities ) :
+            saveLevel( levelData, entities )
+        ).then( () => {
+            // When a level is saved, it gets a new id. All chapters will then
+            // get their levelIds updated. The problem is that the chapters
+            // passed to us are now stale. So get the newest one from updated
+            // state! They will have latest levelId
+            const { chapters: allChapters } = getState();
+            const updatedChapters = Object.keys( chapters ).reduce(
+                ( memo, id ) => ({
+                    ...memo,
+                    [ id ]: allChapters[ id ]
+                }), {}
+            );
+            return dispatch( bookData.saved ?
+                updateBook( bookData, updatedChapters ) :
+                saveBook( bookData, updatedChapters )
+            );
+
+        });
+
 }
 
 export function areLevelsLoaded( globalState ) {
