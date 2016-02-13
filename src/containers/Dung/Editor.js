@@ -152,12 +152,10 @@ function snapTo( number, interval ) {
             } = currentLevel.entityIds.reduce( ( memo, id ) => {
                 const entity = allEntities[ id ];
 
-                if( entity.type === 'level' ) {
-                    memo.currentLevelAllEntities[ id ] = entity;
-                } else {
-                    memo.currentLevelAllEntities[ id ] = entity;
+                if( entity.type !== 'level' ) {
                     memo.currentLevelStaticEntities[ id ] = entity;
                 }
+                memo.currentLevelAllEntities[ id ] = entity;
 
                 return memo;
             }, {
@@ -491,7 +489,7 @@ export default class Editor extends Component {
 
             } else if( KeyCodes.L in keys ) {
 
-                createType = 'level';
+                createType = 'chapter';
                  
             }
 
@@ -772,7 +770,7 @@ export default class Editor extends Component {
                 snapTo( point.x, gridSnap ),
                 snapTo( point.y, gridSnap ),
                 snapTo( point.z, gridSnap )
-            ).addScalar( this.state.createType === 'level' ? 0 : -gridSnap / 2 );
+            ).addScalar( this.state.createType === 'chapter' ? 0 : -gridSnap / 2 );
 
             if( this.state.dragCreating ) {
 
@@ -859,7 +857,7 @@ export default class Editor extends Component {
 
         if( dragCreating ) {
 
-            if( createType === 'level' ) {
+            if( createType === 'chapter' ) {
 
                 this.props.addNextLevel(
                     currentLevelId, this.state.insertChapterId,
@@ -1120,7 +1118,7 @@ export default class Editor extends Component {
                     radius={ 0.5 }
                 />;
 
-            } else if( createType === 'level' ) {
+            } else if( createType === 'chapter' ) {
 
                 previewObject = <group
                     position={ createPreviewPosition }
@@ -1608,22 +1606,22 @@ export default class Editor extends Component {
                             House
                         </button>
                         <br />
-                        [L] { createType === 'level' && '✓' }
+                        [L] { createType === 'chapter' && '✓' }
                         <select
                             onChange={ this.onChapterCreateChange }
                             value={ this.state.insertChapterId }
                         >
-                            { ( Object.keys( currentLevels ) || [] ).map( id => {
+                            { ( Object.keys( currentChapters ) || [] ).map( id => {
                                 return <option
                                     key={ id }
                                     value={ id }
                                 >
-                                    { currentLevels[ id ].name }
+                                    { currentChapters[ id ].name }
                                 </option>;
                             }) }
                         </select>
-                        <button onClick={ this.selectType( 'level' ) }>
-                            Level
+                        <button onClick={ this.selectType( 'chapter' ) }>
+                            Chapter
                         </button>
 
                         { ( createType === 'wall' || createType === 'floor' ) && <div>
@@ -1688,19 +1686,16 @@ export default class Editor extends Component {
                             currentChapterId, event.target.value
                         ) }
                     />
-                    <div>
 
-                        <button
-                            onClick={
-                                this.props.saveAll.bind(
-                                    null, currentLevel, currentLevelAllEntities, currentBook, currentChapters
-                                )
-                            }
-                        >
-                            Save Level and Book
-                        </button>
-
-                    </div>
+                    <button
+                        onClick={
+                            this.props.saveAll.bind(
+                                null, currentLevel, currentLevelAllEntities, currentBook, currentChapters
+                            )
+                        }
+                    >
+                        Save Level and Book
+                    </button>
 
                 </div>
 
