@@ -22,8 +22,6 @@ const UPDATE_BOOK_SUCCESS = 'redux-example/UPDATE_BOOK_SUCCESS';
 const UPDATE_BOOK_FAIL = 'redux-example/UPDATE_BOOK_FAIL';
 
 const ADD_ENTITY = 'dung/ADD_ENTITY';
-const CREATE_LEVEL_AND_CHAPTER = 'dung/CREATE_LEVEL_AND_CHAPTER';
-const ADD_NEXT_LEVEL = 'dung/ADD_NEXT_LEVEL';
 const CHANGE_ENTITY_MATERIAL_ID = 'dung/CHANGE_ENTITY_MATERIAL_ID';
 const CHANGE_ENTITY_TYPE = 'dung/CHANGE_ENTITY_TYPE';
 const DESERIALIZE = 'dung/DESERIALIZE';
@@ -31,12 +29,14 @@ const EDITOR_SELECT_LEVEL_AND_CHAPTER = 'dung/EDITOR_SELECT_LEVEL_AND_CHAPTER';
 const MODIFY_LEVEL = 'dung/MODIFY_LEVEL';
 const MOVE_ENTITY = 'dung/MOVE_ENTITY';
 const REMOVE_ENTITY = 'dung/REMOVE_ENTITY';
-const REMOVE_NEXT_LEVEL = 'dung/REMOVE_NEXT_LEVEL';
+const REMOVE_NEXT_CHAPTER = 'dung/REMOVE_NEXT_CHAPTER';
 const ROTATE_ENTITY = 'dung/ROTATE_ENTITY';
 
 const INSET_CHAPTER = 'dung/INSET_CHAPTER';
 const CREATE_CHAPTER_FROM_LEVEL = 'dung/CREATE_CHAPTER_FROM_LEVEL';
 const MODIFY_CHAPTER = 'dung/MODIFY_CHAPTER';
+const CREATE_LEVEL_AND_CHAPTER = 'dung/CREATE_LEVEL_AND_CHAPTER';
+const ADD_NEXT_CHAPTER = 'dung/ADD_NEXT_CHAPTER';
 
 const CREATE_BOOK = 'dung/CREATE_BOOK';
 const MODIFY_BOOK = 'dung/MODIFY_BOOK';
@@ -90,13 +90,6 @@ function entityPropertyReducer( entity, action ) {
                 )
             };
 
-        case INSET_CHAPTER:
-            return {
-                ...entity,
-                position: action.position,
-                scale: action.scale
-            };
-
         case DESERIALIZE:
             return {
                 ...entity,
@@ -127,7 +120,6 @@ export function entitiesReducer( entities = {}, action = {} ) {
                 ...action.result.entities
             };
 
-        case ADD_NEXT_LEVEL:
         case ADD_ENTITY:
 
             return {
@@ -141,10 +133,6 @@ export function entitiesReducer( entities = {}, action = {} ) {
                     materialId: action.materialId
                 }
             };
-
-        case REMOVE_NEXT_LEVEL:
-
-            return without( entities, action.nextLevelEntityId );
 
         case REMOVE_ENTITY:
 
@@ -160,12 +148,6 @@ export function entitiesReducer( entities = {}, action = {} ) {
                 [ action.id ]: entityPropertyReducer( entities[ action.id ], action )
             };
 
-        case INSET_CHAPTER:
-            return {
-                ...entities,
-                [ action.nextLevelEntityId ]: entityPropertyReducer( entities[ action.nextLevelEntityId ], action )
-            };
-
         case DESERIALIZE:
             return Object.keys( entities ).reduce( ( memo, id ) => {
                 memo[ id ] = entityPropertyReducer( entities[ id ], action );
@@ -179,32 +161,14 @@ export function entitiesReducer( entities = {}, action = {} ) {
 
 }
 
-function removeNextLevelFrom( level, nextLevelId ) {
-
-    const nextData = level.nextLevels.find( data => data.levelid === nextLevelId );
-
-    return {
-        ...level,
-        entityIds: level.entityIds.filter( id => id !== nextData.entityId ),
-        nextLevelIds: level.nextLevelIds.filter( data => data.levelId !== nextLevelId )
-    };
-
-}
+/**
+ * Levels
+ */
 
 // Private reducer, only modifies levels. state will be an individual level
 function individualLevelReducer( level, action ) {
 
     switch( action.type ) {
-
-        case ADD_NEXT_LEVEL:
-            return {
-                ...level,
-                nextLevelIds: [ ...level.nextLevelIds, {
-                    levelId: action.nextLevelId,
-                    entityId: action.id,
-                } ],
-                entityIds: [ ...level.entityIds, action.id ]
-            };
 
         case ADD_ENTITY:
             return {
@@ -212,26 +176,10 @@ function individualLevelReducer( level, action ) {
                 entityIds: [ ...level.entityIds, action.id ]
             };
 
-        case REMOVE_NEXT_LEVEL:
-            return removeNextLevelFrom( level, action.nextLevelId, action.nextLevelEntityId );
-
         case REMOVE_ENTITY:
             return {
                 ...level,
                 entityIds: level.entityIds.filter( id => id !== action.id )
-            };
-
-        case INSET_CHAPTER:
-            return {
-                ...level,
-                nextLevelIds: [ ...level.nextLevelIds, {
-                    levelId: action.currentLevelId,
-                    entityId: action.nextLevelEntityId,
-                }],
-                entityIds: [
-                    ...level.entityIds.filter( id => id !== action.previousLevelNextLevelEntityIdIfAny ),
-                    action.nextLevelEntityId
-                ]
             };
 
         case DESERIALIZE:
@@ -293,27 +241,15 @@ export function levelsReducer( levels = {}, action = {} ) {
                 [ action.levelId ]: {
                     id: action.levelId,
                     name: action.name,
-                    entityIds: [],
-                    nextLevelIds: []
+                    entityIds: []
                 }
             };
 
-        case REMOVE_NEXT_LEVEL:
-        case ADD_NEXT_LEVEL:
         case REMOVE_ENTITY:
         case ADD_ENTITY:
             return {
                 ...levels,
                 [ action.levelId ]: individualLevelReducer( levels[ action.levelId ], action )
-            };
-
-        case INSET_CHAPTER:
-            return {
-                ...levels,
-                // remove the next level (the one we're insetting) from the
-                // curent level
-                [ action.currentLevelId ]: removeNextLevelFrom( levels[ action.currentLevelId ], action.previousLevelNextLevelEntityIdIfAny, action.nextLevelEntityId ),
-                [ action.nextLevelId ]: individualLevelReducer( levels[ action.nextLevelId ], action )
             };
 
         case DESERIALIZE:
@@ -329,6 +265,47 @@ export function levelsReducer( levels = {}, action = {} ) {
 
 }
 
+/**
+ * Chapters
+ */
+
+function removeNextChapterFrom( chapter, nextChapterId ) {
+
+    return {
+        ...chapter,
+        nextChapters: chapter.nextChapters.filter( data => data.chapterId !== nextChapterId )
+    };
+
+}
+
+function individualChapterReducer( chapter, action ) {
+
+    switch( action.type ) {
+
+        case INSET_CHAPTER:
+        case ADD_NEXT_CHAPTER:
+            return {
+                ...chapter,
+                nextChapters: [
+                    ...chapter.nextChapters,
+                    {
+                        chapterId: action.nextChapterId,
+                        position: action.position,
+                        scale: action.scale
+                    }
+                ]
+            };
+
+        case REMOVE_NEXT_CHAPTER:
+            return removeNextChapterFrom( chapter, action.nextChapterId );
+
+        default:
+            return chapter;
+
+    }
+
+}
+
 // Handle all normalized chapters. chapters is a key value hash of all chapters
 export function chaptersReducer( chapters = {}, action = {} ) {
 
@@ -338,6 +315,14 @@ export function chaptersReducer( chapters = {}, action = {} ) {
             return {
                 ...chapters,
                 ...action.result.chapters
+            };
+
+        case INSET_CHAPTER:
+        case ADD_NEXT_CHAPTER:
+        case REMOVE_NEXT_CHAPTER:
+            return {
+                ...chapters,
+                [ action.chapterId ]: individualChapterReducer( chapters[ action.chapterId ], action ),
             };
 
         case CREATE_CHAPTER_FROM_LEVEL:
@@ -399,6 +384,10 @@ export function chaptersReducer( chapters = {}, action = {} ) {
     }
 
 }
+
+/**
+ * Books
+ */
 
 function individualBookReducer( book = {}, action ) {
 
@@ -476,21 +465,22 @@ export function booksReducer( books = {}, action = {} ) {
                 [ action.bookId ]: individualBookReducer( books[ action.bookId ], action )
             };
 
-        case REMOVE_NEXT_LEVEL:
-        case ADD_NEXT_LEVEL:
+        case REMOVE_NEXT_CHAPTER:
+        case ADD_NEXT_CHAPTER:
             return {
                 ...books,
                 [ action.bookId ]: individualBookReducer( books[ action.bookId ], action )
             };
 
-        case INSET_CHAPTER:
-            return {
-                ...books,
-                // remove the next level (the one we're insetting) from the
-                // curent level
-                [ action.currentLevelId ]: removeNextLevelFrom( books[ action.currentLevelId ], action.previousLevelNextLevelEntityIdIfAny, action.nextLevelEntityId ),
-                [ action.nextLevelId ]: individualLevelReducer( books[ action.nextLevelId ], action )
-            };
+        // TODO
+        //case INSET_CHAPTER:
+            //return {
+                //...books,
+                //// remove the next level (the one we're insetting) from the
+                //// curent level
+                //[ action.currentLevelId ]: removeNextChapterFrom( books[ action.currentLevelId ], action.previousLevelNextLevelEntityIdIfAny, action.nextLevelEntityId ),
+                //[ action.nextChapterId ]: individualLevelReducer( books[ action.nextChapterId ], action )
+            //};
 
         default:
             return books;
@@ -498,6 +488,10 @@ export function booksReducer( books = {}, action = {} ) {
     }
 
 }
+
+/**
+ * Selected things
+ */
 
 export function editorSelectedBookReducer( state = null, action = {} ) {
 
@@ -684,28 +678,28 @@ export function renameChapter( id, name ) {
     };
 }
 
-export function addNextLevel( levelId, nextLevelId, position, scale ) {
+export function addNextChapter( chapterId, nextChapterId, position, scale ) {
     return {
-        type: ADD_NEXT_LEVEL,
-        entityType: 'level',
+        type: ADD_NEXT_CHAPTER,
         id: uid(),
-        levelId, nextLevelId, position, scale
+        chapterId, nextChapterId, position, scale
     };
 }
 
-export function insetChapter( currentLevelId, nextLevelId, nextLevelEntityId, previousLevelNextLevelEntityIdIfAny, position, scale ) {
+export function removeNextChapter( chapterId, nextChapterId ) {
     return {
-        type: INSET_CHAPTER,
-        currentLevelId, nextLevelId, nextLevelEntityId,
-        previousLevelNextLevelEntityIdIfAny, position, scale
+        type: REMOVE_NEXT_CHAPTER,
+        chapterId, nextChapterId
     };
 }
 
-export function removeNextBook( levelId, nextLevelId, nextLevelEntityId ) {
-    return {
-        type: REMOVE_NEXT_LEVEL,
-        levelId, nextLevelId, nextLevelEntityId
-    };
+export function insetChapter( nextChapterId, nextLevelEntityId, previousLevelNextLevelEntityIdIfAny, position, scale ) {
+    alert('todo');
+    return {};
+        //type: INSET_CHAPTER,
+        //currentLevelId, nextChapterId, nextLevelEntityId,
+        //previousLevelNextLevelEntityIdIfAny, position, scale
+    //};
 }
 
 export function deserializeLevels() {

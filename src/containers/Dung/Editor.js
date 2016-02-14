@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
     createLevel, selectLevelAndChapter, saveLevel, updateLevel, saveBook,
-    updateBook, deserializeLevels, renameLevel, addNextLevel, removeNextBook,
+    updateBook, deserializeLevels, renameLevel, addNextChapter, removeNextChapter,
     insetChapter, changeEntityType, createBook, selectBook, renameChapter,
     renameBook, createChapterFromLevel, saveAll
 } from '../../redux/modules/editor';
@@ -111,9 +111,8 @@ function snapTo( number, interval ) {
                 };
             }, {} );
 
-            const allChaptersArray = Object.values( allChapters );
-
             const currentChapter = currentChapters[ currentChapterId ];
+            const nextChapters = currentChapter.nextChapters;
 
             // Find the first chapter for any level, so that when we select a
             // level, we can easily look up an arbitrary chapter to go with it.
@@ -134,91 +133,77 @@ function snapTo( number, interval ) {
             bookState = {
                 currentBookId, currentChapterId, currentChapter,
                 currentChapters, currentBook, currentLevels,
-                firstChapterIdsContainingLevel
+                firstChapterIdsContainingLevel, nextChapters
             };
 
         }
 
+        // Levels and entities. Note a selected level implies a selected
+        // chapter
         let levelState = {};
 
         if( currentLevelId ) {
 
-            // Levels and entities
             const currentLevel = allLevels[ currentLevelId ];
 
-            const {
-                currentLevelAllEntities,
-                currentLevelStaticEntities,
-            } = currentLevel.entityIds.reduce( ( memo, id ) => {
-                const entity = allEntities[ id ];
+            const currentLevelStaticEntities = currentLevel.entityIds.reduce(
+                ( memo, id ) => ({
+                    ...memo,
+                    [ id ]: allEntities[ id ]
+                })
+            );
 
-                if( entity.type !== 'level' ) {
-                    memo.currentLevelStaticEntities[ id ] = entity;
-                }
-                memo.currentLevelAllEntities[ id ] = entity;
-
-                return memo;
-            }, {
-                currentLevelAllEntities: {},
-                currentLevelStaticEntities: {}
-            });
-
-            // Determine next level data
-            const nextLevels = currentLevel.nextLevelIds.map( data => ({
-                level: allLevels[ data.levelId ],
-                entity: allEntities[ data.entityId ],
-                entities: allLevels[ data.levelId ].entityIds
-                    .map( id => allEntities[ id ] )
-                    .filter( entity => entity.type !== 'level' )
-            }));
-
-            // Build all the next level entities. It's all next level entities
-            // combined together
-            const nextLevelsEntitiesArray = nextLevels.reduce( ( memo, data ) => {
-                return memo.concat( data.level.entities );
-            }, [] );
-
-            // Determine previous level data. There will be only one of these
-            // due to the tree structure nature of level setups, even if we
-            // implement physically impossible branching
-            const previousLevelId = Object.values( allLevels ).find(
-                level => level.nextLevelIds.find(
-                    data => data.levelId === currentLevelId
+            const previousChapter = bookState.currentChapters.find(
+                chapter => chapter.nextChapters.some(
+                    data => data.chapterId === bookState.currentChapterId
                 )
             );
-            const previousLevelData = previousLevelId && allLevels[ previousLevelId ];
 
-            const previousLevelEntityData = previousLevelData && allEntities[
-                previousLevelData.entityIds.find(
-                    id => allEntities[ id ].type === 'level'
-                )
-            ];
+            let previousChapterEntities;
+            let previousChapterEntity;
 
-            const isPreviousLevelBigger = previousLevelData &&
-                previousLevelEntityData.scale.x > 1;
-            const multiplier = isPreviousLevelBigger ? 0.125 : 8;
-            const previousLevelEntity = previousLevelData && {
-                level: previousLevelData,
-                ...previousLevelEntityData,
-                scale: new THREE.Vector3( multiplier, multiplier, multiplier ),
-                position: previousLevelEntityData.position
-                    .clone()
-                    .multiply(
-                        new THREE.Vector3( -multiplier, multiplier, -multiplier )
-                    )
-                    .setY( isPreviousLevelBigger ? 0.875 : -7 )
-            };
+            if( previousChapter ) {
 
-            const previousLevelEntitiesArray = previousLevelData && previousLevelData.entityIds
-                .map( id => allEntities[ id ] )
-                .filter( entity => entity.type !== 'level' );
+                const previousLevel = allLevels[ previousChapter.levelId ];
+                previousChapterEntities = previousLevel.entityIds.map(
+                    id => allEntities[ id ]
+                );
+
+                const isPreviousChapterBigger = previousChapter.scale.x > 1;
+                const multiplier = isPreviousChapterBigger ? 0.125 : 8;
+
+                previousChapterEntity = {
+                    scale: new THREE.Vector3(
+                        multiplier, multiplier, multiplier
+                    ),
+                    position: previousChapter.position
+                        .clone()
+                        .multiply(
+                            new THREE.Vector3( -multiplier, multiplier, -multiplier )
+                        )
+                        .setY( isPreviousChapterBigger ? 0.875 : -7 )
+                };
+
+            }
+
+            // Index all next chapter entities by chapter id
+            let nextChaptersEntities;
+            if( bookState.nextChapters.length ) {
+                nextChaptersEntities = bookState.nextChapters.reduce(
+                    ( memo, chapter ) => ({
+                        ...memo,
+                        [ chapter.id ]: allLevels[ chapter.levelId ].entityIds.map(
+                            id => allEntities[ id ]
+                        )
+                    }),
+                    {}
+                );
+            }
 
             levelState = {
-                currentLevel, currentLevelId, currentLevelAllEntities,
-                currentLevelStaticEntities, allEntities, nextLevels,
-                nextLevelsEntitiesArray, previousLevelEntity,
-                previousLevelEntitiesArray,
-                currentLevelAllEntitiesArray: Object.values( currentLevelAllEntities ),
+                currentLevel, currentLevelId, currentLevelStaticEntities,
+                allEntities, previousChapter, nextChaptersEntities,
+                previousChapterEntities, previousChapterEntity,
                 currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             };
 
@@ -229,9 +214,9 @@ function snapTo( number, interval ) {
     },
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
-        changeEntityMaterial, addNextLevel, saveLevel,
+        changeEntityMaterial, addNextChapter, saveLevel,
         updateLevel, saveBook, updateBook, deserializeLevels, renameLevel,
-        createLevel, renameChapter, renameBook, removeNextBook, insetChapter,
+        createLevel, renameChapter, renameBook, removeNextChapter, insetChapter,
         changeEntityType, createBook, selectBook, selectLevelAndChapter,
         createChapterFromLevel, saveAll
     }, dispatch )
@@ -678,8 +663,8 @@ export default class Editor extends Component {
     onMouseMove( event ) {
         
         const {
-            currentLevelId, currentLevel, nextLevels, nextLevelsEntitiesArray,
-            previousLevelEntity,
+            currentLevelId, currentLevel, nextChapters,
+            previousChapterEntity,
         } = this.props;
 
         if( !currentLevelId ) {
@@ -744,15 +729,15 @@ export default class Editor extends Component {
 
             // Did the object we clicked on appear inside our next level ref?
             // if so, set selected object to the next level entity
-            objectUnderCursorId = nextLevels.find( data =>
-                objectIntersection.parent === this.refs[ `nextLevel${ data.level.id }` ].refs.group
+            objectUnderCursorId = nextChapters.find( chapter =>
+                objectIntersection.parent === this.refs[ `nextChapter${ chapter.id }` ].refs.group
             ) || objectUnderCursorId;
 
-            if( previousLevelEntity &&
-                    objectIntersection.parent === this.refs.previousLevel.refs.group
-                ) {
-                objectUnderCursorId = previousLevelEntity.id;
-            }
+            //if( previousChapter &&
+                    //objectIntersection.parent === this.refs.previousLevel.refs.group
+                //) {
+                //objectUnderCursorId = previousChapterEntity.id;
+            //}
 
             this.setState({ objectUnderCursorId });
 
@@ -859,7 +844,7 @@ export default class Editor extends Component {
 
             if( createType === 'chapter' ) {
 
-                this.props.addNextLevel(
+                this.props.addNextChapter(
                     currentLevelId, this.state.insertChapterId,
                     createPreviewPosition, createPreviewScale
                 );
@@ -936,11 +921,11 @@ export default class Editor extends Component {
         const {
             chapters, books, currentLevels, currentLevelId, currentLevel,
             currentBook, currentLevelAllEntities, currentLevelStaticEntities,
-            nextLevels, nextLevelsEntitiesArray, allEntities,
-            currentLevelAllEntitiesArray, currentLevelStaticEntitiesArray,
-            previousLevelEntity, previousLevelEntitiesArray, currentBookId,
+            nextLevels, allEntities, currentLevelStaticEntitiesArray,
+            previousLevelEntitiesArray, currentBookId, nextChaptersEntities,
             currentChapters, currentChapterId, currentChapter,
-            firstChapterIdsContainingLevel
+            firstChapterIdsContainingLevel, previousChapterEntities,
+            previousChapterEntity, previousChapter, nextChapters
         } = this.props;
 
         if( !currentBookId ) {
@@ -1140,7 +1125,6 @@ export default class Editor extends Component {
                         entities={
                             currentLevels[ currentChapters[ this.state.insertChapterId ].levelId ].entityIds
                                 .map( id => allEntities[ id ] )
-                                .filter( entity => entity.type !== 'level' )
                         }
                     />
                 </group>;
@@ -1410,22 +1394,22 @@ export default class Editor extends Component {
                                 time={ time }
                             />
 
-                            { nextLevels.map( data => <StaticEntities
-                                key={ data.level.id }
-                                ref={ `nextLevel${ data.level.id }` }
+                            { nextChapters.map( chapter => <StaticEntities
+                                key={ chapter.id }
+                                ref={ `nextChapter${ chapter.id }` }
                                 store={ this.context.store }
-                                position={ data.entity.position }
-                                scale={ data.entity.scale }
-                                entities={ data.entities }
+                                position={ chapter.position }
+                                scale={ chapter.scale }
+                                entities={ nextChaptersEntities[ chapter.id ] }
                                 time={ time }
                             /> )}
 
-                            { previousLevelEntity && <StaticEntities
+                            { previousChapter && <StaticEntities
                                 ref="previousLevel"
-                                position={ previousLevelEntity.position }
+                                position={ previousChapterEntity.position }
                                 store={ this.context.store }
-                                scale={ previousLevelEntity.scale }
-                                entities={ previousLevelEntitiesArray }
+                                scale={ previousChapterEntity.scale }
+                                entities={ previousChapterEntities }
                                 time={ time }
                                 opacity={ 0.5 }
                             /> }
@@ -1705,8 +1689,8 @@ export default class Editor extends Component {
                 { nextLevels.map( data => <div key={ data.level.id }>
                     Next level: { data.level.name }
                     <button
-                        onClick={ event => this.props.removeNextBook(
-                            currentLevelId, data.level.id, data.entity.id
+                        onClick={ event => this.props.removeNextChapter(
+                            currentLevelId, data.level.id
                         ) }
                     >
                         Remove
@@ -1715,7 +1699,7 @@ export default class Editor extends Component {
                         onClick={ event => this.props.insetChapter(
                             currentLevelId, data.level.id,
                             data.entity.id,
-                            previousLevelEntity.id,
+                            previousChapterEntity.id,
                             data.entity.position.clone()
                                 .multiply(
                                     new THREE.Vector3( -1, 1, -1 )
