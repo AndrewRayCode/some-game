@@ -111,9 +111,6 @@ function snapTo( number, interval ) {
                 };
             }, {} );
 
-            const currentChapter = currentChapters[ currentChapterId ];
-            const nextChapters = currentChapter.nextChapters;
-
             // Find the first chapter for any level, so that when we select a
             // level, we can easily look up an arbitrary chapter to go with it.
             // You can't edit/have a level without a chapter.
@@ -130,10 +127,12 @@ function snapTo( number, interval ) {
 
             }, {} );
 
+
             bookState = {
-                currentBookId, currentChapterId, currentChapter,
-                currentChapters, currentBook, currentLevels,
-                firstChapterIdsContainingLevel, nextChapters
+                currentBookId, currentChapterId, currentChapters, currentBook,
+                currentLevels, firstChapterIdsContainingLevel,
+                currentChaptersArray: Object.values( currentChapters ),
+                hasCurrentChapters: !!Object.keys( currentChapters ),
             };
 
         }
@@ -150,10 +149,11 @@ function snapTo( number, interval ) {
                 ( memo, id ) => ({
                     ...memo,
                     [ id ]: allEntities[ id ]
-                })
+                }),
+                []
             );
 
-            const previousChapter = bookState.currentChapters.find(
+            const previousChapter = bookState.currentChaptersArray.find(
                 chapter => chapter.nextChapters.some(
                     data => data.chapterId === bookState.currentChapterId
                 )
@@ -161,6 +161,9 @@ function snapTo( number, interval ) {
 
             let previousChapterEntities;
             let previousChapterEntity;
+
+            const currentChapter = bookState.currentChapters[ currentChapterId ];
+            const nextChapters = currentChapter.nextChapters;
 
             if( previousChapter ) {
 
@@ -188,8 +191,8 @@ function snapTo( number, interval ) {
 
             // Index all next chapter entities by chapter id
             let nextChaptersEntities;
-            if( bookState.nextChapters.length ) {
-                nextChaptersEntities = bookState.nextChapters.reduce(
+            if( nextChapters ) {
+                nextChaptersEntities = nextChapters.reduce(
                     ( memo, chapter ) => ({
                         ...memo,
                         [ chapter.id ]: allLevels[ chapter.levelId ].entityIds.map(
@@ -203,7 +206,8 @@ function snapTo( number, interval ) {
             levelState = {
                 currentLevel, currentLevelId, currentLevelStaticEntities,
                 allEntities, previousChapter, nextChaptersEntities,
-                previousChapterEntities, previousChapterEntity,
+                previousChapterEntities, previousChapterEntity, currentChapter,
+                nextChapters,
                 currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             };
 
@@ -250,8 +254,8 @@ export default class Editor extends Component {
             gridBaseRotation: new THREE.Euler( 0, Math.PI / 2, 0 ),
             gridBaseScale: new THREE.Vector3( 200, 0.00001, 200 ),
 
-            insertChapterId: props.currentChapters && props.currentChapters.length ?
-                props.currentChapters[ 0 ].id :
+            insertChapterId: props.hasCurrentChapters ?
+                props.currentChaptersArray[ 0 ].id :
                 null,
             gridPosition: new THREE.Vector3( 0, 0, 0 )
         };
@@ -401,9 +405,9 @@ export default class Editor extends Component {
     componentWillReceiveProps( nextProps ) {
 
         // Get the selected level id if levels weren't available on first mount
-        if( nextProps.currentChapters && nextProps.currentChapters.length && !this.state.insertChapterId ) {
+        if( nextProps.hasCurrentChapters && !this.state.insertChapterId ) {
             this.setState({
-                insertChapterId: Object.keys( nextProps.currentChapters )[ 0 ].id
+                insertChapterId: nextProps.currentChaptersArray[ 0 ]
             });
         }
 
@@ -663,8 +667,7 @@ export default class Editor extends Component {
     onMouseMove( event ) {
         
         const {
-            currentLevelId, currentLevel, nextChapters,
-            previousChapterEntity,
+            currentLevelId, currentLevel, nextChapters, previousChapterEntity,
         } = this.props;
 
         if( !currentLevelId ) {
@@ -733,6 +736,7 @@ export default class Editor extends Component {
                 objectIntersection.parent === this.refs[ `nextChapter${ chapter.id }` ].refs.group
             ) || objectUnderCursorId;
 
+            // TODO
             //if( previousChapter &&
                     //objectIntersection.parent === this.refs.previousLevel.refs.group
                 //) {
@@ -1674,7 +1678,8 @@ export default class Editor extends Component {
                     <button
                         onClick={
                             this.props.saveAll.bind(
-                                null, currentLevel, currentLevelAllEntities, currentBook, currentChapters
+                                null, currentLevel, currentLevelAllEntities,
+                                currentBook, currentChapters
                             )
                         }
                     >
