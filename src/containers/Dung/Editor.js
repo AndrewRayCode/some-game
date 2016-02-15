@@ -1519,11 +1519,20 @@ export default class Editor extends Component {
                             step={ gridSnap }
                         />
 
-                        <br /><br />
+                        <br />
+                        <br />
+                        <b>Change Texture of Selection:</b>
+                        <br />
 
-                        { Object.keys( Textures ).map( ( key ) => {
-
-                            return <button onClick={ this.changeMaterialId( key ) }
+                        { Object.keys( Textures ).map( key =>
+                            <button onClick={ this.changeMaterialId( key ) }
+                                style={
+                                    currentLevelStaticEntities[
+                                        selectedObjectId
+                                    ].materialId === key ? {
+                                        border: 'inset 1px blue'
+                                    } : null
+                                }
                                 key={ key }
                             >
                                 <img
@@ -1531,9 +1540,8 @@ export default class Editor extends Component {
                                     height={ 20 }
                                     width={ 20 }
                                 />
-                            </button>;
-
-                        })}
+                            </button>
+                        )}
 
                         { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) && <div>
                             <br /><br />
