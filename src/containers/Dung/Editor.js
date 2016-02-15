@@ -6,10 +6,10 @@ import Grid from './Grid';
 import { connect } from 'react-redux';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
-    createLevel, selectLevelAndChapter, saveLevel, updateLevel, saveBook,
-    updateBook, deserializeLevels, renameLevel, addNextChapter, removeNextChapter,
-    insetChapter, changeEntityType, createBook, selectBook, renameChapter,
-    renameBook, createChapterFromLevel, saveAll
+    createLevel, selectLevelAndChapter, deserializeLevels, renameLevel,
+    addNextChapter, removeNextChapter, insetChapter, changeEntityType,
+    createBook, selectBook, renameChapter, renameBook, createChapterFromLevel,
+    saveAll
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -129,7 +129,7 @@ function snapTo( number, interval ) {
 
 
             bookState = {
-                currentBookId, currentChapterId, currentChapters, currentBook,
+                currentBookId, currentChapters, currentBook,
                 currentLevels, firstChapterIdsContainingLevel,
                 currentChaptersArray: Object.values( currentChapters ),
                 hasCurrentChapters: !!Object.keys( currentChapters ),
@@ -150,12 +150,12 @@ function snapTo( number, interval ) {
                     ...memo,
                     [ id ]: allEntities[ id ]
                 }),
-                []
+                {}
             );
 
             const previousChapter = bookState.currentChaptersArray.find(
                 chapter => chapter.nextChapters.some(
-                    data => data.chapterId === bookState.currentChapterId
+                    data => data.chapterId === currentChapterId
                 )
             );
 
@@ -213,16 +213,19 @@ function snapTo( number, interval ) {
 
         }
 
-        return { ...bookState, ...levelState, books, allLevels };
+        return {
+            ...bookState,
+            ...levelState,
+            books, allChapters, allLevels, currentChapterId
+        };
 
     },
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
-        changeEntityMaterial, addNextChapter, saveLevel,
-        updateLevel, saveBook, updateBook, deserializeLevels, renameLevel,
-        createLevel, renameChapter, renameBook, removeNextChapter, insetChapter,
-        changeEntityType, createBook, selectBook, selectLevelAndChapter,
-        createChapterFromLevel, saveAll
+        changeEntityMaterial, addNextChapter, deserializeLevels, renameLevel,
+        createLevel, renameChapter, renameBook, removeNextChapter,
+        insetChapter, changeEntityType, createBook, selectBook,
+        selectLevelAndChapter, createChapterFromLevel, saveAll
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -334,9 +337,10 @@ export default class Editor extends Component {
 
     onInputBlur( event ) {
 
-        if( this.blurred ) {
+        if( this.focused ) {
 
-            this.blurred = false;
+            this.focused = false;
+            this.setState({ focused: false });
             window.addEventListener( 'keyup', this.onKeyUp );
             window.addEventListener( 'keydown', this.onKeyDown );
 
@@ -349,9 +353,10 @@ export default class Editor extends Component {
         if( event.target.tagName === 'INPUT' ) {
 
             this.keysPressed = {};
-            this.blurred = true;
+            this.focused = true;
+            this.setState({ focused: true });
             window.removeEventListener( 'keyup', this.onKeyUp );
-            window.removeEventListener( 'keyDown', this.onKeyDown );
+            window.removeEventListener( 'keydown', this.onKeyDown );
 
         }
 
@@ -615,14 +620,14 @@ export default class Editor extends Component {
         if( this.state.selecting && ( KeyCodes.X in this.keysPressed ) &&
                 this.state.selectedObjectId &&
                 // levels are special case
-                this.props.currentLevelAllEntities[ this.state.selectedObjectId ].type !== 'level'
+                this.props.currentLevelStaticEntities[ this.state.selectedObjectId ].type !== 'level'
                 ) {
 
             this.setState({ selectedObjectId: null });
             this.props.removeEntity(
                 this.props.currentLevelId,
                 this.state.selectedObjectId,
-                this.props.currentLevelAllEntities[ this.state.selectedObjectId ].type
+                this.props.currentLevelStaticEntities[ this.state.selectedObjectId ].type
             );
             
         }
@@ -677,8 +682,8 @@ export default class Editor extends Component {
         }
 
         const {
-            scene, previewPosition, currentLevelStaticEntities, camera,
-            dragCreateBlock, container, staticEntities
+            scene, previewPosition, camera, dragCreateBlock, container,
+            staticEntities
         } = this.refs;
 
         const { entityIds } = currentLevel;
@@ -924,12 +929,12 @@ export default class Editor extends Component {
 
         const {
             chapters, books, currentLevels, currentLevelId, currentLevel,
-            currentBook, currentLevelAllEntities, currentLevelStaticEntities,
-            nextLevels, allEntities, currentLevelStaticEntitiesArray,
+            currentBook, currentLevelStaticEntities,
+            allEntities, currentLevelStaticEntitiesArray,
             previousLevelEntitiesArray, currentBookId, nextChaptersEntities,
             currentChapters, currentChapterId, currentChapter,
             firstChapterIdsContainingLevel, previousChapterEntities,
-            previousChapterEntity, previousChapter, nextChapters
+            previousChapterEntity, previousChapter, nextChapters, allChapters
         } = this.props;
 
         if( !currentBookId ) {
@@ -1678,7 +1683,7 @@ export default class Editor extends Component {
                     <button
                         onClick={
                             this.props.saveAll.bind(
-                                null, currentLevel, currentLevelAllEntities,
+                                null, currentLevel, currentLevelStaticEntities,
                                 currentBook, currentChapters
                             )
                         }
@@ -1686,42 +1691,53 @@ export default class Editor extends Component {
                         Save Level and Book
                     </button>
 
+                    <br />
+                    <br />
+                    <small>
+                        { this.state.focused ? 'focused' : 'not focused' }
+                    </small>
+
                 </div>
 
             </div>
 
             <div>
-                { nextLevels.map( data => <div key={ data.level.id }>
-                    Next level: { data.level.name }
-                    <button
-                        onClick={ event => this.props.removeNextChapter(
-                            currentLevelId, data.level.id
-                        ) }
-                    >
-                        Remove
-                    </button>
-                    <button
-                        onClick={ event => this.props.insetChapter(
-                            currentLevelId, data.level.id,
-                            data.entity.id,
-                            previousChapterEntity.id,
-                            data.entity.position.clone()
-                                .multiply(
-                                    new THREE.Vector3( -1, 1, -1 )
-                                )
-                                .multiplyScalar( 1 / data.entity.scale.x )
-                                .setY( -7 ),
-                            new THREE.Vector3(
-                                1 / data.entity.scale.x,
-                                1 / data.entity.scale.y,
-                                1 / data.entity.scale.z
-                            )
-                        ) }
-                    >
-                        Set to previous inset level
-                    </button>
-                    <br /><br />
-                </div> )}
+                { nextChapters.map( nextChapterData => {
+
+                    const chapter = allChapters[ nextChapterData.chapterId ];
+                    return <div key={ chapter.id }>
+                        Next chapter: chpater.name;
+                        <button
+                            onClick={ event => this.props.removeNextChapter(
+                                currentChapter.id, chapter.id
+                            ) }
+                        >
+                            Remove
+                        </button>
+                        <button
+                            onClick={ event => this.props.insetChapter(
+                                //currentLevelId, data.level.id,
+                                //data.entity.id,
+                                //previousChapterEntity.id,
+                                //data.entity.position.clone()
+                                    //.multiply(
+                                        //new THREE.Vector3( -1, 1, -1 )
+                                    //)
+                                    //.multiplyScalar( 1 / data.entity.scale.x )
+                                    //.setY( -7 ),
+                                //new THREE.Vector3(
+                                    //1 / data.entity.scale.x,
+                                    //1 / data.entity.scale.y,
+                                    //1 / data.entity.scale.z
+                                //)
+                            ) }
+                        >
+                            Set to previous inset level
+                        </button>
+                        <br /><br />
+                    </div>;
+
+                }) }
 
                 <b>State:</b> { editorState }
                 <br />

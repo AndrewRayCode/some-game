@@ -40,7 +40,10 @@ export function saveLevel( request ) {
                 oldLevelId: unsanitizedLevelData.id,
                 newLevelId: insertedLevelIds[ 0 ].toString(),
             }) )
-            .catch( reject );
+            .catch( error => {
+                console.error( error );
+                reject( error );
+            });
         
     });
 
@@ -58,7 +61,11 @@ export function updateLevel( request ) {
         return db( 'levels' )
             .where({ id })
             .update( updatedLevel )
-            .catch( reject );
+            .then( resolve )
+            .catch( error => {
+                console.error( error );
+                reject( error );
+            });
 
     });
 
@@ -123,6 +130,7 @@ export function updateBook( request ) {
         return db( 'books' )
             .where({ id })
             .update( updatedBook )
+            .then( resolve )
             .catch( error => {
                 console.error( error );
                 reject( error );

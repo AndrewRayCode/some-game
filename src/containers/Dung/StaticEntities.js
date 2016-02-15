@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import Shrink from './Shrink';
 import Grow from './Grow';
@@ -14,9 +14,14 @@ import Textures from './Textures';
 
 export default class StaticEntities extends Component {
 
-    constructor(props, context) {
+    static propTypes = {
+        time: PropTypes.number,
+        entities: PropTypes.array.isRequired,
+    };
 
-        super(props, context);
+    constructor( props, context ) {
+
+        super( props, context );
 
     }
 
@@ -88,7 +93,7 @@ export default class StaticEntities extends Component {
 
             </resources>
 
-            { this.props.entities.map( ( entity ) => {
+            { entities.map( ( entity ) => {
 
                 if( entity.type === 'wall' ) {
 
