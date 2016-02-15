@@ -16,28 +16,22 @@ const defaultState = {
     levels: {}
 };
 
+const GAME_SELECT_CHAPTER = 'game/GAME_SELECT_CHAPTER';
+const START_GAME = 'game/START_GAME';
+const END_GAME = 'game/END_GAME';
+const SCALE_PLAYER = 'game/SCALE_PLAYER';
+
 export function game( state = defaultState, action = {} ) {
 
     switch( action.type ) {
 
-        case 'START_GAME':
+        case START_GAME:
 
-            const { entities, levels } = action;
+            const { entities, levels, chapters, books } = action;
 
             return {
                 ...state,
-                levels: Object.keys( levels ).reduce( ( memo, id ) => {
-
-                    const level = levels[ id ];
-                    memo[ id ] = {
-                        ...level,
-                        entityIds: level.entityIds.filter(
-                            ( eId ) => entities[ eId ].type !== 'player'
-                        )
-                    };
-                    return memo;
-
-                }, {} ),
+                levels, chapters, books,
 
                 entities: Object.keys( entities ).reduce( ( memo, id ) => {
 
@@ -65,7 +59,7 @@ export function game( state = defaultState, action = {} ) {
                 ).position || new THREE.Vector3( 0, 1.5, 0 ) ).clone()
             };
 
-        case 'GAME_SELECT_LEVEL':
+        case GAME_SELECT_CHAPTER:
             return {
                 ...state,
                 levelTime: action.levelTime,
@@ -73,7 +67,7 @@ export function game( state = defaultState, action = {} ) {
                 playerScale: state.playerScale * ( action.levelScale < 1 ? 8 : 0.125 ),
             };
 
-        case 'SCALE_PLAYER':
+        case SCALE_PLAYER:
 
             const level = state.levels[ action.levelId ];
 
@@ -90,7 +84,7 @@ export function game( state = defaultState, action = {} ) {
                 }
             };
 
-        case 'END_GAME':
+        case END_GAME:
             return defaultState;
 
         default:
@@ -100,13 +94,13 @@ export function game( state = defaultState, action = {} ) {
 
 }
 
-export function gameLevelReducer( state = null, action = {} ) {
+export function gameChapterReducer( state = null, action = {} ) {
 
     switch( action.type ) {
 
-        case 'START_GAME':
-        case 'GAME_SELECT_LEVEL':
-            return action.levelId;
+        case START_GAME:
+        case GAME_SELECT_CHAPTER:
+            return action.chapterId;
 
         default:
             return state;
@@ -115,28 +109,43 @@ export function gameLevelReducer( state = null, action = {} ) {
 
 }
 
-export function startGame( levelId, levels, entities ) {
+export function gameBookReducer( state = null, action = {} ) {
+
+    switch( action.type ) {
+
+        case START_GAME:
+        case GAME_SELECT_CHAPTER:
+            return action.bookId;
+
+        default:
+            return state;
+
+    }
+
+}
+
+export function startGame( bookId, chapterId, levels, entities, books, chapters ) {
     return {
-        type: 'START_GAME',
-        levelId, levels, entities
+        type: START_GAME,
+        bookId, chapterId, levels, entities, chapters, books
     };
 }
 
-export function advanceLevel( levelId, levelScale ) {
+export function advanceChapter( chapterId, chapterScale ) {
     return {
-        type: 'GAME_SELECT_LEVEL',
+        type: GAME_SELECT_CHAPTER,
         levelTime: Date.now(),
-        levelId, levelScale
+        chapterId, chapterScale
     };
 }
 
 export function scalePlayer( levelId, powerupIdToRemove, multiplier ) {
     return {
-        type: 'SCALE_PLAYER',
+        type: SCALE_PLAYER,
         levelId, powerupIdToRemove, multiplier
     };
 }
 
 export function endGame() {
-    return { type: 'END_GAME' };
+    return { type: END_GAME };
 }

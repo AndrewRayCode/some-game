@@ -24,7 +24,11 @@ function fetchData( getState, dispatch ) {
     state => ({
         levels: state.levels,
         entities: state.entities,
-        currentLevelId: state.currentEditorLevel
+        books: state.entities,
+        chapters: state.entities,
+        currentLevelId: state.currentEditorLevel,
+        currentChapterId: state.currentEditorChapter,
+        currentBookId: state.currentEditorBook,
     }),
     dispatch => bindActionCreators( { startGame, endGame, loadAsset }, dispatch )
 )
@@ -65,7 +69,12 @@ export default class Dung extends Component {
 
     onEditorSwitch() {
 
-        this.props.startGame( this.props.currentLevelId, this.props.levels, this.props.entities );
+        const {
+            currentBookId, currentChapterId, levels, entities, books, chapters
+        } = this.props;
+        this.props.startGame(
+            currentBookId, currentChapterId, levels, entities, books, chapters
+        );
         this.setState({ type: 'game' });
 
     }

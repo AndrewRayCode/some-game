@@ -8,7 +8,7 @@ import {reducer as form} from 'redux-form';
 import info from './info';
 import widgets from './widgets';
 import { assetsReducer } from './assets';
-import { game, gameLevelReducer } from './game';
+import { game, gameChapterReducer, gameBookReducer } from './game';
 import {
     loadLevelsReducer, levelsReducer, entitiesReducer,
     editorSelectedLevelReducer, booksReducer, chaptersReducer,
@@ -19,17 +19,24 @@ export default combineReducers({
     router: routerStateReducer,
     auth,
     form,
+
+    // editor
     levelsLoaded: loadLevelsReducer,
     books: booksReducer,
     chapters: chaptersReducer,
     levels: levelsReducer,
     assets: assetsReducer,
     entities: entitiesReducer,
+
     currentEditorLevel: editorSelectedLevelReducer,
     currentEditorBook: editorSelectedBookReducer,
     currentEditorChapter: editorSelectedChapterReducer,
-    currentGameLevel: gameLevelReducer,
+
+    // game
+    currentGameChapter: gameChapterReducer,
+    currentGameBook: gameBookReducer,
     game,
+
     multireducer: multireducer({
         counter1: counter,
         counter2: counter,

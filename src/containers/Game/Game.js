@@ -6,7 +6,7 @@ import CANNON from 'cannon/src/Cannon';
 import StaticEntities from '../Dung/StaticEntities';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { scalePlayer, advanceLevel } from '../../redux/modules/game';
+import { scalePlayer, advanceChapter } from '../../redux/modules/game';
 import KeyCodes from '../Dung/KeyCodes';
 import Cardinality from '../Dung/Cardinality';
 import Pushy from '../Dung/Pushy';
@@ -238,10 +238,17 @@ function snapTo( number, interval ) {
 @connect(
     state => {
 
-        const { levels } = state.game;
-        const currentLevelId = state.currentGameLevel;
+        const {
+            currentGameChapter: currentChapterId,
+            currentGameBook: currentBookId,
+            entities: allEntities,
+            chapters: allChapters,
+            levels, entities, books
+        } = state.game;
+
+        const currentChapter = allChapters[ currentChapterId ];
+        const { levelId: currentLevelId } = currentChapter;
         const currentLevel = levels[ currentLevelId ];
-        const allEntities = state.game.entities;
 
         const {
             currentLevelAllEntities,
@@ -263,7 +270,7 @@ function snapTo( number, interval ) {
             } else if( entity.type === 'pushy' ) {
                 memo.currentLevelMovableEntities[ id ] = entity;
             // walls, floors, etc
-            } else if( entity.type !== 'level' ) {
+            } else {
                 memo.currentLevelStaticEntities[ id ] = entity;
                 memo.currentLevelRenderableEntities[ id ] = entity;
             }
@@ -278,13 +285,104 @@ function snapTo( number, interval ) {
             currentLevelTouchyArray: [],
         });
 
+
+
+
+
+
+
+        const currentBook = books[ currentBookId ];
+        const { chapterIds } = currentBook;
+        const currentChapters = chapterIds.reduce(
+            ( memo, id ) => ({ ...memo, [ id ]: allChapters[ id ] }),
+            {}
+        );
+
+
+        const previousChapter = currentChaptersArray.find(
+            chapter => chapter.nextChapters.some(
+                nextChapter => nextChapter.chapterId === currentChapterId
+            )
+        );
+
+        let previousChapterEntities;
+        let previousChapterEntity;
+
+        const currentChapter = bookState.currentChapters[ currentChapterId ];
+        const nextChapters = currentChapter.nextChapters;
+
+        if( previousChapter ) {
+
+            const previousChapterData = previousChapter.nextChapters.find(
+                nextChapter => nextChapter.chapterId === currentChapterId
+            );
+
+            const previousLevel = allLevels[ previousChapter.levelId ];
+            previousChapterEntities = previousLevel.entityIds.map(
+                id => allEntities[ id ]
+            );
+
+            const isPreviousChapterBigger = previousChapterData.scale.x > 1;
+            const multiplier = isPreviousChapterBigger ? 0.125 : 8;
+
+            previousChapterEntity = {
+                scale: new THREE.Vector3(
+                    multiplier, multiplier, multiplier
+                ),
+                position: previousChapterData.position
+                    .clone()
+                    .multiply(
+                        new THREE.Vector3( -multiplier, multiplier, -multiplier )
+                    )
+                    .setY( isPreviousChapterBigger ? 0.875 : -7 )
+            };
+
+        }
+
+        // Index all next chapter entities by chapter id
+        let nextChaptersEntities;
+        if( nextChapters ) {
+
+            nextChaptersEntities = nextChapters.reduce(
+                ( memo, nextChapter ) => ({
+                    ...memo,
+                    [ nextChapter.chapterId ]: allLevels[
+                            allChapters[ nextChapter.chapterId ].levelId
+                        ].entityIds.map( id => allEntities[ id ] )
+                }),
+                {}
+            );
+
+        }
+
+        levelState = {
+            currentLevel, currentLevelId, currentLevelStaticEntities,
+            allEntities, previousChapter, nextChaptersEntities,
+            previousChapterEntities, previousChapterEntity, currentChapter,
+            nextChapters,
+            currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
+        };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // Determine next level data
         const nextLevels = currentLevel.nextLevelIds.map( data => ({
             level: levels[ data.levelId ],
             entity: allEntities[ data.entityId ],
             entities: levels[ data.levelId ].entityIds
                 .map( id => allEntities[ id ] )
-                .filter( entity => entity.type !== 'level' )
         }));
 
         // Build all the next level entities. It's all next level entities
@@ -373,7 +471,7 @@ function snapTo( number, interval ) {
         };
 
     },
-    dispatch => bindActionCreators( { scalePlayer, advanceLevel }, dispatch )
+    dispatch => bindActionCreators( { scalePlayer, advanceChapter }, dispatch )
 )
 export default class Game extends Component {
 
@@ -1109,7 +1207,7 @@ export default class Game extends Component {
             if( transitionPercent >= 1 ) {
 
                 this.advancing = false;
-                this.props.advanceLevel( this.state.advanceToId, this.state.advanceToScale );
+                this.props.advanceChapter( this.state.advanceToId, this.state.advanceToScale );
                 this.playerBody.position.copy( newState.currentTransitionPosition );
 
                 newState.currentTransitionPosition = null;
@@ -1139,7 +1237,7 @@ export default class Game extends Component {
             if( currentTourPercent >= 1 && nextLevels.length ) {
 
                 currentTourPercent = 0;
-                this.props.advanceLevel( nextLevels[ 0 ].level.id, nextLevels[ 0 ].entity.scale.x );
+                this.props.advanceChapter( nextLevels[ 0 ].level.id, nextLevels[ 0 ].entity.scale.x );
 
             }
 
