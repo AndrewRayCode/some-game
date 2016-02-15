@@ -155,7 +155,7 @@ function snapTo( number, interval ) {
 
             const previousChapter = bookState.currentChaptersArray.find(
                 chapter => chapter.nextChapters.some(
-                    data => data.chapterId === currentChapterId
+                    nextChapter => nextChapter.chapterId === currentChapterId
                 )
             );
 
@@ -167,19 +167,23 @@ function snapTo( number, interval ) {
 
             if( previousChapter ) {
 
+                const previousChapterData = previousChapter.nextChapters.find(
+                    nextChapter => nextChapter.chapterId === currentChapterId
+                );
+
                 const previousLevel = allLevels[ previousChapter.levelId ];
                 previousChapterEntities = previousLevel.entityIds.map(
                     id => allEntities[ id ]
                 );
 
-                const isPreviousChapterBigger = previousChapter.scale.x > 1;
+                const isPreviousChapterBigger = previousChapterData.scale.x > 1;
                 const multiplier = isPreviousChapterBigger ? 0.125 : 8;
 
                 previousChapterEntity = {
                     scale: new THREE.Vector3(
                         multiplier, multiplier, multiplier
                     ),
-                    position: previousChapter.position
+                    position: previousChapterData.position
                         .clone()
                         .multiply(
                             new THREE.Vector3( -multiplier, multiplier, -multiplier )
@@ -192,15 +196,17 @@ function snapTo( number, interval ) {
             // Index all next chapter entities by chapter id
             let nextChaptersEntities;
             if( nextChapters ) {
+
                 nextChaptersEntities = nextChapters.reduce(
-                    ( memo, chapter ) => ({
+                    ( memo, nextChapter ) => ({
                         ...memo,
-                        [ chapter.id ]: allLevels[ chapter.levelId ].entityIds.map(
-                            id => allEntities[ id ]
-                        )
+                        [ nextChapter.chapterId ]: allLevels[
+                                allChapters[ nextChapter.chapterId ].levelId
+                            ].entityIds.map( id => allEntities[ id ] )
                     }),
                     {}
                 );
+
             }
 
             levelState = {
@@ -412,7 +418,7 @@ export default class Editor extends Component {
         // Get the selected level id if levels weren't available on first mount
         if( nextProps.hasCurrentChapters && !this.state.insertChapterId ) {
             this.setState({
-                insertChapterId: nextProps.currentChaptersArray[ 0 ]
+                insertChapterId: nextProps.currentChaptersArray[ 0 ].id
             });
         }
 
@@ -737,8 +743,8 @@ export default class Editor extends Component {
 
             // Did the object we clicked on appear inside our next level ref?
             // if so, set selected object to the next level entity
-            objectUnderCursorId = nextChapters.find( chapter =>
-                objectIntersection.parent === this.refs[ `nextChapter${ chapter.id }` ].refs.group
+            objectUnderCursorId = nextChapters.find( nextChapter =>
+                objectIntersection.parent === this.refs[ `nextChapter${ nextChapter.id }` ].refs.group
             ) || objectUnderCursorId;
 
             // TODO
@@ -836,10 +842,12 @@ export default class Editor extends Component {
 
         const {
             rotateable, dragCreating, createType, createPreviewPosition,
-            createPreviewScale, createPreviewRotation, createMaterialId
+            createPreviewScale, createPreviewRotation, createMaterialId,
         } = this.state;
 
-        const { currentLevelId, allLevels: levels } = this.props;
+        const {
+            currentLevelId, allLevels: levels, currentChapterId
+        } = this.props;
 
         if( rotateable ) {
 
@@ -854,7 +862,7 @@ export default class Editor extends Component {
             if( createType === 'chapter' ) {
 
                 this.props.addNextChapter(
-                    currentLevelId, this.state.insertChapterId,
+                    currentChapterId, this.state.insertChapterId,
                     createPreviewPosition, createPreviewScale
                 );
 
@@ -1403,13 +1411,13 @@ export default class Editor extends Component {
                                 time={ time }
                             />
 
-                            { nextChapters.map( chapter => <StaticEntities
-                                key={ chapter.id }
-                                ref={ `nextChapter${ chapter.id }` }
+                            { nextChapters.map( nextChapter => <StaticEntities
+                                key={ nextChapter.id }
+                                ref={ `nextChapter${ nextChapter.id }` }
                                 store={ this.context.store }
-                                position={ chapter.position }
-                                scale={ chapter.scale }
-                                entities={ nextChaptersEntities[ chapter.id ] }
+                                position={ nextChapter.position }
+                                scale={ nextChapter.scale }
+                                entities={ nextChaptersEntities[ nextChapter.chapterId ] }
                                 time={ time }
                             /> )}
 
@@ -1702,14 +1710,16 @@ export default class Editor extends Component {
             </div>
 
             <div>
-                { nextChapters.map( nextChapterData => {
+                { nextChapters.map( nextChapter => {
 
-                    const chapter = allChapters[ nextChapterData.chapterId ];
-                    return <div key={ chapter.id }>
-                        Next chapter: chpater.name;
+                    const chapter = allChapters[ nextChapter.chapterId ];
+                    return <div key={ nextChapter.id }>
+                        <b>Next chapter:</b>
+                        <br />
+                        { chapter.name }
                         <button
                             onClick={ event => this.props.removeNextChapter(
-                                currentChapter.id, chapter.id
+                                currentChapter.id, nextChapter.id
                             ) }
                         >
                             Remove

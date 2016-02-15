@@ -149,10 +149,10 @@ export function entitiesReducer( entities = {}, action = {} ) {
             };
 
         case DESERIALIZE:
-            return Object.keys( entities ).reduce( ( memo, id ) => {
-                memo[ id ] = entityPropertyReducer( entities[ id ], action );
-                return memo;
-            }, {} );
+            return Object.keys( entities ).reduce( ( memo, id ) => ({
+                ...memo,
+                [ id ]: entityPropertyReducer( entities[ id ], action )
+            }), {} );
 
         default:
             return entities;
@@ -273,7 +273,9 @@ function removeNextChapterFrom( chapter, nextChapterId ) {
 
     return {
         ...chapter,
-        nextChapters: chapter.nextChapters.filter( data => data.chapterId !== nextChapterId )
+        nextChapters: chapter.nextChapters.filter(
+            nextChapter => nextChapter.id !== nextChapterId
+        )
     };
 
 }
@@ -289,11 +291,25 @@ function individualChapterReducer( chapter, action ) {
                 nextChapters: [
                     ...chapter.nextChapters,
                     {
+                        id: action.id,
                         chapterId: action.nextChapterId,
                         position: action.position,
                         scale: action.scale
                     }
                 ]
+            };
+
+        case DESERIALIZE:
+            return {
+                ...chapter,
+                nextChapters: chapter.nextChapters.map( nextChapter => ({
+                    ...nextChapter,
+                    position: new THREE.Vector3().copy( nextChapter.position ),
+                    rotation: nextChapter.rotation ?
+                        new THREE.Quaternion( nextChapter.rotation._x, nextChapter.rotation._y, nextChapter.rotation._z, nextChapter.rotation._w ) :
+                        new THREE.Quaternion( 0, 0, 0, 1 ),
+                    scale: new THREE.Vector3().copy( nextChapter.scale )
+                }) )
             };
 
         case REMOVE_NEXT_CHAPTER:
@@ -378,6 +394,12 @@ export function chaptersReducer( chapters = {}, action = {} ) {
                 }
             };
 
+        case DESERIALIZE:
+            return Object.keys( chapters ).reduce( ( memo, id ) => ({
+                ...memo,
+                [ id ]: individualChapterReducer( chapters[ id ], action )
+            }), {} );
+
         default:
             return chapters;
 
@@ -453,20 +475,12 @@ export function booksReducer( books = {}, action = {} ) {
                 [ action.id ]: {
                     id: action.id,
                     name: action.name,
-                    chapterIds: [],
-                    nextBookIds: []
+                    chapterIds: []
                 }
             };
 
         case CREATE_CHAPTER_FROM_LEVEL:
         case CREATE_LEVEL_AND_CHAPTER:
-            return {
-                ...books,
-                [ action.bookId ]: individualBookReducer( books[ action.bookId ], action )
-            };
-
-        case REMOVE_NEXT_CHAPTER:
-        case ADD_NEXT_CHAPTER:
             return {
                 ...books,
                 [ action.bookId ]: individualBookReducer( books[ action.bookId ], action )
