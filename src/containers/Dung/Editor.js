@@ -163,7 +163,7 @@ function snapTo( number, interval ) {
             let previousChapterEntity;
 
             const currentChapter = bookState.currentChapters[ currentChapterId ];
-            const nextChapters = currentChapter.nextChapters;
+            const { nextChapters } = currentChapter;
 
             if( previousChapter ) {
 

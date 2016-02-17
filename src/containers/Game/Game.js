@@ -246,6 +246,7 @@ function snapTo( number, interval ) {
             levels, entities, books
         } = state.game;
 
+        // Levels and entities
         const currentChapter = allChapters[ currentChapterId ];
         const { levelId: currentLevelId } = currentChapter;
         const currentLevel = levels[ currentLevelId ];
@@ -285,11 +286,7 @@ function snapTo( number, interval ) {
             currentLevelTouchyArray: [],
         });
 
-
-
-
-
-
+        // Books and chapters
 
         const currentBook = books[ currentBookId ];
         const { chapterIds } = currentBook;
@@ -297,7 +294,7 @@ function snapTo( number, interval ) {
             ( memo, id ) => ({ ...memo, [ id ]: allChapters[ id ] }),
             {}
         );
-
+        const currentChaptersArray = Object.values( currentChapters );
 
         const previousChapter = currentChaptersArray.find(
             chapter => chapter.nextChapters.some(
@@ -307,8 +304,8 @@ function snapTo( number, interval ) {
 
         let previousChapterEntities;
         let previousChapterEntity;
+        let previousChapterFinishData;
 
-        const currentChapter = bookState.currentChapters[ currentChapterId ];
         const nextChapters = currentChapter.nextChapters;
 
         if( previousChapter ) {
@@ -317,7 +314,7 @@ function snapTo( number, interval ) {
                 nextChapter => nextChapter.chapterId === currentChapterId
             );
 
-            const previousLevel = allLevels[ previousChapter.levelId ];
+            const previousLevel = levels[ previousChapter.levelId ];
             previousChapterEntities = previousLevel.entityIds.map(
                 id => allEntities[ id ]
             );
@@ -337,6 +334,24 @@ function snapTo( number, interval ) {
                     .setY( isPreviousChapterBigger ? 0.875 : -7 )
             };
 
+            previousChapterFinishData = previousLevel.entityIds
+                .map( id => allEntities[ id ] )
+                .find( entity => entity.type === 'finish' );
+
+            const previousChapterFinishEntity = {
+                ...previousChapterFinishData,
+                scale: previousChapterFinishData.scale
+                    .clone()
+                    .multiplyScalar( multiplier ),
+                position: previousChapterFinishData.position.clone().add(
+                    previousChapterFinishData.position
+                        .clone()
+                        .multiplyScalar( multiplier )
+                )
+            };
+
+            currentLevelTouchyArray.push( previousChapterFinishEntity );
+
         }
 
         // Index all next chapter entities by chapter id
@@ -346,7 +361,7 @@ function snapTo( number, interval ) {
             nextChaptersEntities = nextChapters.reduce(
                 ( memo, nextChapter ) => ({
                     ...memo,
-                    [ nextChapter.chapterId ]: allLevels[
+                    [ nextChapter.chapterId ]: levels[
                             allChapters[ nextChapter.chapterId ].levelId
                         ].entityIds.map( id => allEntities[ id ] )
                 }),
@@ -355,101 +370,18 @@ function snapTo( number, interval ) {
 
         }
 
-        levelState = {
-            currentLevel, currentLevelId, currentLevelStaticEntities,
-            allEntities, previousChapter, nextChaptersEntities,
-            previousChapterEntities, previousChapterEntity, currentChapter,
-            nextChapters,
-            currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
-        };
+        //levelState = {
+            //currentLevel, currentLevelId, currentLevelStaticEntities,
+            //allEntities, previousChapter, nextChaptersEntities,
+            //previousChapterEntities, previousChapterEntity, currentChapter,
+            //nextChapters,
+            //currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
+        //};
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // Determine next level data
-        const nextLevels = currentLevel.nextLevelIds.map( data => ({
-            level: levels[ data.levelId ],
-            entity: allEntities[ data.entityId ],
-            entities: levels[ data.levelId ].entityIds
-                .map( id => allEntities[ id ] )
-        }));
-
-        // Build all the next level entities. It's all next level entities
-        // combined together
-        const nextLevelsEntitiesArray = nextLevels.reduce( ( memo, data ) => {
-            return memo.concat( data.level.entities );
-        }, [] );
-
-        // Determine previous level data
-        const previousLevelId = Object.keys( levels ).find(
-            levelId => levels[ levelId ].nextLevelIds.some(
-                data => data.levelId === currentLevelId
-            )
-        );
-        const previousLevelData = previousLevelId && levels[ previousLevelId ];
-
-        const previousLevelEntityData = previousLevelData && allEntities[
-            previousLevelData.nextLevelIds.find(
-                data => data.levelId === currentLevelId
-            ).entityId
-        ];
-
-        const isPreviousLevelBigger = previousLevelData &&
-            previousLevelEntityData.scale.x > 1;
-        const multiplier = isPreviousLevelBigger ? 0.125 : 8;
-        const previousLevel = previousLevelData && {
-            level: previousLevelData,
-            entity: {
-                ...previousLevelEntityData,
-                scale: new THREE.Vector3( multiplier, multiplier, multiplier ),
-                position: previousLevelEntityData.position
-                    .clone()
-                    .multiply(
-                        new THREE.Vector3( -multiplier, multiplier, -multiplier )
-                    )
-                    .setY( isPreviousLevelBigger ? 0.875 : -7 )
-            }
-        };
-
-        const previousLevelEntitiesArray = previousLevelData && previousLevelData.entityIds
-            .map( id => allEntities[ id ] )
-            .filter( entity => entity.type !== 'level' );
-
-        const previousLevelFinishData = previousLevelData && previousLevelData.entityIds
-            .map( id => allEntities[ id ] )
-            .find( entity => entity.type === 'finish' );
-
-        const previousLevelFinishEntity = previousLevelFinishData && {
-            ...previousLevelFinishData,
-            scale: previousLevelFinishData.scale
-                .clone()
-                .multiplyScalar( multiplier ),
-            position: previousLevel.entity.position.clone().add(
-                previousLevelFinishData.position
-                    .clone()
-                    .multiplyScalar( multiplier )
-            )
-        };
-
-        if( previousLevelFinishEntity ) {
-            currentLevelTouchyArray.push( previousLevelFinishEntity );
-        }
 
         return {
             levels, currentLevel, currentLevelId, currentLevelAllEntities,
             currentLevelStaticEntities, allEntities, nextLevels,
-            nextLevelsEntitiesArray,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray,
             previousLevel, previousLevelEntitiesArray, previousLevelId,
@@ -1455,7 +1387,7 @@ export default class Game extends Component {
 
         const {
             playerRadius, playerScale, playerMass, nextLevels,
-            nextLevelsEntitiesArray, previousLevel,
+            previousLevel,
             previousLevelEntitiesArray, currentLevelRenderableEntitiesArray,
             previousLevelFinishEntity
         } = this.props;
