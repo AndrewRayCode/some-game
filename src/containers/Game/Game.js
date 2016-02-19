@@ -553,7 +553,9 @@ export default class Game extends Component {
 
         if( nextProps.recursionBusterId !== this.props.recursionBusterId ) {
 
-            const { currentChapterId, nextChapters } = this.props;
+            const {
+                currentChapterId, nextChapters, previousChapterEntity
+            } = this.props;
             const { cameraPosition, cameraTourTarget } = this.state;
 
             // Before we transition chapters, we need to know how big the
@@ -563,10 +565,11 @@ export default class Game extends Component {
             // because that's where the relative size data is stored
             const nextChapterRelativeToCurrent = nextChapters.find(
                 data => data.chapterId === nextProps.currentChapterId
-            );
+            ) || previousChapterEntity;
+
             const { position, scale } = nextChapterRelativeToCurrent;
 
-            const multiplier = scale.x < 1 ? 8 : 0.125;
+            const multiplier = scale.x > 1 ? 8 : 0.125;
 
             if( this.state.touring ) {
                 this.setState({
@@ -605,21 +608,27 @@ export default class Game extends Component {
             this.world.bodies = [];
 
             const {
-                currentChapterId, nextChapters
+                currentChapterId, nextChapters, previousChapterEntity
             } = this.props;
             const { position: playerPosition } = this.playerBody;
 
             const nextChapterRelativeToCurrent = nextChapters.find(
                 data => data.chapterId === nextProps.currentChapterId
-            );
-            const { position, scale } = nextChapterRelativeToCurrent;
+            ) || previousChapterEntity;
 
-            const multiplier = scale.x < 1 ? 8 : 0.125;
+            const {
+                position: chapterPosition,
+                scale
+            } = nextChapterRelativeToCurrent;
+
+            // this is maybe wrong and needs to be updated to work with
+            // chapters?
+            const multiplier = scale.x > 1 ? 8 : 0.125;
 
             const newPosition = new CANNON.Vec3(
-                ( playerPosition.x - position.x ) * multiplier,
+                ( playerPosition.x - chapterPosition.x ) * multiplier,
                 1 + nextProps.playerRadius,
-                ( playerPosition.z - position.z ) * multiplier,
+                ( playerPosition.z - chapterPosition.z ) * multiplier,
             );
 
             this._setupPhysics( nextProps, newPosition );
