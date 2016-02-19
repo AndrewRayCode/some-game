@@ -376,17 +376,10 @@ function snapTo( number, interval ) {
 
         }
 
-        //levelState = {
-            //currentLevel, currentLevelId, currentLevelStaticEntities,
-            //allEntities, previousChapter, nextChaptersEntities,
-            //previousChapterEntities, previousChapterEntity, currentChapter,
-            //nextChapters,
-            //currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
-        //};
-
         return {
-            levels, currentLevel, currentLevelId, currentLevelAllEntities,
-            currentLevelStaticEntities, allEntities, nextChaptersEntities,
+            levels, currentLevel, currentLevelId, currentChapterId,
+            currentLevelAllEntities, currentLevelStaticEntities, allEntities,
+            nextChaptersEntities,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray, nextChapters, previousChapterEntities,
             previousChapter, previousChapterId, previousChapterFinishEntity,

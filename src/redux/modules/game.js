@@ -130,7 +130,6 @@ export function gameBookReducer( state = null, action = {} ) {
     switch( action.type ) {
 
         case START_GAME:
-        case GAME_SELECT_CHAPTER:
             return action.bookId;
 
         default:

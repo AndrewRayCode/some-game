@@ -72,7 +72,7 @@ export default class Dung extends Component {
         const {
             currentBookId, currentChapterId, levels, entities, books, chapters
         } = this.props;
-        console.log('calilng with',currentBookId, currentChapterId, levels, entities, books, chapters);
+
         this.props.startGame(
             currentBookId, currentChapterId, levels, entities, books, chapters
         );
