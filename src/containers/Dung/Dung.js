@@ -24,8 +24,8 @@ function fetchData( getState, dispatch ) {
     state => ({
         levels: state.levels,
         entities: state.entities,
-        books: state.entities,
-        chapters: state.entities,
+        books: state.books,
+        chapters: state.chapters,
         currentLevelId: state.currentEditorLevel,
         currentChapterId: state.currentEditorChapter,
         currentBookId: state.currentEditorBook,
@@ -72,6 +72,7 @@ export default class Dung extends Component {
         const {
             currentBookId, currentChapterId, levels, entities, books, chapters
         } = this.props;
+        console.log('calilng with',currentBookId, currentChapterId, levels, entities, books, chapters);
         this.props.startGame(
             currentBookId, currentChapterId, levels, entities, books, chapters
         );

@@ -31,7 +31,23 @@ export function game( state = defaultState, action = {} ) {
 
             return {
                 ...state,
-                levels, chapters, books,
+                chapters, books,
+
+                // Remove player entities from each level
+                levels: Object.keys( levels ).reduce( ( memo, id ) => {
+
+                    const level = levels[ id ];
+                    return {
+                        ...memo,
+                        [ id ]: {
+                            ...level,
+                            entityIds: level.entityIds.filter(
+                                eId => entities[ eId ].type !== 'player'
+                            )
+                        }
+                    };
+
+                }, {} ),
 
                 entities: Object.keys( entities ).reduce( ( memo, id ) => {
 
@@ -51,9 +67,9 @@ export function game( state = defaultState, action = {} ) {
 
                 }, {} ),
 
-                // Reverse to fix a bug where leftover player entities cause
-                // old starting points to remain
-                playerPosition: ( ( levels[ action.levelId ].entityIds
+                // Find the player entity for this chapter to use the starting
+                // point, or default to the middle
+                playerPosition: ( ( levels[ chapters[ action.chapterId ].levelId ].entityIds
                     .map( id => entities[ id ] )
                     .find( entity => entity.type === 'player' ) || {}
                 ).position || new THREE.Vector3( 0, 1.5, 0 ) ).clone()

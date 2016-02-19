@@ -239,12 +239,15 @@ function snapTo( number, interval ) {
     state => {
 
         const {
-            currentGameChapter: currentChapterId,
-            currentGameBook: currentBookId,
             entities: allEntities,
             chapters: allChapters,
-            levels, entities, books
+            levels, entities, books,
         } = state.game;
+
+        const {
+            currentGameChapter: currentChapterId,
+            currentGameBook: currentBookId,
+        } = state;
 
         // Levels and entities
         const currentChapter = allChapters[ currentChapterId ];
