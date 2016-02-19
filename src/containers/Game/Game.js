@@ -305,6 +305,8 @@ function snapTo( number, interval ) {
         let previousChapterEntities;
         let previousChapterEntity;
         let previousChapterFinishData;
+        let previousChapterId;
+        let previousChapterFinishEntity;
 
         const nextChapters = currentChapter.nextChapters;
 
@@ -314,6 +316,7 @@ function snapTo( number, interval ) {
                 nextChapter => nextChapter.chapterId === currentChapterId
             );
 
+            previousChapterId = previousChapter.id;
             const previousLevel = levels[ previousChapter.levelId ];
             previousChapterEntities = previousLevel.entityIds.map(
                 id => allEntities[ id ]
@@ -338,7 +341,7 @@ function snapTo( number, interval ) {
                 .map( id => allEntities[ id ] )
                 .find( entity => entity.type === 'finish' );
 
-            const previousChapterFinishEntity = {
+            previousChapterFinishEntity = {
                 ...previousChapterFinishData,
                 scale: previousChapterFinishData.scale
                     .clone()
@@ -378,20 +381,18 @@ function snapTo( number, interval ) {
             //currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
         //};
 
-
         return {
             levels, currentLevel, currentLevelId, currentLevelAllEntities,
-            currentLevelStaticEntities, allEntities, nextLevels,
+            currentLevelStaticEntities, allEntities,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
-            currentLevelTouchyArray,
-            previousLevel, previousLevelEntitiesArray, previousLevelId,
-            currentLevelMovableEntities,
+            currentLevelTouchyArray, nextChapters, previousChapterEntities,
+            previousChapter, previousChapterId, previousChapterFinishEntity,
+            previousChapterEntity, currentLevelMovableEntities,
             currentLevelMovableEntitiesArray: Object.values( currentLevelMovableEntities ),
             currentLevelRenderableEntities,
             currentLevelRenderableEntitiesArray: Object.values( currentLevelRenderableEntities ),
-            previousLevelFinishEntity,
 
-            levelTime: state.game.levelTime,
+            recursionBusterId: state.game.recursionBusterId,
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
             playerScale: state.game.playerScale,
@@ -466,9 +467,8 @@ export default class Game extends Component {
     _setupPhysics( props, playerPositionOverride ) {
 
         const {
-            currentLevel, allEntities, playerRadius, playerDensity, playerMass,
-            currentLevelStaticEntitiesArray, pushyDensity,
-            currentLevelMovableEntitiesArray
+            playerRadius, playerDensity, playerMass, pushyDensity,
+            currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray
         } = props;
 
         const playerPosition = playerPositionOverride || props.playerPosition;
@@ -555,39 +555,42 @@ export default class Game extends Component {
 
     componentWillReceiveProps( nextProps ) {
 
-        if( nextProps.levelTime !== this.props.levelTime ) {
+        if( nextProps.recursionBusterId !== this.props.recursionBusterId ) {
 
-            const {
-                nextLevels, previousLevelId, previousLevel
-            } = this.props;
+            const { currentChapterId, nextChapters } = this.props;
             const { cameraPosition, cameraTourTarget } = this.state;
 
-            const maybeNextLevel = nextLevels.find(
-                data => data.level.id === nextProps.currentLevel.id
+            // Before we transition chapters, we need to know how big the
+            // chapter to transition to is relative to the current one. These
+            // are all using the existing props before transition. Search
+            // current next chapters to find the one we're transitioning to
+            // because that's where the relative size data is stored
+            const nextChapterRelativeToCurrent = nextChapters.find(
+                data => data.chapterId === nextProps.currentChapterId
             );
-            const newLevel = maybeNextLevel ? maybeNextLevel.entity : previousLevel.entity;
+            const { position, scale } = nextChapterRelativeToCurrent;
 
-            const multiplier = newLevel.scale.x < 1 ? 8 : 0.125;
+            const multiplier = scale.x < 1 ? 8 : 0.125;
 
             if( this.state.touring ) {
                 this.setState({
                     cameraPosition: new THREE.Vector3(
-                        ( cameraPosition.x - newLevel.position.x ) * multiplier,
+                        ( cameraPosition.x - position.x ) * multiplier,
                         ( cameraPosition.y ) * multiplier,
-                        ( cameraPosition.z - newLevel.position.z ) * multiplier
+                        ( cameraPosition.z - position.z ) * multiplier
                     ),
                     cameraTourTarget: new THREE.Vector3(
-                        ( cameraTourTarget.x - newLevel.position.x ) * multiplier,
+                        ( cameraTourTarget.x - position.x ) * multiplier,
                         ( cameraTourTarget.y ) * multiplier,
-                        ( cameraTourTarget.z - newLevel.position.z ) * multiplier
+                        ( cameraTourTarget.z - position.z ) * multiplier
                     ),
                 });
             } else {
                 this.setState({
                     cameraPosition: new THREE.Vector3(
-                        ( cameraPosition.x - newLevel.position.x ) * multiplier,
+                        ( cameraPosition.x - position.x ) * multiplier,
                         getCameraDistanceToPlayer( this.playerBody.position.y, cameraAspect, cameraFov, nextProps.playerScale ),
-                        ( cameraPosition.z - newLevel.position.z ) * multiplier
+                        ( cameraPosition.z - position.z ) * multiplier
                     )
                 });
             }
@@ -598,7 +601,7 @@ export default class Game extends Component {
 
     componentWillUpdate( nextProps, nextState ) {
 
-        if( nextProps.levelTime !== this.props.levelTime ) {
+        if( nextProps.recursionBusterId !== this.props.recursionBusterId ) {
 
             this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
             this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
@@ -606,22 +609,21 @@ export default class Game extends Component {
             this.world.bodies = [];
 
             const {
-                nextLevels, previousLevelId, previousLevel
+                currentChapterId, nextChapters
             } = this.props;
-            const { position } = this.playerBody;
-            let newPosition;
+            const { position: playerPosition } = this.playerBody;
 
-            const maybeNextLevel = nextLevels.find(
-                data => data.level.id === nextProps.currentLevel.id
+            const nextChapterRelativeToCurrent = nextChapters.find(
+                data => data.chapterId === nextProps.currentChapterId
             );
-            const newLevel = maybeNextLevel ? maybeNextLevel.entity : previousLevel.entity;
+            const { position, scale } = nextChapterRelativeToCurrent;
 
-            const multiplier = newLevel.scale.x < 1 ? 8 : 0.125;
+            const multiplier = scale.x < 1 ? 8 : 0.125;
 
-            newPosition = new CANNON.Vec3(
-                ( position.x - newLevel.position.x ) * multiplier,
+            const newPosition = new CANNON.Vec3(
+                ( playerPosition.x - position.x ) * multiplier,
                 1 + nextProps.playerRadius,
-                ( position.z - newLevel.position.z ) * multiplier,
+                ( playerPosition.z - position.z ) * multiplier,
             );
 
             this._setupPhysics( nextProps, newPosition );
@@ -679,8 +681,8 @@ export default class Game extends Component {
         };
 
         const {
-            playerScale, currentLevel, playerRadius, playerMass,
-            currentLevelStaticEntitiesArray, previousLevelId
+            playerScale, playerRadius, playerMass,
+            currentLevelStaticEntitiesArray
         } = this.props;
         const { playerContact } = this;
         const { keysDown } = this;
@@ -1035,13 +1037,11 @@ export default class Game extends Component {
 
         const {
             currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
-            currentLevel, nextLevels, previousLevelFinishEntity,
-            previousLevel, previousLevelId
+            currentLevelId, nextChapters, previousChapterFinishEntity,
+            previousLevelId, previousChapterEntity
         } = this.props;
 
-        const {
-            playerBoyd, currentFlowPosition, _fps, cameraPosition
-        } = this.state;
+        const { currentFlowPosition, _fps, cameraPosition } = this.state;
 
         const playerPosition = currentFlowPosition || this.playerBody.position;
 
@@ -1166,10 +1166,10 @@ export default class Game extends Component {
                 0, 0, 0
             ), 0.05 );
 
-            if( currentTourPercent >= 1 && nextLevels.length ) {
+            if( currentTourPercent >= 1 && nextChapters.length ) {
 
                 currentTourPercent = 0;
-                this.props.advanceChapter( nextLevels[ 0 ].level.id, nextLevels[ 0 ].entity.scale.x );
+                this.props.advanceChapter( nextChapters[ 0 ].chapterId, nextChapters[ 0 ].scale.x );
 
             }
 
@@ -1266,20 +1266,20 @@ export default class Game extends Component {
                     );
                     newState.currentTransitionStartTime = now;
 
-                    if( entity === previousLevelFinishEntity ) {
+                    if( entity === previousChapterFinishEntity ) {
 
                         newState.advanceToId = previousLevelId;
-                        newState.advanceToScale = previousLevel.entity.scale.x;
+                        newState.advanceToScale = previousChapterEntity.scale.x;
 
                     } else {
 
-                        const nextLevel = [ ...nextLevels ].sort( ( a, b ) =>
-                            a.entity.position.distanceTo( entity.position ) -
-                            b.entity.position.distanceTo( entity.position )
-                        )[ 0 ] || previousLevel;
+                        const nextChapter = [ ...nextChapters ].sort( ( a, b ) =>
+                            a.position.distanceTo( entity.position ) -
+                            b.position.distanceTo( entity.position )
+                        )[ 0 ] || previousChapterEntity;
 
-                        newState.advanceToId = nextLevel.level.id;
-                        newState.advanceToScale = nextLevel.entity.scale.x;
+                        newState.advanceToId = nextChapter.chapterId;
+                        newState.advanceToScale = nextChapter.scale.x;
                     
                     }
 
@@ -1316,7 +1316,7 @@ export default class Game extends Component {
                 // Reset contact points
                 this.playerContact = {};
 
-                this.props.scalePlayer( currentLevel.id, entity.id, multiplier );
+                this.props.scalePlayer( currentLevelId, entity.id, multiplier );
 
                 newState.scaleStartTime = now;
                 newState.radiusDiff = radiusDiff;
@@ -1389,7 +1389,7 @@ export default class Game extends Component {
             playerRadius, playerScale, playerMass, nextLevels,
             previousLevel,
             previousLevelEntitiesArray, currentLevelRenderableEntitiesArray,
-            previousLevelFinishEntity
+            previousChapterFinishEntity
         } = this.props;
 
         const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;
@@ -1647,9 +1647,9 @@ export default class Game extends Component {
                         opacity={ 0.5 }
                     /> }
 
-                    { debug && previousLevelFinishEntity && <mesh
-                        position={ previousLevelFinishEntity.position }
-                        scale={ previousLevelFinishEntity.scale.clone().multiply( new THREE.Vector3( 1, 2, 1 ) ) }
+                    { debug && previousChapterFinishEntity && <mesh
+                        position={ previousChapterFinishEntity.position }
+                        scale={ previousChapterFinishEntity.scale.clone().multiply( new THREE.Vector3( 1, 2, 1 ) ) }
                     >
                         <geometryResource
                             resourceId="1x1box"

@@ -939,7 +939,7 @@ export default class Editor extends Component {
             chapters, books, currentLevels, currentLevelId, currentLevel,
             currentBook, currentLevelStaticEntities,
             allEntities, currentLevelStaticEntitiesArray,
-            previousLevelEntitiesArray, currentBookId, nextChaptersEntities,
+            currentBookId, nextChaptersEntities,
             currentChapters, currentChapterId, currentChapter,
             firstChapterIdsContainingLevel, previousChapterEntities,
             previousChapterEntity, previousChapter, nextChapters, allChapters

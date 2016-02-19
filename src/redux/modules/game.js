@@ -62,7 +62,7 @@ export function game( state = defaultState, action = {} ) {
         case GAME_SELECT_CHAPTER:
             return {
                 ...state,
-                levelTime: action.levelTime,
+                recursionBusterId: action.recursionBusterId,
                 playerRadius: state.playerRadius * ( action.levelScale < 1 ? 8 : 0.125 ),
                 playerScale: state.playerScale * ( action.levelScale < 1 ? 8 : 0.125 ),
             };
@@ -134,7 +134,12 @@ export function startGame( bookId, chapterId, levels, entities, books, chapters 
 export function advanceChapter( chapterId, chapterScale ) {
     return {
         type: GAME_SELECT_CHAPTER,
-        levelTime: Date.now(),
+        // If a chapter recurses into itself, for now, the chapterId will stay
+        // the same, so the game won't know to update. If we change levels set
+        // some unique timestamp to force the change. Another solution could be
+        // to generate two chapters that reference each other, so the chapter
+        // id would change even though they both contain the same level
+        recursionBusterId: Date.now(),
         chapterId, chapterScale
     };
 }
