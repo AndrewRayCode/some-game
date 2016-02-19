@@ -621,8 +621,6 @@ export default class Game extends Component {
                 scale
             } = nextChapterRelativeToCurrent;
 
-            // this is maybe wrong and needs to be updated to work with
-            // chapters?
             const multiplier = scale.x > 1 ? 8 : 0.125;
 
             const newPosition = new CANNON.Vec3(
@@ -1131,20 +1129,28 @@ export default class Game extends Component {
 
         if( this.advancing ) {
 
+            const {
+                currentTransitionStartTime, startTransitionPosition,
+                currentTransitionTarget, advanceToId, advanceToScale
+            } = this.state;
+
             const currentPosition = new THREE.Vector3().copy( this.playerBody.position );
             const transitionPercent = Math.min(
-                ( now - this.state.currentTransitionStartTime ) / levelTransitionDuration,
+                ( now - currentTransitionStartTime ) / levelTransitionDuration,
                 1
             );
 
-            newState.currentTransitionPosition = this.state.startTransitionPosition
+            newState.currentTransitionPosition = startTransitionPosition
                 .clone()
-                .lerp( this.state.currentTransitionTarget, transitionPercent );
+                .lerp( currentTransitionTarget, transitionPercent );
 
             if( transitionPercent >= 1 ) {
 
                 this.advancing = false;
-                this.props.advanceChapter( this.state.advanceToId, this.state.advanceToScale );
+                this.props.advanceChapter(
+                    advanceToId,
+                    advanceToScale
+                );
                 this.playerBody.position.copy( newState.currentTransitionPosition );
 
                 newState.currentTransitionPosition = null;

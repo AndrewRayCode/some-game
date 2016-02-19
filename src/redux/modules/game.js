@@ -79,8 +79,8 @@ export function game( state = defaultState, action = {} ) {
             return {
                 ...state,
                 recursionBusterId: action.recursionBusterId,
-                playerRadius: state.playerRadius * ( action.levelScale < 1 ? 8 : 0.125 ),
-                playerScale: state.playerScale * ( action.levelScale < 1 ? 8 : 0.125 ),
+                playerRadius: state.playerRadius * ( action.chapterScale < 1 ? 8 : 0.125 ),
+                playerScale: state.playerScale * ( action.chapterScale < 1 ? 8 : 0.125 ),
             };
 
         case SCALE_PLAYER:
