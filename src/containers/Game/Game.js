@@ -383,7 +383,7 @@ function snapTo( number, interval ) {
 
         return {
             levels, currentLevel, currentLevelId, currentLevelAllEntities,
-            currentLevelStaticEntities, allEntities,
+            currentLevelStaticEntities, allEntities, nextChaptersEntities,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray, nextChapters, previousChapterEntities,
             previousChapter, previousChapterId, previousChapterFinishEntity,
@@ -1386,9 +1386,9 @@ export default class Game extends Component {
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
-            playerRadius, playerScale, playerMass, nextLevels,
-            previousLevel,
-            previousLevelEntitiesArray, currentLevelRenderableEntitiesArray,
+            playerRadius, playerScale, playerMass, nextChapters,
+            nextChaptersEntities, previousChapterEntities,
+            previousChapterEntity, currentLevelRenderableEntitiesArray,
             previousChapterFinishEntity
         } = this.props;
 
@@ -1627,22 +1627,20 @@ export default class Game extends Component {
                         time={ time }
                     />
 
-                    { nextLevels.map( data => <StaticEntities
-                        key={ data.level.id }
-                        position={ data.entity.position }
+                    { nextChapters.map( nextChapter => <StaticEntities
+                        key={ nextChapter.id }
+                        position={ nextChapter.position }
                         store={ this.context.store }
-                        scale={ data.entity.scale }
-                        ref="nextLevel"
-                        entities={ data.entities }
+                        scale={ nextChapter.scale }
+                        entities={ nextChaptersEntities[ nextChapter.chapterId ] }
                         time={ time }
                     /> )}
 
-                    { previousLevel && <StaticEntities
-                        ref="previousLevel"
+                    { previousChapterEntity && <StaticEntities
                         store={ this.context.store }
-                        position={ previousLevel.entity.position }
-                        scale={ previousLevel.entity.scale }
-                        entities={ previousLevelEntitiesArray }
+                        position={ previousChapterEntity.position }
+                        scale={ previousChapterEntity.scale }
+                        entities={ previousChapterEntities }
                         time={ time }
                         opacity={ 0.5 }
                     /> }
