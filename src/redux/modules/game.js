@@ -79,8 +79,8 @@ export function game( state = defaultState, action = {} ) {
             return {
                 ...state,
                 recursionBusterId: action.recursionBusterId,
-                playerRadius: state.playerRadius * ( action.chapterScale < 1 ? 8 : 0.125 ),
-                playerScale: state.playerScale * ( action.chapterScale < 1 ? 8 : 0.125 ),
+                playerRadius: state.playerRadius * ( action.nextChapter.scale.x < 1 ? 8 : 0.125 ),
+                playerScale: state.playerScale * ( action.nextChapter.scale.x < 1 ? 8 : 0.125 ),
             };
 
         case SCALE_PLAYER:
@@ -110,13 +110,22 @@ export function game( state = defaultState, action = {} ) {
 
 }
 
-export function gameChapterReducer( state = null, action = {} ) {
+export function gameChapterReducer( state = {}, action = {} ) {
 
     switch( action.type ) {
 
         case START_GAME:
+            return {
+                currentChapterId: action.chapterId,
+            };
+
         case GAME_SELECT_CHAPTER:
-            return action.chapterId;
+            return {
+                ...state,
+                currentChapterId: action.chapterId,
+                previousChapterId: state.currentChapterId,
+                previousChapterNextChapter: action.nextChapter,
+            };
 
         default:
             return state;
@@ -146,7 +155,7 @@ export function startGame( bookId, chapterId, levels, entities, books, chapters 
     };
 }
 
-export function advanceChapter( chapterId, chapterScale ) {
+export function advanceChapter( nextChapter ) {
     return {
         type: GAME_SELECT_CHAPTER,
         // If a chapter recurses into itself, for now, the chapterId will stay
@@ -155,7 +164,8 @@ export function advanceChapter( chapterId, chapterScale ) {
         // to generate two chapters that reference each other, so the chapter
         // id would change even though they both contain the same level
         recursionBusterId: Date.now(),
-        chapterId, chapterScale
+        chapterId: nextChapter.chapterId,
+        nextChapter
     };
 }
 

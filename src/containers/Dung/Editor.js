@@ -1527,9 +1527,9 @@ export default class Editor extends Component {
                         { Object.keys( Textures ).map( key =>
                             <button onClick={ this.changeMaterialId( key ) }
                                 style={
-                                    currentLevelStaticEntities[
+                                    ( currentLevelStaticEntities[
                                         selectedObjectId
-                                    ].materialId === key ? {
+                                    ] || {} ).materialId === key ? {
                                         border: 'inset 1px blue'
                                     } : null
                                 }
@@ -1635,10 +1635,13 @@ export default class Editor extends Component {
 
                         { ( createType === 'wall' || createType === 'floor' ) && <div>
 
-                            { Object.keys( Textures ).map( ( key ) => {
-
-                                return <button
-                                    onClick={ this.selectMaterialId( key ) }
+                            { Object.keys( Textures ).map( key =>
+                                <button onClick={ this.selectMaterialId( key ) }
+                                    style={
+                                        this.state.createMaterialId === key ? {
+                                            border: 'inset 1px blue'
+                                        } : null
+                                    }
                                     key={ key }
                                 >
                                     <img
@@ -1646,9 +1649,8 @@ export default class Editor extends Component {
                                         height={ 20 }
                                         width={ 20 }
                                     />
-                                </button>;
-
-                            })}
+                                </button>
+                            )}
 
                         </div> }
 

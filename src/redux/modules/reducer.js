@@ -33,7 +33,7 @@ export default combineReducers({
     currentEditorChapter: editorSelectedChapterReducer,
 
     // game
-    currentGameChapter: gameChapterReducer,
+    gameChapterData: gameChapterReducer,
     currentGameBook: gameBookReducer,
     game,
 

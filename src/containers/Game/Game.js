@@ -40,7 +40,7 @@ const boxes = 5;
 const tubeTravelDurationMs = 200;
 const tubeStartTravelDurationMs = 50;
 
-const levelTransitionDuration = 1000;
+const levelTransitionDuration = 500;
 
 const scaleDurationMs = 300;
 
@@ -245,9 +245,13 @@ function snapTo( number, interval ) {
         } = state.game;
 
         const {
-            currentGameChapter: currentChapterId,
+            gameChapterData,
             currentGameBook: currentBookId,
         } = state;
+
+        const {
+            previousChapterId, currentChapterId, previousChapterNextChapter
+        } = gameChapterData;
 
         // Levels and entities
         const currentChapter = allChapters[ currentChapterId ];
@@ -299,40 +303,32 @@ function snapTo( number, interval ) {
         );
         const currentChaptersArray = Object.values( currentChapters );
 
-        const previousChapter = currentChaptersArray.find(
-            chapter => chapter.nextChapters.some(
-                nextChapter => nextChapter.chapterId === currentChapterId
-            )
-        );
-
         let previousChapterEntities;
         let previousChapterEntity;
         let previousChapterFinishData;
-        let previousChapterId;
         let previousChapterFinishEntity;
+        let previousChapter;
 
         const nextChapters = currentChapter.nextChapters;
 
-        if( previousChapter ) {
+        if( previousChapterId ) {
 
-            const previousChapterData = previousChapter.nextChapters.find(
-                nextChapter => nextChapter.chapterId === currentChapterId
-            );
+            previousChapter = allChapters[ previousChapterId ];
 
-            previousChapterId = previousChapter.id;
             const previousLevel = levels[ previousChapter.levelId ];
             previousChapterEntities = previousLevel.entityIds.map(
                 id => allEntities[ id ]
             );
 
-            const isPreviousChapterBigger = previousChapterData.scale.x > 1;
+            const { position, scale } = previousChapterNextChapter;
+            const isPreviousChapterBigger = scale.x > 1;
             const multiplier = isPreviousChapterBigger ? 0.125 : 8;
 
             previousChapterEntity = {
                 scale: new THREE.Vector3(
                     multiplier, multiplier, multiplier
                 ),
-                position: previousChapterData.position
+                position: position
                     .clone()
                     .multiply(
                         new THREE.Vector3( -multiplier, multiplier, -multiplier )
@@ -382,8 +378,9 @@ function snapTo( number, interval ) {
             nextChaptersEntities,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray, nextChapters, previousChapterEntities,
-            previousChapter, previousChapterId, previousChapterFinishEntity,
-            previousChapterEntity, currentLevelMovableEntities,
+            previousChapterFinishEntity, previousChapterEntity,
+            previousChapter, previousChapterNextChapter,
+            currentLevelMovableEntities,
             currentLevelMovableEntitiesArray: Object.values( currentLevelMovableEntities ),
             currentLevelRenderableEntities,
             currentLevelRenderableEntitiesArray: Object.values( currentLevelRenderableEntities ),
@@ -558,16 +555,8 @@ export default class Game extends Component {
             } = this.props;
             const { cameraPosition, cameraTourTarget } = this.state;
 
-            // Before we transition chapters, we need to know how big the
-            // chapter to transition to is relative to the current one. These
-            // are all using the existing props before transition. Search
-            // current next chapters to find the one we're transitioning to
-            // because that's where the relative size data is stored
-            const nextChapterRelativeToCurrent = nextChapters.find(
-                data => data.chapterId === nextProps.currentChapterId
-            ) || previousChapterEntity;
-
-            const { position, scale } = nextChapterRelativeToCurrent;
+            const { previousChapterNextChapter } = nextProps;
+            const { position, scale } = previousChapterNextChapter;
 
             const multiplier = scale.x > 1 ? 8 : 0.125;
 
@@ -607,21 +596,21 @@ export default class Game extends Component {
 
             this.world.bodies = [];
 
-            const {
-                currentChapterId, nextChapters, previousChapterEntity
-            } = this.props;
-            const { position: playerPosition } = this.playerBody;
 
-            const nextChapterRelativeToCurrent = nextChapters.find(
-                data => data.chapterId === nextProps.currentChapterId
-            ) || previousChapterEntity;
+            // nextProps is the new data after the level transition. This obj
+            // determines the current level's size relative to the level we
+            // just came out of. So if we shrunk into this new smaller level,
+            // scale will be 0.125
+            const { previousChapterNextChapter } = nextProps;
+
+            const { position: playerPosition } = this.playerBody;
 
             const {
                 position: chapterPosition,
-                scale
-            } = nextChapterRelativeToCurrent;
+                scale,
+            } = previousChapterNextChapter;
 
-            const multiplier = scale.x > 1 ? 8 : 0.125;
+            const multiplier = scale.x < 1 ? 8 : 0.125;
 
             const newPosition = new CANNON.Vec3(
                 ( playerPosition.x - chapterPosition.x ) * multiplier,
@@ -1041,7 +1030,7 @@ export default class Game extends Component {
         const {
             currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
             currentLevelId, nextChapters, previousChapterFinishEntity,
-            previousLevelId, previousChapterEntity
+            previousChapterEntity, previousChapter
         } = this.props;
 
         const { currentFlowPosition, _fps, cameraPosition } = this.state;
@@ -1131,7 +1120,7 @@ export default class Game extends Component {
 
             const {
                 currentTransitionStartTime, startTransitionPosition,
-                currentTransitionTarget, advanceToId, advanceToScale
+                currentTransitionTarget, advanceToNextChapter
             } = this.state;
 
             const currentPosition = new THREE.Vector3().copy( this.playerBody.position );
@@ -1147,10 +1136,7 @@ export default class Game extends Component {
             if( transitionPercent >= 1 ) {
 
                 this.advancing = false;
-                this.props.advanceChapter(
-                    advanceToId,
-                    advanceToScale
-                );
+                this.props.advanceChapter( advanceToNextChapter );
                 this.playerBody.position.copy( newState.currentTransitionPosition );
 
                 newState.currentTransitionPosition = null;
@@ -1180,7 +1166,10 @@ export default class Game extends Component {
             if( currentTourPercent >= 1 && nextChapters.length ) {
 
                 currentTourPercent = 0;
-                this.props.advanceChapter( nextChapters[ 0 ].chapterId, nextChapters[ 0 ].scale.x );
+                this.props.advanceChapter(
+                    nextChapters[ 0 ].chapterId,
+                    nextChapters[ 0 ].scale.x
+                );
 
             }
 
@@ -1279,8 +1268,7 @@ export default class Game extends Component {
 
                     if( entity === previousChapterFinishEntity ) {
 
-                        newState.advanceToId = previousLevelId;
-                        newState.advanceToScale = previousChapterEntity.scale.x;
+                        newState.advanceToNextChapter = previousChapter;
 
                     } else {
 
@@ -1289,8 +1277,7 @@ export default class Game extends Component {
                             b.position.distanceTo( entity.position )
                         )[ 0 ] || previousChapterEntity;
 
-                        newState.advanceToId = nextChapter.chapterId;
-                        newState.advanceToScale = nextChapter.scale.x;
+                        newState.advanceToNextChapter = nextChapter;
                     
                     }
 
