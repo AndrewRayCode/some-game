@@ -133,7 +133,7 @@ function snapTo( number, interval ) {
                 currentBookId, currentChapters, currentBook,
                 currentLevels, firstChapterIdsContainingLevel,
                 currentChaptersArray: Object.values( currentChapters ),
-                hasCurrentChapters: !!Object.keys( currentChapters ),
+                hasCurrentChapters: !!Object.keys( currentChapters ).length,
             };
 
         }
