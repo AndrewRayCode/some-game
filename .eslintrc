@@ -5,6 +5,7 @@
     "mocha": true
   },
   "rules": {
+    "no-dupe-class-members": 1,
     "no-multiple-empty-lines": 0,
     "no-else-return": 0,
     "no-cond-assign": 0,

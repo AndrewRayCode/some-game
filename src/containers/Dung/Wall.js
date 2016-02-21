@@ -1,22 +1,37 @@
 import React, { Component } from 'react';
 import THREE from 'three';
-import { connect } from 'react-redux';
+import CustomShaders from './CustomShaders';
 
 const topPosition = new THREE.Vector3( 0, 0.51, 0 );
 const topRotation = new THREE.Euler( -THREE.Math.degToRad( 90 ), 0, 0 );
 
-@connect(
-    state => ({ spaceCubeWall: state.shaders.spaceCubeWall.material })
-)
 export default class Wall extends Component {
 
     constructor( props, context ) {
+
         super( props, context );
+        this._checkMaterialToShader = this._checkMaterialToShader.bind( this );
+
+    }
+
+    componentDidUpdate() {
+
+        this._checkMaterialToShader();
+
     }
 
     componentDidMount() {
 
-        this.refs.mesh2.material = this.props.spaceCubeWall;
+        this._checkMaterialToShader();
+
+    }
+
+    _checkMaterialToShader() {
+
+        const { materialId, shaders } = this.props;
+        if( materialId in CustomShaders ) {
+            this.refs.mesh2.material = shaders[ materialId ].material;
+        }
 
     }
 

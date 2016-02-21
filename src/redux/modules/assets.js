@@ -39,9 +39,9 @@ export function shadersReducer( shaders = {}, action = {} ) {
         case ADD_SHADER:
             return {
                 ...shaders,
-                [ action.data.name ]: {
-                    json: action.data.shader,
-                    material: action.data.material
+                [ action.name ]: {
+                    json: action.data,
+                    material: action.material
                 }
             };
 
@@ -60,10 +60,9 @@ export function loadAsset( url, data ) {
             .catch( result => dispatch({ type: LOAD_FAIL, ...result }) );
 }
 
-export function loadShader( shader, data ) {
+export function loadShader( name, data, material ) {
     return {
         type: ADD_SHADER,
-        shader,
-        data
+        name, data, material
     };
 }

@@ -11,6 +11,7 @@ import THREE from 'three';
 import Editor from './Editor';
 import Game from '../Game/Game';
 import ShaderFrogRuntime from 'shaderfrog-runtime';
+import CustomShaders from './CustomShaders';
 
 function fetchData( getState, dispatch ) {
     const promises = [];
@@ -63,15 +64,16 @@ export default class Dung extends Component {
             const shaderFrog = new ShaderFrogRuntime();
             this.shaderFrog = shaderFrog;
 
-            // This is obviously a bunch of junk and needs much thinky time
-            const spaceCubeWall = require( '../../../assets/shaders/Space_Cube_Wall.json' );
-            shaderFrog.add( 'spaceCubeWall', spaceCubeWall );
-            this.props.loadShader(
-                spaceCubeWall, {
-                    name: 'spaceCubeWall',
-                    material: shaderFrog.get( 'spaceCubeWall' )
-                }
-            );
+            Object.keys( CustomShaders ).forEach( key => {
+
+                const json = CustomShaders[ key ];
+                shaderFrog.add( key, json );
+
+                this.props.loadShader(
+                    key, json, shaderFrog.get( 'spaceCubeWall' )
+                );
+
+            });
 
         }
 

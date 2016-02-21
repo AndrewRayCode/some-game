@@ -247,6 +247,7 @@ function snapTo( number, interval ) {
         const {
             gameChapterData,
             currentGameBook: currentBookId,
+            assets, shaders,
         } = state;
 
         const {
@@ -375,7 +376,7 @@ function snapTo( number, interval ) {
         return {
             levels, currentLevel, currentLevelId, currentChapterId,
             currentLevelAllEntities, currentLevelStaticEntities, allEntities,
-            nextChaptersEntities,
+            nextChaptersEntities, assets, shaders,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray, nextChapters, previousChapterEntities,
             previousChapterFinishEntity, previousChapterEntity,
@@ -1387,7 +1388,7 @@ export default class Game extends Component {
             playerRadius, playerScale, playerMass, nextChapters,
             nextChaptersEntities, previousChapterEntities,
             previousChapterEntity, currentLevelRenderableEntitiesArray,
-            previousChapterFinishEntity
+            previousChapterFinishEntity, assets, shaders
         } = this.props;
 
         const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;
@@ -1619,6 +1620,8 @@ export default class Game extends Component {
                     /> ) }
 
                     <StaticEntities
+                        assets={ assets }
+                        shaders={ shaders }
                         ref="staticEntities"
                         store={ this.context.store }
                         entities={ currentLevelRenderableEntitiesArray }
@@ -1627,6 +1630,8 @@ export default class Game extends Component {
 
                     { nextChapters.map( nextChapter => <StaticEntities
                         key={ nextChapter.id }
+                        assets={ assets }
+                        shaders={ shaders }
                         position={ nextChapter.position }
                         store={ this.context.store }
                         scale={ nextChapter.scale }
@@ -1636,6 +1641,8 @@ export default class Game extends Component {
 
                     { previousChapterEntity && <StaticEntities
                         store={ this.context.store }
+                        assets={ assets }
+                        shaders={ shaders }
                         position={ previousChapterEntity.position }
                         scale={ previousChapterEntity.scale }
                         entities={ previousChapterEntities }

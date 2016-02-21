@@ -1,13 +1,9 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import { connect } from 'react-redux';
 
 const houseScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.2 );
 const housePosition = new THREE.Vector3( 0, -0.5, 0 );
 
-@connect(
-    state => ({ house: state.assets.house })
-)
 export default class House extends Component {
 
     constructor( props, context ) {
@@ -16,7 +12,8 @@ export default class House extends Component {
 
     render() {
 
-        const { position, rotation, scale, materialId, house } = this.props;
+        const { position, rotation, scale, materialId, assets } = this.props;
+        const { house } = assets;
 
         if( !house ) {
             return <mesh />;

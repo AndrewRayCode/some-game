@@ -27,6 +27,7 @@ import House from './House';
 import Grow from './Grow';
 import FinishLine from './FinishLine';
 import Textures from './Textures';
+import CustomShaders from './CustomShaders';
 
 import { without } from './Utils';
 
@@ -82,7 +83,7 @@ function snapTo( number, interval ) {
 
         const {
             levels: allLevels,
-            books,
+            books, assets, shaders,
             currentEditorLevel: currentLevelId,
             currentEditorBook: currentBookId,
             currentEditorChapter: currentChapterId,
@@ -222,6 +223,7 @@ function snapTo( number, interval ) {
         return {
             ...bookState,
             ...levelState,
+            shaders, assets,
             books, allChapters, allLevels, currentChapterId
         };
 
@@ -537,17 +539,18 @@ export default class Editor extends Component {
 
         }
 
+        const elapsedTime = clock.getElapsedTime();
         let state = {
             time: Date.now(),
             rotateable,
             lightPosition: new THREE.Vector3(
-                radius * Math.sin( clock.getElapsedTime() * speed ),
+                radius * Math.sin( elapsedTime * speed ),
                 10,
-                radius * Math.cos( clock.getElapsedTime() * speed )
+                radius * Math.cos( elapsedTime * speed )
             )
         };
 
-        this.props.shaderFrog.updateShaders( state.time );
+        this.props.shaderFrog.updateShaders( elapsedTime );
 
         if( KeyCodes[ '[' ] in this.keysPressed ) {
 
@@ -708,7 +711,7 @@ export default class Editor extends Component {
 
         const intersections = raycaster
             .intersectObjects( scene.children, true )
-            .filter( ( intersection ) => {
+            .filter( intersection => {
                 return intersection.object !== (
                         previewPosition && previewPosition.refs.mesh
                     ) &&
@@ -727,18 +730,21 @@ export default class Editor extends Component {
                 return a.distance - b.distance;
             });
 
-        if ( this.state.selecting && intersections.length ) {
+        if( this.state.selecting && intersections.length ) {
 
             const objectIntersection = intersections[ 0 ].object;
 
-            let objectUnderCursorId = entityIds.find( ( id ) => {
+            let objectUnderCursorId = entityIds.find( id => {
 
                 const ref = staticEntities.refs[ id ];
                 
                 return ref && ref.refs && (
                     ( ref.refs.mesh === objectIntersection ) ||
                     ( ref.refs.mesh === objectIntersection.parent ) ||
-                    ( ref.refs.mesh === objectIntersection.parent.parent )
+                    ( ref.refs.mesh === objectIntersection.parent.parent ) ||
+                    ( ref.refs.mesh2 === objectIntersection ) ||
+                    ( ref.refs.mesh2 === objectIntersection.parent ) ||
+                    ( ref.refs.mesh2 === objectIntersection.parent.parent )
                 );
 
             });
@@ -939,7 +945,7 @@ export default class Editor extends Component {
 
         const {
             chapters, books, currentLevels, currentLevelId, currentLevel,
-            currentBook, currentLevelStaticEntities,
+            currentBook, currentLevelStaticEntities, shaders, assets,
             allEntities, currentLevelStaticEntitiesArray,
             currentBookId, nextChaptersEntities,
             currentChapters, currentChapterId, currentChapter,
@@ -1055,6 +1061,7 @@ export default class Editor extends Component {
 
                 previewObject = <Wall
                     store={ this.context.store }
+                    shaders={ shaders }
                     scale={ gridScale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
@@ -1076,6 +1083,7 @@ export default class Editor extends Component {
 
                 previewObject = <House
                     store={ this.context.store }
+                    assets={ assets }
                     scale={ gridScale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
@@ -1086,6 +1094,7 @@ export default class Editor extends Component {
             } else if( createType === 'floor' ) {
 
                 previewObject = <Floor
+                    assets={ assets }
                     scale={ gridScale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
@@ -1133,6 +1142,7 @@ export default class Editor extends Component {
                 >
                     <Wall
                         store={ this.context.store }
+                        shaders={ shaders }
                         position={ new THREE.Vector3( 0, 0, 0 ) }
                         ref="previewPosition"
                         materialId="ghostMaterial"
@@ -1140,6 +1150,8 @@ export default class Editor extends Component {
                         scale={ new THREE.Vector3( 8.01, 2.01, 8.01 ) }
                     />
                     <StaticEntities
+                        shaders={ shaders }
+                        assets={ assets }
                         store={ this.context.store }
                         time={ time }
                         position={ new THREE.Vector3( 0, 0, 0 ) }
@@ -1410,6 +1422,8 @@ export default class Editor extends Component {
 
                             <StaticEntities
                                 ref="staticEntities"
+                                shaders={ shaders }
+                                assets={ assets }
                                 store={ this.context.store }
                                 entities={ currentLevelStaticEntitiesArray }
                                 time={ time }
@@ -1418,6 +1432,8 @@ export default class Editor extends Component {
                             { nextChapters.map( nextChapter => <StaticEntities
                                 key={ nextChapter.id }
                                 ref={ `nextChapter${ nextChapter.id }` }
+                                shaders={ shaders }
+                                assets={ assets }
                                 store={ this.context.store }
                                 position={ nextChapter.position }
                                 scale={ nextChapter.scale }
@@ -1428,6 +1444,8 @@ export default class Editor extends Component {
                             { previousChapter && <StaticEntities
                                 ref="previousLevel"
                                 position={ previousChapterEntity.position }
+                                shaders={ shaders }
+                                assets={ assets }
                                 store={ this.context.store }
                                 scale={ previousChapterEntity.scale }
                                 entities={ previousChapterEntities }
@@ -1523,44 +1541,60 @@ export default class Editor extends Component {
                             step={ gridSnap }
                         />
 
-                        <br />
-                        <br />
-                        <b>Change Texture of Selection:</b>
-                        <br />
+                        { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) ? <div>
+                            <br />
+                            <br />
+                            <b>Change Texture of Selection:</b>
+                            <br />
 
-                        { Object.keys( Textures ).map( key =>
-                            <button onClick={ this.changeMaterialId( key ) }
-                                style={
-                                    ( currentLevelStaticEntities[
-                                        selectedObjectId
-                                    ] || {} ).materialId === key ? {
-                                        border: 'inset 1px blue'
-                                    } : null
-                                }
-                                key={ key }
-                            >
-                                <img
-                                    src={ Textures[ key ] }
-                                    height={ 20 }
-                                    width={ 20 }
-                                />
-                            </button>
-                        )}
+                            { Object.keys( Textures ).map( key =>
+                                <button onClick={ this.changeMaterialId( key ) }
+                                    style={
+                                        ( currentLevelStaticEntities[
+                                            selectedObjectId
+                                        ] || {} ).materialId === key ? {
+                                            border: 'inset 1px blue'
+                                        } : null
+                                    }
+                                    key={ key }
+                                >
+                                    <img
+                                        src={ Textures[ key ] }
+                                        height={ 20 }
+                                        width={ 20 }
+                                    />
+                                </button>
+                            )}
+                            { Object.keys( CustomShaders ).map( key =>
+                                <button onClick={ this.changeMaterialId( key ) }
+                                    style={
+                                        ( currentLevelStaticEntities[
+                                            selectedObjectId
+                                        ] || {} ).materialId === key ? {
+                                            border: 'inset 1px blue'
+                                        } : null
+                                    }
+                                    key={ key }
+                                >
+                                    { key }
+                                </button>
+                            )}
 
-                        { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) && <div>
-                            <br /><br />
-                            <button
-                                onClick={
-                                    this.props.changeEntityType.bind(
-                                        null,
-                                        selectedObjectId,
-                                        selectedObject.type === 'wall' ? 'floor' : 'wall'
-                                    )
-                                }
-                            >
-                                Switch type to { selectedObject.type === 'wall' ? 'Floor' : 'Wall' }
-                            </button>
-                        </div> }
+                            { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) && <div>
+                                <br /><br />
+                                <button
+                                    onClick={
+                                        this.props.changeEntityType.bind(
+                                            null,
+                                            selectedObjectId,
+                                            selectedObject.type === 'wall' ? 'floor' : 'wall'
+                                        )
+                                    }
+                                >
+                                    Switch type to { selectedObject.type === 'wall' ? 'Floor' : 'Wall' }
+                                </button>
+                            </div> }
+                        </div> : null }
 
                     </div> : null }
 
@@ -1653,6 +1687,18 @@ export default class Editor extends Component {
                                         height={ 20 }
                                         width={ 20 }
                                     />
+                                </button>
+                            )}
+                            { Object.keys( CustomShaders ).map( key =>
+                                <button onClick={ this.changeMaterialId( key ) }
+                                    style={
+                                        this.state.createMaterialId === key ? {
+                                            border: 'inset 1px blue'
+                                        } : null
+                                    }
+                                    key={ key }
+                                >
+                                    { key }
                                 </button>
                             )}
 
