@@ -16,7 +16,6 @@ export default class Wall extends Component {
 
     componentDidMount() {
 
-        console.log('material',this.props.spaceCubeWall);
         this.refs.mesh2.material = this.props.spaceCubeWall;
 
     }

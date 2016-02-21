@@ -547,6 +547,8 @@ export default class Editor extends Component {
             )
         };
 
+        this.props.shaderFrog.updateShaders( state.time );
+
         if( KeyCodes[ '[' ] in this.keysPressed ) {
 
             if( !this.snapChange ) {
