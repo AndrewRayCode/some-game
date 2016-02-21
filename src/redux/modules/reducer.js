@@ -7,7 +7,7 @@ import counter from './counter';
 import {reducer as form} from 'redux-form';
 import info from './info';
 import widgets from './widgets';
-import { assetsReducer } from './assets';
+import { assetsReducer, shadersReducer } from './assets';
 import { game, gameChapterReducer, gameBookReducer } from './game';
 import {
     loadLevelsReducer, levelsReducer, entitiesReducer,
@@ -26,6 +26,7 @@ export default combineReducers({
     chapters: chaptersReducer,
     levels: levelsReducer,
     assets: assetsReducer,
+    shaders: shadersReducer,
     entities: entitiesReducer,
 
     currentEditorLevel: editorSelectedLevelReducer,

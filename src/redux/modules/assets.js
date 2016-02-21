@@ -5,6 +5,8 @@ const LOAD = 'assets/LOAD';
 const LOAD_SUCCESS = 'assets/LOAD_SUCCESS';
 const LOAD_FAIL = 'assets/LOAD_FAIL';
 
+const ADD_SHADER = 'assets/ADD_SHADER';
+
 export function assetsReducer( assets = {}, action = {} ) {
 
     switch( action.type ) {
@@ -30,10 +32,38 @@ export function assetsReducer( assets = {}, action = {} ) {
 
 }
 
+export function shadersReducer( shaders = {}, action = {} ) {
+
+    switch( action.type ) {
+
+        case ADD_SHADER:
+            return {
+                ...shaders,
+                [ action.data.name ]: {
+                    json: action.data.shader,
+                    material: action.data.material
+                }
+            };
+
+        default:
+            return shaders;
+            
+    }
+
+}
+
 // Actions
 export function loadAsset( url, data ) {
     return dispatch =>
         loadModel( url, data )
             .then( result => dispatch({ type: LOAD_SUCCESS, ...result }) )
             .catch( result => dispatch({ type: LOAD_FAIL, ...result }) );
+}
+
+export function loadShader( shader, data ) {
+    return {
+        type: ADD_SHADER,
+        shader,
+        data
+    };
 }

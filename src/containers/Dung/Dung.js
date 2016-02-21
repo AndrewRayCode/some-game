@@ -5,11 +5,12 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { startGame, endGame } from '../../redux/modules/game';
 import { areLevelsLoaded, loadAllData } from '../../redux/modules/editor';
-import { loadAsset } from '../../redux/modules/assets';
+import { loadAsset, loadShader } from '../../redux/modules/assets';
 import connectData from '../../helpers/connectData';
 import THREE from 'three';
 import Editor from './Editor';
 import Game from '../Game/Game';
+import ShaderFrogRuntime from 'shaderfrog-runtime';
 
 function fetchData( getState, dispatch ) {
     const promises = [];
@@ -30,7 +31,7 @@ function fetchData( getState, dispatch ) {
         currentChapterId: state.currentEditorChapter,
         currentBookId: state.currentEditorBook,
     }),
-    dispatch => bindActionCreators( { startGame, endGame, loadAsset }, dispatch )
+    dispatch => bindActionCreators( { startGame, endGame, loadAsset, loadShader }, dispatch )
 )
 export default class Dung extends Component {
 
@@ -54,7 +55,23 @@ export default class Dung extends Component {
 
             window.THREE = THREE;
             this.setState({ isClient: true });
-            this.props.loadAsset( require( '../../../assets/houseSF.obj' ), { name: 'house' } );
+            this.props.loadAsset(
+                require( '../../../assets/houseSF.obj' ),
+                { name: 'house' }
+            );
+
+            const shaderFrog = new ShaderFrogRuntime();
+            this.shaderFrog = shaderFrog;
+
+            // This is obviously a bunch of junk and needs much thinky time
+            const spaceCubeWall = require( '../../../assets/shaders/Space_Cube_Wall.json' );
+            shaderFrog.add( 'spaceCubeWall', spaceCubeWall );
+            this.props.loadShader(
+                spaceCubeWall, {
+                    name: 'spaceCubeWall',
+                    material: shaderFrog.get( 'spaceCubeWall' )
+                }
+            );
 
         }
 
@@ -91,8 +108,10 @@ export default class Dung extends Component {
         return <div>
             { type === 'editor' ? <Editor
                 onEditorSwitch={ this.onEditorSwitch }
+                shaderFrog={ this.shaderFrog }
             /> : <Game
                 onGameEnd={ this.onGameEnd }
+                shaderFrog={ this.shaderFrog }
             /> }
         </div>;
 

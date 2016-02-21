@@ -1052,6 +1052,7 @@ export default class Editor extends Component {
             } else if( createType === 'wall' ) {
 
                 previewObject = <Wall
+                    store={ this.context.store }
                     scale={ gridScale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
@@ -1129,6 +1130,7 @@ export default class Editor extends Component {
                     ref="previewGroup"
                 >
                     <Wall
+                        store={ this.context.store }
                         position={ new THREE.Vector3( 0, 0, 0 ) }
                         ref="previewPosition"
                         materialId="ghostMaterial"

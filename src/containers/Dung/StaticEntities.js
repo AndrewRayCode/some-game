@@ -98,6 +98,7 @@ export default class StaticEntities extends Component {
                 if( entity.type === 'wall' ) {
 
                     return <Wall
+                        store={ this.props.store }
                         time={ time }
                         ref={ entity.id }
                         key={ entity.id }
