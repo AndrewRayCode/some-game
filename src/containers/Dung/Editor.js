@@ -1690,7 +1690,7 @@ export default class Editor extends Component {
                                 </button>
                             )}
                             { Object.keys( CustomShaders ).map( key =>
-                                <button onClick={ this.changeMaterialId( key ) }
+                                <button onClick={ this.selectMaterialId( key ) }
                                     style={
                                         this.state.createMaterialId === key ? {
                                             border: 'inset 1px blue'
