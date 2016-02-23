@@ -13,7 +13,7 @@ import House from './House';
 import Textures from './Textures';
 
 const StaticEntities = ({
-    entities, time, position, scale, opacity, shaders, assets
+    entities, time, position, scale, opacity, shaders, assets, store
 }) => (
     <group
         ref="group"
@@ -85,7 +85,7 @@ const StaticEntities = ({
 
                 return <Wall
                     shaders={ shaders }
-                    store={ this.props.store }
+                    store={ store }
                     time={ time }
                     ref={ entity.id }
                     key={ entity.id }
@@ -145,7 +145,7 @@ const StaticEntities = ({
             } else if( entity.type === 'house' ) {
 
                 return <House
-                    store={ this.props.store }
+                    store={ store }
                     ref={ entity.id }
                     key={ entity.id }
                     assets={ assets }
