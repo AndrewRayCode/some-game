@@ -557,29 +557,32 @@ export default class Game extends Component {
             const { cameraPosition, cameraTourTarget } = this.state;
 
             const { previousChapterNextChapter } = nextProps;
-            const { position, scale } = previousChapterNextChapter;
+            const {
+                position: chapterPosition,
+                scale
+            } = previousChapterNextChapter;
 
-            const multiplier = scale.x > 1 ? 8 : 0.125;
+            const multiplier = scale.x < 1 ? 8 : 0.125;
 
             if( this.state.touring ) {
                 this.setState({
                     cameraPosition: new THREE.Vector3(
-                        ( cameraPosition.x - position.x ) * multiplier,
+                        ( cameraPosition.x - chapterPosition.x ) * multiplier,
                         ( cameraPosition.y ) * multiplier,
-                        ( cameraPosition.z - position.z ) * multiplier
+                        ( cameraPosition.z - chapterPosition.z ) * multiplier
                     ),
                     cameraTourTarget: new THREE.Vector3(
-                        ( cameraTourTarget.x - position.x ) * multiplier,
+                        ( cameraTourTarget.x - chapterPosition.x ) * multiplier,
                         ( cameraTourTarget.y ) * multiplier,
-                        ( cameraTourTarget.z - position.z ) * multiplier
+                        ( cameraTourTarget.z - chapterPosition.z ) * multiplier
                     ),
                 });
             } else {
                 this.setState({
                     cameraPosition: new THREE.Vector3(
-                        ( cameraPosition.x - position.x ) * multiplier,
-                        getCameraDistanceToPlayer( this.playerBody.position.y, cameraAspect, cameraFov, nextProps.playerScale ),
-                        ( cameraPosition.z - position.z ) * multiplier
+                        ( cameraPosition.x - chapterPosition.x ) * multiplier,
+                        getCameraDistanceToPlayer( 1 + nextProps.playerRadius, cameraAspect, cameraFov, nextProps.playerScale ),
+                        ( cameraPosition.z - chapterPosition.z ) * multiplier
                     )
                 });
             }
@@ -596,7 +599,6 @@ export default class Game extends Component {
             this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
             this.world.bodies = [];
-
 
             // nextProps is the new data after the level transition. This obj
             // determines the current level's size relative to the level we
@@ -1121,7 +1123,8 @@ export default class Game extends Component {
 
             const {
                 currentTransitionStartTime, startTransitionPosition,
-                currentTransitionTarget, advanceToNextChapter
+                currentTransitionTarget, advanceToNextChapter,
+                transitionCameraPositionStart,
             } = this.state;
 
             const currentPosition = new THREE.Vector3().copy( this.playerBody.position );
@@ -1133,6 +1136,27 @@ export default class Game extends Component {
             newState.currentTransitionPosition = startTransitionPosition
                 .clone()
                 .lerp( currentTransitionTarget, transitionPercent );
+
+            newState.cameraPosition = new THREE.Vector3(
+                lerp(
+                    transitionCameraPositionStart.x,
+                    currentTransitionTarget.x,
+                    transitionPercent
+                ),
+                lerp(
+                    transitionCameraPositionStart.y,
+                    getCameraDistanceToPlayer(
+                        this.playerBody.position.y, cameraAspect, cameraFov,
+                        playerScale * ( advanceToNextChapter.scale.x > 1 ? 8 : 0.125 )
+                    ),
+                    transitionPercent
+                ),
+                lerp(
+                    transitionCameraPositionStart.z,
+                    currentTransitionTarget.z,
+                    transitionPercent
+                ),
+            );
 
             if( transitionPercent >= 1 ) {
 
@@ -1223,7 +1247,7 @@ export default class Game extends Component {
         // components individually to make the (y) camera zoom to player
         // different
         newState.cameraPosition = new THREE.Vector3(
-                 lerp( cameraPosition.x, playerPosition.x, 0.05 / playerScale ),
+            lerp( cameraPosition.x, playerPosition.x, 0.05 / playerScale ),
             lerp(
                 cameraPosition.y,
                 getCameraDistanceToPlayer( this.playerBody.position.y, cameraAspect, cameraFov, playerScale ),
@@ -1281,6 +1305,8 @@ export default class Game extends Component {
                         newState.advanceToNextChapter = nextChapter;
                     
                     }
+
+                    newState.transitionCameraPositionStart = cameraPosition;
 
                     this.setState( newState );
                     return;
