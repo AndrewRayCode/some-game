@@ -1191,6 +1191,11 @@ export default class Editor extends Component {
                             ref="scene"
                         >
                             <resources>
+                                <meshBasicMaterial
+                                    resourceId="selectionWireframe"
+                                    color={0x66ff00}
+                                    wireframe
+                                />
                                 <sphereGeometry
                                     resourceId="sphereGeometry"
                                     radius={ 0.5 }
@@ -1399,6 +1404,19 @@ export default class Editor extends Component {
                                     resourceId="gridFloorMaterial"
                                 />
                             </mesh>
+
+                            { selectedObject && <mesh
+                                ref="grid"
+                                position={ selectedObject.position }
+                                scale={ selectedObject.scale.clone().multiplyScalar( 1.001 ) }
+                            >
+                                <geometryResource
+                                    resourceId="1x1box"
+                                />
+                                <materialResource
+                                    resourceId="selectionWireframe"
+                                />
+                            </mesh> }
 
                             { this.state.dragCreating ? <mesh
                                 position={ this.state.createPreviewPosition }
