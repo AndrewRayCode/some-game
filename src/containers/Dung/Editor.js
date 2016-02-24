@@ -238,10 +238,6 @@ function snapTo( number, interval ) {
 )
 export default class Editor extends Component {
 
-    static contextTypes = {
-        store: PropTypes.object.isRequired
-    }
-
     constructor( props, context ) {
 
         super( props, context );
@@ -1060,7 +1056,6 @@ export default class Editor extends Component {
             } else if( createType === 'wall' ) {
 
                 previewObject = <Wall
-                    store={ this.context.store }
                     shaders={ shaders }
                     scale={ gridScale }
                     rotation={ createPreviewRotation }
@@ -1082,7 +1077,6 @@ export default class Editor extends Component {
             } else if( createType === 'house' ) {
 
                 previewObject = <House
-                    store={ this.context.store }
                     assets={ assets }
                     scale={ gridScale }
                     rotation={ createPreviewRotation }
@@ -1141,7 +1135,6 @@ export default class Editor extends Component {
                     ref="previewGroup"
                 >
                     <Wall
-                        store={ this.context.store }
                         shaders={ shaders }
                         position={ new THREE.Vector3( 0, 0, 0 ) }
                         ref="previewPosition"
@@ -1152,7 +1145,6 @@ export default class Editor extends Component {
                     <StaticEntities
                         shaders={ shaders }
                         assets={ assets }
-                        store={ this.context.store }
                         time={ time }
                         position={ new THREE.Vector3( 0, 0, 0 ) }
                         entities={
@@ -1442,7 +1434,6 @@ export default class Editor extends Component {
                                 ref="staticEntities"
                                 shaders={ shaders }
                                 assets={ assets }
-                                store={ this.context.store }
                                 entities={ currentLevelStaticEntitiesArray }
                                 time={ time }
                             />
@@ -1452,7 +1443,6 @@ export default class Editor extends Component {
                                 ref={ `nextChapter${ nextChapter.id }` }
                                 shaders={ shaders }
                                 assets={ assets }
-                                store={ this.context.store }
                                 position={ nextChapter.position }
                                 scale={ nextChapter.scale }
                                 entities={ nextChaptersEntities[ nextChapter.chapterId ] }
@@ -1464,7 +1454,6 @@ export default class Editor extends Component {
                                 position={ previousChapterEntity.position }
                                 shaders={ shaders }
                                 assets={ assets }
-                                store={ this.context.store }
                                 scale={ previousChapterEntity.scale }
                                 entities={ previousChapterEntities }
                                 time={ time }

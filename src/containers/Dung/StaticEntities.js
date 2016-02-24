@@ -22,7 +22,7 @@ export default class StaticEntities extends Component {
     render() {
 
         const {
-            entities, time, position, scale, opacity, shaders, assets, store
+            entities, time, position, scale, opacity, shaders, assets
         } = this.props;
 
         return <group
@@ -95,7 +95,6 @@ export default class StaticEntities extends Component {
 
                     return <Wall
                         shaders={ shaders }
-                        store={ store }
                         time={ time }
                         ref={ entity.id }
                         key={ entity.id }
@@ -155,7 +154,6 @@ export default class StaticEntities extends Component {
                 } else if( entity.type === 'house' ) {
 
                     return <House
-                        store={ store }
                         ref={ entity.id }
                         key={ entity.id }
                         assets={ assets }
