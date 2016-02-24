@@ -1036,8 +1036,6 @@ export default class Game extends Component {
             previousChapterEntity, previousChapter
         } = this.props;
 
-        const elapsedTime = clock.getElapsedTime();
-
         const { currentFlowPosition, _fps, cameraPosition } = this.state;
 
         const playerPosition = currentFlowPosition || this.playerBody.position;
@@ -1049,13 +1047,13 @@ export default class Game extends Component {
             time: now,
             pushyPositions: this._getMeshStates( this.pushies ),
             lightPosition: new THREE.Vector3(
-                10 * Math.sin( elapsedTime * lightRotationSpeed ),
+                10 * Math.sin( now * 0.001 * lightRotationSpeed ),
                 10,
-                10 * Math.cos( elapsedTime * lightRotationSpeed )
+                10 * Math.cos( now * 0.001 * lightRotationSpeed )
             )
         };
 
-        this.props.shaderFrog.updateShaders( elapsedTime );
+        this.props.shaderFrog.updateShaders( clock.elapsedTime );
 
         if( !this.lastCalledTime ) {
            this.lastCalledTime = now;
