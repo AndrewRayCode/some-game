@@ -1649,7 +1649,6 @@ export default class Game extends Component {
                         assets={ assets }
                         shaders={ shaders }
                         ref="staticEntities"
-                        store={ this.context.store }
                         entities={ currentLevelRenderableEntitiesArray }
                         time={ time }
                     />
@@ -1659,14 +1658,12 @@ export default class Game extends Component {
                         assets={ assets }
                         shaders={ shaders }
                         position={ nextChapter.position }
-                        store={ this.context.store }
                         scale={ nextChapter.scale }
                         entities={ nextChaptersEntities[ nextChapter.chapterId ] }
                         time={ time }
                     /> )}
 
                     { previousChapterEntity && <StaticEntities
-                        store={ this.context.store }
                         assets={ assets }
                         shaders={ shaders }
                         position={ previousChapterEntity.position }
