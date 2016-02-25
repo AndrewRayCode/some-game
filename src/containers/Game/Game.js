@@ -1030,30 +1030,68 @@ export default class Game extends Component {
 
         const now = Date.now();
 
+        const { keysDown, pauseLock } = this;
         const {
             currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
             currentLevelId, nextChapters, previousChapterFinishEntity,
             previousChapterEntity, previousChapter
         } = this.props;
 
-        const { currentFlowPosition, _fps, cameraPosition } = this.state;
+        const {
+            currentFlowPosition, _fps, cameraPosition, paused
+        } = this.state;
 
         const playerPosition = currentFlowPosition || this.playerBody.position;
 
-        // needs to be called before _getMeshStates
-        this.updatePhysics();
-
         const newState = {
-            time: now,
-            pushyPositions: this._getMeshStates( this.pushies ),
-            lightPosition: new THREE.Vector3(
-                10 * Math.sin( now * 0.001 * lightRotationSpeed ),
-                10,
-                10 * Math.cos( now * 0.001 * lightRotationSpeed )
-            )
+            time: now
         };
 
         this.props.shaderFrog.updateShaders( clock.elapsedTime );
+
+        if( KeyCodes.P in keysDown ) {
+
+            this.pauseLock = true;
+
+            if( !pauseLock ) {
+
+                if( paused ) {
+
+                    newState.paused = false;
+
+                } else {
+                    this.setState({
+                        paused: true
+                    });
+                    return;
+                }
+
+            }
+
+        } else {
+
+            this.pauseLock = false;
+
+        }
+
+        if( paused && newState.paused !== false ) {
+
+            // Three's clock is really poorly designed
+            // https://github.com/mrdoob/three.js/issues/5696
+            clock.getDelta();
+            return;
+
+        }
+
+        newState.pushyPositions = this._getMeshStates( this.pushies );
+        newState.lightPosition = new THREE.Vector3(
+            10 * Math.sin( now * 0.001 * lightRotationSpeed ),
+            10,
+            10 * Math.cos( now * 0.001 * lightRotationSpeed )
+        );
+
+        // needs to be called before _getMeshStates
+        this.updatePhysics();
 
         if( !this.lastCalledTime ) {
            this.lastCalledTime = now;
@@ -1100,7 +1138,7 @@ export default class Game extends Component {
             //this.dingingl = false;
         //}
 
-        if( KeyCodes.T in this.keysDown ) {
+        if( KeyCodes.T in keysDown ) {
 
             if( !this.touringSwitch ) {
                 newState.currentTourPercent = 0;
@@ -1115,7 +1153,7 @@ export default class Game extends Component {
 
         }
 
-        if( KeyCodes.ESC in this.keysDown ) {
+        if( KeyCodes.ESC in keysDown ) {
 
             this.props.onGameEnd();
 
@@ -1215,7 +1253,7 @@ export default class Game extends Component {
 
         });
 
-        if( KeyCodes['`'] in this.keysDown ) {
+        if( KeyCodes['`'] in keysDown ) {
 
             if( !this.debugSwitch ) {
                 newState.debug = !this.state.debug;

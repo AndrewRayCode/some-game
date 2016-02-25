@@ -497,7 +497,10 @@ export default class Editor extends Component {
 
             if( createType ) {
 
-                copy = Object.assign( {}, copy, { createType } );
+                copy = {
+                    ...copy,
+                    createType
+                };
 
             }
 
@@ -512,11 +515,13 @@ export default class Editor extends Component {
         if( stateKey ) {
 
             const update = { [ stateKey ]: true };
-            copy = Object.assign( {}, copy, {
+            copy = {
+                ...copy,
                 createPreviewRotation: new THREE.Quaternion( 0, 0, 0, 1 ),
                 creating: false,
-                selecting: false
-            }, update );
+                selecting: false,
+                ...update
+            };
 
         }
 
@@ -671,8 +676,11 @@ export default class Editor extends Component {
     onKeyDown( event ) {
 
         const { which } = event;
-        const whichMap = { [ which ]: true };
-        this.keysPressed = Object.assign( {}, this.keysPressed, whichMap );
+
+        this.keysPressed = {
+            ...this.keysPressed,
+            [ which ]: true
+        };
 
     }
 
