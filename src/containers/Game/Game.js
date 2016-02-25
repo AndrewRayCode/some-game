@@ -111,11 +111,11 @@ function getCubeMass( density, side ) {
 
 }
 
-function getCameraDistanceToPlayer( playerY, aspect, fov, objectSize ) {
+function getCameraDistanceToPlayer( playerY, fov, objectSize ) {
 
     return playerY + Math.max(
         5 * Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) ),
-        1.5
+        1
     );
 
 }
@@ -412,14 +412,15 @@ export default class Game extends Component {
 
         this.keysDown = {};
         this.playerContact = {};
+        
+        const { playerPosition, playerScale } = props;
 
         this.state = {
             touring: false,
             cameraPosition: new THREE.Vector3(
-                0,
-                // starting position and scale
-                getCameraDistanceToPlayer( 1.5, cameraAspect, cameraFov, 1 ),
-                0
+                playerPosition.x,
+                getCameraDistanceToPlayer( playerPosition.y, cameraFov, playerScale ),
+                playerPosition.z
             ),
             lightPosition: new THREE.Vector3(),
             pushyPositions: []
@@ -581,7 +582,7 @@ export default class Game extends Component {
                 this.setState({
                     cameraPosition: new THREE.Vector3(
                         ( cameraPosition.x - chapterPosition.x ) * multiplier,
-                        getCameraDistanceToPlayer( 1 + nextProps.playerRadius, cameraAspect, cameraFov, nextProps.playerScale ),
+                        getCameraDistanceToPlayer( 1 + nextProps.playerRadius, cameraFov, nextProps.playerScale ),
                         ( cameraPosition.z - chapterPosition.z ) * multiplier
                     )
                 });
@@ -1173,6 +1174,8 @@ export default class Game extends Component {
                 1
             );
 
+            const isNextChapterBigger = advanceToNextChapter.scale.x > 1;
+
             newState.currentTransitionPosition = startTransitionPosition
                 .clone()
                 .lerp( currentTransitionTarget, transitionPercent );
@@ -1183,14 +1186,7 @@ export default class Game extends Component {
                     currentTransitionTarget.x,
                     transitionPercent
                 ),
-                lerp(
-                    transitionCameraPositionStart.y,
-                    getCameraDistanceToPlayer(
-                        this.playerBody.position.y, cameraAspect, cameraFov,
-                        playerScale * ( advanceToNextChapter.scale.x > 1 ? 8 : 0.125 )
-                    ),
-                    transitionPercent
-                ),
+                transitionCameraPositionStart.y,
                 lerp(
                     transitionCameraPositionStart.z,
                     currentTransitionTarget.z,
@@ -1290,7 +1286,7 @@ export default class Game extends Component {
             lerp( cameraPosition.x, playerPosition.x, 0.05 / playerScale ),
             lerp(
                 cameraPosition.y,
-                getCameraDistanceToPlayer( this.playerBody.position.y, cameraAspect, cameraFov, playerScale ),
+                getCameraDistanceToPlayer( this.playerBody.position.y, cameraFov, playerScale ),
                 0.025 / playerScale,
             ),
             lerp( cameraPosition.z, playerPosition.z, 0.05 / playerScale ),
