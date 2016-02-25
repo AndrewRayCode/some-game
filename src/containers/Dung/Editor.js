@@ -281,6 +281,10 @@ export default class Editor extends Component {
         this.selectMaterialId = this.selectMaterialId.bind( this );
         this.changeMaterialId = this.changeMaterialId.bind( this );
         this.onChapterCreateChange = this.onChapterCreateChange.bind( this );
+        this.deselectAll = this.deselectAll.bind( this );
+        this.createLevel = this.createLevel.bind( this );
+        this.selectLevelAndChapter = this.selectLevelAndChapter.bind( this );
+        this.createChapterFromLevel = this.createChapterFromLevel.bind( this );
 
     }
 
@@ -630,7 +634,10 @@ export default class Editor extends Component {
                 this.props.currentLevelStaticEntities[ this.state.selectedObjectId ].type !== 'level'
                 ) {
 
-            this.setState({ selectedObjectId: null });
+            this.setState({
+                selectedObjectId: null,
+                selectedObject: null
+            });
             this.props.removeEntity(
                 this.props.currentLevelId,
                 this.state.selectedObjectId,
@@ -937,6 +944,28 @@ export default class Editor extends Component {
 
     }
 
+    deselectAll() {
+        this.setState({
+            selectedObject: null,
+            selectedObjectId: null
+        });
+    }
+
+    createLevel( title, bookId ) {
+        this.deselectAll();
+        this.props.createLevel( title, bookId );
+    }
+
+    selectLevelAndChapter( levelId, id ) {
+        this.deselectAll();
+        this.props.selectLevelAndChapter( levelId, id );
+    }
+
+    createChapterFromLevel( name, currentLevelId, currentBookId ) {
+        this.deselectAll();
+        this.props.createChapterFromLevel( name, currentLevelId, currentBookId );
+    }
+
     render() {
 
         const {
@@ -982,7 +1011,7 @@ export default class Editor extends Component {
                     </li>;
                 }) }
                 </ul>
-                <button onClick={ this.props.createLevel.bind( null, 'New Level', currentBookId ) }>
+                <button onClick={ this.createLevel.bind( null, 'New Level', currentBookId ) }>
                     Create Level and Corresponding Chapter
                 </button>
             </div>;
@@ -1827,14 +1856,14 @@ export default class Editor extends Component {
                     return <li key={ id }>
                         { id === currentLevelId ?
                             <b>{ name }</b> :
-                            <a onClick={ this.props.selectLevelAndChapter.bind( null, id, firstChapterIdsContainingLevel[ id ] ) }>
+                            <a onClick={ this.selectLevelAndChapter.bind( null, id, firstChapterIdsContainingLevel[ id ] ) }>
                                 { name }
                             </a>
                         }
                     </li>;
                 }) }
                 </ul>
-                <button onClick={ this.props.createLevel.bind( null, 'New Level', currentBookId ) }>
+                <button onClick={ this.createLevel.bind( null, 'New Level', currentBookId ) }>
                     Create Level
                 </button>
 
@@ -1848,14 +1877,14 @@ export default class Editor extends Component {
                         return <li key={ id }>
                             { id === currentChapterId ?
                                 <b>{ name }</b> :
-                                <a onClick={ this.props.selectLevelAndChapter.bind( null, chapter.levelId, id ) }>
+                                <a onClick={ this.selectLevelAndChapter.bind( null, chapter.levelId, id ) }>
                                     { name }
                                 </a>
                             }
                         </li>;
                     }) }
                     </ul>
-                    <button onClick={ this.props.createChapterFromLevel.bind( null, currentLevel.name, currentLevelId, currentBookId ) }>
+                    <button onClick={ this.createChapterFromLevel.bind( null, currentLevel.name, currentLevelId, currentBookId ) }>
                         Create New Chapter From Level
                     </button>
                 </div> }
