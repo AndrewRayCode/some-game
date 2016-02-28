@@ -1413,6 +1413,7 @@ export default class Game extends Component {
     onWindowBlur( event ) {
 
         this.keysDown = {};
+        this.setState({ paused: true });
 
     }
 
