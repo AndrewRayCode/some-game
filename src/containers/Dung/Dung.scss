@@ -2,11 +2,6 @@
 // Secondary http://www.colourlovers.com/pattern/3562400/Classic_Bela_5
 @import "../../theme/variables.scss";
 
-.canvas {
-    float: left;
-    margin-right:10px;
-}
-
 .sidebar {
     background:#eee;
     padding:8px;
@@ -26,6 +21,14 @@
     width:400px;
     margin:0 20px 0 0;
     float:left;
+}
+
+.canvasData {
+    clear:left;
+    background:#ddd;
+    padding:10px;
+    margin:20px 0 0;
+
 }
 
 // For a tags without hrefs

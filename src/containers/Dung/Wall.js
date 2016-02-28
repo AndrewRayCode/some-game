@@ -7,34 +7,6 @@ const topRotation = new THREE.Euler( -THREE.Math.degToRad( 90 ), 0, 0 );
 
 export default class Wall extends Component {
 
-    constructor( props, context ) {
-
-        super( props, context );
-        this._checkMaterialToShader = this._checkMaterialToShader.bind( this );
-
-    }
-
-    componentDidUpdate() {
-
-        this._checkMaterialToShader();
-
-    }
-
-    componentDidMount() {
-
-        this._checkMaterialToShader();
-
-    }
-
-    _checkMaterialToShader() {
-
-        const { materialId, shaders } = this.props;
-        if( materialId in CustomShaders ) {
-            this.refs.mesh2.material = shaders[ materialId ].material;
-        }
-
-    }
-
     render() {
 
         const { position, rotation, scale, materialId, time } = this.props;

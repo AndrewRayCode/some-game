@@ -23,7 +23,8 @@ export function assetsReducer( assets = {}, action = {} ) {
             };
 
         case LOAD_FAIL:
-            throw new Error( action );
+            console.error( action );
+            return assets;
 
         default:
             return assets;
@@ -57,7 +58,7 @@ export function loadAsset( url, data ) {
     return dispatch =>
         loadModel( url, data )
             .then( result => dispatch({ type: LOAD_SUCCESS, ...result }) )
-            .catch( result => dispatch({ type: LOAD_FAIL, ...result }) );
+            .catch( error => dispatch({ type: LOAD_FAIL, error }) );
 }
 
 export function loadShader( name, data, material ) {

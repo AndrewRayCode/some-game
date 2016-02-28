@@ -11,6 +11,7 @@ import Player from './Player';
 import FinishLine from './FinishLine';
 import House from './House';
 import Textures from './Textures';
+import Shaders from './CustomShaders';
 
 export default class StaticEntities extends Component {
 
@@ -50,9 +51,8 @@ export default class StaticEntities extends Component {
                     heightSegments={1}
                 />
 
-                { Object.keys( Textures ).map( ( key ) => {
-
-                    return <meshPhongMaterial
+                { Object.keys( Textures ).map( key =>
+                    <meshPhongMaterial
                         key={ key }
                         resourceId={ key }
                         color={ 0xffffff }
@@ -63,9 +63,18 @@ export default class StaticEntities extends Component {
                             wrapT={ THREE.RepeatWrapping }
                             anisotropy={16}
                         />
-                    </meshPhongMaterial>;
+                    </meshPhongMaterial>
+                )}
 
-                }) }
+                { Object.keys( Shaders ).map( key =>
+                    <rawShaderMaterial
+                        key={ key }
+                        resourceId={ key }
+                        vertexShader={ shaders[ key ].json.vertex }
+                        fragmentShader={ shaders[ key ].json.fragment }
+                        uniforms={ shaders[ key ].material.uniforms }
+                    />
+                )}
 
                 <meshPhongMaterial
                     resourceId="finishFlag"

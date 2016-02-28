@@ -849,7 +849,10 @@ export default class Editor extends Component {
 
         } else if( selecting && objectUnderCursorId ) {
 
-            this.setState({ selectedObjectId: objectUnderCursorId });
+            this.setState({
+                selectedObjectId: objectUnderCursorId,
+                selectedNextChapter: null
+            });
 
         } else if( selecting && nextChapterUnderCursor ) {
 
@@ -1220,12 +1223,7 @@ export default class Editor extends Component {
                     onMouseDown={ this.onMouseDown }
                     onMouseUp={ this.onMouseUp }
                     style={{ width, height }}
-                    className={ cx({
-                        canvas: true,
-                        rotateable,
-                        rotating,
-                        creating
-                    }) }
+                    className={ cx({ rotateable, rotating, creating }) }
                     ref="container"
                 >
                     <React3
@@ -1433,7 +1431,6 @@ export default class Editor extends Component {
 
                                 shadowCameraFar={3 * shadowD}
                                 shadowCameraNear={shadowD}
-                                shadowDarkness={0.5}
 
                                 position={ lightPosition }
                             />
@@ -1455,7 +1452,9 @@ export default class Editor extends Component {
                             { selectedObject && <mesh
                                 ref="grid"
                                 position={ selectedObject.position }
-                                scale={ selectedObject.scale.clone().multiplyScalar( 1.001 ) }
+                                scale={ selectedObject.scale.clone().multiplyScalar(
+                                    selectedNextChapter ? 8.001 : 1.001
+                                ) }
                             >
                                 <geometryResource
                                     resourceId="1x1box"
@@ -1524,12 +1523,18 @@ export default class Editor extends Component {
 
                     { nextChapters.length ? <div>
                         <b>Next chapters:</b>
+                        <ul>
                         { nextChapters.map( nextChapter => {
 
                             const chapter = allChapters[ nextChapter.chapterId ];
-                            return <div key={ nextChapter.id }>
-                                <br />
+                            return <li
+                                key={ nextChapter.id }
+                                style={ nextChapter === selectedNextChapter ? {
+                                    border: 'inset 1px blue'
+                                } : null }
+                            >
                                 { chapter.name }
+                                <br />
                                 <button
                                     onClick={ event => this.props.removeNextChapter(
                                         currentChapter.id, nextChapter.id
@@ -1537,7 +1542,6 @@ export default class Editor extends Component {
                                 >
                                     Remove
                                 </button>
-                                <br />
                                 <button
                                     onClick={ event => this.props.insetChapter(
                                         //currentLevelId, data.level.id,
@@ -1558,10 +1562,10 @@ export default class Editor extends Component {
                                 >
                                     Set to previous inset level
                                 </button>
-                                <br /><br />
-                            </div>;
+                            </li>;
 
                         }) }
+                        </ul>
 
                     </div> : null }
 
@@ -1642,13 +1646,13 @@ export default class Editor extends Component {
                     Press [X] to delete this object
                     <br />
                     <br />
-                    <b>type</b>: {selectedObject.type}
+                    <b>type:</b> { selectedNextChapter ? 'nextChapter' : selectedObject.type }
                     <br />
-                    <b>id</b>: {selectedObject.id}
+                    <b>id:</b> { selectedObject.id }
                     <br />
-                    <b>scale</b>: {selectedObject.scale.x} {selectedObject.scale.y} {selectedObject.scale.z}
+                    <b>scale:</b> { selectedObject.scale.x } { selectedObject.scale.y } { selectedObject.scale.z }
                     <br />
-                    <b>position</b>:
+                    <b>position:</b>
                     <br />
 
                     x <input
