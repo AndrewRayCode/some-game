@@ -745,7 +745,7 @@ export default class Editor extends Component {
 
             const objectIntersection = intersections[ 0 ].object;
 
-            let objectUnderCursorId = entityIds.find( id => {
+            const objectUnderCursorId = entityIds.find( id => {
 
                 const ref = staticEntities.refs[ id ];
                 
@@ -762,9 +762,11 @@ export default class Editor extends Component {
 
             // Did the object we clicked on appear inside our next level ref?
             // if so, set selected object to the next level entity
-            objectUnderCursorId = nextChapters.find( nextChapter =>
-                objectIntersection.parent === this.refs[ `nextChapter${ nextChapter.id }` ].refs.group
-            ) || objectUnderCursorId;
+            const nextChapterUnderCursor = nextChapters.find( nextChapter =>
+                objectIntersection.parent === this.refs[ `nextChapter${ nextChapter.id }` ].refs.group ||
+                ( objectIntersection.parent && objectIntersection.parent.parent === this.refs[ `nextChapter${ nextChapter.id }` ].refs.group ) ||
+                ( objectIntersection.parent.parent && objectIntersection.parent.parent.parent === this.refs[ `nextChapter${ nextChapter.id }` ].refs.group )
+            );
 
             // TODO
             //if( previousChapter &&
@@ -772,8 +774,16 @@ export default class Editor extends Component {
                 //) {
                 //objectUnderCursorId = previousChapterEntity.id;
             //}
+            
+            if( nextChapterUnderCursor ) {
 
-            this.setState({ objectUnderCursorId });
+                this.setState({ nextChapterUnderCursor, objectUnderCursorId: null });
+
+            } else {
+
+                this.setState({ nextChapterUnderCursor: null, objectUnderCursorId });
+                
+            }
 
         }
 
@@ -828,7 +838,7 @@ export default class Editor extends Component {
 
         const {
             gridSnap, rotateable, createPreviewPosition, creating, selecting,
-            objectUnderCursorId
+            objectUnderCursorId, nextChapterUnderCursor
         } = this.state;
 
         if( rotateable ) {
@@ -840,6 +850,13 @@ export default class Editor extends Component {
         } else if( selecting && objectUnderCursorId ) {
 
             this.setState({ selectedObjectId: objectUnderCursorId });
+
+        } else if( selecting && nextChapterUnderCursor ) {
+
+            this.setState({
+                selectedObjectId: null,
+                selectedNextChapter: nextChapterUnderCursor
+            });
 
         } else if( creating && createPreviewPosition ) {
 
@@ -1031,10 +1048,11 @@ export default class Editor extends Component {
         const {
             createType, selecting, selectedObjectId, creating, rotateable,
             createPreviewPosition, gridScale, createPreviewRotation, gridSnap,
-            rotating, time, lightPosition
+            rotating, time, lightPosition, selectedNextChapter
         } = this.state;
 
-        const selectedObject = allEntities[ selectedObjectId ];
+        const selectedObject = allEntities[ selectedObjectId ] ||
+            selectedNextChapter;
 
         let editorState = 'None';
         if( rotateable ) {
@@ -1195,8 +1213,8 @@ export default class Editor extends Component {
 
         }
 
-        return <div>
-            <div className="clearfix">
+        return <div className="clearfix">
+            <div className={ styles.editor }>
                 <div
                     onMouseMove={ this.onMouseMove }
                     onMouseDown={ this.onMouseDown }
@@ -1502,419 +1520,424 @@ export default class Editor extends Component {
                     </React3>
                 </div>
 
-                <div className={ cx({ sidebar: true }) }>
-                    <b>Editor</b>
-                    <br />
-                    <br />
-                    { selecting && selectedObjectId ? <div>
-                        <b>Object Seelcted</b>
-                        <br />
-                        Press [X] to delete this object
-                        <br />
-                        <br />
-                        <b>type</b>: {selectedObject.type}
-                        <br />
-                        <b>id</b>: {selectedObject.id}
-                        <br />
-                        <b>scale</b>: {selectedObject.scale.x} {selectedObject.scale.y} {selectedObject.scale.z}
-                        <br />
-                        <b>position</b>:
-                        <br />
+                <div className={ styles.canvasData }>
 
-                        x <input
-                            type="number"
-                            style={{ width: '40px' }}
-                            value={ selectedObject.position.x }
-                            onChange={ this.onMoveSelectedObject.bind( this, 'x' ) }
-                            min={-Infinity}
-                            max={Infinity}
-                            step={ gridSnap }
-                        />
+                    { nextChapters.length ? <div>
+                        <b>Next chapters:</b>
+                        { nextChapters.map( nextChapter => {
 
-                        y <input
-                            type="number"
-                            style={{ width: '40px' }}
-                            value={ selectedObject.position.y }
-                            onChange={ this.onMoveSelectedObject.bind( this, 'y' ) }
-                            min={-Infinity}
-                            max={Infinity}
-                            step={ gridSnap }
-                        />
-
-                        z <input
-                            type="number"
-                            style={{ width: '40px' }}
-                            value={ selectedObject.position.z }
-                            onChange={ this.onMoveSelectedObject.bind( this, 'z' ) }
-                            min={-Infinity}
-                            max={Infinity}
-                            step={ gridSnap }
-                        />
-
-                        <br />
-                        <b>rotation euler</b>:
-                        <br />
-
-                        x <input
-                            type="number"
-                            style={{ width: '40px' }}
-                            value={ selectedObject.rotation.x }
-                            onChange={ this.onRotateSelectedObject.bind( this, 'x' ) }
-                            min={-Infinity}
-                            max={Infinity}
-                            step={ gridSnap }
-                        />
-
-                        y <input
-                            type="number"
-                            style={{ width: '40px' }}
-                            value={ selectedObject.rotation.y }
-                            onChange={ this.onRotateSelectedObject.bind( this, 'y' ) }
-                            min={-Infinity}
-                            max={Infinity}
-                            step={ gridSnap }
-                        />
-
-                        z <input
-                            type="number"
-                            style={{ width: '40px' }}
-                            value={ selectedObject.rotation.z }
-                            onChange={ this.onRotateSelectedObject.bind( this, 'z' ) }
-                            min={-Infinity}
-                            max={Infinity}
-                            step={ gridSnap }
-                        />
-
-                        { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) ? <div>
-                            <br />
-                            <br />
-                            <b>Change Texture of Selection:</b>
-                            <br />
-
-                            { Object.keys( Textures ).map( key =>
-                                <button onClick={ this.changeMaterialId( key ) }
-                                    style={
-                                        ( currentLevelStaticEntities[
-                                            selectedObjectId
-                                        ] || {} ).materialId === key ? {
-                                            border: 'inset 1px blue'
-                                        } : null
-                                    }
-                                    key={ key }
-                                >
-                                    <img
-                                        src={ Textures[ key ] }
-                                        height={ 20 }
-                                        width={ 20 }
-                                    />
-                                </button>
-                            )}
-                            { Object.keys( CustomShaders ).map( key =>
-                                <button onClick={ this.changeMaterialId( key ) }
-                                    style={
-                                        ( currentLevelStaticEntities[
-                                            selectedObjectId
-                                        ] || {} ).materialId === key ? {
-                                            border: 'inset 1px blue'
-                                        } : null
-                                    }
-                                    key={ key }
-                                >
-                                    { key }
-                                </button>
-                            )}
-
-                            { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) && <div>
-                                <br /><br />
+                            const chapter = allChapters[ nextChapter.chapterId ];
+                            return <div key={ nextChapter.id }>
+                                <br />
+                                { chapter.name }
                                 <button
-                                    onClick={
-                                        this.props.changeEntityType.bind(
-                                            null,
-                                            selectedObjectId,
-                                            selectedObject.type === 'wall' ? 'floor' : 'wall'
-                                        )
-                                    }
+                                    onClick={ event => this.props.removeNextChapter(
+                                        currentChapter.id, nextChapter.id
+                                    ) }
                                 >
-                                    Switch type to { selectedObject.type === 'wall' ? 'Floor' : 'Wall' }
+                                    Remove
                                 </button>
-                            </div> }
-                        </div> : null }
+                                <br />
+                                <button
+                                    onClick={ event => this.props.insetChapter(
+                                        //currentLevelId, data.level.id,
+                                        //data.entity.id,
+                                        //previousChapterEntity.id,
+                                        //data.entity.position.clone()
+                                            //.multiply(
+                                                //new THREE.Vector3( -1, 1, -1 )
+                                            //)
+                                            //.multiplyScalar( 1 / data.entity.scale.x )
+                                            //.setY( -7 ),
+                                        //new THREE.Vector3(
+                                            //1 / data.entity.scale.x,
+                                            //1 / data.entity.scale.y,
+                                            //1 / data.entity.scale.z
+                                        //)
+                                    ) }
+                                >
+                                    Set to previous inset level
+                                </button>
+                                <br /><br />
+                            </div>;
+
+                        }) }
 
                     </div> : null }
 
-                    { creating ? <div>
-                        <b>Create</b>
-                        <br />
-                        [W] { createType === 'wall' && '✓' }
-                        <button onClick={ this.selectType( 'wall' ) }>
-                            Wall
-                        </button>
-                        <br />
-                        [F] { createType === 'floor' && '✓' }
-                        <button onClick={ this.selectType( 'floor' ) }>
-                            Floor
-                        </button>
-                        <br />
-                        [P] { createType === 'pushy' && '✓' }
-                        <button onClick={ this.selectType( 'pushy' ) }>
-                            Pushy
-                        </button>
-                        <br />
-                        [T] { createType === 'tube' && '✓' }
-                        <button onClick={ this.selectType( 'tube' ) }>
-                            Tube Straight
-                        </button>
-                        <br />
-                        [B] { createType === 'tubebend' && '✓' }
-                        <button onClick={ this.selectType( 'tubebend' ) }>
-                            Tube Bend
-                        </button>
-                        <br />
-                        [K] { createType === 'shrink' && '✓' }
-                        <button onClick={ this.selectType( 'shrink' ) }>
-                            Shrink
-                        </button>
-                        <br />
-                        [O] { createType === 'grow' && '✓' }
-                        <button onClick={ this.selectType( 'grow' ) }>
-                            Grow
-                        </button>
-                        <br />
-                        [A] { createType === 'player' && '✓' }
-                        <button onClick={ this.selectType( 'player' ) }>
-                            Player
-                        </button>
-                        <br />
-                        [H] { createType === 'finish' && '✓' }
-                        <button onClick={ this.selectType( 'finish' ) }>
-                            Finish
-                        </button>
-                        <br />
-                        <b>Extras</b>
-                        <br />
-                        { createType === 'house' && '✓' }
-                        <button onClick={ this.selectType( 'house' ) }>
-                            House
-                        </button>
-                        <br />
-                        [L] { createType === 'chapter' && '✓' }
-                        <select
-                            onChange={ this.onChapterCreateChange }
-                            value={ this.state.insertChapterId }
-                        >
-                            { ( Object.keys( currentChapters ) || [] ).map( id => {
-                                return <option
-                                    key={ id }
-                                    value={ id }
-                                >
-                                    { currentChapters[ id ].name }
-                                </option>;
-                            }) }
-                        </select>
-                        <button onClick={ this.selectType( 'chapter' ) }>
-                            Chapter
-                        </button>
-
-                        { ( createType === 'wall' || createType === 'floor' ) && <div>
-
-                            { Object.keys( Textures ).map( key =>
-                                <button onClick={ this.selectMaterialId( key ) }
-                                    style={
-                                        this.state.createMaterialId === key ? {
-                                            border: 'inset 1px blue'
-                                        } : null
-                                    }
-                                    key={ key }
-                                >
-                                    <img
-                                        src={ Textures[ key ] }
-                                        height={ 20 }
-                                        width={ 20 }
-                                    />
-                                </button>
-                            )}
-                            { Object.keys( CustomShaders ).map( key =>
-                                <button onClick={ this.selectMaterialId( key ) }
-                                    style={
-                                        this.state.createMaterialId === key ? {
-                                            border: 'inset 1px blue'
-                                        } : null
-                                    }
-                                    key={ key }
-                                >
-                                    { key }
-                                </button>
-                            )}
-
-                        </div> }
-
-                    </div> : null }
-
+                    <b>State:</b> { editorState }
                     <br />
-                    <b>Keyboard Shortcuts</b>
+                    <b>Grid Snap:</b> { gridSnap }
                     <br />
-                    <br />
-                    [C] { creating && '✓' } Create entities mode.
-                    <br />
-                    [S] { selecting && '✓' } Select & Zoom mode. Use mouse to rotate camera and scroll to zoom.
-                    <br />
-                    [G] Start Game.
-                    <br />
-                    [Esc] Return to editor.
-
-                    <br />
-                    <b>Book Name</b>
-                    <input
-                        type="text"
-                        value={ currentBook.name }
-                        onChange={ event => this.props.renameBook(
-                            currentBookId, event.target.value
-                        ) }
-                    />
-
-                    <br />
-                    <b>Level Name</b>
-                    <input
-                        type="text"
-                        value={ currentLevel.name }
-                        onChange={ event => this.props.renameLevel(
-                            currentLevelId, event.target.value
-                        ) }
-                    />
-
-                    <br />
-                    <b>Chapter Name</b>
-                    <input
-                        type="text"
-                        value={ currentChapter.name }
-                        onChange={ event => this.props.renameChapter(
-                            currentChapterId, event.target.value
-                        ) }
-                    />
-
-                    <button
-                        onClick={
-                            this.props.saveAll.bind(
-                                null, currentLevel, currentLevelStaticEntities,
-                                currentBook, currentChapters
-                            )
-                        }
-                    >
-                        Save Level and Book
-                    </button>
-
-                    <br />
-                    <br />
-                    <small>
-                        { this.state.focused ? 'focused' : 'not focused' }
-                    </small>
-
-                </div>
-
-            </div>
-
-            <div>
-                { nextChapters.map( nextChapter => {
-
-                    const chapter = allChapters[ nextChapter.chapterId ];
-                    return <div key={ nextChapter.id }>
-                        <b>Next chapter:</b>
-                        <br />
-                        { chapter.name }
-                        <button
-                            onClick={ event => this.props.removeNextChapter(
-                                currentChapter.id, nextChapter.id
-                            ) }
-                        >
-                            Remove
-                        </button>
-                        <button
-                            onClick={ event => this.props.insetChapter(
-                                //currentLevelId, data.level.id,
-                                //data.entity.id,
-                                //previousChapterEntity.id,
-                                //data.entity.position.clone()
-                                    //.multiply(
-                                        //new THREE.Vector3( -1, 1, -1 )
-                                    //)
-                                    //.multiplyScalar( 1 / data.entity.scale.x )
-                                    //.setY( -7 ),
-                                //new THREE.Vector3(
-                                    //1 / data.entity.scale.x,
-                                    //1 / data.entity.scale.y,
-                                    //1 / data.entity.scale.z
-                                //)
-                            ) }
-                        >
-                            Set to previous inset level
-                        </button>
-                        <br /><br />
-                    </div>;
-
-                }) }
-
-                <b>State:</b> { editorState }
-                <br />
-                <b>Grid Snap:</b> { gridSnap }
-                <br />
-                <b>Levels in "{ currentBook.name }":</b>
-                <ul>
-                { ( Object.keys( currentLevels ) || [] ).map( id => {
-                    const { name } = currentLevels[ id ];
-                    return <li key={ id }>
-                        { id === currentLevelId ?
-                            <b>{ name }</b> :
-                            <a onClick={ this.selectLevelAndChapter.bind( null, id, firstChapterIdsContainingLevel[ id ] ) }>
-                                { name }
-                            </a>
-                        }
-                    </li>;
-                }) }
-                </ul>
-                <button onClick={ this.createLevel.bind( null, 'New Level', currentBookId ) }>
-                    Create Level
-                </button>
-
-                <br /><br />
-                { currentChapters && <div>
-                    <b>Chapters in "{ currentBook.name }":</b>
+                    <b>Levels in "{ currentBook.name }":</b>
                     <ul>
-                    { ( Object.keys( currentChapters ) || [] ).map( id => {
-                        const chapter = currentChapters[ id ];
-                        const { name } = chapter;
+                    { ( Object.keys( currentLevels ) || [] ).map( id => {
+                        const { name } = currentLevels[ id ];
                         return <li key={ id }>
-                            { id === currentChapterId ?
+                            { id === currentLevelId ?
                                 <b>{ name }</b> :
-                                <a onClick={ this.selectLevelAndChapter.bind( null, chapter.levelId, id ) }>
+                                <a onClick={ this.selectLevelAndChapter.bind( null, id, firstChapterIdsContainingLevel[ id ] ) }>
                                     { name }
                                 </a>
                             }
                         </li>;
                     }) }
                     </ul>
-                    <button onClick={ this.createChapterFromLevel.bind( null, currentLevel.name, currentLevelId, currentBookId ) }>
-                        Create New Chapter From Level
+                    <button onClick={ this.createLevel.bind( null, 'New Level', currentBookId ) }>
+                        Create Level
                     </button>
-                </div> }
 
-                <br /><br />
-                <b>Books:</b>
-                <ul>
-                { ( Object.keys( books ) || [] ).map( id => {
-                    const { name } = books[ id ];
-                    return <li key={ id }>
-                        { id === currentBookId ?
-                            <b>{ name }</b> :
-                            <a onClick={ this.props.selectBook.bind( null, id ) }>
-                                { name }
-                            </a>
-                        }
-                    </li>;
-                }) }
-                </ul>
-                <button onClick={ this.props.createBook.bind( null, 'New Book' ) }>
-                    Create Book
+                    <br /><br />
+                    { currentChapters && <div>
+                        <b>Chapters in "{ currentBook.name }":</b>
+                        <ul>
+                        { ( Object.keys( currentChapters ) || [] ).map( id => {
+                            const chapter = currentChapters[ id ];
+                            const { name } = chapter;
+                            return <li key={ id }>
+                                { id === currentChapterId ?
+                                    <b>{ name }</b> :
+                                    <a onClick={ this.selectLevelAndChapter.bind( null, chapter.levelId, id ) }>
+                                        { name }
+                                    </a>
+                                }
+                            </li>;
+                        }) }
+                        </ul>
+                        <button onClick={ this.createChapterFromLevel.bind( null, currentLevel.name, currentLevelId, currentBookId ) }>
+                            Create New Chapter From Level
+                        </button>
+                    </div> }
+
+                    <br /><br />
+                    <b>Books:</b>
+                    <ul>
+                    { ( Object.keys( books ) || [] ).map( id => {
+                        const { name } = books[ id ];
+                        return <li key={ id }>
+                            { id === currentBookId ?
+                                <b>{ name }</b> :
+                                <a onClick={ this.props.selectBook.bind( null, id ) }>
+                                    { name }
+                                </a>
+                            }
+                        </li>;
+                    }) }
+                    </ul>
+                    <button onClick={ this.props.createBook.bind( null, 'New Book' ) }>
+                        Create Book
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div className={ styles.sidebar }>
+                <b>Editor</b>
+                <br />
+                <br />
+                { selecting && selectedObject ? <div>
+                    <b>Object Seelcted</b>
+                    <br />
+                    Press [X] to delete this object
+                    <br />
+                    <br />
+                    <b>type</b>: {selectedObject.type}
+                    <br />
+                    <b>id</b>: {selectedObject.id}
+                    <br />
+                    <b>scale</b>: {selectedObject.scale.x} {selectedObject.scale.y} {selectedObject.scale.z}
+                    <br />
+                    <b>position</b>:
+                    <br />
+
+                    x <input
+                        type="number"
+                        style={{ width: '40px' }}
+                        value={ selectedObject.position.x }
+                        onChange={ this.onMoveSelectedObject.bind( this, 'x' ) }
+                        min={-Infinity}
+                        max={Infinity}
+                        step={ gridSnap }
+                    />
+
+                    y <input
+                        type="number"
+                        style={{ width: '40px' }}
+                        value={ selectedObject.position.y }
+                        onChange={ this.onMoveSelectedObject.bind( this, 'y' ) }
+                        min={-Infinity}
+                        max={Infinity}
+                        step={ gridSnap }
+                    />
+
+                    z <input
+                        type="number"
+                        style={{ width: '40px' }}
+                        value={ selectedObject.position.z }
+                        onChange={ this.onMoveSelectedObject.bind( this, 'z' ) }
+                        min={-Infinity}
+                        max={Infinity}
+                        step={ gridSnap }
+                    />
+
+                    <br />
+                    <b>rotation euler</b>:
+                    <br />
+
+                    x <input
+                        type="number"
+                        style={{ width: '40px' }}
+                        value={ selectedObject.rotation.x }
+                        onChange={ this.onRotateSelectedObject.bind( this, 'x' ) }
+                        min={-Infinity}
+                        max={Infinity}
+                        step={ gridSnap }
+                    />
+
+                    y <input
+                        type="number"
+                        style={{ width: '40px' }}
+                        value={ selectedObject.rotation.y }
+                        onChange={ this.onRotateSelectedObject.bind( this, 'y' ) }
+                        min={-Infinity}
+                        max={Infinity}
+                        step={ gridSnap }
+                    />
+
+                    z <input
+                        type="number"
+                        style={{ width: '40px' }}
+                        value={ selectedObject.rotation.z }
+                        onChange={ this.onRotateSelectedObject.bind( this, 'z' ) }
+                        min={-Infinity}
+                        max={Infinity}
+                        step={ gridSnap }
+                    />
+
+                    { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) ? <div>
+                        <br />
+                        <br />
+                        <b>Change Texture of Selection:</b>
+                        <br />
+
+                        { Object.keys( Textures ).map( key =>
+                            <button onClick={ this.changeMaterialId( key ) }
+                                style={
+                                    ( currentLevelStaticEntities[
+                                        selectedObjectId
+                                    ] || {} ).materialId === key ? {
+                                        border: 'inset 1px blue'
+                                    } : null
+                                }
+                                key={ key }
+                            >
+                                <img
+                                    src={ Textures[ key ] }
+                                    height={ 20 }
+                                    width={ 20 }
+                                />
+                            </button>
+                        )}
+                        { Object.keys( CustomShaders ).map( key =>
+                            <button onClick={ this.changeMaterialId( key ) }
+                                style={
+                                    ( currentLevelStaticEntities[
+                                        selectedObjectId
+                                    ] || {} ).materialId === key ? {
+                                        border: 'inset 1px blue'
+                                    } : null
+                                }
+                                key={ key }
+                            >
+                                { key }
+                            </button>
+                        )}
+
+                        { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) && <div>
+                            <br /><br />
+                            <button
+                                onClick={
+                                    this.props.changeEntityType.bind(
+                                        null,
+                                        selectedObjectId,
+                                        selectedObject.type === 'wall' ? 'floor' : 'wall'
+                                    )
+                                }
+                            >
+                                Switch type to { selectedObject.type === 'wall' ? 'Floor' : 'Wall' }
+                            </button>
+                        </div> }
+                    </div> : null }
+
+                </div> : null }
+
+                { creating ? <div>
+                    <b>Create</b>
+                    <br />
+                    [W] { createType === 'wall' && '✓' }
+                    <button onClick={ this.selectType( 'wall' ) }>
+                        Wall
+                    </button>
+                    <br />
+                    [F] { createType === 'floor' && '✓' }
+                    <button onClick={ this.selectType( 'floor' ) }>
+                        Floor
+                    </button>
+                    <br />
+                    [P] { createType === 'pushy' && '✓' }
+                    <button onClick={ this.selectType( 'pushy' ) }>
+                        Pushy
+                    </button>
+                    <br />
+                    [T] { createType === 'tube' && '✓' }
+                    <button onClick={ this.selectType( 'tube' ) }>
+                        Tube Straight
+                    </button>
+                    <br />
+                    [B] { createType === 'tubebend' && '✓' }
+                    <button onClick={ this.selectType( 'tubebend' ) }>
+                        Tube Bend
+                    </button>
+                    <br />
+                    [K] { createType === 'shrink' && '✓' }
+                    <button onClick={ this.selectType( 'shrink' ) }>
+                        Shrink
+                    </button>
+                    <br />
+                    [O] { createType === 'grow' && '✓' }
+                    <button onClick={ this.selectType( 'grow' ) }>
+                        Grow
+                    </button>
+                    <br />
+                    [A] { createType === 'player' && '✓' }
+                    <button onClick={ this.selectType( 'player' ) }>
+                        Player
+                    </button>
+                    <br />
+                    [H] { createType === 'finish' && '✓' }
+                    <button onClick={ this.selectType( 'finish' ) }>
+                        Finish
+                    </button>
+                    <br />
+                    <b>Extras</b>
+                    <br />
+                    { createType === 'house' && '✓' }
+                    <button onClick={ this.selectType( 'house' ) }>
+                        House
+                    </button>
+                    <br />
+                    [L] { createType === 'chapter' && '✓' }
+                    <select
+                        onChange={ this.onChapterCreateChange }
+                        value={ this.state.insertChapterId }
+                    >
+                        { ( Object.keys( currentChapters ) || [] ).map( id => {
+                            return <option
+                                key={ id }
+                                value={ id }
+                            >
+                                { currentChapters[ id ].name }
+                            </option>;
+                        }) }
+                    </select>
+                    <button onClick={ this.selectType( 'chapter' ) }>
+                        Chapter
+                    </button>
+
+                    { ( createType === 'wall' || createType === 'floor' ) && <div>
+
+                        { Object.keys( Textures ).map( key =>
+                            <button onClick={ this.selectMaterialId( key ) }
+                                style={
+                                    this.state.createMaterialId === key ? {
+                                        border: 'inset 1px blue'
+                                    } : null
+                                }
+                                key={ key }
+                            >
+                                <img
+                                    src={ Textures[ key ] }
+                                    height={ 20 }
+                                    width={ 20 }
+                                />
+                            </button>
+                        )}
+                        { Object.keys( CustomShaders ).map( key =>
+                            <button onClick={ this.selectMaterialId( key ) }
+                                style={
+                                    this.state.createMaterialId === key ? {
+                                        border: 'inset 1px blue'
+                                    } : null
+                                }
+                                key={ key }
+                            >
+                                { key }
+                            </button>
+                        )}
+
+                    </div> }
+
+                </div> : null }
+
+                <br />
+                <b>Keyboard Shortcuts</b>
+                <br />
+                <br />
+                [C] { creating && '✓' } Create entities mode.
+                <br />
+                [S] { selecting && '✓' } Select & Zoom mode. Use mouse to rotate camera and scroll to zoom.
+                <br />
+                [G] Start Game.
+                <br />
+                [Esc] Return to editor.
+
+                <br />
+                <b>Book Name</b>
+                <input
+                    type="text"
+                    value={ currentBook.name }
+                    onChange={ event => this.props.renameBook(
+                        currentBookId, event.target.value
+                    ) }
+                />
+
+                <br />
+                <b>Level Name</b>
+                <input
+                    type="text"
+                    value={ currentLevel.name }
+                    onChange={ event => this.props.renameLevel(
+                        currentLevelId, event.target.value
+                    ) }
+                />
+
+                <br />
+                <b>Chapter Name</b>
+                <input
+                    type="text"
+                    value={ currentChapter.name }
+                    onChange={ event => this.props.renameChapter(
+                        currentChapterId, event.target.value
+                    ) }
+                />
+
+                <button
+                    onClick={
+                        this.props.saveAll.bind(
+                            null, currentLevel, currentLevelStaticEntities,
+                            currentBook, currentChapters
+                        )
+                    }
+                >
+                    Save Level and Book
                 </button>
+
+                <br />
+                <br />
+                <small>
+                    { this.state.focused ? 'focused' : 'not focused' }
+                </small>
 
             </div>
 

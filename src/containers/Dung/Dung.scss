@@ -22,5 +22,11 @@
     cursor:grabbing;
 }
 
+.editor {
+    width:400px;
+    margin:0 20px 0 0;
+    float:left;
+}
+
 // For a tags without hrefs
 a { cursor: pointer; }
