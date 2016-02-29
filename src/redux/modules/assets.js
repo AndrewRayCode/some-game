@@ -1,5 +1,5 @@
 import THREE from 'three';
-import { loadModel } from '../../containers/Dung/Utils';
+import { loadModel } from '../../helpers/Utils';
 
 const LOAD = 'assets/LOAD';
 const LOAD_SUCCESS = 'assets/LOAD_SUCCESS';

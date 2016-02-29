@@ -1,5 +1,5 @@
 import THREE from 'three';
-import { without, uid } from '../../containers/Dung/Utils';
+import { without, uid } from '../../helpers/Utils';
 
 const LOAD = 'redux-example/LEVEL_LOAD';
 const LOAD_SUCCESS = 'redux-example/LEVEL_LOAD_SUCCESS';

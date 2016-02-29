@@ -29,7 +29,7 @@ import FinishLine from './FinishLine';
 import Textures from './Textures';
 import CustomShaders from './CustomShaders';
 
-import { without } from './Utils';
+import { without } from '../../helpers/Utils';
 
 const cx = classNames.bind( styles );
 

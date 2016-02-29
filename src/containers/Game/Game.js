@@ -13,7 +13,7 @@ import Pushy from '../Dung/Pushy';
 import Player from '../Dung/Player';
 import {
     getEntrancesForTube, without, lerp
-} from '../Dung/Utils';
+} from '../../helpers/Utils';
 
 const factorConstraint = new CANNON.Vec3( 1, 0, 1 );
 const angularUprightConstraint = new CANNON.Vec3( 0, 0, 0 );

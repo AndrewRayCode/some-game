@@ -1,6 +1,6 @@
 import db from '../../src/db';
 import knex from 'knex';
-import { without } from '../../src/containers/Dung/Utils';
+import { without } from '../../src/helpers/Utils';
 
 // Level management
 
