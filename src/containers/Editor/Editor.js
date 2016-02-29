@@ -1,10 +1,9 @@
-import 'babel/polyfill';
 import React, { PropTypes, Component } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three';
 import { connect } from 'react-redux';
-import connectData from '../../helpers/connectData';
 import { asyncConnect } from 'redux-async-connect';
+import { browserHistory } from 'react-router';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
     createLevel, selectLevelAndChapter, deserializeLevels, renameLevel,
@@ -77,21 +76,24 @@ function snapTo( number, interval ) {
 
 }
 
-function fetchData( getState, dispatch ) {
-    const promises = [];
-    if( !areBooksLoaded( getState() ) ) {
-        promises.push( dispatch( loadAllBooks() ) );
-    }
-    return Promise.all( promises );
-}
-
 @asyncConnect([{
-    deferred: true,
     promise: ({ store: { dispatch, getState } }) => {
-        console.log('wtf i am running async');
+        const promises = [];
+        if( !areBooksLoaded( getState() ) ) {
+            promises.push( dispatch( loadAllBooks() ) );
+        }
+        return Promise.all( promises );
+    }
+}, {
+    promise: ({ store: { dispatch, getState } }) => {
         if( !__SERVER__ && !areAssetsLoaded( getState() ) ) {
-            console.log('doing it');
             return dispatch( loadAllAssets() );
+        }
+    }
+}, {
+    promise: ({ store: { dispatch, getState } }) => {
+        if( !__SERVER__ ) {
+            return dispatch( deserializeLevels() );
         }
     }
 }])
@@ -247,7 +249,7 @@ function fetchData( getState, dispatch ) {
     },
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
-        changeEntityMaterial, addNextChapter, deserializeLevels, renameLevel,
+        changeEntityMaterial, addNextChapter, renameLevel,
         createLevel, renameChapter, renameBook, removeNextChapter,
         insetChapter, changeEntityType, createBook, selectBook,
         selectLevelAndChapter, createChapterFromLevel, saveAll
@@ -319,11 +321,6 @@ export default class Editor extends Component {
             window.addEventListener( 'blur', this.onWindowBlur );
             window.addEventListener( 'focusin', this.onInputFocus );
             window.addEventListener( 'focusout', this.onInputBlur );
-
-            // This is bad. Fix it later
-            setTimeout( () => {
-                this.props.deserializeLevels();
-            }, 0 );
 
         }
 
@@ -525,7 +522,7 @@ export default class Editor extends Component {
 
         if( KeyCodes.G in keys ) {
 
-            this.props.onEditorSwitch();
+            browserHistory.push( '/game' );
 
         }
 

@@ -149,6 +149,7 @@ export function gameBookReducer( state = null, action = {} ) {
 }
 
 export function startGame( bookId, chapterId, levels, entities, books, chapters ) {
+    console.log( bookId, chapterId, levels, entities, books, chapters );
     return {
         type: START_GAME,
         bookId, chapterId, levels, entities, chapters, books

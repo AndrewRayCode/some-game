@@ -106,12 +106,13 @@ export function loadAllAssets() {
             const json = CustomShaders[ key ];
             shaderFrog.add( key, json );
 
-            console.log('hey',key,'json',json);
             dispatch( loadShader(
                 key, json, shaderFrog.get( key )
             ));
 
         });
+
+        dispatch({ type: ASSETS_LOADED });
 
     };
 

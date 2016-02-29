@@ -1,14 +1,18 @@
-import 'babel/polyfill';
 import React, { Component, PropTypes } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
+import { browserHistory } from 'react-router';
 import { connect } from 'react-redux';
-import connectData from '../../helpers/connectData';
+import { asyncConnect } from 'redux-async-connect';
 import { bindActionCreators } from 'redux';
-import { areBooksLoaded, loadAllBooks } from '../../redux/modules/editor';
+import {
+    areBooksLoaded, loadAllBooks, deserializeLevels
+} from '../../redux/modules/editor';
 import { areAssetsLoaded, loadAllAssets } from '../../redux/modules/assets';
-import { scalePlayer, advanceChapter } from '../../redux/modules/game';
+import {
+    scalePlayer, advanceChapter, startGame
+} from '../../redux/modules/game';
 import KeyCodes from '../../helpers/KeyCodes';
 import Cardinality from '../../helpers/Cardinality';
 import { Pushy, Player, StaticEntities } from '../../components';
@@ -236,20 +240,51 @@ function snapTo( number, interval ) {
 
 }
 
-function fetchData( getState, dispatch ) {
-    const promises = [];
-    if( !areBooksLoaded( getState() ) ) {
-        promises.push( dispatch( loadAllBooks() ) );
+@asyncConnect([{
+    promise: ({ store: { dispatch, getState } }) => {
+        const promises = [];
+        if( !areBooksLoaded( getState() ) ) {
+            promises.push( dispatch( loadAllBooks() ) );
+        }
+        return Promise.all( promises );
     }
-    if( !__SERVER__ && !areAssetsLoaded( getState() ) ) {
-        promises.push( dispatch( loadAllAssets() ) );
+}, {
+    promise: ({ store: { dispatch, getState } }) => {
+        if( !__SERVER__ && !areAssetsLoaded( getState() ) ) {
+            return dispatch( loadAllAssets() );
+        }
     }
-    return Promise.all( promises );
-}
-
-@connectData( fetchData )
+}, {
+    deferred: true,
+    promise: ({ store: { dispatch, getState } }) => {
+        if( !__SERVER__ && !areAssetsLoaded( getState() ) ) {
+            return dispatch( deserializeLevels() );
+        }
+    }
+}, {
+    deferred: true,
+    promise: ({ store: { dispatch, getState } }) => {
+        console.log('deferred my ass');
+        if( !__SERVER__ ) {
+        console.log('meow');
+            const {
+                bookId, chapterId, levels, entities, chapters, books
+            } = getState();
+        console.log('starting');
+            return dispatch( startGame(
+                bookId || Object.keys( books )[ 0 ],
+                chapterId || Object.keys( chapters )[ 0 ],
+                levels, entities, chapters, books
+            ) );
+        }
+    }
+}])
 @connect(
     state => {
+
+        if( __SERVER__ ) {
+            return {};
+        }
 
         const {
             entities: allEntities,
@@ -422,6 +457,10 @@ export default class Game extends Component {
     constructor( props, context ) {
 
         super( props, context );
+
+        if( __SERVER__ ) {
+            return;
+        }
 
         this.keysDown = {};
         this.playerContact = {};
@@ -1169,7 +1208,7 @@ export default class Game extends Component {
 
         if( KeyCodes.ESC in keysDown ) {
 
-            this.props.onGameEnd();
+            browserHistory.push( '/editor' );
 
         }
 
@@ -1452,6 +1491,10 @@ export default class Game extends Component {
     }
 
     render() {
+
+        if( __SERVER__ ) {
+            return <div />;
+        }
 
         const {
             pushyPositions, time, cameraPosition, currentFlowPosition, debug,

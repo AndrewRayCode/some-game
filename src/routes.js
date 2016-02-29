@@ -2,16 +2,16 @@ import React from 'react';
 import {IndexRoute, Route} from 'react-router';
 import { isLoaded as isAuthLoaded, load as loadAuth } from 'redux/modules/auth';
 import {
-    App, Home, Editor, Game, Login, NotFound, LoginSuccess,
+    App, Game, Home, Editor, Login, LoginSuccess, NotFound,
 } from 'containers';
 
 export default (store) => {
-  const requireLogin = (nextState, replaceState, cb) => {
+  const requireLogin = (nextState, replace, cb) => {
     function checkAuth() {
       const { auth: { user }} = store.getState();
       if (!user) {
         // oops, not logged in, so can't be here!
-        replaceState(null, '/');
+        replace('/');
       }
       cb();
     }
@@ -37,9 +37,9 @@ export default (store) => {
       </Route>
 
       { /* Routes */ }
+      <Route path="login" component={Login}/>
       <Route path="game" component={Game}/>
       <Route path="editor" component={Editor}/>
-      <Route path="login" component={Login}/>
 
       { /* Catch all route */ }
       <Route path="*" component={NotFound} status={404} />

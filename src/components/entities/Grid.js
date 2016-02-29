@@ -1,4 +1,3 @@
-import 'babel/polyfill';
 import React, { Component } from 'react';
 import THREE from 'three';
 import React3 from 'react-three-renderer';
