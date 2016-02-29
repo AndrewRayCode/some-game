@@ -1,17 +1,11 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import Shrink from './Shrink';
-import Grow from './Grow';
-import Wall from './Wall';
-import Floor from './Floor';
-import Pushy from './Pushy';
-import TubeBend from './TubeBend';
-import TubeStraight from './TubeStraight';
-import Player from './Player';
-import FinishLine from './FinishLine';
-import House from './House';
-import Textures from './Textures';
-import Shaders from './CustomShaders';
+import Textures from '../../helpers/Textures'; // todo: pass as prop?
+
+import {
+    Shrink, Grow, Wall, Floor, Pushy, TubeBend, TubeStraight, Player,
+    FinishLine, House,
+} from '../';
 
 export default class StaticEntities extends Component {
 
@@ -66,7 +60,7 @@ export default class StaticEntities extends Component {
                     </meshPhongMaterial>
                 )}
 
-                { Object.keys( Shaders ).map( key =>
+                { Object.keys( shaders ).map( key =>
                     <rawShaderMaterial
                         key={ key }
                         resourceId={ key }
@@ -89,7 +83,7 @@ export default class StaticEntities extends Component {
                     transparent
                 >
                     <texture
-                        url={ require( '../Game/tube-pattern-1.png' ) }
+                        url={ require( '../../../assets/tube-pattern-1.png' ) }
                         wrapS={ THREE.RepeatWrapping }
                         wrapT={ THREE.RepeatWrapping }
                         anisotropy={ 16 }

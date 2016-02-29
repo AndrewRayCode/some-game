@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 import THREE from 'three';
-import CustomShaders from './CustomShaders';
 
 const topPosition = new THREE.Vector3( 0, 0.51, 0 );
 const topRotation = new THREE.Euler( -THREE.Math.degToRad( 90 ), 0, 0 );
 
-export default class Wall extends Component {
+export default class Floor extends Component {
 
     render() {
 
@@ -25,7 +24,7 @@ export default class Wall extends Component {
                     resourceId="planeGeometry"
                 />
                 <materialResource
-                    resourceId="wallSideMaterial"
+                    resourceId="floorSideMaterial"
                 />
             </mesh>
             <mesh

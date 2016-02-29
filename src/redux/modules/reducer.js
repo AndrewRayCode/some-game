@@ -4,7 +4,7 @@ import { routerStateReducer } from 'redux-router';
 
 import auth from './auth';
 import { reducer as form } from 'redux-form';
-import { assetsReducer, shadersReducer } from './assets';
+import { assetsReducer, shadersReducer, loadAssetsReducer } from './assets';
 import { game, gameChapterReducer, gameBookReducer } from './game';
 import {
     loadLevelsReducer, levelsReducer, entitiesReducer,
@@ -23,6 +23,7 @@ export default combineReducers({
     chapters: chaptersReducer,
     levels: levelsReducer,
     assets: assetsReducer,
+    assetsLoaded: loadAssetsReducer,
     shaders: shadersReducer,
     entities: entitiesReducer,
 

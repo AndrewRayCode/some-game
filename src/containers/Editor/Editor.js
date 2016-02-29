@@ -2,8 +2,9 @@ import 'babel/polyfill';
 import React, { PropTypes, Component } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three';
-import Grid from './Grid';
 import { connect } from 'react-redux';
+import connectData from '../../helpers/connectData';
+import { asyncConnect } from 'redux-async-connect';
 import {
     rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
     createLevel, selectLevelAndChapter, deserializeLevels, renameLevel,
@@ -13,22 +14,20 @@ import {
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
-import styles from './Dung.scss';
-import Wall from './Wall';
-import Floor from './Floor';
-import Pushy from './Pushy';
-import TubeBend from './TubeBend';
-import TubeStraight from './TubeStraight';
-import Player from './Player';
-import StaticEntities from './StaticEntities';
-import KeyCodes from './KeyCodes';
-import Shrink from './Shrink';
-import House from './House';
-import Grow from './Grow';
-import FinishLine from './FinishLine';
-import Textures from './Textures';
-import CustomShaders from './CustomShaders';
+import styles from './Editor.scss';
 
+import {
+    Wall, Floor, Pushy, TubeBend, TubeStraight, Player, StaticEntities,
+    Shrink, House, Grow, FinishLine, Grid,
+} from '../../components';
+
+import Textures from '../../helpers/Textures';
+import CustomShaders from '../../helpers/CustomShaders';
+import shaderFrog from '../../helpers/shaderFrog';
+import KeyCodes from '../../helpers/KeyCodes';
+
+import { areBooksLoaded, loadAllBooks } from '../../redux/modules/editor';
+import { areAssetsLoaded, loadAllAssets } from '../../redux/modules/assets';
 import { without } from '../../helpers/Utils';
 
 const cx = classNames.bind( styles );
@@ -78,6 +77,24 @@ function snapTo( number, interval ) {
 
 }
 
+function fetchData( getState, dispatch ) {
+    const promises = [];
+    if( !areBooksLoaded( getState() ) ) {
+        promises.push( dispatch( loadAllBooks() ) );
+    }
+    return Promise.all( promises );
+}
+
+@asyncConnect([{
+    deferred: true,
+    promise: ({ store: { dispatch, getState } }) => {
+        console.log('wtf i am running async');
+        if( !__SERVER__ && !areAssetsLoaded( getState() ) ) {
+            console.log('doing it');
+            return dispatch( loadAllAssets() );
+        }
+    }
+}])
 @connect(
     state => {
 
@@ -290,7 +307,7 @@ export default class Editor extends Component {
 
     componentDidMount() {
 
-        if( typeof window !== 'undefined' ) {
+        if( !__SERVER__ ) {
 
             window.THREE = THREE;
 
@@ -555,7 +572,7 @@ export default class Editor extends Component {
             )
         };
 
-        this.props.shaderFrog.updateShaders( elapsedTime );
+        shaderFrog.updateShaders( elapsedTime );
 
         if( KeyCodes[ '[' ] in this.keysPressed ) {
 
@@ -1339,7 +1356,7 @@ export default class Editor extends Component {
                                     transparent
                                 >
                                     <texture
-                                        url={ require( '../Game/spiral-texture.png' ) }
+                                        url={ require( '../../../assets/spiral-texture.png' ) }
                                         wrapS={ THREE.RepeatWrapping }
                                         wrapT={ THREE.RepeatWrapping }
                                         anisotropy={16}
@@ -1360,7 +1377,7 @@ export default class Editor extends Component {
                                     transparent
                                 >
                                     <texture
-                                        url={ require( '../Game/grow-texture.png' ) }
+                                        url={ require( '../../../assets/grow-texture.png' ) }
                                         wrapS={ THREE.RepeatWrapping }
                                         wrapT={ THREE.RepeatWrapping }
                                         anisotropy={16}

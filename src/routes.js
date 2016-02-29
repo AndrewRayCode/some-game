@@ -2,7 +2,7 @@ import React from 'react';
 import {IndexRoute, Route} from 'react-router';
 import { isLoaded as isAuthLoaded, load as loadAuth } from 'redux/modules/auth';
 import {
-    App, Home, Game, Dung, Login, NotFound, LoginSuccess,
+    App, Home, Editor, Game, Login, NotFound, LoginSuccess,
 } from 'containers';
 
 export default (store) => {
@@ -38,7 +38,7 @@ export default (store) => {
 
       { /* Routes */ }
       <Route path="game" component={Game}/>
-      <Route path="dung" component={Dung}/>
+      <Route path="editor" component={Editor}/>
       <Route path="login" component={Login}/>
 
       { /* Catch all route */ }

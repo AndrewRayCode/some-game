@@ -140,7 +140,7 @@ export function updateBook( request ) {
 
 }
 
-export function loadAllData( request ) {
+export function loadAllBooks( request ) {
 
     return new Promise( ( resolve, reject ) => {
 

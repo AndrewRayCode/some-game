@@ -1,46 +1,46 @@
 import THREE from 'three';
 import { without, uid } from '../../helpers/Utils';
 
-const LOAD = 'redux-example/LEVEL_LOAD';
-const LOAD_SUCCESS = 'redux-example/LEVEL_LOAD_SUCCESS';
-const LOAD_FAIL = 'redux-example/LEVEL_LOAD_FAIL';
+const LOAD = 'editor/LEVEL_LOAD';
+const LOAD_SUCCESS = 'editor/LEVEL_LOAD_SUCCESS';
+const LOAD_FAIL = 'editor/LEVEL_LOAD_FAIL';
 
-const SAVE_LEVEL = 'redux-example/SAVE_LEVEL';
-const SAVE_LEVEL_SUCCESS = 'redux-example/SAVE_LEVEL_SUCCESS';
-const SAVE_LEVEL_FAIL = 'redux-example/SAVE_LEVEL_FAIL';
+const SAVE_LEVEL = 'editor/SAVE_LEVEL';
+const SAVE_LEVEL_SUCCESS = 'editor/SAVE_LEVEL_SUCCESS';
+const SAVE_LEVEL_FAIL = 'editor/SAVE_LEVEL_FAIL';
 
-const SAVE_BOOK = 'redux-example/SAVE_BOOK';
-const SAVE_BOOK_SUCCESS = 'redux-example/SAVE_BOOK_SUCCESS';
-const SAVE_BOOK_FAIL = 'redux-example/SAVE_BOOK_FAIL';
+const SAVE_BOOK = 'editor/SAVE_BOOK';
+const SAVE_BOOK_SUCCESS = 'editor/SAVE_BOOK_SUCCESS';
+const SAVE_BOOK_FAIL = 'editor/SAVE_BOOK_FAIL';
 
-const UPDATE_LEVEL = 'redux-example/UPDATE_LEVEL';
-const UPDATE_LEVEL_SUCCESS = 'redux-example/UPDATE_LEVEL_SUCCESS';
-const UPDATE_LEVEL_FAIL = 'redux-example/UPDATE_LEVEL_FAIL';
+const UPDATE_LEVEL = 'editor/UPDATE_LEVEL';
+const UPDATE_LEVEL_SUCCESS = 'editor/UPDATE_LEVEL_SUCCESS';
+const UPDATE_LEVEL_FAIL = 'editor/UPDATE_LEVEL_FAIL';
 
-const UPDATE_BOOK = 'redux-example/UPDATE_BOOK';
-const UPDATE_BOOK_SUCCESS = 'redux-example/UPDATE_BOOK_SUCCESS';
-const UPDATE_BOOK_FAIL = 'redux-example/UPDATE_BOOK_FAIL';
+const UPDATE_BOOK = 'editor/UPDATE_BOOK';
+const UPDATE_BOOK_SUCCESS = 'editor/UPDATE_BOOK_SUCCESS';
+const UPDATE_BOOK_FAIL = 'editor/UPDATE_BOOK_FAIL';
 
-const ADD_ENTITY = 'dung/ADD_ENTITY';
-const CHANGE_ENTITY_MATERIAL_ID = 'dung/CHANGE_ENTITY_MATERIAL_ID';
-const CHANGE_ENTITY_TYPE = 'dung/CHANGE_ENTITY_TYPE';
-const DESERIALIZE = 'dung/DESERIALIZE';
-const EDITOR_SELECT_LEVEL_AND_CHAPTER = 'dung/EDITOR_SELECT_LEVEL_AND_CHAPTER';
-const MODIFY_LEVEL = 'dung/MODIFY_LEVEL';
-const MOVE_ENTITY = 'dung/MOVE_ENTITY';
-const REMOVE_ENTITY = 'dung/REMOVE_ENTITY';
-const REMOVE_NEXT_CHAPTER = 'dung/REMOVE_NEXT_CHAPTER';
-const ROTATE_ENTITY = 'dung/ROTATE_ENTITY';
+const ADD_ENTITY = 'editor/ADD_ENTITY';
+const CHANGE_ENTITY_MATERIAL_ID = 'editor/CHANGE_ENTITY_MATERIAL_ID';
+const CHANGE_ENTITY_TYPE = 'editor/CHANGE_ENTITY_TYPE';
+const DESERIALIZE = 'editor/DESERIALIZE';
+const EDITOR_SELECT_LEVEL_AND_CHAPTER = 'editor/EDITOR_SELECT_LEVEL_AND_CHAPTER';
+const MODIFY_LEVEL = 'editor/MODIFY_LEVEL';
+const MOVE_ENTITY = 'editor/MOVE_ENTITY';
+const REMOVE_ENTITY = 'editor/REMOVE_ENTITY';
+const REMOVE_NEXT_CHAPTER = 'editor/REMOVE_NEXT_CHAPTER';
+const ROTATE_ENTITY = 'editor/ROTATE_ENTITY';
 
-const INSET_CHAPTER = 'dung/INSET_CHAPTER';
-const CREATE_CHAPTER_FROM_LEVEL = 'dung/CREATE_CHAPTER_FROM_LEVEL';
-const MODIFY_CHAPTER = 'dung/MODIFY_CHAPTER';
-const CREATE_LEVEL_AND_CHAPTER = 'dung/CREATE_LEVEL_AND_CHAPTER';
-const ADD_NEXT_CHAPTER = 'dung/ADD_NEXT_CHAPTER';
+const INSET_CHAPTER = 'editor/INSET_CHAPTER';
+const CREATE_CHAPTER_FROM_LEVEL = 'editor/CREATE_CHAPTER_FROM_LEVEL';
+const MODIFY_CHAPTER = 'editor/MODIFY_CHAPTER';
+const CREATE_LEVEL_AND_CHAPTER = 'editor/CREATE_LEVEL_AND_CHAPTER';
+const ADD_NEXT_CHAPTER = 'editor/ADD_NEXT_CHAPTER';
 
-const CREATE_BOOK = 'dung/CREATE_BOOK';
-const MODIFY_BOOK = 'dung/MODIFY_BOOK';
-const EDITOR_SELECT_BOOK = 'dung/EDITOR_SELECT_BOOK';
+const CREATE_BOOK = 'editor/CREATE_BOOK';
+const MODIFY_BOOK = 'editor/MODIFY_BOOK';
+const EDITOR_SELECT_BOOK = 'editor/EDITOR_SELECT_BOOK';
 
 // Private reducer, only modifies entities themselves. State will be an entity
 function entityPropertyReducer( entity, action ) {
@@ -720,10 +720,10 @@ export function deserializeLevels() {
     return { type: DESERIALIZE };
 }
 
-export function loadAllData() {
+export function loadAllBooks() {
     return {
         types: [ LOAD, LOAD_SUCCESS, LOAD_FAIL ],
-        promise: client => client.get( '/loadAllData' )
+        promise: client => client.get( '/loadAllBooks' )
     };
 }
 
@@ -782,7 +782,7 @@ export function saveAll( levelData, entities, bookData, chapters ) {
 
 }
 
-export function areLevelsLoaded( globalState ) {
+export function areBooksLoaded( globalState ) {
 
     return globalState.levelsLoaded && globalState.levelsLoaded.loaded;
 

@@ -3,14 +3,15 @@ import React, { Component, PropTypes } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
-import StaticEntities from '../Dung/StaticEntities';
 import { connect } from 'react-redux';
+import connectData from '../../helpers/connectData';
 import { bindActionCreators } from 'redux';
+import { areBooksLoaded, loadAllBooks } from '../../redux/modules/editor';
+import { areAssetsLoaded, loadAllAssets } from '../../redux/modules/assets';
 import { scalePlayer, advanceChapter } from '../../redux/modules/game';
-import KeyCodes from '../Dung/KeyCodes';
-import Cardinality from '../Dung/Cardinality';
-import Pushy from '../Dung/Pushy';
-import Player from '../Dung/Player';
+import KeyCodes from '../../helpers/KeyCodes';
+import Cardinality from '../../helpers/Cardinality';
+import { Pushy, Player, StaticEntities } from '../../components';
 import {
     getEntrancesForTube, without, lerp
 } from '../../helpers/Utils';
@@ -235,6 +236,18 @@ function snapTo( number, interval ) {
 
 }
 
+function fetchData( getState, dispatch ) {
+    const promises = [];
+    if( !areBooksLoaded( getState() ) ) {
+        promises.push( dispatch( loadAllBooks() ) );
+    }
+    if( !__SERVER__ && !areAssetsLoaded( getState() ) ) {
+        promises.push( dispatch( loadAllAssets() ) );
+    }
+    return Promise.all( promises );
+}
+
+@connectData( fetchData )
 @connect(
     state => {
 
@@ -1583,7 +1596,7 @@ export default class Game extends Component {
                             transparent
                         >
                             <texture
-                                url={ require( '../Game/tube-pattern-1.png' ) }
+                                url={ require( '../../../assets/tube-pattern-1.png' ) }
                                 wrapS={ THREE.RepeatWrapping }
                                 wrapT={ THREE.RepeatWrapping }
                                 anisotropy={16}
@@ -1604,7 +1617,7 @@ export default class Game extends Component {
                             transparent
                         >
                             <texture
-                                url={ require( '../Game/spiral-texture.png' ) }
+                                url={ require( '../../../assets/spiral-texture.png' ) }
                                 wrapS={ THREE.RepeatWrapping }
                                 wrapT={ THREE.RepeatWrapping }
                                 anisotropy={16}
@@ -1625,7 +1638,7 @@ export default class Game extends Component {
                             transparent
                         >
                             <texture
-                                url={ require( '../Game/grow-texture.png' ) }
+                                url={ require( '../../../assets/grow-texture.png' ) }
                                 wrapS={ THREE.RepeatWrapping }
                                 wrapT={ THREE.RepeatWrapping }
                                 anisotropy={16}
