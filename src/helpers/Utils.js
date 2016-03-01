@@ -1,4 +1,5 @@
 import THREE from 'three';
+import Cardinality from '../helpers/Cardinality';
 
 // Garbage library https://github.com/sohamkamani/three-object-loader/issues/1
 import mutateThreeWithObjLoader from 'three-obj-loader';
@@ -197,5 +198,149 @@ export function assignUvs( geometry ) {
 
     geometry.uvsNeedUpdate = true;
 
+}
+
+export function getSphereMass( density, radius ) {
+
+    return density * ( 4 / 3 ) * Math.PI * Math.pow( radius, 3 );
+
+}
+
+export function getCubeMass( density, side ) {
+
+    return density * Math.pow( side, 3 );
+
+}
+
+export function getCameraDistanceToPlayer( playerY, fov, objectSize ) {
+
+    return playerY + Math.max(
+        5 * Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) ),
+        1
+    );
+
+}
+
+export function getCardinalityOfVector( v3 ) {
+
+    // Not rotated
+    if( v3.length() === 0 ) {
+        return Cardinality.NULL;
+    }
+
+    const { field, value } = [
+        { field: 'x', value: v3.x },
+        { field: 'y', value: v3.y },
+        { field: 'z', value: v3.z }
+    ].sort( ( a, b ) => {
+        return Math.abs( a.value ) - Math.abs( b.value );
+    })[ 2 ];
+
+    if( field === 'x' ) {
+        return value < 0 ? Cardinality.LEFT : Cardinality.RIGHT;
+    } else if( field === 'y' ) {
+        return value < 0 ? Cardinality.BACK : Cardinality.FORWARD;
+    } else {
+        return value < 0 ? Cardinality.UP : Cardinality.DOWN;
+    }
+
+}
+
+export function snapVectorAngleTo( v3, snapAngle ) {
+
+    const angle = v3.angleTo( Cardinality.UP );
+
+    if( angle < snapAngle / 2.0 ) {
+        return Cardinality.UP.clone().multiplyScalar( v3.length() );
+    } else if( angle > 180.0 - snapAngle / 2.0 ) {
+        return Cardinality.DOWN.clone().multiplyScalar( v3.length() );
+    }
+
+    const t = Math.round( angle / snapAngle );
+    const deltaAngle = ( t * snapAngle ) - angle;
+
+    const axis = new THREE.Vector3().crossVectors( Cardinality.UP, v3 );
+    const q = new THREE.Quaternion().setFromAxisAngle( axis, deltaAngle );
+
+    return v3.clone().applyQuaternion( q );
+
+}
+
+export function resetBodyPhysics( body, position ) {
+
+    // Position
+    body.position.copy( position );
+    body.previousPosition.copy( position );
+    body.interpolatedPosition.copy( position );
+    body.initPosition.copy( position );
+
+    // orientation
+    body.quaternion.set( 0, 0, 0, 1 );
+    body.initQuaternion.set( 0, 0, 0, 1 );
+    body.previousQuaternion.set( 0, 0, 0, 1 );
+    body.interpolatedQuaternion.set( 0, 0, 0, 1 );
+
+    // Velocity
+    body.velocity.setZero();
+    body.initVelocity.setZero();
+    body.angularVelocity.setZero();
+    body.initAngularVelocity.setZero();
+
+    // Force
+    body.force.setZero();
+    body.torque.setZero();
+
+    // Sleep state reset
+    body.sleepState = 0;
+    body.timeLastSleepy = 0;
+    body._wakeUpAfterNarrowphase = false;
+}
+
+export function lookAtVector( sourcePoint, destPoint ) {
+
+    return new THREE.Quaternion().setFromRotationMatrix(
+        new THREE.Matrix4().lookAt( sourcePoint, destPoint, Cardinality.UP )
+    );
+
+}
+
+export function vec3Equals( a, b ) {
+    return a.clone().sub( b ).length() < 0.0001;
+}
+
+export function findNextTube( tube, entrance, entities, scale ) {
+
+    const { entrance1, entrance2 } = getEntrancesForTube( tube, scale );
+
+    const isEntrance1 = vec3Equals( entrance, entrance1 );
+    const isEntrance2 = vec3Equals( entrance, entrance2 );
+
+    if( !isEntrance1 && !isEntrance2 ) {
+        console.warn( 'Entrance',entrance,'did not match',entrance1,'or',entrance2 );
+        return null;
+    }
+
+    const exit = isEntrance1 ? entrance2 : entrance1;
+
+    const nextTube = entities.find( ( entity ) => {
+        return vec3Equals( entity.position, exit );
+    });
+
+    if( nextTube ) {
+
+        return getEntrancesForTube( nextTube, scale );
+
+    }
+
+}
+
+export function snapTo( number, interval ) {
+
+    return interval * Math.ceil( number / interval );
+
+}
+
+export function lerpVectors( vectorA, vectorB, alpha ) {
+    return new THREE.Vector3().lerpVectors( vectorA, vectorB, alpha );
 }
 

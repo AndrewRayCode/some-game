@@ -3,13 +3,6 @@ import React3 from 'react-three-renderer';
 import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
 import { browserHistory } from 'react-router';
-import { connect } from 'react-redux';
-import { asyncConnect } from 'redux-async-connect';
-import { bindActionCreators } from 'redux';
-import {
-    areBooksLoaded, loadAllBooks, deserializeLevels
-} from '../../redux/modules/editor';
-import { areAssetsLoaded, loadAllAssets } from '../../redux/modules/assets';
 import {
     scalePlayer, advanceChapter, startGame
 } from '../../redux/modules/game';
@@ -17,7 +10,9 @@ import KeyCodes from '../../helpers/KeyCodes';
 import Cardinality from '../../helpers/Cardinality';
 import { Pushy, Player, StaticEntities } from '../../components';
 import {
-    getEntrancesForTube, without, lerp
+    getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
+    getCameraDistanceToPlayer, getCardinalityOfVector, snapVectorAngleTo,
+    resetBodyPhysics, lookAtVector, findNextTube, snapTo,
 } from '../../helpers/Utils';
 
 const factorConstraint = new CANNON.Vec3( 1, 0, 1 );
@@ -104,363 +99,11 @@ const puhshyToWallContact = new CANNON.ContactMaterial( pushyMaterial, wallMater
     contactEquationRegularizationTime: 3,
 });
 
-function getSphereMass( density, radius ) {
-
-    return density * ( 4 / 3 ) * Math.PI * Math.pow( radius, 3 );
-
-}
-
-function getCubeMass( density, side ) {
-
-    return density * Math.pow( side, 3 );
-
-}
-
-function getCameraDistanceToPlayer( playerY, fov, objectSize ) {
-
-    return playerY + Math.max(
-        5 * Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) ),
-        1
-    );
-
-}
-
-function getCardinalityOfVector( v3 ) {
-
-    // Not rotated
-    if( v3.length() === 0 ) {
-        return Cardinality.NULL;
-    }
-
-    const { field, value } = [
-        { field: 'x', value: v3.x },
-        { field: 'y', value: v3.y },
-        { field: 'z', value: v3.z }
-    ].sort( ( a, b ) => {
-        return Math.abs( a.value ) - Math.abs( b.value );
-    })[ 2 ];
-
-    if( field === 'x' ) {
-        return value < 0 ? Cardinality.LEFT : Cardinality.RIGHT;
-    } else if( field === 'y' ) {
-        return value < 0 ? Cardinality.BACK : Cardinality.FORWARD;
-    } else {
-        return value < 0 ? Cardinality.UP : Cardinality.DOWN;
-    }
-
-}
-
-function snapVectorAngleTo( v3, snapAngle ) {
-
-    const angle = v3.angleTo( Cardinality.UP );
-
-    if( angle < snapAngle / 2.0 ) {
-        return Cardinality.UP.clone().multiplyScalar( v3.length() );
-    } else if( angle > 180.0 - snapAngle / 2.0 ) {
-        return Cardinality.DOWN.clone().multiplyScalar( v3.length() );
-    }
-
-    const t = Math.round( angle / snapAngle );
-    const deltaAngle = ( t * snapAngle ) - angle;
-
-    const axis = new THREE.Vector3().crossVectors( Cardinality.UP, v3 );
-    const q = new THREE.Quaternion().setFromAxisAngle( axis, deltaAngle );
-
-    return v3.clone().applyQuaternion( q );
-
-}
-
-function resetBodyPhysics( body, position ) {
-
-    // Position
-    body.position.copy( position );
-    body.previousPosition.copy( position );
-    body.interpolatedPosition.copy( position );
-    body.initPosition.copy( position );
-
-    // orientation
-    body.quaternion.set( 0, 0, 0, 1 );
-    body.initQuaternion.set( 0, 0, 0, 1 );
-    body.previousQuaternion.set( 0, 0, 0, 1 );
-    body.interpolatedQuaternion.set( 0, 0, 0, 1 );
-
-    // Velocity
-    body.velocity.setZero();
-    body.initVelocity.setZero();
-    body.angularVelocity.setZero();
-    body.initAngularVelocity.setZero();
-
-    // Force
-    body.force.setZero();
-    body.torque.setZero();
-
-    // Sleep state reset
-    body.sleepState = 0;
-    body.timeLastSleepy = 0;
-    body._wakeUpAfterNarrowphase = false;
-}
-
-function lookAtVector( sourcePoint, destPoint ) {
-
-    return new THREE.Quaternion().setFromRotationMatrix(
-        new THREE.Matrix4().lookAt( sourcePoint, destPoint, Cardinality.UP )
-    );
-
-}
-
-function findNextTube( tube, entrance, entities, scale ) {
-
-    const { entrance1, entrance2 } = getEntrancesForTube( tube, scale );
-
-    const isEntrance1 = vec3Equals( entrance, entrance1 );
-    const isEntrance2 = vec3Equals( entrance, entrance2 );
-
-    if( !isEntrance1 && !isEntrance2 ) {
-        console.warn( 'Entrance',entrance,'did not match',entrance1,'or',entrance2 );
-        return null;
-    }
-
-    const exit = isEntrance1 ? entrance2 : entrance1;
-
-    const nextTube = entities.find( ( entity ) => {
-        return vec3Equals( entity.position, exit );
-    });
-
-    if( nextTube ) {
-
-        return getEntrancesForTube( nextTube, scale );
-
-    }
-
-}
-
-function snapTo( number, interval ) {
-
-    return interval * Math.ceil( number / interval );
-
-}
-
-@asyncConnect([{
-    promise: ({ store: { dispatch, getState } }) => {
-        const promises = [];
-        if( !areBooksLoaded( getState() ) ) {
-            promises.push( dispatch( loadAllBooks() ) );
-        }
-        return Promise.all( promises );
-    }
-}, {
-    promise: ({ store: { dispatch, getState } }) => {
-        if( !__SERVER__ && !areAssetsLoaded( getState() ) ) {
-            return dispatch( loadAllAssets() );
-        }
-    }
-}, {
-    deferred: true,
-    promise: ({ store: { dispatch, getState } }) => {
-        if( !__SERVER__ && !areAssetsLoaded( getState() ) ) {
-            return dispatch( deserializeLevels() );
-        }
-    }
-}, {
-    deferred: true,
-    promise: ({ store: { dispatch, getState } }) => {
-        console.log('deferred my ass');
-        if( !__SERVER__ ) {
-        console.log('meow');
-            const {
-                bookId, chapterId, levels, entities, chapters, books
-            } = getState();
-        console.log('starting');
-            return dispatch( startGame(
-                bookId || Object.keys( books )[ 0 ],
-                chapterId || Object.keys( chapters )[ 0 ],
-                levels, entities, chapters, books
-            ) );
-        }
-    }
-}])
-@connect(
-    state => {
-
-        if( __SERVER__ ) {
-            return {};
-        }
-
-        const {
-            entities: allEntities,
-            chapters: allChapters,
-            levels, entities, books,
-        } = state.game;
-
-        const {
-            gameChapterData,
-            currentGameBook: currentBookId,
-            assets, shaders,
-        } = state;
-
-        const {
-            previousChapterId, currentChapterId, previousChapterNextChapter
-        } = gameChapterData;
-
-        // Levels and entities
-        const currentChapter = allChapters[ currentChapterId ];
-        const { levelId: currentLevelId } = currentChapter;
-        const currentLevel = levels[ currentLevelId ];
-
-        const {
-            currentLevelAllEntities,
-            currentLevelStaticEntities,
-            currentLevelRenderableEntities,
-            currentLevelMovableEntities,
-            currentLevelTouchyArray,
-        } = currentLevel.entityIds.reduce( ( memo, id ) => {
-
-            const entity = allEntities[ id ];
-            memo.currentLevelAllEntities[ id ] = entity;
-
-            if( entity.type === 'shrink' || entity.type === 'grow' || entity.type === 'finish' ) {
-                memo.currentLevelTouchyArray = [
-                    ...memo.currentLevelTouchyArray, entity
-                ];
-                // needs to go into static to render
-                memo.currentLevelRenderableEntities[ id ] = entity;
-            } else if( entity.type === 'pushy' ) {
-                memo.currentLevelMovableEntities[ id ] = entity;
-            // walls, floors, etc
-            } else {
-                memo.currentLevelStaticEntities[ id ] = entity;
-                memo.currentLevelRenderableEntities[ id ] = entity;
-            }
-
-            return memo;
-
-        }, {
-            currentLevelRenderableEntities: {},
-            currentLevelMovableEntities: {},
-            currentLevelAllEntities: {},
-            currentLevelStaticEntities: {},
-            currentLevelTouchyArray: [],
-        });
-
-        // Books and chapters
-
-        const currentBook = books[ currentBookId ];
-        const { chapterIds } = currentBook;
-        const currentChapters = chapterIds.reduce(
-            ( memo, id ) => ({ ...memo, [ id ]: allChapters[ id ] }),
-            {}
-        );
-        const currentChaptersArray = Object.values( currentChapters );
-
-        let previousChapterEntities;
-        let previousChapterEntity;
-        let previousChapterFinishData;
-        let previousChapterFinishEntity;
-        let previousChapter;
-
-        const nextChapters = currentChapter.nextChapters;
-
-        if( previousChapterId ) {
-
-            previousChapter = allChapters[ previousChapterId ];
-
-            const previousLevel = levels[ previousChapter.levelId ];
-            previousChapterEntities = previousLevel.entityIds.map(
-                id => allEntities[ id ]
-            );
-
-            const { position, scale } = previousChapterNextChapter;
-            const isPreviousChapterBigger = scale.x > 1;
-            const multiplier = isPreviousChapterBigger ? 0.125 : 8;
-
-            previousChapterEntity = {
-                scale: new THREE.Vector3(
-                    multiplier, multiplier, multiplier
-                ),
-                position: position
-                    .clone()
-                    .multiply(
-                        new THREE.Vector3( -multiplier, multiplier, -multiplier )
-                    )
-                    .setY( isPreviousChapterBigger ? 0.875 : -7 )
-            };
-
-            previousChapterFinishData = previousLevel.entityIds
-                .map( id => allEntities[ id ] )
-                .find( entity => entity.type === 'finish' );
-
-            previousChapterFinishEntity = {
-                ...previousChapterFinishData,
-                scale: previousChapterFinishData.scale
-                    .clone()
-                    .multiplyScalar( multiplier ),
-                position: previousChapterFinishData.position.clone().add(
-                    previousChapterFinishData.position
-                        .clone()
-                        .multiplyScalar( multiplier )
-                )
-            };
-
-            currentLevelTouchyArray.push( previousChapterFinishEntity );
-
-        }
-
-        // Index all next chapter entities by chapter id
-        let nextChaptersEntities;
-        if( nextChapters ) {
-
-            nextChaptersEntities = nextChapters.reduce(
-                ( memo, nextChapter ) => ({
-                    ...memo,
-                    [ nextChapter.chapterId ]: levels[
-                            allChapters[ nextChapter.chapterId ].levelId
-                        ].entityIds.map( id => allEntities[ id ] )
-                }),
-                {}
-            );
-
-        }
-
-        return {
-            levels, currentLevel, currentLevelId, currentChapterId,
-            currentLevelAllEntities, currentLevelStaticEntities, allEntities,
-            nextChaptersEntities, assets, shaders,
-            currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
-            currentLevelTouchyArray, nextChapters, previousChapterEntities,
-            previousChapterFinishEntity, previousChapterEntity,
-            previousChapter, previousChapterNextChapter,
-            currentLevelMovableEntities,
-            currentLevelMovableEntitiesArray: Object.values( currentLevelMovableEntities ),
-            currentLevelRenderableEntities,
-            currentLevelRenderableEntitiesArray: Object.values( currentLevelRenderableEntities ),
-
-            recursionBusterId: state.game.recursionBusterId,
-            playerPosition: state.game.playerPosition,
-            playerRadius: state.game.playerRadius,
-            playerScale: state.game.playerScale,
-            playerDensity: state.game.playerDensity,
-            pushyDensity: state.game.pushyDensity,
-            playerMass: getSphereMass(
-                state.game.playerDensity, state.game.playerRadius
-            )
-        };
-
-    },
-    dispatch => bindActionCreators( { scalePlayer, advanceChapter }, dispatch )
-)
-export default class Game extends Component {
-
-    static contextTypes = {
-        store: PropTypes.object.isRequired
-    }
+export default class GameScene extends Component {
 
     constructor( props, context ) {
 
         super( props, context );
-
-        if( __SERVER__ ) {
-            return;
-        }
 
         this.keysDown = {};
         this.playerContact = {};
@@ -1492,10 +1135,6 @@ export default class Game extends Component {
 
     render() {
 
-        if( __SERVER__ ) {
-            return <div />;
-        }
-
         const {
             pushyPositions, time, cameraPosition, currentFlowPosition, debug,
             fps, touring, cameraTourTarget, entrance1, entrance2, tubeFlow,
@@ -1527,309 +1166,345 @@ export default class Game extends Component {
             touring ? cameraTourTarget : playerPosition
         );
 
-        return <div>
-            <React3
-                mainCamera="camera"
-                width={ gameWidth }
-                height={ gameHeight }
-                onAnimate={ this._onAnimate }
+        return <React3
+            mainCamera="camera"
+            width={ gameWidth }
+            height={ gameHeight }
+            onAnimate={ this._onAnimate }
+        >
+            <scene
+                ref="scene"
             >
-                <scene
-                    ref="scene"
-                >
 
-                    <perspectiveCamera
-                        name="camera"
-                        fov={ cameraFov }
-                        aspect={ cameraAspect }
-                        near={ 0.1 }
-                        far={ 1000 }
-                        position={ cameraPosition }
-                        quaternion={ lookAt }
-                        ref="camera"
+                <perspectiveCamera
+                    name="camera"
+                    fov={ cameraFov }
+                    aspect={ cameraAspect }
+                    near={ 0.1 }
+                    far={ 1000 }
+                    position={ cameraPosition }
+                    quaternion={ lookAt }
+                    ref="camera"
+                />
+
+                <resources>
+                    <boxGeometry
+                        resourceId="1x1box"
+
+                        width={1}
+                        height={1}
+                        depth={1}
+
+                        widthSegments={1}
+                        heightSegments={1}
+                    />
+                    <meshPhongMaterial
+                        resourceId="playerMaterial"
+                        color={ 0xFADE95 }
+                    />
+                    <meshPhongMaterial
+                        resourceId="middleMaterial"
+                        color={ 0x6E0AF2 }
+                    />
+                    <meshPhongMaterial
+                        resourceId="entranceMaterial"
+                        color={ 0xff0000 }
+                    />
+                    <meshPhongMaterial
+                        resourceId="exitMaterial"
+                        color={ 0x0000ff }
                     />
 
-                    <resources>
-                        <boxGeometry
-                            resourceId="1x1box"
+                    <sphereGeometry
+                        resourceId="sphereGeometry"
+                        radius={ 0.5 }
+                        widthSegments={ 6 }
+                        heightSegments={ 6 }
+                    />
 
-                            width={1}
-                            height={1}
-                            depth={1}
+                    <planeBufferGeometry
+                        resourceId="planeGeometry"
+                        width={1}
+                        height={1}
+                        widthSegments={1}
+                        heightSegments={1}
+                    />
 
-                            widthSegments={1}
-                            heightSegments={1}
-                        />
-                        <meshPhongMaterial
-                            resourceId="playerMaterial"
-                            color={ 0xFADE95 }
-                        />
-                        <meshPhongMaterial
-                            resourceId="middleMaterial"
-                            color={ 0x6E0AF2 }
-                        />
-                        <meshPhongMaterial
-                            resourceId="entranceMaterial"
-                            color={ 0xff0000 }
-                        />
-                        <meshPhongMaterial
-                            resourceId="exitMaterial"
-                            color={ 0x0000ff }
-                        />
+                    <meshPhongMaterial
+                        resourceId="pushyMaterial"
+                        color={ 0x462b2b }
+                    />
 
-                        <sphereGeometry
-                            resourceId="sphereGeometry"
-                            radius={ 0.5 }
-                            widthSegments={ 6 }
-                            heightSegments={ 6 }
-                        />
+                    <meshPhongMaterial
+                        resourceId="floorSideMaterial"
+                        color={ 0xee8a6f }
+                        transparent
+                        opacity={ 0.12 }
+                    />
 
-                        <planeBufferGeometry
-                            resourceId="planeGeometry"
-                            width={1}
-                            height={1}
-                            widthSegments={1}
-                            heightSegments={1}
-                        />
+                    <meshPhongMaterial
+                        resourceId="wallSideMaterial"
+                        color={ 0xc1baa8 }
+                        transparent
+                        opacity={ 0.12 }
+                    />
 
-                        <meshPhongMaterial
-                            resourceId="pushyMaterial"
-                            color={ 0x462b2b }
+                    <shape resourceId="tubeWall">
+                        <absArc
+                            x={0}
+                            y={0}
+                            radius={0.5}
+                            startAngle={0}
+                            endAngle={Math.PI * 2}
+                            clockwise={false}
                         />
-
-                        <meshPhongMaterial
-                            resourceId="floorSideMaterial"
-                            color={ 0xee8a6f }
-                            transparent
-                            opacity={ 0.12 }
-                        />
-
-                        <meshPhongMaterial
-                            resourceId="wallSideMaterial"
-                            color={ 0xc1baa8 }
-                            transparent
-                            opacity={ 0.12 }
-                        />
-
-                        <shape resourceId="tubeWall">
+                        <hole>
                             <absArc
                                 x={0}
                                 y={0}
-                                radius={0.5}
+                                radius={0.4}
                                 startAngle={0}
                                 endAngle={Math.PI * 2}
-                                clockwise={false}
+                                clockwise
                             />
-                            <hole>
-                                <absArc
-                                    x={0}
-                                    y={0}
-                                    radius={0.4}
-                                    startAngle={0}
-                                    endAngle={Math.PI * 2}
-                                    clockwise
-                                />
-                            </hole>
-                        </shape>
+                        </hole>
+                    </shape>
 
-                        <meshPhongMaterial
-                            resourceId="tubeMaterial"
-                            color={0xffffff}
-                            side={ THREE.DoubleSide }
-                            transparent
-                        >
-                            <texture
-                                url={ require( '../../../assets/tube-pattern-1.png' ) }
-                                wrapS={ THREE.RepeatWrapping }
-                                wrapT={ THREE.RepeatWrapping }
-                                anisotropy={16}
-                            />
-                        </meshPhongMaterial>
-
-                        <meshPhongMaterial
-                            resourceId="shrinkWrapMaterial"
-                            color={ 0x462B2B }
-                            opacity={ 0.3 }
-                            transparent
+                    <meshPhongMaterial
+                        resourceId="tubeMaterial"
+                        color={0xffffff}
+                        side={ THREE.DoubleSide }
+                        transparent
+                    >
+                        <texture
+                            url={ require( '../../../assets/tube-pattern-1.png' ) }
+                            wrapS={ THREE.RepeatWrapping }
+                            wrapT={ THREE.RepeatWrapping }
+                            anisotropy={16}
                         />
+                    </meshPhongMaterial>
 
-                        <meshPhongMaterial
-                            resourceId="shrinkMaterial"
-                            color={0xffffff}
-                            side={ THREE.DoubleSide }
-                            transparent
-                        >
-                            <texture
-                                url={ require( '../../../assets/spiral-texture.png' ) }
-                                wrapS={ THREE.RepeatWrapping }
-                                wrapT={ THREE.RepeatWrapping }
-                                anisotropy={16}
-                            />
-                        </meshPhongMaterial>
-
-                        <meshPhongMaterial
-                            resourceId="growWrapMaterial"
-                            color={ 0x462B2B }
-                            opacity={ 0.3 }
-                            transparent
-                        />
-
-                        <meshPhongMaterial
-                            resourceId="growMaterial"
-                            color={0xffffff}
-                            side={ THREE.DoubleSide }
-                            transparent
-                        >
-                            <texture
-                                url={ require( '../../../assets/grow-texture.png' ) }
-                                wrapS={ THREE.RepeatWrapping }
-                                wrapT={ THREE.RepeatWrapping }
-                                anisotropy={16}
-                            />
-                        </meshPhongMaterial>
-
-                        <sphereGeometry
-                            resourceId="playerGeometry"
-                            radius={ 1 }
-                            widthSegments={ 20 }
-                            heightSegments={ 20 }
-                        />
-
-                    </resources>
-
-                    <ambientLight
-                        color={ 0x777777 }
+                    <meshPhongMaterial
+                        resourceId="shrinkWrapMaterial"
+                        color={ 0x462B2B }
+                        opacity={ 0.3 }
+                        transparent
                     />
 
-                    <directionalLight
-                        color={ 0xffffff }
-                        intensity={ 1.0 }
+                    <meshPhongMaterial
+                        resourceId="shrinkMaterial"
+                        color={0xffffff}
+                        side={ THREE.DoubleSide }
+                        transparent
+                    >
+                        <texture
+                            url={ require( '../../../assets/spiral-texture.png' ) }
+                            wrapS={ THREE.RepeatWrapping }
+                            wrapT={ THREE.RepeatWrapping }
+                            anisotropy={16}
+                        />
+                    </meshPhongMaterial>
 
-                        castShadow
-
-                        shadowMapWidth={1024}
-                        shadowMapHeight={1024}
-
-                        shadowCameraLeft={-shadowD}
-                        shadowCameraRight={shadowD}
-                        shadowCameraTop={shadowD}
-                        shadowCameraBottom={-shadowD}
-
-                        shadowCameraFar={3 * shadowD}
-                        shadowCameraNear={shadowD}
-                        shadowDarkness={0.5}
-
-                        position={this.state.lightPosition}
+                    <meshPhongMaterial
+                        resourceId="growWrapMaterial"
+                        color={ 0x462B2B }
+                        opacity={ 0.3 }
+                        transparent
                     />
 
-                    <Player
-                        ref="player"
-                        position={ playerPosition }
-                        radius={ adjustedPlayerRadius }
-                        quaternion={ new THREE.Quaternion().copy( this.playerBody.quaternion ) }
-                        materialId="playerMaterial"
+                    <meshPhongMaterial
+                        resourceId="growMaterial"
+                        color={0xffffff}
+                        side={ THREE.DoubleSide }
+                        transparent
+                    >
+                        <texture
+                            url={ require( '../../../assets/grow-texture.png' ) }
+                            wrapS={ THREE.RepeatWrapping }
+                            wrapT={ THREE.RepeatWrapping }
+                            anisotropy={16}
+                        />
+                    </meshPhongMaterial>
+
+                    <sphereGeometry
+                        resourceId="playerGeometry"
+                        radius={ 1 }
+                        widthSegments={ 20 }
+                        heightSegments={ 20 }
                     />
 
-                    { pushyPositions.map( ( entity, index ) => <Pushy
-                        key={ index }
-                        scale={ entity.scale }
-                        materialId="pushyMaterial"
-                        position={ entity.position }
-                        quaternion={ entity.quaternion }
-                    /> ) }
+                </resources>
 
-                    <StaticEntities
-                        assets={ assets }
-                        shaders={ shaders }
-                        ref="staticEntities"
-                        entities={ currentLevelRenderableEntitiesArray }
-                        time={ time }
+                <ambientLight
+                    color={ 0x777777 }
+                />
+
+                <directionalLight
+                    color={ 0xffffff }
+                    intensity={ 1.0 }
+
+                    castShadow
+
+                    shadowMapWidth={1024}
+                    shadowMapHeight={1024}
+
+                    shadowCameraLeft={-shadowD}
+                    shadowCameraRight={shadowD}
+                    shadowCameraTop={shadowD}
+                    shadowCameraBottom={-shadowD}
+
+                    shadowCameraFar={3 * shadowD}
+                    shadowCameraNear={shadowD}
+                    shadowDarkness={0.5}
+
+                    position={this.state.lightPosition}
+                />
+
+                <Player
+                    ref="player"
+                    position={ playerPosition }
+                    radius={ adjustedPlayerRadius }
+                    quaternion={ new THREE.Quaternion().copy( this.playerBody.quaternion ) }
+                    materialId="playerMaterial"
+                />
+
+                { pushyPositions.map( ( entity, index ) => <Pushy
+                    key={ index }
+                    scale={ entity.scale }
+                    materialId="pushyMaterial"
+                    position={ entity.position }
+                    quaternion={ entity.quaternion }
+                /> ) }
+
+                <StaticEntities
+                    assets={ assets }
+                    shaders={ shaders }
+                    ref="staticEntities"
+                    entities={ currentLevelRenderableEntitiesArray }
+                    time={ time }
+                />
+
+                { nextChapters.map( nextChapter => <StaticEntities
+                    key={ nextChapter.id }
+                    assets={ assets }
+                    shaders={ shaders }
+                    position={ nextChapter.position }
+                    scale={ nextChapter.scale }
+                    entities={ nextChaptersEntities[ nextChapter.chapterId ] }
+                    time={ time }
+                /> )}
+
+                { previousChapterEntity && <StaticEntities
+                    assets={ assets }
+                    shaders={ shaders }
+                    position={ previousChapterEntity.position }
+                    scale={ previousChapterEntity.scale }
+                    entities={ previousChapterEntities }
+                    time={ time }
+                    opacity={ 0.5 }
+                /> }
+
+                { debug && previousChapterFinishEntity && <mesh
+                    position={ previousChapterFinishEntity.position }
+                    scale={ previousChapterFinishEntity.scale.clone().multiply( new THREE.Vector3( 1, 2, 1 ) ) }
+                >
+                    <geometryResource
+                        resourceId="1x1box"
                     />
+                    <materialResource
+                        resourceId="middleMaterial"
+                    />
+                </mesh> }
 
-                    { nextChapters.map( nextChapter => <StaticEntities
-                        key={ nextChapter.id }
-                        assets={ assets }
-                        shaders={ shaders }
-                        position={ nextChapter.position }
-                        scale={ nextChapter.scale }
-                        entities={ nextChaptersEntities[ nextChapter.chapterId ] }
-                        time={ time }
-                    /> )}
+                { debug && currentTransitionTarget && <mesh
+                    position={ currentTransitionTarget }
+                    scale={ new THREE.Vector3( 0.2, 2, 0.2 ).multiplyScalar( playerScale ) }
+                >
+                    <geometryResource
+                        resourceId="1x1box"
+                    />
+                    <materialResource
+                        resourceId="exitMaterial"
+                    />
+                </mesh> }
 
-                    { previousChapterEntity && <StaticEntities
-                        assets={ assets }
-                        shaders={ shaders }
-                        position={ previousChapterEntity.position }
-                        scale={ previousChapterEntity.scale }
-                        entities={ previousChapterEntities }
-                        time={ time }
-                        opacity={ 0.5 }
-                    /> }
+                { debug && tubeFlow && tubeFlow[ tubeIndex ].middle && <mesh
+                    position={ tubeFlow[ tubeIndex ].middle }
+                    scale={ new THREE.Vector3( 0.25, 2, 0.25 ).multiplyScalar( playerScale ) }
+                >
+                    <geometryResource
+                        resourceId="playerGeometry"
+                    />
+                    <materialResource
+                        resourceId="middleMaterial"
+                    />
+                </mesh> }
+                { debug && tubeFlow && <mesh
+                    position={ ( tubeIndex === tubeFlow.length - 1 ?
+                        tubeFlow[ tubeIndex ].exit :
+                        tubeFlow[ tubeIndex ].end
+                    ) }
+                    scale={ new THREE.Vector3( 0.15, 2, 0.15 ).multiplyScalar( playerScale ) }
+                >
+                    <geometryResource
+                        resourceId="playerGeometry"
+                    />
+                    <materialResource
+                        resourceId="exitMaterial"
+                    />
+                </mesh> }
+                { debug && tubeFlow && <mesh
+                    position={ tubeFlow[ tubeIndex ].start }
+                    scale={ new THREE.Vector3( 0.15, 2, 0.15 ).multiplyScalar( playerScale ) }
+                >
+                    <geometryResource
+                        resourceId="playerGeometry"
+                    />
+                    <materialResource
+                        resourceId="entranceMaterial"
+                    />
+                </mesh> }
 
-                    { debug && previousChapterFinishEntity && <mesh
-                        position={ previousChapterFinishEntity.position }
-                        scale={ previousChapterFinishEntity.scale.clone().multiply( new THREE.Vector3( 1, 2, 1 ) ) }
-                    >
-                        <geometryResource
-                            resourceId="1x1box"
-                        />
-                        <materialResource
-                            resourceId="middleMaterial"
-                        />
-                    </mesh> }
+                { debug && entrance1 && <mesh
+                    position={ entrance1 }
+                    scale={ new THREE.Vector3( 0.5, 2, 0.5 ).multiplyScalar( playerScale )}
+                >
+                    <geometryResource
+                        resourceId="playerGeometry"
+                    />
+                    <materialResource
+                        resourceId="playerMaterial"
+                    />
+                </mesh> }
+                { debug && entrance2 && <mesh
+                    position={ entrance2 }
+                    scale={ new THREE.Vector3( 0.5, 2, 0.5 ).multiplyScalar( playerScale )}
+                >
+                    <geometryResource
+                        resourceId="playerGeometry"
+                    />
+                    <materialResource
+                        resourceId="exitMaterial"
+                    />
+                </mesh> }
+                { debug && this.state.playerSnapped && <mesh
+                    position={this.state.playerSnapped }
+                    scale={ new THREE.Vector3( 0.1, 3.5, 0.1 ).multiplyScalar( playerScale ) }
+                >
+                    <geometryResource
+                        resourceId="playerGeometry"
+                    />
+                    <materialResource
+                        resourceId="exitMaterial"
+                    />
+                </mesh> }
 
-                    { debug && currentTransitionTarget && <mesh
-                        position={ currentTransitionTarget }
-                        scale={ new THREE.Vector3( 0.2, 2, 0.2 ).multiplyScalar( playerScale ) }
-                    >
-                        <geometryResource
-                            resourceId="1x1box"
-                        />
-                        <materialResource
-                            resourceId="exitMaterial"
-                        />
-                    </mesh> }
+                { debug && Object.keys( this.playerContact || {} ).map( ( key ) => {
 
-                    { debug && tubeFlow && tubeFlow[ tubeIndex ].middle && <mesh
-                        position={ tubeFlow[ tubeIndex ].middle }
-                        scale={ new THREE.Vector3( 0.25, 2, 0.25 ).multiplyScalar( playerScale ) }
-                    >
-                        <geometryResource
-                            resourceId="playerGeometry"
-                        />
-                        <materialResource
-                            resourceId="middleMaterial"
-                        />
-                    </mesh> }
-                    { debug && tubeFlow && <mesh
-                        position={ ( tubeIndex === tubeFlow.length - 1 ?
-                            tubeFlow[ tubeIndex ].exit :
-                            tubeFlow[ tubeIndex ].end
-                        ) }
-                        scale={ new THREE.Vector3( 0.15, 2, 0.15 ).multiplyScalar( playerScale ) }
-                    >
-                        <geometryResource
-                            resourceId="playerGeometry"
-                        />
-                        <materialResource
-                            resourceId="exitMaterial"
-                        />
-                    </mesh> }
-                    { debug && tubeFlow && <mesh
-                        position={ tubeFlow[ tubeIndex ].start }
-                        scale={ new THREE.Vector3( 0.15, 2, 0.15 ).multiplyScalar( playerScale ) }
-                    >
-                        <geometryResource
-                            resourceId="playerGeometry"
-                        />
-                        <materialResource
-                            resourceId="entranceMaterial"
-                        />
-                    </mesh> }
-
-                    { debug && entrance1 && <mesh
-                        position={ entrance1 }
-                        scale={ new THREE.Vector3( 0.5, 2, 0.5 ).multiplyScalar( playerScale )}
+                    return <mesh
+                        position={ playerPosition.clone().add( this.playerContact[ key ].clone().multiplyScalar( playerScale ) ) }
+                        scale={ new THREE.Vector3( 0.1, 3, 0.15 ).multiplyScalar( playerScale ) }
+                        key={ key }
                     >
                         <geometryResource
                             resourceId="playerGeometry"
@@ -1837,56 +1512,13 @@ export default class Game extends Component {
                         <materialResource
                             resourceId="playerMaterial"
                         />
-                    </mesh> }
-                    { debug && entrance2 && <mesh
-                        position={ entrance2 }
-                        scale={ new THREE.Vector3( 0.5, 2, 0.5 ).multiplyScalar( playerScale )}
-                    >
-                        <geometryResource
-                            resourceId="playerGeometry"
-                        />
-                        <materialResource
-                            resourceId="exitMaterial"
-                        />
-                    </mesh> }
-                    { debug && this.state.playerSnapped && <mesh
-                        position={this.state.playerSnapped }
-                        scale={ new THREE.Vector3( 0.1, 3.5, 0.1 ).multiplyScalar( playerScale ) }
-                    >
-                        <geometryResource
-                            resourceId="playerGeometry"
-                        />
-                        <materialResource
-                            resourceId="exitMaterial"
-                        />
-                    </mesh> }
+                    </mesh>;
 
-                    { debug && Object.keys( this.playerContact || {} ).map( ( key ) => {
+                }) }
 
-                        return <mesh
-                            position={ playerPosition.clone().add( this.playerContact[ key ].clone().multiplyScalar( playerScale ) ) }
-                            scale={ new THREE.Vector3( 0.1, 3, 0.15 ).multiplyScalar( playerScale ) }
-                            key={ key }
-                        >
-                            <geometryResource
-                                resourceId="playerGeometry"
-                            />
-                            <materialResource
-                                resourceId="playerMaterial"
-                            />
-                        </mesh>;
+            </scene>
+        </React3>;
 
-                    }) }
-
-                </scene>
-            </React3>
-            <br />
-            FPS: { fps }
-            <br />
-            Player Scale: <input readOnly value={ playerScale } type="text" />
-            <br />
-            Player Mass: <input readOnly value={ playerMass } type="text" />
-        </div>;
     }
 
 }
