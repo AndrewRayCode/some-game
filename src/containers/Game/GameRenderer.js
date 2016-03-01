@@ -14,6 +14,7 @@ import {
     getCameraDistanceToPlayer, getCardinalityOfVector, snapVectorAngleTo,
     resetBodyPhysics, lookAtVector, findNextTube, snapTo,
 } from '../../helpers/Utils';
+import shaderFrog from '../../helpers/shaderFrog';
 
 const factorConstraint = new CANNON.Vec3( 1, 0, 1 );
 const angularUprightConstraint = new CANNON.Vec3( 0, 0, 0 );
@@ -743,7 +744,7 @@ export default class GameScene extends Component {
             time: now
         };
 
-        this.props.shaderFrog.updateShaders( clock.elapsedTime );
+        shaderFrog.updateShaders( clock.elapsedTime );
 
         if( KeyCodes.P in keysDown ) {
 

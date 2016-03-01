@@ -47,7 +47,10 @@ import GameRenderer from './GameRenderer';
         if( !gameChapterData.currentChapterId ) {
 
             return {
-                allChapters, books
+                books: state.books,
+                chapters: state.chapters,
+                levels: state.levels,
+                entities: state.entities,
             };
 
         }
@@ -216,6 +219,16 @@ export default class GameGUI extends Component {
 
         super( props, context );
         this.state = {};
+        this.selectBook = this.selectBook.bind( this );
+
+    }
+
+    selectBook( book ) {
+
+        const { levels, entities, books, chapters } = this.props;
+        this.props.startGame(
+            book.id, book.chapterIds[ 0 ], levels, entities, books, chapters
+        );
 
     }
 
@@ -224,7 +237,7 @@ export default class GameGUI extends Component {
         const { fps } = this.state;
 
         const {
-            playerScale, playerMass, gameStarted, isClient
+            playerScale, playerMass, gameStarted, isClient, books
         } = this.props;
 
         return <div>
@@ -232,7 +245,17 @@ export default class GameGUI extends Component {
                 ( gameStarted ?
                     <GameRenderer { ...this.props } /> :
                     <div>
-                        Title screen
+                        <ul>
+                            { Object.values( books ).map( book =>
+                                <li
+                                    key={ book.id }
+                                >
+                                    <a onClick={ this.selectBook.bind( null, book ) }>
+                                        { book.name }
+                                    </a>
+                                </li>
+                            )}
+                        </ul>
                     </div>
                 ) :
                 <div>Loading&hellip;</div>

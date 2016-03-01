@@ -57,8 +57,10 @@ export default class GameContainer extends Component {
             if( !this.props.assetsLoaded ) {
                 this.props.deserializeLevels();
                 this.props.loadAllAssets();
-                this.setState({ isClient: true });
             }
+
+
+            this.setState({ isClient: true });
 
         }, 0 );
 
