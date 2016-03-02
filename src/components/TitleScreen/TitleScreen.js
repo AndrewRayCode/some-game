@@ -155,6 +155,8 @@ export default class TitleScreen extends Component {
         if( 'Sniglet Regular' in fonts ) {
             return <div />;
         }
+
+        console.log('rendering because',  ( 'Sniglet Regular' in fonts ), 'and',fonts[ 'Sniglet Regular' ] );
             
         return <div
             onMouseMove={ this.onMouseMove }
