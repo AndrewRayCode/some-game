@@ -1,8 +1,6 @@
 import superagent from 'superagent';
 import config from '../config';
 
-console.error('api client');
-
 const methods = ['get', 'post', 'put', 'patch', 'del'];
 
 function formatUrl(path) {

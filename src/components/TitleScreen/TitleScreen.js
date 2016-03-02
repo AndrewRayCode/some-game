@@ -152,7 +152,7 @@ export default class TitleScreen extends Component {
         const { books, fonts } = this.props;
         const { hoveredBook } = this.state;
                     
-        if( !Object.keys( fonts ).length ) {
+        if( 'Sniglet Regular' in fonts ) {
             return <div />;
         }
             
