@@ -1,8 +1,4 @@
 import React, { Component, PropTypes } from 'react';
-import React3 from 'react-three-renderer';
-import THREE from 'three';
-import CANNON from 'cannon/src/Cannon';
-import { browserHistory } from 'react-router';
 import { connect } from 'react-redux';
 import { asyncConnect } from 'redux-async-connect';
 import { bindActionCreators } from 'redux';
@@ -10,10 +6,6 @@ import {
     areBooksLoaded, loadAllBooks, deserializeLevels
 } from '../../redux/modules/editor';
 import { loadAllAssets } from '../../redux/modules/assets';
-import {
-    scalePlayer, advanceChapter, startGame
-} from '../../redux/modules/game';
-import KeyCodes from '../../helpers/KeyCodes';
 
 import GameGUI from './GameGUI';
 
@@ -37,7 +29,7 @@ import GameGUI from './GameGUI';
         assetsLoaded: state.assetsLoaded,
     }),
     dispatch => bindActionCreators({
-        scalePlayer, advanceChapter, loadAllAssets, deserializeLevels,
+        loadAllAssets, deserializeLevels,
     }, dispatch )
 )
 export default class GameContainer extends Component {
