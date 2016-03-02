@@ -248,7 +248,7 @@ export default class TitleScreen extends Component {
                         <mesh
                             ref={ `book${ book.id }` }
                             position={ new THREE.Vector3(
-                                index * 0.5,
+                                index * 1.4,
                                 0,
                                 book.name.length * 0.35,
                             ) }
