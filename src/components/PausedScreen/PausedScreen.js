@@ -24,7 +24,9 @@ const fontRotation = new THREE.Quaternion().setFromEuler(
 export default class PausedScreen extends Component {
     
     static propTypes = {
-        fonts: React.PropTypes.object.isRequired
+        fonts: React.PropTypes.object.isRequired,
+        onUnpause: React.PropTypes.func.isRequired,
+        onReturnToMenu: React.PropTypes.func.isRequired,
     }
 
     constructor( props, context ) {
@@ -33,7 +35,7 @@ export default class PausedScreen extends Component {
 
         this.keysDown = {};
         this.state = {
-            hoveredBook: null,
+            hovered: null,
         };
 
         this.onWindowBlur = this.onWindowBlur.bind( this );
@@ -71,7 +73,13 @@ export default class PausedScreen extends Component {
             ( KeyCodes.ESC in keysDown ) || ( KeyCodes.P in keysDown ) ||
                 ( KeyCodes.SPACE in keysDown )
         ) {
+
             this.props.onUnpause();
+
+        } else if( KeyCodes.M in keysDown ) {
+
+            this.props.onReturnToMenu();
+
         }
 
     }
@@ -120,29 +128,47 @@ export default class PausedScreen extends Component {
         const intersections = raycaster
             .intersectObjects( scene.children, true );
 
-        const hoveredBook = null;
+        let hovered = null;
         if( intersections.length ) {
 
             const objectIntersection = intersections[ 0 ].object;
 
+            switch( objectIntersection ) {
+                case this.refs.unpauseTextMesh:
+                    hovered = 'unpause';
+                    break;
+
+                case this.refs.menuTextMesh:
+                    hovered = 'menu';
+                    break;
+
+                default:
+                    hovered = null;
+
+            }
+
         }
 
-        this.setState({ hoveredBook });
+        this.setState({ hovered });
 
     }
 
     onMouseDown( event ) {
 
-        const {
-            hoveredBook
-        } = this.state;
+        const { hovered } = this.state;
+
+        if( hovered === 'unpause' ) {
+            this.props.onUnpause();
+        } else if( hovered === 'menu' ) {
+            this.props.onReturnToMenu();
+        }
 
     }
 
     render() {
 
         const { fonts } = this.props;
-        const { hoveredBook } = this.state;
+        const { hovered } = this.state;
                     
         if( !( 'Sniglet Regular' in fonts ) ) {
             return <div />;
@@ -152,7 +178,7 @@ export default class PausedScreen extends Component {
             onMouseMove={ this.onMouseMove }
             onMouseDown={ this.onMouseDown }
             style={{ width: gameWidth, height: gameHeight }}
-            className={ cx({ hovered: hoveredBook }) }
+            className={ cx({ hovered }) }
             ref="container"
         >
             <React3
@@ -200,6 +226,26 @@ export default class PausedScreen extends Component {
                             font={ fonts[ 'Sniglet Regular' ] }
                             text="Paused!"
                         />
+                        <textGeometry
+                            resourceId="unpause"
+                            size={ 0.7 }
+                            height={ 0.2 }
+                            bevelEnabled
+                            bevelThickness={ 0.02 }
+                            bevelSize={ 0.01 }
+                            font={ fonts[ 'Sniglet Regular' ] }
+                            text="Unpause (p)"
+                        />
+                        <textGeometry
+                            resourceId="menu"
+                            size={ 0.7 }
+                            height={ 0.2 }
+                            bevelEnabled
+                            bevelThickness={ 0.02 }
+                            bevelSize={ 0.01 }
+                            font={ fonts[ 'Sniglet Regular' ] }
+                            text="Return to Menu (m)"
+                        />
                         <meshPhongMaterial
                             resourceId="textMaterial"
                         />
@@ -238,7 +284,7 @@ export default class PausedScreen extends Component {
 
                     <mesh
                         position={ new THREE.Vector3(
-                            0,
+                            -1,
                             0,
                             4.8
                         ) }
@@ -249,6 +295,46 @@ export default class PausedScreen extends Component {
                         />
                         <materialResource
                             resourceId="textMaterial"
+                        />
+                    </mesh>
+
+                    <mesh
+                        ref="unpauseTextMesh"
+                        position={ new THREE.Vector3(
+                            1,
+                            0,
+                            4.8
+                        ) }
+                        quaternion={ fontRotation }
+                    >
+                        <geometryResource
+                            resourceId="unpause"
+                        />
+                        <materialResource
+                            resourceId={
+                                hovered === 'unpause' ?
+                                    'textMaterialHover' : 'textMaterial'
+                            }
+                        />
+                    </mesh>
+
+                    <mesh
+                        ref="menuTextMesh"
+                        position={ new THREE.Vector3(
+                            2,
+                            0,
+                            4.8
+                        ) }
+                        quaternion={ fontRotation }
+                    >
+                        <geometryResource
+                            resourceId="menu"
+                        />
+                        <materialResource
+                            resourceId={
+                                hovered === 'menu' ?
+                                    'textMaterialHover' : 'textMaterial'
+                            }
                         />
                     </mesh>
 

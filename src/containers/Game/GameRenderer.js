@@ -151,6 +151,7 @@ export default class GameScene extends Component {
         this.onPlayerContactEndTest = this.onPlayerContactEndTest.bind( this );
         this._setupPhysics = this._setupPhysics.bind( this );
         this.onUnpause = this.onUnpause.bind( this );
+        this.onReturnToMenu = this.onReturnToMenu.bind( this );
 
         // Needs proper scoping of this before we can call it :(
         this._setupPhysics( props );
@@ -752,18 +753,12 @@ export default class GameScene extends Component {
 
             this.pauseLock = true;
 
-            if( !pauseLock ) {
+            if( !pauseLock && !paused ) {
 
-                if( paused ) {
-
-                    newState.paused = false;
-
-                } else {
-                    this.setState({
-                        paused: true
-                    });
-                    return;
-                }
+                this.setState({
+                    paused: true
+                });
+                return;
 
             }
 
@@ -1141,6 +1136,13 @@ export default class GameScene extends Component {
 
         this.keysDown = {};
         this.setState({ paused: false });
+
+    }
+
+    onReturnToMenu() {
+
+        this.keysDown = {};
+        this.props.onExitToTitle();
 
     }
 
@@ -1543,6 +1545,7 @@ export default class GameScene extends Component {
             { paused ? <div className={ styles.gameOverlay }>
                 <PausedScreen
                     onUnpause={ this.onUnpause }
+                    onReturnToMenu={ this.onReturnToMenu }
                     fonts={ this.props.fonts }
                 />
             </div> : null }
