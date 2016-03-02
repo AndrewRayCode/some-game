@@ -12,7 +12,7 @@ import { Pushy, Player, StaticEntities } from '../../components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, snapVectorAngleTo,
-    resetBodyPhysics, lookAtVector, findNextTube, snapTo,
+    resetBodyPhysics, lookAtVector, findNextTube, snapTo, lerpVectors
 } from '../../helpers/Utils';
 import shaderFrog from '../../helpers/shaderFrog';
 
@@ -52,10 +52,6 @@ const coolDownTimeMs = 500;
 const raycaster = new THREE.Raycaster();
 
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
-
-function lerpVectors( vectorA, vectorB, alpha ) {
-    return new THREE.Vector3().lerpVectors( vectorA, vectorB, alpha );
-}
 
 const playerMaterial = new CANNON.Material( 'playerMaterial' );
 const pushyMaterial = new CANNON.Material( 'pushyMaterial' );

@@ -135,7 +135,8 @@ export function lerp( start, target, percent ) {
 }
 
 const loaders = {
-    obj: new THREE.OBJLoader()
+    obj: new THREE.OBJLoader(),
+    font: new THREE.FontLoader(),
 };
 
 function getLoader( url:string ) {
@@ -152,9 +153,24 @@ export function loadModel( modelPath, data ) {
         const loader = getLoader( modelPath );
         loader.load(
             modelPath,
-            ( model ) => resolve({ model, ...data }),
+            model => resolve({ model, ...data }),
             () => null,
-            ( error ) => reject({ error, ...data })
+            error => reject({ error, ...data })
+        );
+
+    });
+
+}
+
+export function loadFont( fontPath ) {
+
+    return new Promise( ( resolve, reject ) => {
+
+        loaders.font.load(
+            fontPath,
+            font => resolve({ font }),
+            () => null,
+            error => reject({ error })
         );
 
     });

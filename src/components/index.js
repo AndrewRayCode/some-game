@@ -5,6 +5,7 @@
  *
  */
 
+export TitleScreen from './TitleScreen/TitleScreen';
 export StaticEntities from './StaticEntities/StaticEntities';
 export FinishLine from './entities/FinishLine';
 export Floor from './entities/Floor';

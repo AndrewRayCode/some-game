@@ -18,6 +18,7 @@ import KeyCodes from '../../helpers/KeyCodes';
 import { getSphereMass } from '../../helpers/Utils';
 
 import GameRenderer from './GameRenderer';
+import { TitleScreen } from '../../components';
 
 @asyncConnect([{
     promise: ({ store: { dispatch, getState } }) => {
@@ -40,7 +41,7 @@ import GameRenderer from './GameRenderer';
         const {
             gameChapterData,
             currentGameBook: currentBookId,
-            assets, shaders,
+            assets, shaders, fonts
         } = state;
 
         // No game has been started yet!
@@ -51,6 +52,7 @@ import GameRenderer from './GameRenderer';
                 chapters: state.chapters,
                 levels: state.levels,
                 entities: state.entities,
+                fonts,
             };
 
         }
@@ -181,7 +183,7 @@ import GameRenderer from './GameRenderer';
         return {
             levels, currentLevel, currentLevelId, currentChapterId,
             currentLevelAllEntities, currentLevelStaticEntities, allEntities,
-            nextChaptersEntities, assets, shaders,
+            nextChaptersEntities, assets, shaders, fonts,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray, nextChapters, previousChapterEntities,
             previousChapterFinishEntity, previousChapterEntity,
@@ -237,26 +239,18 @@ export default class GameGUI extends Component {
         const { fps } = this.state;
 
         const {
-            playerScale, playerMass, gameStarted, isClient, books
+            playerScale, playerMass, gameStarted, isClient, books, fonts
         } = this.props;
 
         return <div>
             { isClient ?
                 ( gameStarted ?
                     <GameRenderer { ...this.props } /> :
-                    <div>
-                        <ul>
-                            { Object.values( books ).map( book =>
-                                <li
-                                    key={ book.id }
-                                >
-                                    <a onClick={ this.selectBook.bind( null, book ) }>
-                                        { book.name }
-                                    </a>
-                                </li>
-                            )}
-                        </ul>
-                    </div>
+                    <TitleScreen
+                        fonts={ fonts }
+                        onSelect={ this.selectBook }
+                        books={ Object.values( books ) }
+                    />
                 ) :
                 <div>Loading&hellip;</div>
             }
