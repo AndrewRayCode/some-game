@@ -20,10 +20,10 @@ export function fontsReducer( fonts = {}, action = {} ) {
     switch( action.type ) {
 
         case FONT_LOAD_SUCCESS:
-            console.log('font_load_success',action);
+            const name = action.payload.font.data.original_font_information.full_font_name;
             return {
                 ...fonts,
-                [ action.font.data.original_font_information.full_font_name ]: action.font
+                [ name ]: action.payload.font
             };
 
         case FONT_LOAD_FAIL:
@@ -109,7 +109,7 @@ export function loadAsset( url, data ) {
 export function loadFont( url ) {
     return dispatch =>
         utilLoadFont( url )
-            .then( result => dispatch({ type: FONT_LOAD_SUCCESS, ...result }) )
+            .then( payload => dispatch({ type: FONT_LOAD_SUCCESS, payload }) )
             .catch( error => dispatch({ type: FONT_LOAD_FAIL, error }) );
 }
 
