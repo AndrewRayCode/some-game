@@ -135,12 +135,12 @@ export function loadAllAssets() {
             { name: 'house' }
         ));
 
-        dispatch( loadFont(
-            require( '../../../assets/sniglet_regular.typeface.js' )
-        ));
-        dispatch( loadFont(
-            require( '../../../assets/sniglet_extrabold.typeface.js' )
-        ));
+        //dispatch( loadFont(
+            //require( '../../../assets/sniglet_regular.typeface.js' )
+        //));
+        //dispatch( loadFont(
+            //require( '../../../assets/sniglet_extrabold.typeface.js' )
+        //));
 
         Object.keys( CustomShaders ).forEach( key => {
 
