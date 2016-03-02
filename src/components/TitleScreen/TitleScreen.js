@@ -152,12 +152,10 @@ export default class TitleScreen extends Component {
         const { books, fonts } = this.props;
         const { hoveredBook } = this.state;
                     
-        if( 'Sniglet Regular' in fonts ) {
+        if( !( 'Sniglet Regular' in fonts ) ) {
             return <div />;
         }
 
-        console.log('rendering because',  ( 'Sniglet Regular' in fonts ), 'and',fonts[ 'Sniglet Regular' ] );
-            
         return <div
             onMouseMove={ this.onMouseMove }
             onMouseDown={ this.onMouseDown }

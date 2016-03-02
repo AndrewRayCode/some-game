@@ -21,7 +21,6 @@ export function fontsReducer( fonts = {}, action = {} ) {
 
         case FONT_LOAD_SUCCESS:
             const name = action.payload.font.data.original_font_information.full_font_name;
-            console.log('action',action,'name',name,'font',action.payload.font);
             return {
                 ...fonts,
                 [ name ]: action.payload.font
