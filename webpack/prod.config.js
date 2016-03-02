@@ -31,7 +31,7 @@ module.exports = {
   module: {
     loaders: [
       { test: /\.typeface\.js/, loader: "file" },
-      { test: /\.jsx?$/, exclude: /node_modules/, loaders: [strip.loader('debug'), 'babel']},
+      { test: /\.jsx?$/, exclude: /node_modules|\.typeface\.js$/, loaders: [strip.loader('debug'), 'babel']},
       { test: /\.json$/, loader: 'json-loader' },
       { test: /\.less$/, loader: ExtractTextPlugin.extract('style', 'css?modules&importLoaders=2&sourceMap!autoprefixer?browsers=last 2 version!less?outputStyle=expanded&sourceMap=true&sourceMapContents=true') },
       { test: /\.scss$/, loader: ExtractTextPlugin.extract('style', 'css?modules&importLoaders=2&sourceMap!autoprefixer?browsers=last 2 version!sass?outputStyle=expanded&sourceMap=true&sourceMapContents=true') },
