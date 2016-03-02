@@ -11,7 +11,7 @@ import {
 } from '../../redux/modules/editor';
 import { areAssetsLoaded, loadAllAssets } from '../../redux/modules/assets';
 import {
-    scalePlayer, advanceChapter, startGame
+    scalePlayer, advanceChapter, startGame, stopGame
 } from '../../redux/modules/game';
 import KeyCodes from '../../helpers/KeyCodes';
 
@@ -208,20 +208,17 @@ import { TitleScreen } from '../../components';
     },
     dispatch => bindActionCreators({
         scalePlayer, advanceChapter, loadAllAssets, deserializeLevels,
-        startGame
+        startGame, stopGame
     }, dispatch )
 )
 export default class GameGUI extends Component {
-
-    static contextTypes = {
-        store: PropTypes.object.isRequired
-    }
 
     constructor( props, context ) {
 
         super( props, context );
         this.state = {};
         this.selectBook = this.selectBook.bind( this );
+        this.onExitToTitle = this.onExitToTitle.bind( this );
 
     }
 
@@ -231,6 +228,12 @@ export default class GameGUI extends Component {
         this.props.startGame(
             book.id, book.chapterIds[ 0 ], levels, entities, books, chapters
         );
+
+    }
+
+    onExitToTitle() {
+
+        this.props.stopGame();
 
     }
 
@@ -245,7 +248,10 @@ export default class GameGUI extends Component {
         return <div>
             { isClient ?
                 ( gameStarted ?
-                    <GameRenderer { ...this.props } /> :
+                    <GameRenderer
+                        { ...this.props }
+                        onExitToTitle={ this.onExitToTitle }
+                    /> :
                     <TitleScreen
                         fonts={ fonts }
                         onSelect={ this.selectBook }

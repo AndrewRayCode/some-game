@@ -8,13 +8,18 @@ import {
 } from '../../redux/modules/game';
 import KeyCodes from '../../helpers/KeyCodes';
 import Cardinality from '../../helpers/Cardinality';
-import { Pushy, Player, StaticEntities } from '../../components';
+import { Pushy, Player, StaticEntities, PausedScreen } from '../../components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, snapVectorAngleTo,
     resetBodyPhysics, lookAtVector, findNextTube, snapTo, lerpVectors
 } from '../../helpers/Utils';
 import shaderFrog from '../../helpers/shaderFrog';
+import styles from './Game.scss';
+
+const fontRotation = new THREE.Quaternion().setFromEuler(
+    new THREE.Euler( -Math.PI / 2, 0, 0 )
+);
 
 const factorConstraint = new CANNON.Vec3( 1, 0, 1 );
 const angularUprightConstraint = new CANNON.Vec3( 0, 0, 0 );
@@ -145,6 +150,7 @@ export default class GameScene extends Component {
         this.onPlayerCollide = this.onPlayerCollide.bind( this );
         this.onPlayerContactEndTest = this.onPlayerContactEndTest.bind( this );
         this._setupPhysics = this._setupPhysics.bind( this );
+        this.onUnpause = this.onUnpause.bind( this );
 
         // Needs proper scoping of this before we can call it :(
         this._setupPhysics( props );
@@ -846,9 +852,10 @@ export default class GameScene extends Component {
 
         }
 
-        if( KeyCodes.ESC in keysDown ) {
+        if( !paused && ( KeyCodes.ESC in keysDown ) ) {
 
-            browserHistory.push( '/editor' );
+            this.props.onExitToTitle();
+            return;
 
         }
 
@@ -1130,20 +1137,27 @@ export default class GameScene extends Component {
 
     }
 
+    onUnpause() {
+
+        this.keysDown = {};
+        this.setState({ paused: false });
+
+    }
+
     render() {
 
         const {
             pushyPositions, time, cameraPosition, currentFlowPosition, debug,
             fps, touring, cameraTourTarget, entrance1, entrance2, tubeFlow,
             tubeIndex, currentScalePercent, radiusDiff,
-            currentTransitionPosition, currentTransitionTarget
+            currentTransitionPosition, currentTransitionTarget, paused
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
             playerRadius, playerScale, playerMass, nextChapters,
             nextChaptersEntities, previousChapterEntities,
             previousChapterEntity, currentLevelRenderableEntitiesArray,
-            previousChapterFinishEntity, assets, shaders
+            previousChapterFinishEntity, assets, shaders, fonts
         } = this.props;
 
         const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;
@@ -1163,7 +1177,7 @@ export default class GameScene extends Component {
             touring ? cameraTourTarget : playerPosition
         );
 
-        return <React3
+        const renderer = <React3
             mainCamera="camera"
             width={ gameWidth }
             height={ gameHeight }
@@ -1515,6 +1529,24 @@ export default class GameScene extends Component {
 
             </scene>
         </React3>;
+
+        return <div
+            style={{
+                position: 'relative',
+                width: gameWidth,
+                height: gameHeight,
+            }}
+        >
+            <div className={ styles.gameContainer }>
+                { renderer }
+            </div>
+            { paused ? <div className={ styles.gameOverlay }>
+                <PausedScreen
+                    onUnpause={ this.onUnpause }
+                    fonts={ this.props.fonts }
+                />
+            </div> : null }
+        </div>;
 
     }
 

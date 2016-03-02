@@ -5,6 +5,7 @@
  *
  */
 
+export PausedScreen from './PausedScreen/PausedScreen';
 export TitleScreen from './TitleScreen/TitleScreen';
 export StaticEntities from './StaticEntities/StaticEntities';
 export FinishLine from './entities/FinishLine';

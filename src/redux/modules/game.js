@@ -9,19 +9,18 @@ const shrinkForceMultiplier = 1 / ( 8 * Math.sqrt( 2 ) );
 
 // So the impulse you needs drops to 1/(8 * sqrt(2)) of the original.
 
-const defaultState = {
+const GAME_SELECT_CHAPTER = 'game/GAME_SELECT_CHAPTER';
+const START_GAME = 'game/START_GAME';
+const STOP_GAME = 'game/STOP_GAME';
+const SCALE_PLAYER = 'game/SCALE_PLAYER';
+
+const defaultGameState = {
     playerRadius, playerDensity, pushyDensity,
     playerScale: 1,
     entities: {},
     levels: {}
 };
-
-const GAME_SELECT_CHAPTER = 'game/GAME_SELECT_CHAPTER';
-const START_GAME = 'game/START_GAME';
-const END_GAME = 'game/END_GAME';
-const SCALE_PLAYER = 'game/SCALE_PLAYER';
-
-export function game( state = defaultState, action = {} ) {
+export function game( state = defaultGameState, action = {} ) {
 
     switch( action.type ) {
 
@@ -100,8 +99,8 @@ export function game( state = defaultState, action = {} ) {
                 }
             };
 
-        case END_GAME:
-            return defaultState;
+        case STOP_GAME:
+            return defaultGameState;
 
         default:
             return state;
@@ -110,7 +109,8 @@ export function game( state = defaultState, action = {} ) {
 
 }
 
-export function gameChapterReducer( state = {}, action = {} ) {
+const defaultChapterState = {};
+export function gameChapterReducer( state = defaultChapterState, action = {} ) {
 
     switch( action.type ) {
 
@@ -127,6 +127,9 @@ export function gameChapterReducer( state = {}, action = {} ) {
                 previousChapterNextChapter: action.nextChapter,
             };
 
+        case STOP_GAME:
+            return defaultChapterState;
+
         default:
             return state;
 
@@ -134,12 +137,16 @@ export function gameChapterReducer( state = {}, action = {} ) {
 
 }
 
-export function gameBookReducer( state = null, action = {} ) {
+const defaultBookState = null;
+export function gameBookReducer( state = defaultBookState, action = {} ) {
 
     switch( action.type ) {
 
         case START_GAME:
             return action.bookId;
+
+        case STOP_GAME:
+            return defaultBookState;
 
         default:
             return state;
@@ -176,6 +183,6 @@ export function scalePlayer( levelId, powerupIdToRemove, multiplier ) {
     };
 }
 
-export function endGame() {
-    return { type: END_GAME };
+export function stopGame() {
+    return { type: STOP_GAME };
 }

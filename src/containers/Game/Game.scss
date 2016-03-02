@@ -1,3 +1,17 @@
 .hovered {
     cursor: pointer;
 }
+
+.gameContainer {
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:1;
+}
+
+.gameOverlay {
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:2;
+}
