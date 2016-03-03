@@ -20,6 +20,18 @@ import { getSphereMass } from '../../helpers/Utils';
 import GameRenderer from './GameRenderer';
 import { TitleScreen } from '../../components';
 
+import { resourceIds, allResources } from '../../resources';
+
+import styles from './Game.scss';
+import classNames from 'classnames/bind';
+const cx = classNames.bind( styles );
+
+import shaderFrog from '../../helpers/shaderFrog';
+import MouseInput from '../../helpers/MouseInput';
+
+const gameWidth = 400;
+const gameHeight = 400;
+
 @asyncConnect([{
     promise: ({ store: { dispatch, getState } }) => {
         const promises = [];
@@ -219,11 +231,33 @@ export default class GameGUI extends Component {
         this.state = {};
         this.selectBook = this.selectBook.bind( this );
         this.onExitToTitle = this.onExitToTitle.bind( this );
+        this._onAnimate = this._onAnimate.bind( this );
+        this.onClickRegionLeave = this.onClickRegionLeave.bind( this );
+        this.onClickRegionEnter = this.onClickRegionEnter.bind( this );
+        this.createMouseInput = this.createMouseInput.bind( this );
+        this.onPause = this.onPause.bind( this );
+        this.onUnpause = this.onUnpause.bind( this );
+
+    }
+
+    componentDidUpdate( newProps ) {
+
+        if( newProps.gameStarted !== this.props.gameStarted ) {
+
+            const { titleScreen, gameRenderer } = this.refs;
+            const camera = titleScreen ?
+                titleScreen.refs.camera :
+                gameRenderer.refs.camera;
+
+            this.state.mouseInput._camera = camera;
+
+        }
 
     }
 
     selectBook( book ) {
 
+        this.setState({ hovered: false });
         const { levels, entities, books, chapters } = this.props;
         this.props.startGame(
             book.id, book.chapterIds[ 0 ], levels, entities, books, chapters
@@ -237,29 +271,157 @@ export default class GameGUI extends Component {
 
     }
 
+    createMouseInput() {
+
+        const { mouseInput, titleScreen, gameRenderer } = this.refs;
+
+        if( !mouseInput.isReady() ) {
+
+            const { scene, container } = this.refs;
+            const camera = titleScreen ?
+                titleScreen.refs.camera :
+                gameRenderer.refs.camera;
+
+            mouseInput.ready( scene, container, camera );
+            mouseInput.setActive( false );
+
+        }
+
+        if( this.state.mouseInput !== mouseInput ) {
+
+            this.setState({ mouseInput });
+
+        }
+
+    }
+
+    // Any global updates we can do, do here
+    _onAnimate() {
+
+        shaderFrog.updateShaders( Date.now() * 0.000001 );
+        
+        const { mouseInput, titleScreen, gameRenderer } = this.refs;
+
+        if( !mouseInput.isReady() ) {
+
+            this.createMouseInput();
+
+        }
+
+    }
+
+    onClickRegionLeave() {
+
+        this.setState({ clickable: false });
+
+    }
+
+    onClickRegionEnter() {
+
+        this.setState({ clickable: true });
+
+    }
+
+    onPause() {
+
+        this.setState({ clickable: false, paused: true });
+
+    }
+
+    onUnpause() {
+
+        this.setState({ clickable: false, paused: false });
+
+    }
+
     render() {
 
-        const { fps } = this.state;
+        const { fps, mouseInput, clickable, paused } = this.state;
 
         const {
-            playerScale, playerMass, gameStarted, isClient, books, fonts
+            playerScale, playerMass, gameStarted, books, fonts
         } = this.props;
 
-        return <div>
-            { isClient ?
-                ( gameStarted ?
+        const renderer = <React3
+            mainCamera="camera"
+            width={ gameWidth }
+            height={ gameHeight }
+            onAnimate={ this._onAnimate }
+        >
+
+            <module
+                ref="mouseInput"
+                descriptor={ MouseInput }
+            />
+
+            <resources>
+                { allResources }
+            </resources>
+
+            <viewport
+                x={ 0 }
+                y={ 0 }
+                width={ gameWidth }
+                height={ gameHeight }
+                cameraName="mainCamera"
+            />
+
+            { paused ? <viewport
+                x={ 0 }
+                y={ 0 }
+                width={ gameWidth }
+                height={ gameHeight }
+                cameraName="pausedCamera"
+            /> : null }
+
+            <scene ref="scene">
+
+                <ambientLight
+                    color={ 0x777777 }
+                />
+
+                <directionalLight
+                    color={ 0xffffff }
+                    intensity={ 1.0 }
+                    castShadow
+                    position={ new THREE.Vector3( 0, 5, 0 ) }
+                />
+
+                { gameStarted ?
                     <GameRenderer
                         { ...this.props }
+                        paused={ paused }
+                        ref="gameRenderer"
+                        onPause={ this.onPause }
+                        onUnpause={ this.onUnpause }
                         onExitToTitle={ this.onExitToTitle }
-                    /> :
-                    <TitleScreen
+                        onClickRegionLeave={ this.onClickRegionLeave }
+                        onClickRegionEnter={ this.onClickRegionEnter }
+                        mouseInput={ mouseInput }
+                    /> : <TitleScreen
+                        ref="titleScreen"
+                        onClickRegionLeave={ this.onClickRegionLeave }
+                        onClickRegionEnter={ this.onClickRegionEnter }
+                        mouseInput={ mouseInput }
                         fonts={ fonts }
                         onSelect={ this.selectBook }
                         books={ Object.values( books ) }
                     />
-                ) :
-                <div>Loading&hellip;</div>
-            }
+                }
+
+            </scene>
+
+        </React3>;
+
+        return <div
+            ref="container"
+            className={ cx({ clickable }) }
+            style={{
+                width: gameWidth,
+                height: gameHeight,
+            }}
+        >
+            { renderer }
             <br />
             FPS: { fps }
             <br />

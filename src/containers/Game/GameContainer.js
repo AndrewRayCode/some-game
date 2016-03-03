@@ -27,6 +27,7 @@ import GameGUI from './GameGUI';
         assets: state.assets,
         shaders: state.shaders,
         assetsLoaded: state.assetsLoaded,
+        fonts: state.fonts
     }),
     dispatch => bindActionCreators({
         loadAllAssets, deserializeLevels,
@@ -51,7 +52,6 @@ export default class GameContainer extends Component {
                 this.props.loadAllAssets();
             }
 
-
             this.setState({ isClient: true });
 
         }, 0 );
@@ -67,7 +67,11 @@ export default class GameContainer extends Component {
 
     render() {
 
-        return <GameGUI isClient={ this.state.isClient } />;
+        if( !this.state.isClient || !( 'Sniglet Regular' in this.props.fonts ) ) {
+            return <div>Loading&hellip;</div>;
+        }
+
+        return <GameGUI />;
 
     }
 

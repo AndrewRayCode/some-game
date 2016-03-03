@@ -14,7 +14,7 @@ const gameHeight = 400;
 const cameraAspect = gameWidth / gameHeight;
 const cameraFov = 75;
 const cameraPosition = new THREE.Vector3( 0, 8, 0 );
-const lookAt = new THREE.Vector3( 0, 0, 0 );
+const lookAt = new THREE.Vector3( 100, 10, 100 );
 const raycaster = new THREE.Raycaster();
 
 const fontRotation = new THREE.Quaternion().setFromEuler(
@@ -42,8 +42,11 @@ export default class PausedScreen extends Component {
         this.onKeyDown = this.onKeyDown.bind( this );
         this.onKeyUp = this.onKeyUp.bind( this );
         this._onAnimate = this._onAnimate.bind( this );
-        this.onMouseMove = this.onMouseMove.bind( this );
+
         this.onMouseDown = this.onMouseDown.bind( this );
+        this.onMouseEnter = this.onMouseEnter.bind( this );
+        this.onMouseLeave = this.onMouseLeave.bind( this );
+
 
     }
 
@@ -111,56 +114,24 @@ export default class PausedScreen extends Component {
 
     }
 
-    onMouseMove( event ) {
-        
-        const { scene, camera, container } = this.refs;
-        const bounds = container.getBoundingClientRect();
+    onMouseDown( hovered, event ) {
 
-        // calculate mouse position in normalized device coordinates
-        // (-1 to +1) for both components
-        const mouse = {
-            x: ( ( event.clientX - bounds.left ) / gameWidth ) * 2 - 1,
-            y: -( ( event.clientY - bounds.top ) / gameHeight ) * 2 + 1
-        };
+        this.props.onSelect( hovered );
 
-        raycaster.setFromCamera( mouse, camera );
+    }
 
-        const intersections = raycaster
-            .intersectObjects( scene.children, true );
-
-        let hovered = null;
-        if( intersections.length ) {
-
-            const objectIntersection = intersections[ 0 ].object;
-
-            switch( objectIntersection ) {
-                case this.refs.unpauseTextMesh:
-                    hovered = 'unpause';
-                    break;
-
-                case this.refs.menuTextMesh:
-                    hovered = 'menu';
-                    break;
-
-                default:
-                    hovered = null;
-
-            }
-
-        }
+    onMouseEnter( hovered, event ) {
 
         this.setState({ hovered });
 
     }
 
-    onMouseDown( event ) {
+    onMouseLeave( hovered, event ) {
 
-        const { hovered } = this.state;
+        if( this.state.hovered === hovered ) {
 
-        if( hovered === 'unpause' ) {
-            this.props.onUnpause();
-        } else if( hovered === 'menu' ) {
-            this.props.onReturnToMenu();
+            this.setState({ hovered: null });
+
         }
 
     }
@@ -169,178 +140,151 @@ export default class PausedScreen extends Component {
 
         const { fonts } = this.props;
         const { hovered } = this.state;
-                    
-        if( !( 'Sniglet Regular' in fonts ) ) {
-            return <div />;
-        }
 
-        return <div
-            onMouseMove={ this.onMouseMove }
-            onMouseDown={ this.onMouseDown }
-            style={{ width: gameWidth, height: gameHeight }}
-            className={ cx({ hovered }) }
-            ref="container"
+        return <object3D
+            position={ lookAt }
         >
-            <React3
-                alpha
-                clearAlpha={ 0.3 }
-                clearColor={ 0xffffff }
-                mainCamera="camera"
-                width={ gameWidth }
-                height={ gameHeight }
-                onAnimate={ this._onAnimate }
+
+            <perspectiveCamera
+                name="pausedCamera"
+                fov={ cameraFov }
+                aspect={ cameraAspect }
+                near={ 0.1 }
+                far={ 1000 }
+                position={ cameraPosition }
+                lookAt={ new THREE.Vector3( 0, 0, 0 ) }
+                ref="camera"
+            />
+
+            <resources>
+                <textGeometry
+                    resourceId="title"
+                    size={ 0.6 }
+                    height={ 0.2 }
+                    bevelEnabled
+                    bevelThickness={ 0.02 }
+                    bevelSize={ 0.01 }
+                    font={ fonts[ 'Sniglet Regular' ] }
+                    text="Today I'm A Galaxy"
+                />
+                <textGeometry
+                    resourceId="paused"
+                    size={ 1.5 }
+                    height={ 0.2 }
+                    bevelEnabled
+                    bevelThickness={ 0.02 }
+                    bevelSize={ 0.01 }
+                    font={ fonts[ 'Sniglet Regular' ] }
+                    text="Paused!"
+                />
+                <textGeometry
+                    resourceId="unpause"
+                    size={ 0.7 }
+                    height={ 0.2 }
+                    bevelEnabled
+                    bevelThickness={ 0.02 }
+                    bevelSize={ 0.01 }
+                    font={ fonts[ 'Sniglet Regular' ] }
+                    text="Unpause (p)"
+                />
+                <textGeometry
+                    resourceId="menu"
+                    size={ 0.7 }
+                    height={ 0.2 }
+                    bevelEnabled
+                    bevelThickness={ 0.02 }
+                    bevelSize={ 0.01 }
+                    font={ fonts[ 'Sniglet Regular' ] }
+                    text="Return to Menu (m)"
+                />
+                <meshPhongMaterial
+                    resourceId="textMaterial"
+                />
+                <meshPhongMaterial
+                    color={ 0xff0000 }
+                    resourceId="textMaterialHover"
+                />
+            </resources>
+
+            <mesh
+                position={ new THREE.Vector3(
+                    -4.5,
+                    0,
+                    4.3
+                ) }
+                quaternion={ fontRotation }
             >
-                <scene
-                    ref="scene"
-                >
+                <geometryResource
+                    resourceId="title"
+                />
+                <materialResource
+                    resourceId="textMaterial"
+                />
+            </mesh>
 
-                    <perspectiveCamera
-                        name="camera"
-                        fov={ cameraFov }
-                        aspect={ cameraAspect }
-                        near={ 0.1 }
-                        far={ 1000 }
-                        position={ cameraPosition }
-                        lookAt={ lookAt }
-                        ref="camera"
-                    />
+            <mesh
+                position={ new THREE.Vector3(
+                    -1,
+                    0,
+                    4.8
+                ) }
+                quaternion={ fontRotation }
+            >
+                <geometryResource
+                    resourceId="paused"
+                />
+                <materialResource
+                    resourceId="textMaterial"
+                />
+            </mesh>
 
-                    <resources>
-                        <textGeometry
-                            resourceId="title"
-                            size={ 0.6 }
-                            height={ 0.2 }
-                            bevelEnabled
-                            bevelThickness={ 0.02 }
-                            bevelSize={ 0.01 }
-                            font={ fonts[ 'Sniglet Regular' ] }
-                            text="Today I'm A Galaxy"
-                        />
-                        <textGeometry
-                            resourceId="paused"
-                            size={ 1.5 }
-                            height={ 0.2 }
-                            bevelEnabled
-                            bevelThickness={ 0.02 }
-                            bevelSize={ 0.01 }
-                            font={ fonts[ 'Sniglet Regular' ] }
-                            text="Paused!"
-                        />
-                        <textGeometry
-                            resourceId="unpause"
-                            size={ 0.7 }
-                            height={ 0.2 }
-                            bevelEnabled
-                            bevelThickness={ 0.02 }
-                            bevelSize={ 0.01 }
-                            font={ fonts[ 'Sniglet Regular' ] }
-                            text="Unpause (p)"
-                        />
-                        <textGeometry
-                            resourceId="menu"
-                            size={ 0.7 }
-                            height={ 0.2 }
-                            bevelEnabled
-                            bevelThickness={ 0.02 }
-                            bevelSize={ 0.01 }
-                            font={ fonts[ 'Sniglet Regular' ] }
-                            text="Return to Menu (m)"
-                        />
-                        <meshPhongMaterial
-                            resourceId="textMaterial"
-                        />
-                        <meshPhongMaterial
-                            color={ 0xff0000 }
-                            resourceId="textMaterialHover"
-                        />
-                    </resources>
+            <mesh
+                ref="unpauseTextMesh"
+                onMouseEnter={ this.onMouseEnter.bind( null, 'unpause' ) }
+                onMouseLeave={ this.onMouseLeave.bind( null, 'unpause') }
+                onMouseDown={ this.onMouseDown.bind( null, 'unpause' ) }
+                position={ new THREE.Vector3(
+                    1,
+                    0,
+                    4.8
+                ) }
+                quaternion={ fontRotation }
+            >
+                <geometryResource
+                    resourceId="unpause"
+                />
+                <materialResource
+                    resourceId={
+                        hovered === 'unpause' ?
+                            'textMaterialHover' : 'textMaterial'
+                    }
+                />
+            </mesh>
 
-                    <ambientLight
-                        color={ 0x777777 }
-                    />
+            <mesh
+                onMouseEnter={ this.onMouseEnter.bind( null, 'menu' ) }
+                onMouseLeave={ this.onMouseLeave.bind( null, 'menu') }
+                onMouseDown={ this.onMouseDown.bind( null, 'menu' ) }
+                ref="menuTextMesh"
+                position={ new THREE.Vector3(
+                    2,
+                    0,
+                    4.8
+                ) }
+                quaternion={ fontRotation }
+            >
+                <geometryResource
+                    resourceId="menu"
+                />
+                <materialResource
+                    resourceId={
+                        hovered === 'menu' ?
+                            'textMaterialHover' : 'textMaterial'
+                    }
+                />
+            </mesh>
 
-                    <directionalLight
-                        color={ 0xffffff }
-                        intensity={ 1.0 }
-                        castShadow
-                        position={ cameraPosition }
-                    />
-
-                    <mesh
-                        position={ new THREE.Vector3(
-                            -4.5,
-                            0,
-                            4.3
-                        ) }
-                        quaternion={ fontRotation }
-                    >
-                        <geometryResource
-                            resourceId="title"
-                        />
-                        <materialResource
-                            resourceId="textMaterial"
-                        />
-                    </mesh>
-
-                    <mesh
-                        position={ new THREE.Vector3(
-                            -1,
-                            0,
-                            4.8
-                        ) }
-                        quaternion={ fontRotation }
-                    >
-                        <geometryResource
-                            resourceId="paused"
-                        />
-                        <materialResource
-                            resourceId="textMaterial"
-                        />
-                    </mesh>
-
-                    <mesh
-                        ref="unpauseTextMesh"
-                        position={ new THREE.Vector3(
-                            1,
-                            0,
-                            4.8
-                        ) }
-                        quaternion={ fontRotation }
-                    >
-                        <geometryResource
-                            resourceId="unpause"
-                        />
-                        <materialResource
-                            resourceId={
-                                hovered === 'unpause' ?
-                                    'textMaterialHover' : 'textMaterial'
-                            }
-                        />
-                    </mesh>
-
-                    <mesh
-                        ref="menuTextMesh"
-                        position={ new THREE.Vector3(
-                            2,
-                            0,
-                            4.8
-                        ) }
-                        quaternion={ fontRotation }
-                    >
-                        <geometryResource
-                            resourceId="menu"
-                        />
-                        <materialResource
-                            resourceId={
-                                hovered === 'menu' ?
-                                    'textMaterialHover' : 'textMaterial'
-                            }
-                        />
-                    </mesh>
-
-                </scene>
-            </React3>
-        </div>;
+        </object3D>;
 
     }
 
