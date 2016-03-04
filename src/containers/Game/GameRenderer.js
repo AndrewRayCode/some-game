@@ -103,6 +103,11 @@ const puhshyToWallContact = new CANNON.ContactMaterial( pushyMaterial, wallMater
 
 export default class GameRenderer extends Component {
 
+    static propTypes = {
+        fonts: PropTypes.object.isRequired,
+        letters: PropTypes.object.isRequired,
+    }
+
     constructor( props, context ) {
 
         super( props, context );

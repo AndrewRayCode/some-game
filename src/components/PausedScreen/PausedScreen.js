@@ -7,6 +7,7 @@ import shaderFrog from '../../helpers/shaderFrog';
 import { without } from '../../helpers/Utils';
 import styles from '../../containers/Game/Game.scss';
 import classNames from 'classnames/bind';
+import { Text } from '../';
 
 const cx = classNames.bind( styles );
 const gameWidth = 400;
@@ -19,13 +20,10 @@ const raycaster = new THREE.Raycaster();
 
 const sceneOffset = new THREE.Vector3( 100, 100, 100 );
 
-const fontRotation = new THREE.Quaternion().setFromEuler(
-    new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 )
-);
-
 export default class PausedScreen extends Component {
     
     static propTypes = {
+        letters: React.PropTypes.object.isRequired,
         fonts: React.PropTypes.object.isRequired,
         onUnpause: React.PropTypes.func.isRequired,
         onReturnToMenu: React.PropTypes.func.isRequired,
@@ -140,7 +138,7 @@ export default class PausedScreen extends Component {
 
     render() {
 
-        const { fonts } = this.props;
+        const { fonts, letters } = this.props;
         const { hovered } = this.state;
 
         return <object3D
@@ -158,133 +156,54 @@ export default class PausedScreen extends Component {
                 ref="camera"
             />
 
-            <resources>
-                <textGeometry
-                    resourceId="title"
-                    size={ 0.6 }
-                    height={ 0.2 }
-                    bevelEnabled
-                    bevelThickness={ 0.02 }
-                    bevelSize={ 0.01 }
-                    font={ fonts[ 'Sniglet Regular' ] }
-                    text="Today I'm A Galaxy"
-                />
-                <textGeometry
-                    resourceId="paused"
-                    size={ 1.5 }
-                    height={ 0.2 }
-                    bevelEnabled
-                    bevelThickness={ 0.02 }
-                    bevelSize={ 0.01 }
-                    font={ fonts[ 'Sniglet Regular' ] }
-                    text="Paused!"
-                />
-                <textGeometry
-                    resourceId="unpause"
-                    size={ 0.7 }
-                    height={ 0.2 }
-                    bevelEnabled
-                    bevelThickness={ 0.02 }
-                    bevelSize={ 0.01 }
-                    font={ fonts[ 'Sniglet Regular' ] }
-                    text="Unpause (p)"
-                />
-                <textGeometry
-                    resourceId="menu"
-                    size={ 0.7 }
-                    height={ 0.2 }
-                    bevelEnabled
-                    bevelThickness={ 0.02 }
-                    bevelSize={ 0.01 }
-                    font={ fonts[ 'Sniglet Regular' ] }
-                    text="Return to Menu (m)"
-                />
-                <meshPhongMaterial
-                    resourceId="textMaterial"
-                />
-                <meshPhongMaterial
-                    color={ 0xff0000 }
-                    resourceId="textMaterialHover"
-                />
-            </resources>
+            <Text
+                position={ new THREE.Vector3( -4.5, 0, 0 ) }
+                scale={ new THREE.Vector3( 0.7, 0.7, 0.7 ) }
+                fonts={ fonts }
+                letters={ letters }
+                fontName="Sniglet Regular"
+                text="Today I'm A Galaxy"
+                materialId="textMaterial"
+            />
 
-            <mesh
-                position={ new THREE.Vector3(
-                    -4.5,
-                    0,
-                    4.3
-                ) }
-                quaternion={ fontRotation }
-            >
-                <geometryResource
-                    resourceId="title"
-                />
-                <materialResource
-                    resourceId="textMaterial"
-                />
-            </mesh>
+            <Text
+                position={ new THREE.Vector3( -1, 0, 0 ) }
+                text="paused"
+                materialId="textMaterial"
+                fontName="Sniglet Regular"
+                fonts={ fonts }
+                letters={ letters }
+            />
 
-            <mesh
-                position={ new THREE.Vector3(
-                    -1,
-                    0,
-                    4.8
-                ) }
-                quaternion={ fontRotation }
-            >
-                <geometryResource
-                    resourceId="paused"
-                />
-                <materialResource
-                    resourceId="textMaterial"
-                />
-            </mesh>
-
-            <mesh
-                ref="unpauseTextMesh"
+            <Text
                 onMouseEnter={ this.onMouseEnter.bind( null, 'unpause' ) }
                 onMouseLeave={ this.onMouseLeave.bind( null, 'unpause') }
                 onMouseDown={ this.onMouseDown.bind( null, 'unpause' ) }
-                position={ new THREE.Vector3(
-                    1,
-                    0,
-                    4.8
-                ) }
-                quaternion={ fontRotation }
-            >
-                <geometryResource
-                    resourceId="unpause"
-                />
-                <materialResource
-                    resourceId={
-                        hovered === 'unpause' ?
-                            'textMaterialHover' : 'textMaterial'
-                    }
-                />
-            </mesh>
+                fontName="Sniglet Regular"
+                position={ new THREE.Vector3( 1, 0, 0 ) }
+                text="Unpause"
+                materialId={
+                    hovered === 'unpause' ?
+                        'textMaterialHover' : 'textMaterial'
+                }
+                fonts={ fonts }
+                letters={ letters }
+            />
 
-            <mesh
+            <Text
                 onMouseEnter={ this.onMouseEnter.bind( null, 'menu' ) }
                 onMouseLeave={ this.onMouseLeave.bind( null, 'menu') }
                 onMouseDown={ this.onMouseDown.bind( null, 'menu' ) }
-                ref="menuTextMesh"
-                position={ new THREE.Vector3(
-                    2,
-                    0,
-                    4.8
-                ) }
-                quaternion={ fontRotation }
-            >
-                <geometryResource
-                    resourceId="menu"
-                />
-                <materialResource
-                    resourceId={
-                        hovered === 'menu' ?
-                            'textMaterialHover' : 'textMaterial'
-                    }
-                />
-            </mesh>
+                fontName="Sniglet Regular"
+                position={ new THREE.Vector3( 2, 0, 0 ) }
+                text="Return to Menu (m)"
+                materialId={
+                    hovered === 'menu' ?
+                        'textMaterialHover' : 'textMaterial'
+                }
+                fonts={ fonts }
+                letters={ letters }
+            />
 
         </object3D>;
 
