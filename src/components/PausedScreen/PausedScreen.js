@@ -20,6 +20,10 @@ const raycaster = new THREE.Raycaster();
 
 const sceneOffset = new THREE.Vector3( 100, 100, 100 );
 
+const bgRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
+const bgPosition = new THREE.Vector3( 0, -2, 0 );
+const bgScale = new THREE.Vector3( 18, 18, 18 );
+
 export default class PausedScreen extends Component {
     
     static propTypes = {
@@ -27,6 +31,8 @@ export default class PausedScreen extends Component {
         fonts: React.PropTypes.object.isRequired,
         onUnpause: React.PropTypes.func.isRequired,
         onReturnToMenu: React.PropTypes.func.isRequired,
+        onClickRegionLeave: React.PropTypes.func.isRequired,
+        onClickRegionEnter: React.PropTypes.func.isRequired,
     }
 
     constructor( props, context ) {
@@ -34,9 +40,7 @@ export default class PausedScreen extends Component {
         super( props, context );
 
         this.keysDown = {};
-        this.state = {
-            hovered: null,
-        };
+        this.state = {};
 
         this.onWindowBlur = this.onWindowBlur.bind( this );
         this.onKeyDown = this.onKeyDown.bind( this );
@@ -129,24 +133,21 @@ export default class PausedScreen extends Component {
 
     onMouseEnter( hovered, event ) {
 
-        this.setState({ hovered });
+        this.props.onClickRegionEnter();
+        this.setState({ [ hovered ]: true });
 
     }
 
     onMouseLeave( hovered, event ) {
 
-        if( this.state.hovered === hovered ) {
-
-            this.setState({ hovered: null });
-
-        }
+        this.setState({ [ hovered ]: null });
 
     }
 
     render() {
 
         const { fonts, letters } = this.props;
-        const { hovered } = this.state;
+        const { unpause, menu } = this.state;
 
         return <object3D
             position={ sceneOffset }
@@ -164,6 +165,19 @@ export default class PausedScreen extends Component {
                 ref="camera"
             />
 
+            <mesh
+                scale={ bgScale }
+                rotation={ bgRotation }
+                position={ bgPosition }
+            >
+                <geometryResource
+                    resourceId="1x1plane"
+                />
+                <materialResource
+                    resourceId="sceneOverlay"
+                />
+            </mesh>
+
             <Text
                 position={ new THREE.Vector3( -4.5, 0, 0 ) }
                 scale={ new THREE.Vector3( 0.7, 0.7, 0.7 ) }
@@ -171,13 +185,14 @@ export default class PausedScreen extends Component {
                 letters={ letters }
                 fontName="Sniglet Regular"
                 text="Today I'm A Galaxy"
-                materialId="textMaterial"
+                materialId="universeInALetter"
             />
 
             <Text
                 position={ new THREE.Vector3( -1, 0, 0 ) }
-                text="paused"
-                materialId="textMaterial"
+                scale={ new THREE.Vector3( 1.5, 1.5, 1.5 ) }
+                text="Paused"
+                materialId="universeInALetter"
                 fontName="Sniglet Regular"
                 fonts={ fonts }
                 letters={ letters }
@@ -191,8 +206,7 @@ export default class PausedScreen extends Component {
                 position={ new THREE.Vector3( 1, 0, 0 ) }
                 text="Unpause (p)"
                 materialId={
-                    hovered === 'unpause' ?
-                        'textMaterialHover' : 'textMaterial'
+                    unpause ? 'textMaterialHover' : 'textMaterial'
                 }
                 fonts={ fonts }
                 letters={ letters }
@@ -206,8 +220,7 @@ export default class PausedScreen extends Component {
                 position={ new THREE.Vector3( 2, 0, 0 ) }
                 text="Return to Menu (m)"
                 materialId={
-                    hovered === 'menu' ?
-                        'textMaterialHover' : 'textMaterial'
+                    menu ? 'textMaterialHover' : 'textMaterial'
                 }
                 fonts={ fonts }
                 letters={ letters }

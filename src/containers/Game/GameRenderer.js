@@ -14,7 +14,6 @@ import {
     getCameraDistanceToPlayer, getCardinalityOfVector, snapVectorAngleTo,
     resetBodyPhysics, lookAtVector, findNextTube, snapTo, lerpVectors
 } from '../../helpers/Utils';
-import shaderFrog from '../../helpers/shaderFrog';
 import styles from './Game.scss';
 
 const fontRotation = new THREE.Quaternion().setFromEuler(
@@ -33,7 +32,6 @@ THREE.TextureLoader.crossOrigin = '';
 THREE.TextureLoader.prototype.crossOrigin = '';
 
 const lightRotationSpeed = 0.5;
-const clock = new THREE.Clock();
 
 const gameWidth = 400;
 const gameHeight = 400;
@@ -236,7 +234,6 @@ export default class GameRenderer extends Component {
         window.addEventListener( 'blur', this.onWindowBlur );
         window.addEventListener( 'keydown', this.onKeyDown );
         window.addEventListener( 'keyup', this.onKeyUp );
-        //this.animationId = window.requestAnimationFrame( this._onAnimate );
 
     }
 
@@ -248,7 +245,6 @@ export default class GameRenderer extends Component {
 
         this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
         this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
-        //window.cancelAnimationFrame( this.animationId );
 
     }
 
@@ -368,13 +364,11 @@ export default class GameRenderer extends Component {
 
     }
 
-    updatePhysics() {
+    updatePhysics( elapsedTime, delta ) {
 
         if( this.state.touring || this.advancing ) {
             return;
         }
-
-        const now = Date.now();
 
         let state = {
             entrances: []
@@ -536,7 +530,7 @@ export default class GameRenderer extends Component {
                     state = {
                         ...state,
                         playerSnapped,
-                        startTime: now,
+                        startTime: elapsedTime,
                         tubeFlow: newTubeFlow,
                         currentFlowPosition: newTubeFlow[ 0 ].start,
                         tubeIndex: 0
@@ -552,7 +546,7 @@ export default class GameRenderer extends Component {
 
         if( this.state.tubeFlow ) {
 
-            const time = now;
+            const time = elapsedTime;
             let { startTime, tubeIndex } = this.state;
             const { tubeFlow } = this.state;
 
@@ -588,7 +582,7 @@ export default class GameRenderer extends Component {
                 } else {
                     //console.log('NEXT_TUBE');
                     tubeIndex++;
-                    startTime = now;
+                    startTime = elapsedTime;
                     currentPercent = 0;
                 }
 
@@ -674,7 +668,7 @@ export default class GameRenderer extends Component {
 
                     const coolDowns = {};
                     for( const key in playerContact ) {
-                        coolDowns[ key ] = now;
+                        coolDowns[ key ] = elapsedTime;
                     }
                     this.wallCoolDowns = Object.assign( {}, this.wallCoolDowns, coolDowns );
 
@@ -692,10 +686,7 @@ export default class GameRenderer extends Component {
         this.setState( state );
 
         // Step the physics world
-        const delta = clock.getDelta();
-        if( delta ) {
-            this.world.step( 1 / 60, delta, 3 );
-        }
+        this.world.step( 1 / 60, delta, 3 );
 
     }
 
@@ -731,7 +722,7 @@ export default class GameRenderer extends Component {
 
     }
 
-    _onAnimate() {
+    _onAnimate( elapseTime, delta ) {
 
         const now = Date.now();
 
@@ -752,8 +743,6 @@ export default class GameRenderer extends Component {
             time: now
         };
 
-        shaderFrog.updateShaders( clock.elapsedTime );
-
         if( KeyCodes.P in keysDown ) {
 
             if( !this.pauseLock ) {
@@ -772,12 +761,7 @@ export default class GameRenderer extends Component {
         }
 
         if( paused ) {
-
-            // Three's clock is really poorly designed
-            // https://github.com/mrdoob/three.js/issues/5696
-            clock.getDelta();
             return;
-
         }
 
         newState.pushyPositions = this._getMeshStates( this.pushies );
@@ -788,7 +772,7 @@ export default class GameRenderer extends Component {
         );
 
         // needs to be called before _getMeshStates
-        this.updatePhysics();
+        this.updatePhysics( elapseTime, delta );
 
         //if( KeyCodes.V in this.keysDown ) {
             //if( !this.dingingv ) {
@@ -1086,7 +1070,6 @@ export default class GameRenderer extends Component {
         }
 
         this.setState( newState );
-        //this.animationId = window.requestAnimationFrame( this._onAnimate );
 
     }
 

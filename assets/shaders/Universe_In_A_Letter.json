@@ -1,0 +1,78 @@
+{
+  "id": 673,
+  "name": "Universe In A Letter",
+  "fragment": "#define PI 3.1415926535\n\n#extension GL_OES_standard_derivatives : enable\n\nprecision highp float;\nprecision highp int;\nuniform vec3 Glow_Effect1457121674449_169_color;\nuniform float start;\nuniform float end;\nuniform float alpha;\nuniform float time;\nuniform float speed;\nuniform float resolution;\nuniform vec3 Death_Triangles_Taxes1457121973826_264_color;\nuniform vec3 color1;\nuniform vec3 color2;\nvarying vec3 fPosition;\nvarying vec3 fNormal;\nvarying vec2 Death_Triangles_Taxes1457121973826_264_vUv;\nfloat rand(vec2 co) \n{\n    return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);\n}\nvarying vec2 Vertical_2_Color_Graident1457122009455_304_vUv;\nvec4 Glow_Effect1457121674449_169_main() \n{\n    vec4 Glow_Effect1457121674449_169_gl_FragColor = vec4(0.0);\n    vec3 normal = normalize(fNormal);\n    vec3 eye = normalize(-fPosition.xyz);\n    float rim = smoothstep(start, end, 1.0 - dot(normal, eye));\n    Glow_Effect1457121674449_169_gl_FragColor = vec4(clamp(rim, 0.0, 1.0) * alpha * Glow_Effect1457121674449_169_color, 1.0);\n    return Glow_Effect1457121674449_169_gl_FragColor *= 0.6;\n}\nvec4 Death_Triangles_Taxes1457121973826_264_main(void) \n{\n    vec4 Death_Triangles_Taxes1457121973826_264_gl_FragColor = vec4(0.0);\n    vec2 pos = (resolution * Death_Triangles_Taxes1457121973826_264_vUv.xy);\n    pos *= 10.;\n    vec2 interval = pos * vec2(10.0, 5.);\n    if (mod(interval.y, 2.) < 1.) \n    {\n        interval.y = -interval.y + 1.;\n    }\n     vec2 fi = floor(interval);\n    if (mod(fi.x, 2.) < 1.) \n    {\n        fi.y = -fi.y + interval.y;\n    }\n else \n    {\n        fi.y = fi.y - interval.y + 1.;\n    }\n    float outputColor = pow(sin(mod(speed * time, 2. * PI) + rand(vec2(floor(interval.x + fi.y), floor(interval.y))) * 200.), 3.);\n    Death_Triangles_Taxes1457121973826_264_gl_FragColor = vec4(Death_Triangles_Taxes1457121973826_264_color * outputColor, 1.);\n    return Death_Triangles_Taxes1457121973826_264_gl_FragColor *= 0.3;\n}\nvec4 Vertical_2_Color_Graident1457122009455_304_main(void) \n{\n    vec4 Vertical_2_Color_Graident1457122009455_304_gl_FragColor = vec4(0.0);\n    vec3 mixCol = mix(color2, color1, Vertical_2_Color_Graident1457122009455_304_vUv.y);\n    Vertical_2_Color_Graident1457122009455_304_gl_FragColor = vec4(mixCol, 1.);\n    return Vertical_2_Color_Graident1457122009455_304_gl_FragColor *= 1.0;\n}\nvoid main() \n{\n    gl_FragColor = (Glow_Effect1457121674449_169_main() + Vertical_2_Color_Graident1457122009455_304_main() + Death_Triangles_Taxes1457121973826_264_main());}\n",
+  "vertex": "precision highp float;\nprecision highp int;\nuniform mat3 normalMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 modelMatrix;\nuniform mat4 viewMatrix;\nattribute vec3 position;\nattribute vec3 normal;\nattribute vec2 uv;\nattribute vec2 uv2;\nvarying vec3 fNormal;\nvarying vec3 fPosition;\nvarying vec2 Death_Triangles_Taxes1457121973826_264_vUv;\nvarying vec2 Vertical_2_Color_Graident1457122009455_304_vUv;\nvec4 Glow_Effect1457121674449_169_main() \n{\n    vec4 Glow_Effect1457121674449_169_gl_Position = vec4(0.0);\n    fNormal = normalize(normalMatrix * normal);\n    vec4 pos = modelViewMatrix * vec4(position, 1.0);\n    fPosition = pos.xyz;\n    Glow_Effect1457121674449_169_gl_Position = projectionMatrix * pos;\n    return Glow_Effect1457121674449_169_gl_Position *= 0.6;\n}\nvec4 Death_Triangles_Taxes1457121973826_264_main() \n{\n    vec4 Death_Triangles_Taxes1457121973826_264_gl_Position = vec4(0.0);\n    Death_Triangles_Taxes1457121973826_264_vUv = uv;\n    Death_Triangles_Taxes1457121973826_264_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Death_Triangles_Taxes1457121973826_264_gl_Position *= 0.3;\n}\nvec4 Vertical_2_Color_Graident1457122009455_304_main() \n{\n    vec4 Vertical_2_Color_Graident1457122009455_304_gl_Position = vec4(0.0);\n    Vertical_2_Color_Graident1457122009455_304_vUv = uv;\n    Vertical_2_Color_Graident1457122009455_304_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Vertical_2_Color_Graident1457122009455_304_gl_Position *= 1.0;\n}\nvoid main() \n{\n    gl_Position = Glow_Effect1457121674449_169_main() + Death_Triangles_Taxes1457121973826_264_main() + Vertical_2_Color_Graident1457122009455_304_main();}\n",
+  "uniforms": {
+    "start": {
+      "value": "0",
+      "type": "f",
+      "glslType": "float"
+    },
+    "end": {
+      "value": "1",
+      "type": "f",
+      "glslType": "float"
+    },
+    "alpha": {
+      "value": "1",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Glow_Effect1457121674449_169_color": {
+      "value": {
+        "r": 0.996078431372549,
+        "g": 0.8,
+        "b": 0.8666666666666667
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "time": {
+      "type": "f",
+      "glslType": "float"
+    },
+    "resolution": {
+      "value": "1",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Death_Triangles_Taxes1457121973826_264_color": {
+      "value": {
+        "r": "1",
+        "g": "1",
+        "b": "1"
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "speed": {
+      "value": "1",
+      "type": "f",
+      "glslType": "float"
+    },
+    "color1": {
+      "value": {
+        "r": "1",
+        "g": "0.27058823529411763",
+        "b": "0.9647058823529412"
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "color2": {
+      "value": {
+        "r": "0.043137254901960784",
+        "g": "0.2823529411764706",
+        "b": "0.9921568627450981"
+      },
+      "type": "c",
+      "glslType": "vec3"
+    }
+  },
+  "url": "http://shaderfrog.com/app/view/673",
+  "user": {
+    "username": "andrewray",
+    "url": "http://shaderfrog.com/app/profile/andrewray"
+  }
+}

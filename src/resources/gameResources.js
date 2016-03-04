@@ -66,7 +66,7 @@ export default [
             url={ require( '../../assets/tube-pattern-1.png' ) }
             wrapS={ THREE.RepeatWrapping }
             wrapT={ THREE.RepeatWrapping }
-            anisotropy={16}
+            anisotropy={ 16 }
         />
     </meshPhongMaterial>,
     <meshPhongMaterial
@@ -85,7 +85,7 @@ export default [
             url={ require( '../../assets/spiral-texture.png' ) }
             wrapS={ THREE.RepeatWrapping }
             wrapT={ THREE.RepeatWrapping }
-            anisotropy={16}
+            anisotropy={ 16 }
         />
     </meshPhongMaterial>,
     <meshPhongMaterial
@@ -104,7 +104,7 @@ export default [
             url={ require( '../../assets/grow-texture.png' ) }
             wrapS={ THREE.RepeatWrapping }
             wrapT={ THREE.RepeatWrapping }
-            anisotropy={16}
+            anisotropy={ 16 }
         />
     </meshPhongMaterial>,
     <sphereGeometry

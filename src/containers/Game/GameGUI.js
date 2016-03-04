@@ -296,7 +296,7 @@ export default class GameGUI extends Component {
 
     onExitToTitle() {
 
-        this.setState({ paused: false });
+        this.setState({ clickable: false, paused: false });
         this.props.stopGame();
 
     }
@@ -326,7 +326,7 @@ export default class GameGUI extends Component {
     }
 
     // Any global updates we can do, do here
-    _onAnimate() {
+    _onAnimate( elapsedTime, delta ) {
         
         const {
             mouseInput,  titleScreen, gameRenderer, pauseScreen
@@ -335,16 +335,15 @@ export default class GameGUI extends Component {
         const { _fps } = this.state;
         const newState = {};
 
-        const now = Date.now();
+        shaderFrog.updateShaders( elapsedTime );
 
         if( !this.lastCalledTime ) {
-           this.lastCalledTime = now;
+           this.lastCalledTime = elapsedTime;
            this.counter = 0;
            newState._fps = 0;
         } else {
             const smoothing = 0.9;
-            const delta = ( now - this.lastCalledTime ) / 1000;
-            this.lastCalledTime = now;
+            this.lastCalledTime = elapsedTime;
 
             newState._fps = Math.round(
                 ( ( 1 / delta ) * smoothing ) + ( _fps * ( 1.0 - smoothing ) )
@@ -433,7 +432,6 @@ export default class GameGUI extends Component {
             mainCamera="camera"
             width={ gameWidth }
             height={ gameHeight }
-            onAnimate={ this._onAnimate }
             onRendererUpdated={ this._onRenderUpdate }
         >
 
@@ -464,7 +462,9 @@ export default class GameGUI extends Component {
                 onBeforeRender={ this.onBeforeRender }
             /> : null }
 
-            <scene ref="scene">
+        <scene ref="scene"
+            onUpdate={ this._onAnimate }
+        >
 
                 <ambientLight
                     color={ 0x777777 }
@@ -504,6 +504,8 @@ export default class GameGUI extends Component {
                 { paused ? <PausedScreen
                     ref="pauseScreen"
                     mouseInput={ mouseInput }
+                    onClickRegionLeave={ this.onClickRegionLeave }
+                    onClickRegionEnter={ this.onClickRegionEnter }
                     onUnpause={ this.onUnpause }
                     onReturnToMenu={ this.onExitToTitle }
                     fonts={ fonts }

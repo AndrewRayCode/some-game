@@ -98,7 +98,7 @@ export default class TitleScreen extends Component {
                 letters={ letters }
                 fontName="Sniglet Regular"
                 text="Today I'm A Galaxy"
-                materialId="textMaterial"
+                materialId="universeInALetter"
             />
 
             { books.map( ( book, index ) =>

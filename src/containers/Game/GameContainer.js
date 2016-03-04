@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import THREE from 'three';
 import { connect } from 'react-redux';
 import { asyncConnect } from 'redux-async-connect';
 import { bindActionCreators } from 'redux';
@@ -46,6 +47,8 @@ export default class GameContainer extends Component {
         // Hack to to client side *only* actions
         this.clientSet = setTimeout( () => {
 
+            window.THREE = THREE;
+
             if( !this.props.assetsLoaded ) {
                 this.props.deserializeLevels();
                 this.props.loadAllAssets();
@@ -62,7 +65,6 @@ export default class GameContainer extends Component {
         window.clearTimeout( this.clientSet );
 
     }
-
 
     render() {
 

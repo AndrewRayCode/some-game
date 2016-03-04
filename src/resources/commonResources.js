@@ -1,7 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import Textures from '../helpers/Textures';
-import CustomShaders from '../helpers/CustomShaders';
 
 export default [
     ...Object.keys( Textures ).map( key =>

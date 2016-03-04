@@ -3,9 +3,11 @@ import React from 'react';
 import commonResources from './commonResources';
 import StaticEntitiesResources from './StaticEntitiesResources';
 import gameResources from './gameResources';
+import PausedScreenResources from './PausedScreenResources';
 
 const allAssets = [
-    commonResources, StaticEntitiesResources, gameResources
+    commonResources, StaticEntitiesResources, gameResources,
+    PausedScreenResources,
 ];
 
 // Turn our resources [ <resource id="a" /> ] into export { a: "a" } so

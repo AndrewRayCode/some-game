@@ -4,7 +4,9 @@ import PropTypes from 'react/lib/ReactPropTypes';
 
 import events from 'events';
 const { EventEmitter } = events;
-// or shim EventEmitter
+
+import THREE from 'three';
+const clock = new THREE.Clock();
 
 class UpdateAllObjects extends Module {
     constructor() {
@@ -17,7 +19,8 @@ class UpdateAllObjects extends Module {
     }
 
     update() {
-        this._activeCallbacks.emit('update');
+        const delta = clock.getDelta();
+        this._activeCallbacks.emit('update', delta, clock.elapsedTime );
     }
 
     _addUpdateCallback(threeObject, callback) {
