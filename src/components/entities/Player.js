@@ -17,7 +17,7 @@ export default class Player extends Component {
             ref="mesh"
             position={ position }
             quaternion={ quaternion }
-            scale={ new THREE.Vector3( 1, 1, 1 ).multiply( radius ) }
+            scale={ new THREE.Vector3( 2, 2, 2 ).multiplyScalar( radius ) }
         >
             <geometryResource
                 resourceId="playerGeometry"

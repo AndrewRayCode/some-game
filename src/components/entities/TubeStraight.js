@@ -1,17 +1,6 @@
 import React, { Component } from 'react';
 import THREE from 'three';
 
-const extrudeSettings = {
-    curveSegments: 10,
-    amount: 1,
-    bevelEnabled: false,
-    bevelSegments: 0,
-    steps: 10,
-    bevelSize: 0,
-    closed: false,
-    bevelThickness: 0
-};
-
 const offset = new THREE.Vector3( 0, 0, -0.5 );
 
 export default class TubeBend extends Component {
@@ -36,13 +25,9 @@ export default class TubeBend extends Component {
                 position={ offset }
                 ref="mesh"
             >
-                <extrudeGeometry
-                    settings={ extrudeSettings }
-                >
-                    <shapeResource
-                        resourceId="tubeWall"
-                    />
-                </extrudeGeometry>
+                <geometryResource
+                    resourceId="tubeStraight"
+                />
                 <materialResource
                     resourceId={ materialId }
                 />
