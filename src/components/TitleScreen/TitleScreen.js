@@ -93,11 +93,20 @@ export default class TitleScreen extends Component {
 
             <Text
                 position={ new THREE.Vector3( -4.5, 0, 0 ) }
-                scale={ new THREE.Vector3( 0.7, 0.7, 0.7 ) }
+                scale={ new THREE.Vector3( 1, 1, 0.5 ).multiplyScalar( 1.8 ) }
                 fonts={ fonts }
                 letters={ letters }
                 fontName="Sniglet Regular"
-                text="Today I'm A Galaxy"
+                text="Today"
+                materialId="universeInALetter"
+            />
+            <Text
+                position={ new THREE.Vector3( -2.6, 0, 0 ) }
+                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.8 ) }
+                fonts={ fonts }
+                letters={ letters }
+                fontName="Sniglet Regular"
+                text="I'm A Galaxy"
                 materialId="universeInALetter"
             />
 

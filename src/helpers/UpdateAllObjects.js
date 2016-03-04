@@ -20,7 +20,7 @@ class UpdateAllObjects extends Module {
 
     update() {
         const delta = clock.getDelta();
-        this._activeCallbacks.emit('update', delta, clock.elapsedTime );
+        this._activeCallbacks.emit('update', clock.elapsedTime, delta );
     }
 
     _addUpdateCallback(threeObject, callback) {

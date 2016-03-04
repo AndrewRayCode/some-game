@@ -329,7 +329,7 @@ export default class GameGUI extends Component {
     _onAnimate( elapsedTime, delta ) {
         
         const {
-            mouseInput,  titleScreen, gameRenderer, pauseScreen
+            mouseInput, titleScreen, gameRenderer, pauseScreen
         } = this.refs;
 
         const { _fps } = this.state;
