@@ -70,7 +70,6 @@ export default class PausedScreen extends Component {
 
         const now = Date.now();
         const { keysDown } = this;
-        shaderFrog.updateShaders( Date.now() * 0.000001 );
 
         if(
             ( KeyCodes.ESC in keysDown ) || ( KeyCodes.P in keysDown ) ||
@@ -116,7 +115,15 @@ export default class PausedScreen extends Component {
 
     onMouseDown( hovered, event ) {
 
-        this.props.onSelect( hovered );
+        if( hovered === 'unpause' ) {
+
+            this.props.onUnpause();
+
+        } else if( hovered === 'menu' ) {
+
+            this.props.onReturnToMenu();
+
+        }
 
     }
 
@@ -143,6 +150,7 @@ export default class PausedScreen extends Component {
 
         return <object3D
             position={ sceneOffset }
+            onUpdate={ this._onAnimate }
         >
 
             <perspectiveCamera
@@ -181,7 +189,7 @@ export default class PausedScreen extends Component {
                 onMouseDown={ this.onMouseDown.bind( null, 'unpause' ) }
                 fontName="Sniglet Regular"
                 position={ new THREE.Vector3( 1, 0, 0 ) }
-                text="Unpause"
+                text="Unpause (p)"
                 materialId={
                     hovered === 'unpause' ?
                         'textMaterialHover' : 'textMaterial'

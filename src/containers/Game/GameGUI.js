@@ -16,7 +16,7 @@ import {
 import { getSphereMass } from '../../helpers/Utils';
 
 import GameRenderer from './GameRenderer';
-import { TitleScreen, Resources } from '../../components';
+import { TitleScreen, Resources, PausedScreen } from '../../components';
 
 import { resourceIds, allResources } from '../../resources';
 
@@ -26,6 +26,7 @@ const cx = classNames.bind( styles );
 
 import shaderFrog from '../../helpers/shaderFrog';
 import MouseInput from '../../helpers/MouseInput';
+import UpdateAllObjects from '../../helpers/UpdateAllObjects';
 
 const gameWidth = 400;
 const gameHeight = 400;
@@ -237,21 +238,49 @@ export default class GameGUI extends Component {
         this.onPause = this.onPause.bind( this );
         this.onUnpause = this.onUnpause.bind( this );
         this.onBeforeRender = this.onBeforeRender.bind( this );
+        this.onWindowBlur = this.onWindowBlur.bind( this );
 
     }
 
-    componentDidUpdate( newProps ) {
+    componentDidMount() {
 
-        if( newProps.gameStarted !== this.props.gameStarted ) {
+        window.addEventListener( 'blur', this.onWindowBlur );
 
-            const { titleScreen, gameRenderer } = this.refs;
-            const camera = titleScreen ?
-                titleScreen.refs.camera :
-                gameRenderer.refs.camera;
+    }
 
-            this.state.mouseInput._camera = camera;
+    componentWillUnmount() {
+
+        window.removeEventListener( 'blur', this.onWindowBlur );
+
+    }
+
+    onWindowBlur() {
+
+        if( this.props.gameStarted && !this.state.paused ) {
+
+            this.onPause();
 
         }
+
+    }
+
+    componentDidUpdate( prevProps, prevState ) {
+
+        //if( prevProps.gameStarted !== this.props.gameStarted ||
+            //prevState.paused !== this.state.paused
+        //) {
+
+            //const { titleScreen, gameRenderer, pauseScreen } = this.refs;
+            //const camera = pauseScreen ?
+                //pauseScreen.refs.camera : (
+                    //titleScreen ?
+                    //titleScreen.refs.camera :
+                    //gameRenderer.refs.camera
+                //);
+
+            //this.state.mouseInput._camera = camera;
+
+        //}
 
     }
 
@@ -267,6 +296,7 @@ export default class GameGUI extends Component {
 
     onExitToTitle() {
 
+        this.setState({ paused: false });
         this.props.stopGame();
 
     }
@@ -275,7 +305,7 @@ export default class GameGUI extends Component {
 
         const { mouseInput, titleScreen, gameRenderer } = this.refs;
 
-        if( !mouseInput.isReady() ) {
+        if( mouseInput && !mouseInput.isReady() ) {
 
             const { scene, container } = this.refs;
             const camera = titleScreen ?
@@ -298,7 +328,9 @@ export default class GameGUI extends Component {
     // Any global updates we can do, do here
     _onAnimate() {
         
-        const { mouseInput, titleScreen, gameRenderer } = this.refs;
+        const {
+            mouseInput,  titleScreen, gameRenderer, pauseScreen
+        } = this.refs;
 
         const { _fps } = this.state;
         const newState = {};
@@ -325,9 +357,21 @@ export default class GameGUI extends Component {
 
         this.setState( newState );
 
-        if( !mouseInput.isReady() ) {
+        if( mouseInput ) {
+           
+           if( !mouseInput.isReady() ) {
 
-            this.createMouseInput();
+                this.createMouseInput();
+
+            }
+
+            const camera = pauseScreen ?
+                pauseScreen.refs.camera : (
+                    titleScreen ?
+                    titleScreen.refs.camera :
+                    gameRenderer.refs.camera
+                );
+            mouseInput._camera = camera;
 
         }
 
@@ -397,6 +441,9 @@ export default class GameGUI extends Component {
                 ref="mouseInput"
                 descriptor={ MouseInput }
             />
+            <module
+                descriptor={ UpdateAllObjects }
+            />
 
             <Resources store={ this.props.store } />
 
@@ -454,6 +501,14 @@ export default class GameGUI extends Component {
                         books={ Object.values( books ) }
                     />
                 }
+                { paused ? <PausedScreen
+                    ref="pauseScreen"
+                    mouseInput={ mouseInput }
+                    onUnpause={ this.onUnpause }
+                    onReturnToMenu={ this.onExitToTitle }
+                    fonts={ fonts }
+                    letters={ letters }
+                /> : null }
 
             </scene>
 

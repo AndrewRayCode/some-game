@@ -8,7 +8,7 @@ import {
 } from '../../redux/modules/game';
 import KeyCodes from '../../helpers/KeyCodes';
 import Cardinality from '../../helpers/Cardinality';
-import { Pushy, Player, StaticEntities, PausedScreen } from '../../components';
+import { Pushy, Player, StaticEntities } from '../../components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, snapVectorAngleTo,
@@ -155,8 +155,6 @@ export default class GameRenderer extends Component {
         this.onPlayerCollide = this.onPlayerCollide.bind( this );
         this.onPlayerContactEndTest = this.onPlayerContactEndTest.bind( this );
         this._setupPhysics = this._setupPhysics.bind( this );
-        this.onUnpause = this.onUnpause.bind( this );
-        this.onReturnToMenu = this.onReturnToMenu.bind( this );
 
         // Needs proper scoping of this before we can call it :(
         this._setupPhysics( props );
@@ -238,7 +236,7 @@ export default class GameRenderer extends Component {
         window.addEventListener( 'blur', this.onWindowBlur );
         window.addEventListener( 'keydown', this.onKeyDown );
         window.addEventListener( 'keyup', this.onKeyUp );
-        this.animationId = window.requestAnimationFrame( this._onAnimate );
+        //this.animationId = window.requestAnimationFrame( this._onAnimate );
 
     }
 
@@ -250,7 +248,7 @@ export default class GameRenderer extends Component {
 
         this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
         this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
-        window.cancelAnimationFrame( this.animationId );
+        //window.cancelAnimationFrame( this.animationId );
 
     }
 
@@ -834,12 +832,12 @@ export default class GameRenderer extends Component {
 
         }
 
-        if( !paused && ( KeyCodes.ESC in keysDown ) ) {
+        //if( !paused && ( KeyCodes.ESC in keysDown ) ) {
 
-            this.props.onExitToTitle();
-            return;
+            //this.props.onExitToTitle();
+            //return;
 
-        }
+        //}
 
         if( this.advancing ) {
 
@@ -1088,7 +1086,7 @@ export default class GameRenderer extends Component {
         }
 
         this.setState( newState );
-        this.animationId = window.requestAnimationFrame( this._onAnimate );
+        //this.animationId = window.requestAnimationFrame( this._onAnimate );
 
     }
 
@@ -1120,20 +1118,6 @@ export default class GameRenderer extends Component {
 
     }
 
-    onUnpause() {
-
-        this.keysDown = {};
-        this.props.onUnpause();
-
-    }
-
-    onReturnToMenu() {
-
-        this.keysDown = {};
-        this.props.onExitToTitle();
-
-    }
-
     render() {
 
         const {
@@ -1148,7 +1132,7 @@ export default class GameRenderer extends Component {
             nextChaptersEntities, previousChapterEntities,
             previousChapterEntity, currentLevelRenderableEntitiesArray,
             previousChapterFinishEntity, assets, shaders, fonts, mouseInput,
-            paused, letters
+            letters
         } = this.props;
 
         const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;
@@ -1168,7 +1152,9 @@ export default class GameRenderer extends Component {
             touring ? cameraTourTarget : playerPosition
         );
 
-        const renderer = <object3D>
+        return <object3D
+            onUpdate={ this._onAnimate }
+        >
 
             <perspectiveCamera
                 name="mainCamera"
@@ -1337,17 +1323,6 @@ export default class GameRenderer extends Component {
 
             }) }
 
-        </object3D>;
-
-        return <object3D>
-            { renderer }
-            { paused ? <PausedScreen
-                mouseInput={ mouseInput }
-                onUnpause={ this.onUnpause }
-                onReturnToMenu={ this.onReturnToMenu }
-                fonts={ fonts }
-                letters={ letters }
-            /> : null }
         </object3D>;
 
     }
