@@ -1,7 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three';
-import CANNON from 'cannon/src/Cannon';
 import { browserHistory } from 'react-router';
 import { connect } from 'react-redux';
 import { asyncConnect } from 'redux-async-connect';
@@ -13,12 +12,11 @@ import { areAssetsLoaded, loadAllAssets } from '../../redux/modules/assets';
 import {
     scalePlayer, advanceChapter, startGame, stopGame
 } from '../../redux/modules/game';
-import KeyCodes from '../../helpers/KeyCodes';
 
 import { getSphereMass } from '../../helpers/Utils';
 
 import GameRenderer from './GameRenderer';
-import { TitleScreen } from '../../components';
+import { TitleScreen, Resources } from '../../components';
 
 import { resourceIds, allResources } from '../../resources';
 
@@ -53,18 +51,8 @@ const gameHeight = 400;
         const {
             gameChapterData,
             currentGameBook: currentBookId,
-            assets, shaders, fonts, letters
+            assets, shaders, fonts,
         } = state;
-
-        const lettersArray = Object.values( letters[ 'Sniglet Regular' ] );
-        console.log('created',lettersArray);
-        //const lettersArray = Object.values( letters ).reduce( ( memo, fontGroup ) => {
-            //return [
-                //...memo,
-                //Object.values( fontGroup )
-            //];
-        //}, [] );
-        //console.log('sending in',lettersArray);
 
         // No game has been started yet!
         if( !gameChapterData.currentChapterId ) {
@@ -74,7 +62,7 @@ const gameHeight = 400;
                 chapters: state.chapters,
                 levels: state.levels,
                 entities: state.entities,
-                fonts, letters, lettersArray
+                fonts,
             };
 
         }
@@ -205,8 +193,7 @@ const gameHeight = 400;
         return {
             levels, currentLevel, currentLevelId, currentChapterId,
             currentLevelAllEntities, currentLevelStaticEntities, allEntities,
-            nextChaptersEntities, assets, shaders, fonts, letters,
-            lettersArray,
+            nextChaptersEntities, assets, shaders, fonts,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray, nextChapters, previousChapterEntities,
             previousChapterFinishEntity, previousChapterEntity,
@@ -403,10 +390,7 @@ export default class GameGUI extends Component {
                 descriptor={ MouseInput }
             />
 
-            <resources>
-                { allResources }
-                { lettersArray }
-            </resources>
+            <Resources store={ this.props.store } />
 
             <viewport
                 x={ 0 }

@@ -35,6 +35,10 @@ import GameGUI from './GameGUI';
 )
 export default class GameContainer extends Component {
 
+    static contextTypes = {
+        store: PropTypes.object.isRequired
+    }
+
     constructor( props, context ) {
 
         super( props, context );
@@ -71,7 +75,8 @@ export default class GameContainer extends Component {
             return <div>Loading&hellip;</div>;
         }
 
-        return <GameGUI />;
+        console.log('my store',this.context.store);
+        return <GameGUI store={ this.context.store } />;
 
     }
 
