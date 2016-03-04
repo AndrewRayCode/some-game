@@ -17,12 +17,10 @@ export default class Player extends Component {
             ref="mesh"
             position={ position }
             quaternion={ quaternion }
-            scale={ scale }
+            scale={ new THREE.Vector3( 1, 1, 1 ).multiply( radius ) }
         >
-            <sphereGeometry
-                radius={ radius }
-                widthSegments={ 20 }
-                heightSegments={ 20 }
+            <geometryResource
+                resourceId="playerGeometry"
             />
             <materialResource
                 resourceId={ materialId }

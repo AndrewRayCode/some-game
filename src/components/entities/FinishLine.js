@@ -26,7 +26,7 @@ export default class FinishLine extends Component {
                 rotation={ floorRotation }
             >
                 <geometryResource
-                    resourceId="planeGeometry"
+                    resourceId="1x1plane"
                 />
                 <materialResource
                     resourceId={ floorMaterialId }
@@ -37,7 +37,7 @@ export default class FinishLine extends Component {
                 rotation={ planeRotation }
             >
                 <geometryResource
-                    resourceId="planeGeometry"
+                    resourceId="1x1plane"
                 />
                 <materialResource
                     resourceId={ materialId }

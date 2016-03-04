@@ -51,7 +51,7 @@ const gameHeight = 400;
         const {
             gameChapterData,
             currentGameBook: currentBookId,
-            assets, shaders, fonts, letters
+            assets, fonts, letters
         } = state;
 
         // No game has been started yet!
@@ -193,7 +193,7 @@ const gameHeight = 400;
         return {
             levels, currentLevel, currentLevelId, currentChapterId,
             currentLevelAllEntities, currentLevelStaticEntities, allEntities,
-            nextChaptersEntities, assets, shaders, fonts, letters,
+            nextChaptersEntities, assets, fonts, letters,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray, nextChapters, previousChapterEntities,
             previousChapterFinishEntity, previousChapterEntity,
@@ -236,6 +236,7 @@ export default class GameGUI extends Component {
         this.createMouseInput = this.createMouseInput.bind( this );
         this.onPause = this.onPause.bind( this );
         this.onUnpause = this.onUnpause.bind( this );
+        this.onBeforeRender = this.onBeforeRender.bind( this );
 
     }
 
@@ -296,8 +297,6 @@ export default class GameGUI extends Component {
 
     // Any global updates we can do, do here
     _onAnimate() {
-
-        shaderFrog.updateShaders( Date.now() * 0.000001 );
         
         const { mouseInput, titleScreen, gameRenderer } = this.refs;
 
@@ -368,9 +367,18 @@ export default class GameGUI extends Component {
 
     }
 
+    onBeforeRender() {
+
+        const { renderer } = this.state;
+        if( renderer ) {
+            renderer.clearDepth();
+        }
+
+    }
+
     render() {
 
-        const { fps, mouseInput, clickable, paused, renderer } = this.state;
+        const { fps, mouseInput, clickable, paused, } = this.state;
 
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
@@ -406,11 +414,7 @@ export default class GameGUI extends Component {
                 width={ gameWidth }
                 height={ gameHeight }
                 cameraName="pausedCamera"
-                onBeforeRender={ () => {
-                    if( renderer ) {
-                        renderer.clearDepth();
-                    }
-                } }
+                onBeforeRender={ this.onBeforeRender }
             /> : null }
 
             <scene ref="scene">

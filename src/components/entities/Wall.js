@@ -21,7 +21,7 @@ export default class Wall extends Component {
                 rotation={ topRotation }
             >
                 <geometryResource
-                    resourceId="planeGeometry"
+                    resourceId="1x1plane"
                 />
                 <materialResource
                     resourceId="wallSideMaterial"

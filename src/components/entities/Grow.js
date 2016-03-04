@@ -32,7 +32,7 @@ export default class Grow extends Component {
                 ref="mesh2"
             >
                 <geometryResource
-                    resourceId="planeGeometry"
+                    resourceId="1x1plane"
                 />
                 <materialResource
                     resourceId={ materialId }
@@ -51,7 +51,7 @@ export default class Grow extends Component {
                 ref="mesh"
             >
                 <geometryResource
-                    resourceId="sphereGeometry"
+                    resourceId="radius1sphere"
                 />
                 <materialResource
                     resourceId={ wrapMaterialId }

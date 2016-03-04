@@ -122,11 +122,19 @@ export function shadersReducer( shaders = {}, action = {} ) {
     switch( action.type ) {
 
         case ADD_SHADER:
+            const { name, data, material } = action;
             return {
                 ...shaders,
-                [ action.name ]: {
+                [ name ]: {
                     json: action.data,
-                    material: action.material
+                    material,
+                    resource: <rawShaderMaterial
+                        key={ name }
+                        resourceId={ name }
+                        vertexShader={ data.vertex }
+                        fragmentShader={ data.fragment }
+                        uniforms={ material.uniforms }
+                    />
                 }
             };
 

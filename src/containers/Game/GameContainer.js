@@ -21,11 +21,6 @@ import GameGUI from './GameGUI';
 }])
 @connect(
     state => ({
-        levels: state.levels,
-        chapters: state.chapters,
-        books: state.books,
-        assets: state.assets,
-        shaders: state.shaders,
         assetsLoaded: state.assetsLoaded,
         fonts: state.fonts
     }),

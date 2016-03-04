@@ -7,9 +7,10 @@ import { resourceIds, allResources } from '../../resources';
 @connect(
     state => {
 
-        const { letters } = state;
+        const { letters, shaders } = state;
         const lettersArray = Object.values( letters[ 'Sniglet Regular' ] );
-        return { lettersArray };
+        const shadersArray = Object.values( shaders ).map( shader => shader.resource );
+        return { lettersArray, shadersArray };
 
     }
 )
@@ -18,12 +19,13 @@ export default class Resources extends Component {
     render() {
 
         const {
-            lettersArray,
+            lettersArray, shadersArray,
         } = this.props;
 
         return <resources>
             { allResources }
             { lettersArray }
+            { shadersArray }
         </resources>;
 
     }

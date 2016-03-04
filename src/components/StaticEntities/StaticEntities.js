@@ -25,72 +25,6 @@ export default class StaticEntities extends Component {
             position={ position }
             scale={ scale }
         >
-            <resources>
-                <boxGeometry
-                    resourceId="1x1box"
-
-                    width={1}
-                    height={1}
-                    depth={1}
-
-                    widthSegments={1}
-                    heightSegments={1}
-                />
-                <boxGeometry
-                    resourceId="wallGeometry"
-                    width={1}
-                    height={1}
-                    depth={1}
-                    widthSegments={1}
-                    heightSegments={1}
-                />
-
-                { Object.keys( Textures ).map( key =>
-                    <meshPhongMaterial
-                        key={ key }
-                        resourceId={ key }
-                        color={ 0xffffff }
-                    >
-                        <texture
-                            url={ Textures[ key ] }
-                            wrapS={ THREE.RepeatWrapping }
-                            wrapT={ THREE.RepeatWrapping }
-                            anisotropy={16}
-                        />
-                    </meshPhongMaterial>
-                )}
-
-                { Object.keys( shaders ).map( key =>
-                    <rawShaderMaterial
-                        key={ key }
-                        resourceId={ key }
-                        vertexShader={ shaders[ key ].json.vertex }
-                        fragmentShader={ shaders[ key ].json.fragment }
-                        uniforms={ shaders[ key ].material.uniforms }
-                    />
-                )}
-
-                <meshPhongMaterial
-                    resourceId="finishFlag"
-                    side={ THREE.DoubleSide }
-                    transparent
-                    opacity={ 0.7 }
-                />
-
-                <meshPhongMaterial
-                    resourceId="tubeMaterial"
-                    side={ THREE.DoubleSide }
-                    transparent
-                >
-                    <texture
-                        url={ require( '../../../assets/tube-pattern-1.png' ) }
-                        wrapS={ THREE.RepeatWrapping }
-                        wrapT={ THREE.RepeatWrapping }
-                        anisotropy={ 16 }
-                    />
-                </meshPhongMaterial>
-
-            </resources>
 
             { entities.map( ( entity ) => {
 
@@ -203,7 +137,6 @@ export default class StaticEntities extends Component {
                         wrapMaterialId="growWrapMaterial"
                         materialId="growMaterial"
                     />;
-
 
                 } else if( entity.type === 'player' ) {
 

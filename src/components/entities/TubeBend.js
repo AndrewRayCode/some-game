@@ -27,7 +27,7 @@ export default class TubeBend extends Component {
 
     constructor(props, context) {
 
-        super(props, context);
+        super( props, context );
 
     }
 
