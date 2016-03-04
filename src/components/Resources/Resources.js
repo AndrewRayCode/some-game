@@ -8,9 +8,7 @@ import { resourceIds, allResources } from '../../resources';
     state => {
 
         const { letters } = state;
-
         const lettersArray = Object.values( letters[ 'Sniglet Regular' ] );
-        console.log('created',lettersArray);
         return { lettersArray };
 
     }
@@ -31,4 +29,3 @@ export default class Resources extends Component {
     }
 
 }
-

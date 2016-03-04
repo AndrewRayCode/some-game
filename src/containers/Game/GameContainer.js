@@ -75,7 +75,6 @@ export default class GameContainer extends Component {
             return <div>Loading&hellip;</div>;
         }
 
-        console.log('my store',this.context.store);
         return <GameGUI store={ this.context.store } />;
 
     }

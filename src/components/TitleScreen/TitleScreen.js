@@ -21,6 +21,7 @@ export default class TitleScreen extends Component {
     static propTypes = {
         books: React.PropTypes.array.isRequired,
         fonts: React.PropTypes.object.isRequired,
+        letters: React.PropTypes.object.isRequired,
         onSelect: React.PropTypes.func.isRequired,
     }
 
@@ -74,7 +75,7 @@ export default class TitleScreen extends Component {
 
     render() {
 
-        const { books, fonts } = this.props;
+        const { books, fonts, letters } = this.props;
         const { hoveredBook } = this.state;
 
         return <object3D>
@@ -92,7 +93,9 @@ export default class TitleScreen extends Component {
 
             <Text
                 position={ new THREE.Vector3( -4.5, 0, 0 ) }
+                scale={ new THREE.Vector3( 0.7, 0.7, 0.7 ) }
                 fonts={ fonts }
+                letters={ letters }
                 fontName="Sniglet Regular"
                 text="Today I'm A Galaxy"
                 materialId="textMaterial"
@@ -108,6 +111,7 @@ export default class TitleScreen extends Component {
                     key={ book.id }
                     text={ book.name }
                     fonts={ fonts }
+                    letters={ letters }
                     fontName="Sniglet Regular"
                     materialId={
                         book === hoveredBook ?

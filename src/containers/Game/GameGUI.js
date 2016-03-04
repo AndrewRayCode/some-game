@@ -51,7 +51,7 @@ const gameHeight = 400;
         const {
             gameChapterData,
             currentGameBook: currentBookId,
-            assets, shaders, fonts,
+            assets, shaders, fonts, letters
         } = state;
 
         // No game has been started yet!
@@ -62,7 +62,7 @@ const gameHeight = 400;
                 chapters: state.chapters,
                 levels: state.levels,
                 entities: state.entities,
-                fonts,
+                fonts, letters,
             };
 
         }
@@ -193,7 +193,7 @@ const gameHeight = 400;
         return {
             levels, currentLevel, currentLevelId, currentChapterId,
             currentLevelAllEntities, currentLevelStaticEntities, allEntities,
-            nextChaptersEntities, assets, shaders, fonts,
+            nextChaptersEntities, assets, shaders, fonts, letters,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray, nextChapters, previousChapterEntities,
             previousChapterFinishEntity, previousChapterEntity,
@@ -373,7 +373,7 @@ export default class GameGUI extends Component {
         const { fps, mouseInput, clickable, paused, renderer } = this.state;
 
         const {
-            playerScale, playerMass, gameStarted, books, fonts, lettersArray,
+            playerScale, playerMass, gameStarted, books, fonts, letters,
         } = this.props;
 
         const react3 = <React3
@@ -436,6 +436,8 @@ export default class GameGUI extends Component {
                         onExitToTitle={ this.onExitToTitle }
                         onClickRegionLeave={ this.onClickRegionLeave }
                         onClickRegionEnter={ this.onClickRegionEnter }
+                        fonts={ fonts }
+                        letters={ letters }
                         mouseInput={ mouseInput }
                     /> : <TitleScreen
                         ref="titleScreen"
@@ -443,6 +445,7 @@ export default class GameGUI extends Component {
                         onClickRegionEnter={ this.onClickRegionEnter }
                         mouseInput={ mouseInput }
                         fonts={ fonts }
+                        letters={ letters }
                         onSelect={ this.selectBook }
                         books={ Object.values( books ) }
                     />

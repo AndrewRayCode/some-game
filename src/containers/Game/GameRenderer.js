@@ -1143,7 +1143,7 @@ export default class GameScene extends Component {
             nextChaptersEntities, previousChapterEntities,
             previousChapterEntity, currentLevelRenderableEntitiesArray,
             previousChapterFinishEntity, assets, shaders, fonts, mouseInput,
-            paused
+            paused, letters
         } = this.props;
 
         const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;
@@ -1489,6 +1489,7 @@ export default class GameScene extends Component {
                 onUnpause={ this.onUnpause }
                 onReturnToMenu={ this.onReturnToMenu }
                 fonts={ fonts }
+                letters={ letters }
             /> : null }
         </object3D>;
 

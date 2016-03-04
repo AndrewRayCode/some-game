@@ -16,12 +16,6 @@ const ASSETS_LOADED = 'assets/ASSETS_LOADED';
 
 const ADD_SHADER = 'assets/ADD_SHADER';
 
-const allowedGlyphs = [
-    'abcdefghijklmnopqrstuvwxyz',
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    '1234567890-=~!@#$%^&*()_+[]\{}|;\':",./<>?"`'
-].join('');
-
 export function letterGeometryReducer( letters = {}, action = {} ) {
 
     switch( action.type ) {
@@ -35,11 +29,12 @@ export function letterGeometryReducer( letters = {}, action = {} ) {
                 ...letters,
                 [ name ]: Object.keys( glyphs ).reduce( ( memo, glyph ) => {
                     const data = glyphs[ glyph ];
-                    return allowedGlyphs.indexOf( glyph ) > -1 ? {
+                    return {
                         ...memo,
                         [ glyph ]: <textGeometry
                             key={ `${ name }_${ glyph }` }
                             resourceId={ `${ name }_${ glyph }` }
+                            userData={ data }
                             size={ 1 }
                             height={ 0.25 }
                             bevelEnabled
@@ -48,7 +43,7 @@ export function letterGeometryReducer( letters = {}, action = {} ) {
                             font={ font }
                             text={ glyph }
                         />
-                    } : memo;
+                    };
                 }, {} )
             };
 

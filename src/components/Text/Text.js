@@ -10,6 +10,7 @@ export default class Text extends Component {
     static propTypes = {
         fontName: PropTypes.string.isRequired,
         fonts: PropTypes.object.isRequired,
+        letters: PropTypes.object.isRequired,
         text: PropTypes.string.isRequired,
         position: PropTypes.object,
         scale: PropTypes.object,
@@ -21,7 +22,7 @@ export default class Text extends Component {
         super( props );
 
         this.state = {
-            letters: props.text.split('')
+            splitText: props.text.split('')
         };
 
     }
@@ -30,7 +31,7 @@ export default class Text extends Component {
 
         if( nextProps.text !== this.props.text ) {
             this.setState({
-                letters: nextProps.text.split('')
+                splitText: nextProps.text.split('')
             });
         }
 
@@ -40,11 +41,47 @@ export default class Text extends Component {
 
         const {
             fonts, fontName, position, scale, materialId, onMouseEnter,
-            onMouseLeave, onMouseDown
+            onMouseLeave, onMouseDown, letters
         } = this.props;
 
-        const { letters } = this.state;
-        const width = letters.length;
+        const { splitText } = this.state;
+
+        if( !fonts[ fontName ] ) {
+
+            return null;
+
+        }
+
+        const textData = splitText.reduce( ( data, letter, index ) => {
+
+            if( data.letter === ' ' ) {
+                return {
+                    ...data,
+                    offset: data.offset + 0.2
+                };
+            }
+
+            return {
+                offset: data.offset + letters[ fontName ][ letter ].props.userData.ha * 0.001,
+                meshes: [
+                    ...data.meshes,
+                    <mesh
+                        key={ index }
+                        position={ new THREE.Vector3(
+                            data.offset, 0, 0
+                        ) }
+                    >
+                        <geometryResource
+                            resourceId={ `${ fontName }_${ letter }` }
+                        />
+                        <materialResource
+                            resourceId={ materialId }
+                        />
+                    </mesh>
+                ]
+            };
+
+        }, { offset: 0, meshes: [] } );
 
         return <group
             ref="group"
@@ -54,7 +91,7 @@ export default class Text extends Component {
         >
 
             <mesh
-                scale={ new THREE.Vector3( width, 1.2, 1.2 ) }
+                scale={ new THREE.Vector3( textData.offset, 1.2, 1.2 ) }
                 onMouseEnter={ onMouseEnter }
                 onMouseLeave={ onMouseLeave }
                 onMouseDown={ onMouseDown }
@@ -67,21 +104,11 @@ export default class Text extends Component {
                 />
             </mesh>
 
-            { fonts[ fontName ] ? letters.map( ( letter, index ) =>
-                letter === ' ' ? null : <mesh
-                    key={ index }
-                    position={ new THREE.Vector3(
-                        index - ( width / 2 ), -0.5, -0.5
-                    ) }
-                >
-                    <geometryResource
-                        resourceId={ `${ fontName }_${ letter }` }
-                    />
-                    <materialResource
-                        resourceId={ materialId }
-                    />
-                </mesh>
-            ) : null }
+            <group
+                position={ new THREE.Vector3( -textData.offset / 2, -0.5, -0.5 ) }
+            >
+                { textData.meshes }
+            </group>
 
         </group>;
 
