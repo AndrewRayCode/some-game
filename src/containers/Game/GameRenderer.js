@@ -740,7 +740,7 @@ export default class GameScene extends Component {
         } = this.props;
 
         const {
-            currentFlowPosition, _fps, cameraPosition,
+            currentFlowPosition, cameraPosition,
         } = this.state;
 
         const playerPosition = currentFlowPosition || this.playerBody.position;
@@ -786,24 +786,6 @@ export default class GameScene extends Component {
 
         // needs to be called before _getMeshStates
         this.updatePhysics();
-
-        if( !this.lastCalledTime ) {
-           this.lastCalledTime = now;
-           this.counter = 0;
-           newState._fps = 0;
-        } else {
-            const smoothing = 0.9;
-            const delta = ( now - this.lastCalledTime ) / 1000;
-            this.lastCalledTime = now;
-
-            newState._fps = Math.round(
-                ( ( 1 / delta ) * smoothing ) + ( _fps * ( 1.0 - smoothing ) )
-            );
-
-            if( !( this.counter++ % 15 ) ) {
-                newState.fps = newState._fps;
-            }
-        }
 
         //if( KeyCodes.V in this.keysDown ) {
             //if( !this.dingingv ) {
@@ -1151,7 +1133,7 @@ export default class GameScene extends Component {
 
         const {
             pushyPositions, time, cameraPosition, currentFlowPosition, debug,
-            fps, touring, cameraTourTarget, entrance1, entrance2, tubeFlow,
+            touring, cameraTourTarget, entrance1, entrance2, tubeFlow,
             tubeIndex, currentScalePercent, radiusDiff,
             currentTransitionPosition, currentTransitionTarget,
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );

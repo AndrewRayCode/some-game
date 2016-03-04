@@ -53,8 +53,18 @@ const gameHeight = 400;
         const {
             gameChapterData,
             currentGameBook: currentBookId,
-            assets, shaders, fonts
+            assets, shaders, fonts, letters
         } = state;
+
+        const lettersArray = Object.values( letters[ 'Sniglet Regular' ] );
+        console.log('created',lettersArray);
+        //const lettersArray = Object.values( letters ).reduce( ( memo, fontGroup ) => {
+            //return [
+                //...memo,
+                //Object.values( fontGroup )
+            //];
+        //}, [] );
+        //console.log('sending in',lettersArray);
 
         // No game has been started yet!
         if( !gameChapterData.currentChapterId ) {
@@ -64,7 +74,7 @@ const gameHeight = 400;
                 chapters: state.chapters,
                 levels: state.levels,
                 entities: state.entities,
-                fonts,
+                fonts, letters, lettersArray
             };
 
         }
@@ -195,7 +205,8 @@ const gameHeight = 400;
         return {
             levels, currentLevel, currentLevelId, currentChapterId,
             currentLevelAllEntities, currentLevelStaticEntities, allEntities,
-            nextChaptersEntities, assets, shaders, fonts,
+            nextChaptersEntities, assets, shaders, fonts, letters,
+            lettersArray,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray, nextChapters, previousChapterEntities,
             previousChapterFinishEntity, previousChapterEntity,
@@ -232,6 +243,7 @@ export default class GameGUI extends Component {
         this.selectBook = this.selectBook.bind( this );
         this.onExitToTitle = this.onExitToTitle.bind( this );
         this._onAnimate = this._onAnimate.bind( this );
+        this._onRenderUpdate = this._onRenderUpdate.bind( this );
         this.onClickRegionLeave = this.onClickRegionLeave.bind( this );
         this.onClickRegionEnter = this.onClickRegionEnter.bind( this );
         this.createMouseInput = this.createMouseInput.bind( this );
@@ -302,9 +314,44 @@ export default class GameGUI extends Component {
         
         const { mouseInput, titleScreen, gameRenderer } = this.refs;
 
+        const { _fps } = this.state;
+        const newState = {};
+
+        const now = Date.now();
+
+        if( !this.lastCalledTime ) {
+           this.lastCalledTime = now;
+           this.counter = 0;
+           newState._fps = 0;
+        } else {
+            const smoothing = 0.9;
+            const delta = ( now - this.lastCalledTime ) / 1000;
+            this.lastCalledTime = now;
+
+            newState._fps = Math.round(
+                ( ( 1 / delta ) * smoothing ) + ( _fps * ( 1.0 - smoothing ) )
+            );
+
+            if( !( this.counter++ % 15 ) ) {
+                newState.fps = newState._fps;
+            }
+        }
+
+        this.setState( newState );
+
         if( !mouseInput.isReady() ) {
 
             this.createMouseInput();
+
+        }
+
+    }
+
+    _onRenderUpdate( renderer ) {
+
+        if( !this.state.renderer ) {
+
+            this.setState({ renderer });
 
         }
 
@@ -336,17 +383,19 @@ export default class GameGUI extends Component {
 
     render() {
 
-        const { fps, mouseInput, clickable, paused } = this.state;
+        const { fps, mouseInput, clickable, paused, renderer } = this.state;
 
         const {
-            playerScale, playerMass, gameStarted, books, fonts
+            playerScale, playerMass, gameStarted, books, fonts, lettersArray,
         } = this.props;
 
-        const renderer = <React3
+        const react3 = <React3
+            ref="renderer"
             mainCamera="camera"
             width={ gameWidth }
             height={ gameHeight }
             onAnimate={ this._onAnimate }
+            onRendererUpdated={ this._onRenderUpdate }
         >
 
             <module
@@ -356,6 +405,7 @@ export default class GameGUI extends Component {
 
             <resources>
                 { allResources }
+                { lettersArray }
             </resources>
 
             <viewport
@@ -372,6 +422,11 @@ export default class GameGUI extends Component {
                 width={ gameWidth }
                 height={ gameHeight }
                 cameraName="pausedCamera"
+                onBeforeRender={ () => {
+                    if( renderer ) {
+                        renderer.clearDepth();
+                    }
+                } }
             /> : null }
 
             <scene ref="scene">
@@ -421,7 +476,7 @@ export default class GameGUI extends Component {
                 height: gameHeight,
             }}
         >
-            { renderer }
+            { react3 }
             <br />
             FPS: { fps }
             <br />

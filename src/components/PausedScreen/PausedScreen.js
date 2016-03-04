@@ -14,8 +14,10 @@ const gameHeight = 400;
 const cameraAspect = gameWidth / gameHeight;
 const cameraFov = 75;
 const cameraPosition = new THREE.Vector3( 0, 8, 0 );
-const lookAt = new THREE.Vector3( 100, 10, 100 );
+const lookAt = new THREE.Vector3( 0, 0, 0 );
 const raycaster = new THREE.Raycaster();
+
+const sceneOffset = new THREE.Vector3( 100, 100, 100 );
 
 const fontRotation = new THREE.Quaternion().setFromEuler(
     new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 )
@@ -142,7 +144,7 @@ export default class PausedScreen extends Component {
         const { hovered } = this.state;
 
         return <object3D
-            position={ lookAt }
+            position={ sceneOffset }
         >
 
             <perspectiveCamera
@@ -152,7 +154,7 @@ export default class PausedScreen extends Component {
                 near={ 0.1 }
                 far={ 1000 }
                 position={ cameraPosition }
-                lookAt={ new THREE.Vector3( 0, 0, 0 ) }
+                lookAt={ lookAt }
                 ref="camera"
             />
 

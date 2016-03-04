@@ -6,6 +6,7 @@ import KeyCodes from '../../helpers/KeyCodes';
 import { without } from '../../helpers/Utils';
 import styles from '../../containers/Game/Game.scss';
 import classNames from 'classnames/bind';
+import { Text } from '../';
 
 const cx = classNames.bind( styles );
 const gameWidth = 400;
@@ -14,11 +15,6 @@ const cameraAspect = gameWidth / gameHeight;
 const cameraFov = 75;
 const cameraPosition = new THREE.Vector3( 0, 8, 0 );
 const lookAt = new THREE.Vector3( 0, 0, 0 );
-const raycaster = new THREE.Raycaster();
-
-const fontRotation = new THREE.Quaternion().setFromEuler(
-    new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 )
-);
 
 export default class TitleScreen extends Component {
     
@@ -94,79 +90,30 @@ export default class TitleScreen extends Component {
                 ref="camera"
             />
 
-            <resources>
-                <textGeometry
-                    resourceId="title"
-                    size={ 0.6 }
-                    height={ 0.2 }
-                    bevelEnabled
-                    bevelThickness={ 0.02 }
-                    bevelSize={ 0.01 }
-                    font={ fonts[ 'Sniglet Regular' ] }
-                    text="Today I'm A Galaxy"
-                />
-                { books.map( book =>
-                    <textGeometry
-                        key={ book.id }
-                        resourceId={ book.name }
-                        size={ 0.8 }
-                        height={ 0.2 }
-                        bevelEnabled
-                        bevelThickness={ 0.02 }
-                        bevelSize={ 0.01 }
-                        font={ fonts[ 'Sniglet Regular' ] }
-                        text={ book.name }
-                    />
-                )}
-                <meshPhongMaterial
-                    resourceId="textMaterial"
-                />
-                <meshPhongMaterial
-                    color={ 0xff0000 }
-                    resourceId="textMaterialHover"
-                />
-            </resources>
-
-            <mesh
-                position={ new THREE.Vector3(
-                    -4.5,
-                    0,
-                    4.3
-                ) }
-                quaternion={ fontRotation }
-            >
-                <geometryResource
-                    resourceId="title"
-                />
-                <materialResource
-                    resourceId="textMaterial"
-                />
-            </mesh>
+            <Text
+                position={ new THREE.Vector3( -4.5, 0, 0 ) }
+                fonts={ fonts }
+                fontName="Sniglet Regular"
+                text="Today I'm A Galaxy"
+                materialId="textMaterial"
+            />
 
             { books.map( ( book, index ) =>
-                <mesh
+                <Text
                     onMouseEnter={ this.onMouseEnter.bind( null, book ) }
                     onMouseLeave={ this.onMouseLeave.bind( null, book ) }
                     onMouseDown={ this.onMouseDown.bind( null, book ) }
                     ref={ `book${ book.id }` }
-                    position={ new THREE.Vector3(
-                        index * 1.4,
-                        0,
-                        book.name.length * 0.35,
-                    ) }
+                    position={ new THREE.Vector3( index * 1.4, 0, 0 ) }
                     key={ book.id }
-                    quaternion={ fontRotation }
-                >
-                    <geometryResource
-                        resourceId={ book.name }
-                    />
-                    <materialResource
-                        resourceId={
-                            book === hoveredBook ?
-                                'textMaterialHover' : 'textMaterial'
-                        }
-                    />
-                </mesh>
+                    text={ book.name }
+                    fonts={ fonts }
+                    fontName="Sniglet Regular"
+                    materialId={
+                        book === hoveredBook ?
+                            'textMaterialHover' : 'textMaterial'
+                    }
+                />
             )}
         </object3D>;
 

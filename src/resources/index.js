@@ -1,5 +1,8 @@
 import React from 'react';
 
+import commonResources from './commonResources';
+import PausedScreenResources from './PausedScreenResources';
+
 // Turn our resources [ <resource id="a" /> ] into export { a: "a" } so
 // consumers of resources can do import { a } from './resources'
 function reduceToKeys( ...arrays ) {
@@ -26,7 +29,5 @@ function mergeAllResources( ...arrays ) {
     ], [] );
 }
 
-import common from './common';
-
-export const resourceIds = reduceToKeys( common );
-export const allResources = mergeAllResources( common );
+export const resourceIds = reduceToKeys( commonResources, PausedScreenResources );
+export const allResources = mergeAllResources( commonResources, PausedScreenResources );

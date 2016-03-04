@@ -10,6 +10,11 @@ export default [
         widthSegments={ 1 }
         heightSegments={ 1 }
     />,
+    <meshBasicMaterial
+        resourceId="transparent"
+        transparent
+        opacity={ 0.5 }
+    />,
     <meshPhongMaterial
         resourceId="finishFlag"
         side={ THREE.DoubleSide }

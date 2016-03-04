@@ -5,7 +5,8 @@ import {reducer as reduxAsyncConnect} from 'redux-async-connect';
 import auth from './auth';
 import { reducer as form } from 'redux-form';
 import {
-    assetsReducer, shadersReducer, loadAssetsReducer, fontsReducer
+    assetsReducer, shadersReducer, loadAssetsReducer, fontsReducer,
+    letterGeometryReducer
 } from './assets';
 import { game, gameChapterReducer, gameBookReducer } from './game';
 import {
@@ -28,6 +29,7 @@ export default combineReducers({
     assets: assetsReducer,
     fonts: fontsReducer,
     assetsLoaded: loadAssetsReducer,
+    letters: letterGeometryReducer,
     shaders: shadersReducer,
     entities: entitiesReducer,
 

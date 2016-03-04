@@ -1,3 +1,4 @@
+import React from 'react';
 import THREE from 'three';
 import { loadModel, loadFont as utilLoadFont } from '../../helpers/Utils';
 import shaderFrog from '../../helpers/shaderFrog';
@@ -15,15 +16,59 @@ const ASSETS_LOADED = 'assets/ASSETS_LOADED';
 
 const ADD_SHADER = 'assets/ADD_SHADER';
 
+const allowedGlyphs = [
+    'abcdefghijklmnopqrstuvwxyz',
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    '1234567890-=~!@#$%^&*()_+[]\{}|;\':",./<>?"`'
+].join('');
+
+export function letterGeometryReducer( letters = {}, action = {} ) {
+
+    switch( action.type ) {
+
+        case FONT_LOAD_SUCCESS:
+            const name = action.payload.font.data.original_font_information.full_font_name;
+            const { font } = action.payload;
+            const { glyphs } = font.data;
+
+            return {
+                ...letters,
+                [ name ]: Object.keys( glyphs ).reduce( ( memo, glyph ) => {
+                    const data = glyphs[ glyph ];
+                    return allowedGlyphs.indexOf( glyph ) > -1 ? {
+                        ...memo,
+                        [ glyph ]: <textGeometry
+                            key={ `${ name }_${ glyph }` }
+                            resourceId={ `${ name }_${ glyph }` }
+                            size={ 1 }
+                            height={ 0.25 }
+                            bevelEnabled
+                            bevelThickness={ 0.1 }
+                            bevelSize={ 0.01 }
+                            font={ font }
+                            text={ glyph }
+                        />
+                    } : memo;
+                }, {} )
+            };
+
+        default:
+            return letters;
+            
+    }
+
+}
+
 export function fontsReducer( fonts = {}, action = {} ) {
 
     switch( action.type ) {
 
         case FONT_LOAD_SUCCESS:
             const name = action.payload.font.data.original_font_information.full_font_name;
+            const { font } = action.payload;
             return {
                 ...fonts,
-                [ name ]: action.payload.font
+                [ name ]: font
             };
 
         case FONT_LOAD_FAIL:
@@ -36,7 +81,6 @@ export function fontsReducer( fonts = {}, action = {} ) {
     }
 
 }
-
 
 export function loadAssetsReducer( state = false, action = {} ) {
 
@@ -137,9 +181,6 @@ export function loadAllAssets() {
 
         dispatch( loadFont(
             require( '../../../assets/sniglet_regular.typeface.js' )
-        ));
-        dispatch( loadFont(
-            require( '../../../assets/sniglet_extrabold.typeface.js' )
         ));
 
         Object.keys( CustomShaders ).forEach( key => {
