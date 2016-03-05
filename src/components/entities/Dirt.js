@@ -14,7 +14,7 @@ const colRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
 
 const bubbleMinSize = 0.5;
 const bubbleGrowSize = 0.3;
-const bubbleGrowSpeed = 1.5;
+const bubbleGrowSpeed = 0.05;
 
 const raycaster = new THREE.Raycaster();
 

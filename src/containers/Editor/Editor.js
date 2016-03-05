@@ -1580,7 +1580,7 @@ export default class Editor extends Component {
                         step={ gridSnap }
                     />
 
-                    { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) ? <div>
+                    { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' || selectedObject.type === 'dirt' ) ? <div>
                         <br />
                         <br />
                         <b>Change Texture of Selection:</b>
