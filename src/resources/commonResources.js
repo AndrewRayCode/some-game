@@ -37,7 +37,17 @@ export default [
         opacity={ 0.7 }
     />,
     <meshPhongMaterial
+        resourceId="placeholder2"
+        side={ THREE.DoubleSide }
+        transparent
+        opacity={ 0.8 }
+        color={ 0x00ff00 }
+    />,
+    <meshPhongMaterial
         resourceId="placeholder"
+        side={ THREE.DoubleSide }
+        transparent
+        opacity={ 0.8 }
         color={ 0xff0000 }
     />,
     <planeBufferGeometry

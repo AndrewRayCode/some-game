@@ -3,9 +3,11 @@ import THREE from 'three';
 
 const rayCount = 4;
 
-const rayArray = new Array( rayCount );
+// dam son see http://stackoverflow.com/questions/5501581/javascript-new-arrayn-and-array-prototype-map-weirdness
+const rayArray = new Array( rayCount ).fill( 0 );
 const emitterPosition = new THREE.Vector3( -0.5, 0, 0 );
 const emitterScale = new THREE.Vector3( 0.1, 1, 1 );
+const colRotation = new THREE.Euler( Math.PI / 2, 0 );
 
 export default class Dirt extends Component {
 
@@ -31,7 +33,8 @@ export default class Dirt extends Component {
 
     render() {
 
-        const { position, rotation, scale, lengths } = this.props;
+        const { position, rotation, scale, } = this.props;
+        const { lengths } = this.state;
 
         return <group
             position={ position }
@@ -52,20 +55,29 @@ export default class Dirt extends Component {
                 />
             </mesh>
 
-            { rayArray.map( ( zero, index ) =>
-                <mesh
+            { rayArray.map( ( zero, index ) => {
+                return <mesh
                     key={ index }
-                    position={ new THREE.Vector3( 0, 0, -0.5 + ( index / rayCount ) * 1.1 ) }
-                    scale={ new THREE.Vector3( lengths[ index ], 1, index / rayCount ) }
+                    position={ new THREE.Vector3(
+                        -0.5 + ( lengths[ index ] / 2 ),
+                        0,
+                        -0.5 + ( ( 1 / rayCount ) * index ) + ( 0.5 / rayCount )
+                    ) }
+                    scale={ new THREE.Vector3(
+                        lengths[ index ],
+                        1 / rayCount,
+                        1,
+                    ) }
+                    rotation={ colRotation }
                 >
                     <geometryResource
                         resourceId="1x1plane"
                     />
                     <materialResource
-                        resourceId="placeholder"
+                        resourceId={index % 2 ? 'placeholder' : 'placeholder2'}
                     />
-                </mesh>
-            )}
+                </mesh>;
+            })}
 
         </group>;
 
