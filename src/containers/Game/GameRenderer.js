@@ -48,8 +48,6 @@ const levelTransitionDuration = 500;
 
 const scaleDurationMs = 300;
 
-const wallJumpVerticalDampen = 0.4;
-
 const coolDownTimeMs = 500;
 
 const raycaster = new THREE.Raycaster();

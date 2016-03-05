@@ -15,6 +15,9 @@ const colRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
 const bubbleMinSize = 0.5;
 const bubbleGrowSize = 0.3;
 const bubbleGrowSpeed = 2.2;
+const foamSpeed = 4.2;
+
+const defaultImpulse = 100.0;
 
 const raycaster = new THREE.Raycaster();
 
@@ -35,6 +38,7 @@ export default class Dirt extends Component {
         this.state = {
             lengths: rayArray.map( () => 1 ),
             counter: 0,
+            impulse: ( props.impulse || defaultImpulse ) / Math.pow( 1 / props.scale.x, 3 )
         };
         this._onUpdate = this._onUpdate.bind( this );
 
@@ -43,11 +47,9 @@ export default class Dirt extends Component {
     _onUpdate() {
         
         const { world, position, paused } = this.props;
-        let { counter, } = this.state;
-        const { lengths: oldLengths } = this.state;
+        const { counter, lengths: oldLengths, impulse } = this.state;
 
         if( world && !paused ) {
-            counter++;
 
             let lengths = oldLengths;
 
@@ -68,13 +70,28 @@ export default class Dirt extends Component {
                     );
                     world.rayTest( from, to, result );
 
-                    return result.hasHit ? result.distance : maxLength;
+                    const { hasHit, body, distance, hitPointWorld } = result;
+
+                    if( hasHit ) {
+
+                        const { mass, position: bodyPosition, } = body;
+                        if( mass ) {
+                            body.applyImpulse(
+                                new CANNON.Vec3( impulse, 0, 0 ),
+                                hitPointWorld.clone().vsub( bodyPosition )
+                            );
+                        }
+                        return distance;
+
+                    } else {
+                        return maxLength;
+                    }
 
                 });
 
             }
 
-            this.setState({ counter, lengths });
+            this.setState({ counter: counter + 1, lengths });
         }
 
     }
@@ -123,7 +140,11 @@ export default class Dirt extends Component {
                             new THREE.Vector3( 1, 1, 1 )
                                 .multiplyScalar( bubbleMinSize * 2 + bubbleGrowSize * Math.sin( bubbleGrowSpeed * time * 0.9 + index ) )
                         }
-                        rotation={ new THREE.Euler( ( time - index ) * 0.1, ( time + index ) * 1.1, time ) }
+                        rotation={ new THREE.Euler(
+                            ( foamSpeed * time - index ) * 0.1,
+                            ( foamSpeed * time + index ) * 1.1,
+                            foamSpeed * time
+                        )}
                     >
                         <geometryResource
                             resourceId="radius1sphere"
@@ -140,7 +161,11 @@ export default class Dirt extends Component {
                             new THREE.Vector3( 1, 1, 1 )
                                 .multiplyScalar( bubbleMinSize * 2 + bubbleGrowSize * Math.cos( bubbleGrowSpeed * time * 1.1 + index ) )
                         }
-                        rotation={ new THREE.Euler( ( time - index ) * 0.6, ( time + index ) * 0.9, time ) }
+                        rotation={ new THREE.Euler(
+                            ( foamSpeed * time + index ) * 0.6,
+                            foamSpeed * time,
+                            ( foamSpeed * time + index ) * 1.2,
+                        )}
                     >
                         <geometryResource
                             resourceId="radius1sphere"

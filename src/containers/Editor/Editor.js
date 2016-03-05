@@ -649,10 +649,12 @@ export default class Editor extends Component {
 
         state = this._setStateFromKey( state, this.keysPressed );
 
-        if( this.state.selecting && ( KeyCodes.X in this.keysPressed ) &&
-                this.state.selectedObjectId &&
+        const { selecting, selectedObjectId, } = this.state;
+
+        if( selecting && ( KeyCodes.X in this.keysPressed ) &&
+                selectedObjectId &&
                 // levels are special case
-                this.props.currentLevelStaticEntities[ this.state.selectedObjectId ].type !== 'level'
+                this.props.currentLevelStaticEntities[ selectedObjectId ].type !== 'level'
                 ) {
 
             this.setState({
@@ -661,8 +663,8 @@ export default class Editor extends Component {
             });
             this.props.removeEntity(
                 this.props.currentLevelId,
-                this.state.selectedObjectId,
-                this.props.currentLevelStaticEntities[ this.state.selectedObjectId ].type
+                selectedObjectId,
+                this.props.currentLevelStaticEntities[ selectedObjectId ].type
             );
             
         }

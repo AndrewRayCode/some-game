@@ -95,7 +95,7 @@ const gameHeight = 400;
                 ];
                 // needs to go into static to render
                 memo.currentLevelRenderableEntities[ id ] = entity;
-            } else if( entity.type === 'pushy' ) {
+            } else if( entity.type === 'pushy' && entity.type !== 'dirt' ) {
                 memo.currentLevelMovableEntities[ id ] = entity;
             // walls, floors, etc
             } else {
