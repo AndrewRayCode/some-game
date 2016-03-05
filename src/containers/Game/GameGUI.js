@@ -13,10 +13,11 @@ import {
     scalePlayer, advanceChapter, startGame, stopGame
 } from '../../redux/modules/game';
 
-import { getSphereMass } from '../../helpers/Utils';
+import { getSphereMass, without } from '../../helpers/Utils';
+import KeyCodes from '../../helpers/KeyCodes';
 
 import GameRenderer from './GameRenderer';
-import { TitleScreen, Resources, PausedScreen } from '../../components';
+import { TitleScreen, Resources, PausedScreen, Kbd } from '../../components';
 
 import { resourceIds, allResources } from '../../resources';
 
@@ -227,7 +228,10 @@ export default class GameGUI extends Component {
     constructor( props, context ) {
 
         super( props, context );
+
         this.state = {};
+        this.keysDown = {};
+
         this.selectBook = this.selectBook.bind( this );
         this.onExitToTitle = this.onExitToTitle.bind( this );
         this._onAnimate = this._onAnimate.bind( this );
@@ -239,22 +243,53 @@ export default class GameGUI extends Component {
         this.onUnpause = this.onUnpause.bind( this );
         this.onBeforeRender = this.onBeforeRender.bind( this );
         this.onWindowBlur = this.onWindowBlur.bind( this );
+        this.onKeyDown = this.onKeyDown.bind( this );
+        this.onKeyUp = this.onKeyUp.bind( this );
+        this.pauseKeyListeningUntilKeyUp = this.pauseKeyListeningUntilKeyUp.bind( this );
+        this.unpauseKeyListening = this.unpauseKeyListening.bind( this );
 
     }
 
     componentDidMount() {
 
         window.addEventListener( 'blur', this.onWindowBlur );
+        window.addEventListener( 'keydown', this.onKeyDown );
+        window.addEventListener( 'keyup', this.onKeyUp );
 
     }
 
     componentWillUnmount() {
 
         window.removeEventListener( 'blur', this.onWindowBlur );
+        window.removeEventListener( 'keydown', this.onKeyDown );
+        window.removeEventListener( 'keyup', this.onKeyUp );
+
+    }
+
+    onKeyDown( event ) {
+
+        const which = { [ event.which ]: true };
+
+        if( event.which === KeyCodes.SPACE ||
+                event.which === KeyCodes.UP ||
+                event.which === KeyCodes.DOWN
+            ) {
+            event.preventDefault();
+        }
+
+        this.keysDown = Object.assign( {}, this.keysDown, which );
+
+    }
+
+    onKeyUp( event ) {
+
+        this.keysDown = without( this.keysDown, event.which );
 
     }
 
     onWindowBlur() {
+
+        this.keysDown = {};
 
         if( this.props.gameStarted && !this.state.paused ) {
 
@@ -332,7 +367,9 @@ export default class GameGUI extends Component {
             mouseInput, titleScreen, gameRenderer, pauseScreen
         } = this.refs;
 
-        const { _fps } = this.state;
+        const { gameStarted } = this.props;
+        const { _fps, paused } = this.state;
+        const { keysDown } = this;
         const newState = {};
 
         shaderFrog.updateShaders( elapsedTime );
@@ -373,6 +410,49 @@ export default class GameGUI extends Component {
             mouseInput._camera = camera;
 
         }
+
+        if( gameStarted && paused ) {
+
+            if(
+                ( KeyCodes.ESC in keysDown ) || ( KeyCodes.P in keysDown ) ||
+                    ( KeyCodes.SPACE in keysDown )
+            ) {
+
+                this.pauseKeyListeningUntilKeyUp();
+                this.onUnpause();
+
+            } else if( KeyCodes.M in keysDown ) {
+
+                this.pauseKeyListeningUntilKeyUp();
+                this.onExitToTitle();
+
+            }
+
+        } else if( gameStarted ) {
+
+            if( ( KeyCodes.ESC in keysDown ) || ( KeyCodes.P in keysDown ) ) {
+
+                this.pauseKeyListeningUntilKeyUp();
+                this.onPause();
+
+            }
+
+        }
+
+    }
+
+    pauseKeyListeningUntilKeyUp() {
+
+        this.keysDown = {};
+        window.removeEventListener( 'keydown', this.onKeyDown );
+        window.addEventListener( 'keyup', this.unpauseKeyListening );
+
+    }
+
+    unpauseKeyListening() {
+
+        window.addEventListener( 'keydown', this.onKeyDown );
+        window.removeEventListener( 'keyup', this.unpauseKeyListening );
 
     }
 
@@ -516,15 +596,27 @@ export default class GameGUI extends Component {
 
         </React3>;
 
-        return <div
-            ref="container"
-            className={ cx({ clickable }) }
-            style={{
-                width: gameWidth,
-                height: gameHeight,
-            }}
-        >
-            { react3 }
+        return <div>
+            <div
+                ref="container"
+                className={ cx({ clickable }) }
+                style={{
+                    width: gameWidth,
+                    height: gameHeight,
+                }}
+            >
+                { react3 }
+            </div>
+
+            <br />
+            <b>Keys:</b>
+            <br />
+            <Kbd>p</Kbd> or <Kbd>Esc</Kbd> Pause game
+
+            <br />
+            <br />
+            <b>Shaders</b> by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
+
             <br />
             FPS: { fps }
             <br />

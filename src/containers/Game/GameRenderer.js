@@ -126,8 +126,6 @@ export default class GameRenderer extends Component {
             pushyPositions: []
         };
 
-        this.wallCoolDowns = {};
-
         const world = new CANNON.World();
         this.world = world;
 
@@ -255,7 +253,9 @@ export default class GameRenderer extends Component {
             const {
                 currentChapterId, nextChapters, previousChapterEntity
             } = this.props;
-            const { cameraPosition, cameraTourTarget } = this.state;
+            const {
+                cameraPosition, cameraTourTarget, currentTransitionPosition
+            } = this.state;
 
             const { previousChapterNextChapter } = nextProps;
             const {
@@ -284,8 +284,38 @@ export default class GameRenderer extends Component {
                         ( cameraPosition.x - chapterPosition.x ) * multiplier,
                         getCameraDistanceToPlayer( 1 + nextProps.playerRadius, cameraFov, nextProps.playerScale ),
                         ( cameraPosition.z - chapterPosition.z ) * multiplier
-                    )
+                    ),
+                    currentTransitionPosition: null,
+                    currentTransitionTarget: null,
+                    isAdvancing: false,
                 });
+
+                this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
+                this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+
+                this.world.bodies = [];
+
+                // nextProps is the new data after the level transition. This obj
+                // determines the current level's size relative to the level we
+                // just came out of. So if we shrunk into this new smaller level,
+                // scale will be 0.125
+                //const { previousChapterNextChapter } = nextProps;
+
+                //const {
+                    //position: chapterPosition,
+                    //scale,
+                //} = previousChapterNextChapter;
+
+                //const multiplier = scale.x < 1 ? 8 : 0.125;
+
+                const newPosition = new CANNON.Vec3(
+                    ( currentTransitionPosition.x - chapterPosition.x ) * multiplier,
+                    1 + nextProps.playerRadius,
+                    ( currentTransitionPosition.z - chapterPosition.z ) * multiplier,
+                );
+
+                this._setupPhysics( nextProps, newPosition );
+
             }
 
         }
@@ -294,37 +324,9 @@ export default class GameRenderer extends Component {
 
     componentWillUpdate( nextProps, nextState ) {
 
-        if( nextProps.recursionBusterId !== this.props.recursionBusterId ) {
+        //if( nextProps.recursionBusterId !== this.props.recursionBusterId ) {
 
-            this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
-            this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
-
-            this.world.bodies = [];
-
-            // nextProps is the new data after the level transition. This obj
-            // determines the current level's size relative to the level we
-            // just came out of. So if we shrunk into this new smaller level,
-            // scale will be 0.125
-            const { previousChapterNextChapter } = nextProps;
-
-            const { position: playerPosition } = this.playerBody;
-
-            const {
-                position: chapterPosition,
-                scale,
-            } = previousChapterNextChapter;
-
-            const multiplier = scale.x < 1 ? 8 : 0.125;
-
-            const newPosition = new CANNON.Vec3(
-                ( playerPosition.x - chapterPosition.x ) * multiplier,
-                1 + nextProps.playerRadius,
-                ( playerPosition.z - chapterPosition.z ) * multiplier,
-            );
-
-            this._setupPhysics( nextProps, newPosition );
-
-        }
+        //}
 
     }
 
@@ -366,7 +368,7 @@ export default class GameRenderer extends Component {
 
     updatePhysics( elapsedTime, delta ) {
 
-        if( this.state.touring || this.advancing ) {
+        if( this.state.touring || this.state.isAdvancing ) {
             return;
         }
 
@@ -552,7 +554,7 @@ export default class GameRenderer extends Component {
 
             const isLastTube = tubeIndex === tubeFlow.length - 1;
 
-            let currentPercent = ( time - startTime ) / ( tubeIndex === 0 ?
+            let currentPercent = ( ( time - startTime ) * 1000 ) / ( tubeIndex === 0 ?
                 tubeStartTravelDurationMs : tubeTravelDurationMs
             ) * ( this.state.debug ? 0.1 : 1 );
             let isDone;
@@ -666,12 +668,6 @@ export default class GameRenderer extends Component {
 
                     }
 
-                    const coolDowns = {};
-                    for( const key in playerContact ) {
-                        coolDowns[ key ] = elapsedTime;
-                    }
-                    this.wallCoolDowns = Object.assign( {}, this.wallCoolDowns, coolDowns );
-
                 }
 
             }
@@ -722,9 +718,7 @@ export default class GameRenderer extends Component {
 
     }
 
-    _onAnimate( elapseTime, delta ) {
-
-        const now = Date.now();
+    _onAnimate( elapsedTime, delta ) {
 
         const { keysDown } = this;
         const {
@@ -734,45 +728,16 @@ export default class GameRenderer extends Component {
         } = this.props;
 
         const {
-            currentFlowPosition, cameraPosition,
+            currentFlowPosition, cameraPosition, isAdvancing
         } = this.state;
 
+        const newState = {};
+
         const playerPosition = currentFlowPosition || this.playerBody.position;
-
-        const newState = {
-            time: now
-        };
-
-        if( KeyCodes.P in keysDown ) {
-
-            if( !this.pauseLock ) {
-
-                this.props.onPause();
-                return;
-
-            }
-
-            this.pauseLock = true;
-
-        } else {
-
-            this.pauseLock = false;
-
-        }
 
         if( paused ) {
             return;
         }
-
-        newState.pushyPositions = this._getMeshStates( this.pushies );
-        newState.lightPosition = new THREE.Vector3(
-            10 * Math.sin( now * 0.001 * lightRotationSpeed ),
-            10,
-            10 * Math.cos( now * 0.001 * lightRotationSpeed )
-        );
-
-        // needs to be called before _getMeshStates
-        this.updatePhysics( elapseTime, delta );
 
         //if( KeyCodes.V in this.keysDown ) {
             //if( !this.dingingv ) {
@@ -816,14 +781,7 @@ export default class GameRenderer extends Component {
 
         }
 
-        //if( !paused && ( KeyCodes.ESC in keysDown ) ) {
-
-            //this.props.onExitToTitle();
-            //return;
-
-        //}
-
-        if( this.advancing ) {
+        if( isAdvancing ) {
 
             const {
                 currentTransitionStartTime, startTransitionPosition,
@@ -833,7 +791,7 @@ export default class GameRenderer extends Component {
 
             const currentPosition = new THREE.Vector3().copy( this.playerBody.position );
             const transitionPercent = Math.min(
-                ( now - currentTransitionStartTime ) / levelTransitionDuration,
+                ( ( elapsedTime - currentTransitionStartTime ) * 1000 ) / levelTransitionDuration,
                 1
             );
 
@@ -857,18 +815,16 @@ export default class GameRenderer extends Component {
                 ),
             );
 
-            if( transitionPercent >= 1 ) {
+            this.setState( newState, () => {
 
-                this.advancing = false;
-                this.props.advanceChapter( advanceToNextChapter );
-                this.playerBody.position.copy( newState.currentTransitionPosition );
+                if( transitionPercent === 1 ) {
 
-                newState.currentTransitionPosition = null;
-                newState.currentTransitionTarget = null;
+                    this.props.advanceChapter( advanceToNextChapter );
 
-            }
+                }
 
-            this.setState( newState );
+            });
+
             return;
 
         }
@@ -904,14 +860,6 @@ export default class GameRenderer extends Component {
 
         }
 
-        Object.keys( this.wallCoolDowns ).forEach( ( key ) => {
-
-            if( this.wallCoolDowns[ key ] + coolDownTimeMs < now ) {
-                delete this.wallCoolDowns[ key ];
-            }
-
-        });
-
         if( KeyCodes['`'] in keysDown ) {
 
             if( !this.debugSwitch ) {
@@ -942,6 +890,16 @@ export default class GameRenderer extends Component {
 
         //}
 
+        // needs to be called before _getMeshStates
+        this.updatePhysics( elapsedTime, delta );
+
+        newState.pushyPositions = this._getMeshStates( this.pushies );
+        newState.lightPosition = new THREE.Vector3(
+            10 * Math.sin( elapsedTime * 0.001 * lightRotationSpeed ),
+            10,
+            10 * Math.cos( elapsedTime * 0.001 * lightRotationSpeed )
+        );
+
         // Lerp the camera position to the correct follow position. Lerp
         // components individually to make the (y) camera zoom to player
         // different
@@ -965,8 +923,9 @@ export default class GameRenderer extends Component {
                 // Dumb sphere to cube collision
                 if( distance < playerRadius + ( entity.scale.x / 2 ) - playerScale * 0.1 ) {
 
-                    this.advancing = true;
                     this.playerContact = {};
+
+                    newState.isAdvancing = true;
 
                     // this is almost certainly wrong to determine which way
                     // the finish line element is facing
@@ -988,7 +947,7 @@ export default class GameRenderer extends Component {
                         currentPosition.y,
                         lerp( currentPosition.z, entity.position.z, isUp ? 2.5 : 0 ),
                     );
-                    newState.currentTransitionStartTime = now;
+                    newState.currentTransitionStartTime = elapsedTime;
 
                     if( entity === previousChapterFinishEntity ) {
 
@@ -1042,7 +1001,7 @@ export default class GameRenderer extends Component {
 
                 this.props.scalePlayer( currentLevelId, entity.id, multiplier );
 
-                newState.scaleStartTime = now;
+                newState.scaleStartTime = elapsedTime;
                 newState.radiusDiff = radiusDiff;
 
                 break;
@@ -1054,7 +1013,7 @@ export default class GameRenderer extends Component {
         if( newState.scaleStartTime || this.state.scaleStartTime ) {
 
             const scaleStartTime = newState.scaleStartTime || this.state.scaleStartTime;
-            const currentScalePercent = 1 - ( ( now - scaleStartTime ) / scaleDurationMs );
+            const currentScalePercent = 1 - ( ( ( elapsedTime - scaleStartTime ) * 1000 ) / scaleDurationMs );
 
             if( currentScalePercent <= 0 ) {
 
@@ -1076,21 +1035,12 @@ export default class GameRenderer extends Component {
     onWindowBlur( event ) {
 
         this.keysDown = {};
-        this.props.onPause();
 
     }
 
     onKeyDown( event ) {
 
         const which = { [ event.which ]: true };
-
-        if( event.which === KeyCodes.SPACE ||
-                event.which === KeyCodes.UP ||
-                event.which === KeyCodes.DOWN
-            ) {
-            event.preventDefault();
-        }
-
         this.keysDown = Object.assign( {}, this.keysDown, which );
 
     }

@@ -4,16 +4,8 @@ import THREE from 'three';
 export default [
     <meshPhongMaterial
         resourceId="sceneOverlay"
-        color={ 0xffffff }
+        color={ 0x220044 }
         transparent
-        opacity={ 0.1 }
-    >
-        <texture
-            url={ require( '../../assets/pattern-raw.png' ) }
-            wrapS={ THREE.RepeatWrapping }
-            wrapT={ THREE.RepeatWrapping }
-            repeat={ new THREE.Vector2( 5, 5 ) }
-            anisotropy={ 16 }
-        />
-    </meshPhongMaterial>
+        opacity={ 0.4 }
+    />
 ];

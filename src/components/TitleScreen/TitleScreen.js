@@ -124,7 +124,7 @@ export default class TitleScreen extends Component {
                     fontName="Sniglet Regular"
                     materialId={
                         book === hoveredBook ?
-                            'textMaterialHover' : 'textMaterial'
+                            'universeInAMenuHover' : 'universeInAMenu'
                     }
                 />
             )}

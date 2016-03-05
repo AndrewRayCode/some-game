@@ -5,6 +5,7 @@
  *
  */
 
+export Kbd from './Kbd/Kbd';
 export Resources from './Resources/Resources';
 export Text from './Text/Text';
 export PausedScreen from './PausedScreen/PausedScreen';

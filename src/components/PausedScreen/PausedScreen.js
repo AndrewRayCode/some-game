@@ -39,81 +39,11 @@ export default class PausedScreen extends Component {
 
         super( props, context );
 
-        this.keysDown = {};
         this.state = {};
-
-        this.onWindowBlur = this.onWindowBlur.bind( this );
-        this.onKeyDown = this.onKeyDown.bind( this );
-        this.onKeyUp = this.onKeyUp.bind( this );
-        this._onAnimate = this._onAnimate.bind( this );
 
         this.onMouseDown = this.onMouseDown.bind( this );
         this.onMouseEnter = this.onMouseEnter.bind( this );
         this.onMouseLeave = this.onMouseLeave.bind( this );
-
-
-    }
-
-    componentDidMount() {
-
-        window.addEventListener( 'blur', this.onWindowBlur );
-        window.addEventListener( 'keydown', this.onKeyDown );
-        window.addEventListener( 'keyup', this.onKeyUp );
-
-    }
-
-    componentWillUnmount() {
-
-        window.removeEventListener( 'blur', this.onWindowBlur );
-        window.removeEventListener( 'keydown', this.onKeyDown );
-        window.removeEventListener( 'keyup', this.onKeyUp );
-
-    }
-
-    _onAnimate() {
-
-        const now = Date.now();
-        const { keysDown } = this;
-
-        if(
-            ( KeyCodes.ESC in keysDown ) || ( KeyCodes.P in keysDown ) ||
-                ( KeyCodes.SPACE in keysDown )
-        ) {
-
-            this.props.onUnpause();
-
-        } else if( KeyCodes.M in keysDown ) {
-
-            this.props.onReturnToMenu();
-
-        }
-
-    }
-
-    onWindowBlur( event ) {
-
-        this.keysDown = {};
-
-    }
-
-    onKeyDown( event ) {
-
-        const which = { [ event.which ]: true };
-
-        if( event.which === KeyCodes.SPACE ||
-                event.which === KeyCodes.UP ||
-                event.which === KeyCodes.DOWN
-            ) {
-            event.preventDefault();
-        }
-
-        this.keysDown = Object.assign( {}, this.keysDown, which );
-
-    }
-
-    onKeyUp( event ) {
-
-        this.keysDown = without( this.keysDown, event.which );
 
     }
 
@@ -140,6 +70,7 @@ export default class PausedScreen extends Component {
 
     onMouseLeave( hovered, event ) {
 
+        this.props.onClickRegionLeave();
         this.setState({ [ hovered ]: null });
 
     }
@@ -151,7 +82,6 @@ export default class PausedScreen extends Component {
 
         return <object3D
             position={ sceneOffset }
-            onUpdate={ this._onAnimate }
         >
 
             <perspectiveCamera
@@ -202,11 +132,12 @@ export default class PausedScreen extends Component {
                 onMouseEnter={ this.onMouseEnter.bind( null, 'unpause' ) }
                 onMouseLeave={ this.onMouseLeave.bind( null, 'unpause') }
                 onMouseDown={ this.onMouseDown.bind( null, 'unpause' ) }
+                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 ) }
                 fontName="Sniglet Regular"
                 position={ new THREE.Vector3( 1, 0, 0 ) }
                 text="Unpause (p)"
                 materialId={
-                    unpause ? 'textMaterialHover' : 'textMaterial'
+                    unpause ? 'universeInAMenuHover' : 'universeInAMenu'
                 }
                 fonts={ fonts }
                 letters={ letters }
@@ -216,11 +147,12 @@ export default class PausedScreen extends Component {
                 onMouseEnter={ this.onMouseEnter.bind( null, 'menu' ) }
                 onMouseLeave={ this.onMouseLeave.bind( null, 'menu') }
                 onMouseDown={ this.onMouseDown.bind( null, 'menu' ) }
+                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 ) }
                 fontName="Sniglet Regular"
-                position={ new THREE.Vector3( 2, 0, 0 ) }
+                position={ new THREE.Vector3( 2.5, 0, 0 ) }
                 text="Return to Menu (m)"
                 materialId={
-                    menu ? 'textMaterialHover' : 'textMaterial'
+                    menu ? 'universeInAMenuHover' : 'universeInAMenu'
                 }
                 fonts={ fonts }
                 letters={ letters }
