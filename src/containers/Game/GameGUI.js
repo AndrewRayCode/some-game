@@ -321,7 +321,7 @@ export default class GameGUI extends Component {
 
     selectBook( book ) {
 
-        this.setState({ hovered: false });
+        this.setState({ clickable: false });
         const { levels, entities, books, chapters } = this.props;
         this.props.startGame(
             book.id, book.chapterIds[ 0 ], levels, entities, books, chapters

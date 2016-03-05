@@ -731,11 +731,15 @@ export default class GameRenderer extends Component {
             currentFlowPosition, cameraPosition, isAdvancing
         } = this.state;
 
-        const newState = {};
+        // In any state, (paused, etc), child components need the updaed time
+        const newState = {
+            time: elapsedTime
+        };
 
         const playerPosition = currentFlowPosition || this.playerBody.position;
 
         if( paused ) {
+            this.setState( newState );
             return;
         }
 
@@ -1065,7 +1069,7 @@ export default class GameRenderer extends Component {
             nextChaptersEntities, previousChapterEntities,
             previousChapterEntity, currentLevelRenderableEntitiesArray,
             previousChapterFinishEntity, assets, shaders, fonts, mouseInput,
-            letters
+            letters, paused
         } = this.props;
 
         const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;
@@ -1117,6 +1121,8 @@ export default class GameRenderer extends Component {
             /> ) }
 
             <StaticEntities
+                paused={ paused }
+                world={ this.world }
                 assets={ assets }
                 shaders={ shaders }
                 ref="staticEntities"
@@ -1125,6 +1131,8 @@ export default class GameRenderer extends Component {
             />
 
             { nextChapters.map( nextChapter => <StaticEntities
+                paused={ paused }
+                world={ this.world }
                 key={ nextChapter.id }
                 assets={ assets }
                 shaders={ shaders }
@@ -1135,6 +1143,8 @@ export default class GameRenderer extends Component {
             /> )}
 
             { previousChapterEntity && <StaticEntities
+                paused={ paused }
+                world={ this.world }
                 assets={ assets }
                 shaders={ shaders }
                 position={ previousChapterEntity.position }

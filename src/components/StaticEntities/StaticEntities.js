@@ -12,12 +12,15 @@ export default class StaticEntities extends Component {
     static propTypes = {
         time: PropTypes.number,
         entities: PropTypes.array.isRequired,
+        world: PropTypes.object,
+        paused: PropTypes.bool,
     }
 
     render() {
 
         const {
-            entities, time, position, scale, opacity, shaders, assets
+            entities, time, position, scale, opacity, shaders, assets, world,
+            paused
         } = this.props;
 
         return <group
@@ -50,6 +53,8 @@ export default class StaticEntities extends Component {
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
+                        world={ world }
+                        paused={ paused }
                         materialId={ entity.materialId }
                     />;
 

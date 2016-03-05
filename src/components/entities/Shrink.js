@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import THREE from 'three';
 
 const rotationOffset = new THREE.Euler( Math.PI / 2, 0, 0 );
+const billboardScale = new THREE.Vector3( 0.7, 0.7, 0.7 );
 
 export default class Shrink extends Component {
 
@@ -11,7 +12,9 @@ export default class Shrink extends Component {
 
     render() {
 
-        const { position, rotation, scale, materialId, wrapMaterialId, time } = this.props;
+        const {
+            position, rotation, scale, materialId, wrapMaterialId, time
+        } = this.props;
 
         return <group
             rotation={ rotation ? new THREE.Euler().setFromQuaternion( rotation
@@ -27,7 +30,7 @@ export default class Shrink extends Component {
             scale={ scale }
         >
             <mesh
-                scale={ new THREE.Vector3( 0.7, 0.7, 0.7 ) }
+                scale={ billboardScale }
                 rotation={ rotationOffset }
                 ref="mesh2"
             >

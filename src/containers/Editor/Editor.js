@@ -1153,6 +1153,7 @@ export default class Editor extends Component {
             } else if( createType === 'dirt' ) {
 
                 previewObject = <Dirt
+                    time={ time }
                     scale={ gridScale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
