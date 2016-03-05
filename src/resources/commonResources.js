@@ -37,11 +37,8 @@ export default [
         opacity={ 0.7 }
     />,
     <meshPhongMaterial
-        resourceId="textMaterial"
-    />,
-    <meshPhongMaterial
+        resourceId="placeholder"
         color={ 0xff0000 }
-        resourceId="textMaterialHover"
     />,
     <planeBufferGeometry
         resourceId="1x1plane"

@@ -4,7 +4,7 @@ import Textures from '../../helpers/Textures'; // todo: pass as prop?
 
 import {
     Shrink, Grow, Wall, Floor, Pushy, TubeBend, TubeStraight, Player,
-    FinishLine, House,
+    FinishLine, House, Dirt,
 } from '../';
 
 export default class StaticEntities extends Component {
@@ -32,6 +32,18 @@ export default class StaticEntities extends Component {
 
                     return <Wall
                         shaders={ shaders }
+                        time={ time }
+                        ref={ entity.id }
+                        key={ entity.id }
+                        position={ entity.position }
+                        rotation={ entity.rotation }
+                        scale={ entity.scale }
+                        materialId={ entity.materialId }
+                    />;
+
+                } else if( entity.type === 'dirt' ) {
+
+                    return <Dirt
                         time={ time }
                         ref={ entity.id }
                         key={ entity.id }

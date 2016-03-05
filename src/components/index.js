@@ -6,11 +6,13 @@
  */
 
 export Kbd from './Kbd/Kbd';
+export EditorResources from './EditorResources/EditorResources';
 export Resources from './Resources/Resources';
 export Text from './Text/Text';
 export PausedScreen from './PausedScreen/PausedScreen';
 export TitleScreen from './TitleScreen/TitleScreen';
 export StaticEntities from './StaticEntities/StaticEntities';
+export Dirt from './entities/Dirt';
 export FinishLine from './entities/FinishLine';
 export Floor from './entities/Floor';
 export Grid from './entities/Grid';

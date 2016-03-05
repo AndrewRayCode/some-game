@@ -17,7 +17,7 @@ import styles from './Editor.scss';
 
 import {
     Wall, Floor, Pushy, TubeBend, TubeStraight, Player, StaticEntities,
-    Shrink, House, Grow, FinishLine, Grid,
+    Shrink, House, Grow, FinishLine, Grid, EditorResources, Dirt,
 } from '../../components';
 
 import Textures from '../../helpers/Textures';
@@ -28,6 +28,8 @@ import KeyCodes from '../../helpers/KeyCodes';
 import { areBooksLoaded, loadAllBooks } from '../../redux/modules/editor';
 import { areAssetsLoaded, loadAllAssets } from '../../redux/modules/assets';
 import { without } from '../../helpers/Utils';
+
+import UpdateAllObjects from '../../helpers/UpdateAllObjects';
 
 const cx = classNames.bind( styles );
 
@@ -44,10 +46,8 @@ const radius = 20;
 const speed = 0.1;
 const clock = new THREE.Clock();
 
-const height = 400;
-const width = 400;
-
-const shadowD = 20;
+const gameWidth = 400;
+const gameHeight = 400;
 
 const tubeRadius = 0.5;
 const randomSpline = new THREE.QuadraticBezierCurve3(
@@ -256,6 +256,10 @@ function snapTo( number, interval ) {
     }, dispatch )
 )
 export default class Editor extends Component {
+
+    static contextTypes = {
+        store: PropTypes.object.isRequired
+    }
 
     constructor( props, context ) {
 
@@ -728,8 +732,8 @@ export default class Editor extends Component {
         // calculate mouse position in normalized device coordinates
         // (-1 to +1) for both components
         const mouse = {
-            x: ( ( event.clientX - bounds.left ) / width ) * 2 - 1,
-            y: -( ( event.clientY - bounds.top ) / height ) * 2 + 1
+            x: ( ( event.clientX - bounds.left ) / gameWidth ) * 2 - 1,
+            y: -( ( event.clientY - bounds.top ) / gameHeight ) * 2 + 1
         };
 
         raycaster.setFromCamera( mouse, camera );
@@ -1146,6 +1150,16 @@ export default class Editor extends Component {
                     materialId="ghostMaterial"
                 />;
 
+            } else if( createType === 'dirt' ) {
+
+                previewObject = <Dirt
+                    scale={ gridScale }
+                    rotation={ createPreviewRotation }
+                    position={ createPreviewPosition }
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                />;
+
             } else if( createType === 'house' ) {
 
                 previewObject = <House
@@ -1236,188 +1250,33 @@ export default class Editor extends Component {
                     onMouseMove={ this.onMouseMove }
                     onMouseDown={ this.onMouseDown }
                     onMouseUp={ this.onMouseUp }
-                    style={{ width, height }}
+                    style={{ width: gameWidth, height: gameHeight }}
                     className={ cx({ rotateable, rotating, creating }) }
                     ref="container"
                 >
                     <React3
                         mainCamera="camera"
-                        width={width}
-                        height={height}
+                        width={ gameWidth }
+                        height={ gameHeight }
                         onAnimate={this._onAnimate}
                     >
+
+                        <module
+                            descriptor={ UpdateAllObjects }
+                        />
+
                         <scene
                             ref="scene"
                         >
-                            <resources>
-                                <meshBasicMaterial
-                                    resourceId="selectionWireframe"
-                                    color={0x66ff00}
-                                    wireframe
-                                />
-                                <sphereGeometry
-                                    resourceId="sphereGeometry"
-                                    radius={ 0.5 }
-                                    widthSegments={ 6 }
-                                    heightSegments={ 6 }
-                                />
-                                <planeBufferGeometry
-                                    resourceId="planeGeometry"
-                                    width={1}
-                                    height={1}
-                                    widthSegments={1}
-                                    heightSegments={1}
-                                />
-                                <shape resourceId="row">
-                                    <moveTo
-                                        x={-width / 2}
-                                        y={0}
-                                    />
-                                    <lineTo
-                                        x={width / 2}
-                                        y={0}
-                                    />
-                                </shape>
-                                <shape resourceId="col">
-                                    <moveTo
-                                        x={0}
-                                        y={-height / 2}
-                                    />
-                                    <lineTo
-                                        x={0}
-                                        y={height / 2}
-                                    />
-                                </shape>
 
-                                <lineBasicMaterial
-                                    resourceId="gridLineMaterial"
-                                    color={0x222222}
-                                    linewidth={0.5}
-                                />
-
-                                <shape resourceId="tubeWall">
-                                    <absArc
-                                        x={0}
-                                        y={0}
-                                        radius={0.5}
-                                        startAngle={0}
-                                        endAngle={Math.PI * 2}
-                                        clockwise={false}
-                                    />
-                                    <hole>
-                                        <absArc
-                                            x={0}
-                                            y={0}
-                                            radius={0.4}
-                                            startAngle={0}
-                                            endAngle={Math.PI * 2}
-                                            clockwise
-                                        />
-                                    </hole>
-                                </shape>
-                                <boxGeometry
-                                    resourceId="1x1box"
-
-                                    width={1}
-                                    height={1}
-                                    depth={1}
-
-                                    widthSegments={1}
-                                    heightSegments={1}
-                                />
-                                <meshBasicMaterial
-                                    resourceId="gridFloorMaterial"
-                                    color={0xffffff}
-                                    opacity={0.4}
-                                    transparent
-                                />
-                                <meshPhongMaterial
-                                    resourceId="ghostMaterial"
-                                    color={0xff0000}
-                                    opacity={0.5}
-                                    side={ THREE.DoubleSide }
-                                    transparent
-                                />
-
-                                <meshPhongMaterial
-                                    resourceId="shrinkWrapMaterial"
-                                    color={ 0x462B2B }
-                                    opacity={ 0.3 }
-                                    transparent
-                                />
-
-                                <meshPhongMaterial
-                                    resourceId="shrinkMaterial"
-                                    color={0xffffff}
-                                    side={ THREE.DoubleSide }
-                                    transparent
-                                >
-                                    <texture
-                                        url={ require( '../../../assets/spiral-texture.png' ) }
-                                        wrapS={ THREE.RepeatWrapping }
-                                        wrapT={ THREE.RepeatWrapping }
-                                        anisotropy={16}
-                                    />
-                                </meshPhongMaterial>
-
-                                <meshPhongMaterial
-                                    resourceId="growWrapMaterial"
-                                    color={ 0x462B2B }
-                                    opacity={ 0.3 }
-                                    transparent
-                                />
-
-                                <meshPhongMaterial
-                                    resourceId="growMaterial"
-                                    color={0xffffff}
-                                    side={ THREE.DoubleSide }
-                                    transparent
-                                >
-                                    <texture
-                                        url={ require( '../../../assets/grow-texture.png' ) }
-                                        wrapS={ THREE.RepeatWrapping }
-                                        wrapT={ THREE.RepeatWrapping }
-                                        anisotropy={16}
-                                    />
-                                </meshPhongMaterial>
-
-                                <sphereGeometry
-                                    resourceId="playerGeometry"
-                                    radius={ 1.0 }
-                                    widthSegments={ 20 }
-                                    heightSegments={ 20 }
-                                />
-
-                                <meshPhongMaterial
-                                    resourceId="playerMaterial"
-                                    color={ 0xfade95 }
-                                />
-
-                                <meshPhongMaterial
-                                    resourceId="floorSideMaterial"
-                                    color={ 0xee8a6f }
-                                    transparent
-                                    opacity={ 0.12 }
-                                />
-
-                                <meshPhongMaterial
-                                    resourceId="wallSideMaterial"
-                                    color={ 0xc1baa8 }
-                                    transparent
-                                    opacity={ 0.12 }
-                                />
-
-                                <meshPhongMaterial
-                                    resourceId="pushyMaterial"
-                                    color={ 0x462b2b }
-                                />
-
-                            </resources>
+                            <EditorResources
+                                store={ this.context.store }
+                            />
 
                             <perspectiveCamera
                                 name="camera"
                                 fov={75}
-                                aspect={width / height}
+                                aspect={ gameWidth / gameHeight }
                                 near={0.1}
                                 far={1000}
                                 position={this.state.cameraPosition}
@@ -1432,20 +1291,7 @@ export default class Editor extends Component {
                             <directionalLight
                                 color={ 0xffffff }
                                 intensity={ 1.0 }
-
                                 castShadow
-
-                                shadowMapWidth={1024}
-                                shadowMapHeight={1024}
-
-                                shadowCameraLeft={-shadowD}
-                                shadowCameraRight={shadowD}
-                                shadowCameraTop={shadowD}
-                                shadowCameraBottom={-shadowD}
-
-                                shadowCameraFar={3 * shadowD}
-                                shadowCameraNear={shadowD}
-
                                 position={ lightPosition }
                             />
 
@@ -1843,6 +1689,10 @@ export default class Editor extends Component {
                     { createType === 'house' && '✓' }
                     <button onClick={ this.selectType( 'house' ) }>
                         House
+                    </button>
+                    { createType === 'dirt' && '✓' }
+                    <button onClick={ this.selectType( 'dirt' ) }>
+                        Dirt
                     </button>
                     <br />
                     [L] { createType === 'chapter' && '✓' }

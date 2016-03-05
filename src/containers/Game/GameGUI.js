@@ -542,9 +542,9 @@ export default class GameGUI extends Component {
                 onBeforeRender={ this.onBeforeRender }
             /> : null }
 
-        <scene ref="scene"
-            onUpdate={ this._onAnimate }
-        >
+            <scene ref="scene"
+                onUpdate={ this._onAnimate }
+            >
 
                 <ambientLight
                     color={ 0x777777 }

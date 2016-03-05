@@ -4,6 +4,7 @@ import commonResources from './commonResources';
 import StaticEntitiesResources from './StaticEntitiesResources';
 import gameResources from './gameResources';
 import PausedScreenResources from './PausedScreenResources';
+import EditorResources from './EditorResources';
 
 const allAssets = [
     commonResources, StaticEntitiesResources, gameResources,
@@ -36,5 +37,7 @@ function mergeAllResources( arrays ) {
     ], [] );
 }
 
+console.log('re-emitting');
 export const resourceIds = reduceToKeys( allAssets );
 export const allResources = mergeAllResources( allAssets );
+export const allResourcesIncludingEditor = mergeAllResources( [ ...allAssets, EditorResources ] );
