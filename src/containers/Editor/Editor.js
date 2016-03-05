@@ -44,7 +44,6 @@ const OrbitControlsThree = OrbitControls( THREE );
 
 const radius = 20;
 const speed = 0.1;
-const clock = new THREE.Clock();
 
 const gameWidth = 400;
 const gameHeight = 400;
@@ -547,7 +546,7 @@ export default class Editor extends Component {
         
     }
 
-    _onAnimate() {
+    _onAnimate( elapsedTime, delta ) {
 
         const rotateable = ( KeyCodes.CTRL in this.keysPressed ) ||
             ( KeyCodes.ALT in this.keysPressed );
@@ -562,9 +561,8 @@ export default class Editor extends Component {
 
         }
 
-        const elapsedTime = clock.getElapsedTime();
         let state = {
-            time: Date.now(),
+            time: elapsedTime,
             rotateable,
             lightPosition: new THREE.Vector3(
                 radius * Math.sin( elapsedTime * speed ),
@@ -1259,7 +1257,6 @@ export default class Editor extends Component {
                         mainCamera="camera"
                         width={ gameWidth }
                         height={ gameHeight }
-                        onAnimate={this._onAnimate}
                     >
 
                         <module
@@ -1267,6 +1264,7 @@ export default class Editor extends Component {
                         />
 
                         <scene
+                            onUpdate={ this._onAnimate }
                             ref="scene"
                         >
 

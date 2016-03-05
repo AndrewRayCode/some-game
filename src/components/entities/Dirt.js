@@ -123,6 +123,7 @@ export default class Dirt extends Component {
                             new THREE.Vector3( 1, 1, 1 )
                                 .multiplyScalar( bubbleMinSize * 2 + bubbleGrowSize * Math.sin( bubbleGrowSpeed * time * 0.9 + index ) )
                         }
+                        rotation={ new THREE.Euler( ( time - index ) * 0.1, ( time + index ) * 1.1, time ) }
                     >
                         <geometryResource
                             resourceId="radius1sphere"
@@ -139,6 +140,7 @@ export default class Dirt extends Component {
                             new THREE.Vector3( 1, 1, 1 )
                                 .multiplyScalar( bubbleMinSize * 2 + bubbleGrowSize * Math.cos( bubbleGrowSpeed * time * 1.1 + index ) )
                         }
+                        rotation={ new THREE.Euler( ( time - index ) * 0.6, ( time + index ) * 0.9, time ) }
                     >
                         <geometryResource
                             resourceId="radius1sphere"
