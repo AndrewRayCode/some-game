@@ -2,7 +2,10 @@ import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import { browserHistory } from 'react-router';
 import { connect } from 'react-redux';
-import { resourceIds, allResources } from '../../resources';
+import {
+    commonResources, gameResources, PausedScreenResources,
+    StaticEntitiesResources, TitleScreenResources,
+} from '../../resources';
 
 @connect(
     state => {
@@ -14,7 +17,7 @@ import { resourceIds, allResources } from '../../resources';
 
     }
 )
-export default class Resources extends Component {
+export default class GameResources extends Component {
 
     render() {
 
@@ -23,9 +26,13 @@ export default class Resources extends Component {
         } = this.props;
 
         return <resources>
-            { allResources }
             { lettersArray }
             { shadersArray }
+            { commonResources }
+            { gameResources }
+            { PausedScreenResources }
+            { StaticEntitiesResources }
+            { TitleScreenResources }
         </resources>;
 
     }

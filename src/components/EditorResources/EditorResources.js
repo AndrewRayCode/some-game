@@ -2,7 +2,12 @@ import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import { browserHistory } from 'react-router';
 import { connect } from 'react-redux';
-import { resourceIds, allResourcesIncludingEditor } from '../../resources';
+
+import {
+    EditorResources as editorResources,
+    commonResources, gameResources, PausedScreenResources,
+    StaticEntitiesResources, TitleScreenResources,
+} from '../../resources';
 
 @connect(
     state => {
@@ -23,9 +28,14 @@ export default class EditorResources extends Component {
         } = this.props;
 
         return <resources>
-            { allResourcesIncludingEditor }
             { lettersArray }
             { shadersArray }
+            { commonResources }
+            { editorResources }
+            { gameResources }
+            { PausedScreenResources }
+            { StaticEntitiesResources }
+            { TitleScreenResources }
         </resources>;
 
     }

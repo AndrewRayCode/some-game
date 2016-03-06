@@ -17,9 +17,7 @@ import { getSphereMass, without } from '../../helpers/Utils';
 import KeyCodes from '../../helpers/KeyCodes';
 
 import GameRenderer from './GameRenderer';
-import { TitleScreen, Resources, PausedScreen, Kbd } from '../../components';
-
-import { resourceIds, allResources } from '../../resources';
+import { TitleScreen, GameResources, PausedScreen, Kbd } from '../../components';
 
 import styles from './Game.scss';
 import classNames from 'classnames/bind';
@@ -526,7 +524,7 @@ export default class GameGUI extends Component {
                 descriptor={ UpdateAllObjects }
             />
 
-            <Resources store={ this.props.store } />
+            <GameResources store={ this.props.store } />
 
             <viewport
                 x={ 0 }

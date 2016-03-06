@@ -12,8 +12,8 @@ const emitterScale = new THREE.Vector3( 0.1, 1, 1 );
 const colRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
 
 const bubbleMinSize = 0.5;
-const bubbleGrowSize = 0.3;
-const bubbleGrowSpeed = 2.2;
+const foamGrowSize = 0.3;
+const foamGrowSpeed = 2.2;
 const foamSpeed = 4.2;
 
 const defaultImpulse = 20.0;
@@ -148,7 +148,7 @@ export default class Waterfall extends Component {
                         ) }
                         scale={
                             new THREE.Vector3( 1, 1, 1 )
-                                .multiplyScalar( bubbleMinSize * 2 + bubbleGrowSize * Math.sin( bubbleGrowSpeed * time * 0.9 + index ) )
+                                .multiplyScalar( bubbleMinSize * 2 + foamGrowSize * Math.sin( foamGrowSpeed * time * 0.6 - index ) )
                         }
                         rotation={ new THREE.Euler(
                             ( foamSpeed * time - index ) * 0.1,
@@ -169,7 +169,7 @@ export default class Waterfall extends Component {
                         ) }
                         scale={
                             new THREE.Vector3( 1, 1, 1 )
-                                .multiplyScalar( bubbleMinSize * 2 + bubbleGrowSize * Math.cos( bubbleGrowSpeed * time * 1.1 + index ) )
+                                .multiplyScalar( bubbleMinSize * 2 + foamGrowSize * Math.cos( foamGrowSpeed * time * 1.2 + index ) )
                         }
                         rotation={ new THREE.Euler(
                             ( foamSpeed * time + index ) * 0.6,
