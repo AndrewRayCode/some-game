@@ -3,7 +3,6 @@ import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
 
 const rayCount = 4;
-const updateFrameSkipCount = 2;
 const maxLength = 10;
 
 // dam son see http://stackoverflow.com/questions/5501581/javascript-new-arrayn-and-array-prototype-map-weirdness
@@ -17,7 +16,7 @@ const bubbleGrowSize = 0.3;
 const bubbleGrowSpeed = 2.2;
 const foamSpeed = 4.2;
 
-const defaultImpulse = 100.0;
+const defaultImpulse = 50.0;
 
 const raycaster = new THREE.Raycaster();
 
@@ -58,45 +57,41 @@ export default class Waterfall extends Component {
 
             let lengthTargets = oldLengthTargets;
 
-            if( !( counter % updateFrameSkipCount ) ) {
+            lengthTargets = rayArray.map( ( zero, index ) => {
+                const result = new CANNON.RaycastResult();
 
-                lengthTargets = rayArray.map( ( zero, index ) => {
-                    const result = new CANNON.RaycastResult();
+                const from = new CANNON.Vec3(
+                    position.x - 0.4,
+                    position.y,
+                    position.z - 0.5 + ( ( 1 / rayCount ) * index ) + ( 0.5 / rayCount )
+                );
+                const to = new CANNON.Vec3(
+                    from.x + maxLength,
+                    from.y,
+                    from.z,
+                );
+                world.rayTest( from, to, result );
 
-                    const from = new CANNON.Vec3(
-                        position.x - 0.4,
-                        position.y,
-                        position.z - 0.5 + ( ( 1 / rayCount ) * index ) + ( 0.5 / rayCount )
-                    );
-                    const to = new CANNON.Vec3(
-                        from.x + maxLength,
-                        from.y,
-                        from.z,
-                    );
-                    world.rayTest( from, to, result );
+                const { hasHit, body, distance, hitPointWorld } = result;
 
-                    const { hasHit, body, distance, hitPointWorld } = result;
+                if( hasHit ) {
 
-                    if( hasHit ) {
-
-                        const { mass, position: bodyPosition, } = body;
-                        if( mass ) {
-                            body.applyImpulse(
-                                new CANNON.Vec3( impulse, 0, 0 ),
-                                hitPointWorld.clone().vsub( bodyPosition )
-                            );
-                        }
-                        return distance;
-
-                    } else {
-
-                        return maxLength;
-
+                    const { mass, position: bodyPosition, } = body;
+                    if( mass ) {
+                        body.applyImpulse(
+                            new CANNON.Vec3( impulse, 0, 0 ),
+                            hitPointWorld.clone().vsub( bodyPosition )
+                        );
                     }
+                    return distance;
 
-                });
+                } else {
 
-            }
+                    return maxLength;
+
+                }
+
+            });
 
             const lengths = oldLengths.map( ( length, index ) =>
                 lengthTargets[ index ] > length ? length + 0.2 : lengthTargets[ index ]
@@ -186,7 +181,7 @@ export default class Waterfall extends Component {
                             resourceId="radius1sphere"
                         />
                         <materialResource
-                            resourceId={ materialId }
+                            resourceId="waterFoam"
                         />
                     </mesh>
                 </group>

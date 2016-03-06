@@ -129,6 +129,7 @@ export function shadersReducer( shaders = {}, action = {} ) {
                     json: action.data,
                     material,
                     resource: <rawShaderMaterial
+                        transparent
                         key={ name }
                         resourceId={ name }
                         vertexShader={ data.vertex }
