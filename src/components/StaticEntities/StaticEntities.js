@@ -35,7 +35,6 @@ export default class StaticEntities extends Component {
 
                     return <Wall
                         shaders={ shaders }
-                        time={ time }
                         ref={ entity.id }
                         key={ entity.id }
                         position={ entity.position }
@@ -61,7 +60,6 @@ export default class StaticEntities extends Component {
                 } else if( entity.type === 'pushy' ) {
 
                     return <Pushy
-                        time={ time }
                         ref={ entity.id }
                         key={ entity.id }
                         position={ entity.position }
@@ -73,7 +71,6 @@ export default class StaticEntities extends Component {
                 } else if( entity.type === 'floor' ) {
 
                     return <Floor
-                        time={ time }
                         ref={ entity.id }
                         key={ entity.id }
                         assets={ assets }
