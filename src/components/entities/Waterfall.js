@@ -126,7 +126,7 @@ export default class Waterfall extends Component {
                     resourceId="1x1box"
                 />
                 <materialResource
-                    resourceId="placeholder"
+                    resourceId="transparent"
                 />
             </mesh>
 
