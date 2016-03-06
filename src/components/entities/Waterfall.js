@@ -160,7 +160,7 @@ export default class Waterfall extends Component {
                             resourceId="radius1sphere"
                         />
                         <materialResource
-                            resourceId={ materialId }
+                            resourceId="waterFoam"
                         />
                     </mesh>
                     <mesh
