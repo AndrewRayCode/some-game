@@ -27,8 +27,7 @@ export default [
     />,
     <meshBasicMaterial
         resourceId="transparent"
-        transparent
-        opacity={ 0.0 }
+        visible={ false }
     />,
     <meshPhongMaterial
         resourceId="finishFlag"
