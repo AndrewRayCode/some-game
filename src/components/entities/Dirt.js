@@ -3,7 +3,7 @@ import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
 
 const rayCount = 4;
-const updateFrameSkipCount = 4;
+const updateFrameSkipCount = 2;
 const maxLength = 10;
 
 // dam son see http://stackoverflow.com/questions/5501581/javascript-new-arrayn-and-array-prototype-map-weirdness
@@ -37,6 +37,7 @@ export default class Dirt extends Component {
         super( props, context );
         this.state = {
             lengths: rayArray.map( () => 1 ),
+            lengthTargets: rayArray.map( () => 1 ),
             counter: 0,
             impulse: ( props.impulse || defaultImpulse ) / Math.pow( 1 / props.scale.x, 3 )
         };
@@ -47,15 +48,19 @@ export default class Dirt extends Component {
     _onUpdate() {
         
         const { world, position, paused } = this.props;
-        const { counter, lengths: oldLengths, impulse } = this.state;
+        const {
+            counter, impulse,
+            lengths: oldLengths,
+            lengthTargets: oldLengthTargets,
+        } = this.state;
 
         if( world && !paused ) {
 
-            let lengths = oldLengths;
+            let lengthTargets = oldLengthTargets;
 
             if( !( counter % updateFrameSkipCount ) ) {
 
-                lengths = rayArray.map( ( zero, index ) => {
+                lengthTargets = rayArray.map( ( zero, index ) => {
                     const result = new CANNON.RaycastResult();
 
                     const from = new CANNON.Vec3(
@@ -84,14 +89,24 @@ export default class Dirt extends Component {
                         return distance;
 
                     } else {
+
                         return maxLength;
+
                     }
 
                 });
 
             }
 
-            this.setState({ counter: counter + 1, lengths });
+            const lengths = oldLengths.map( ( length, index ) =>
+                lengthTargets[ index ] > length ? length + 0.2 : lengthTargets[ index ]
+            );
+
+            this.setState({
+                counter: counter + 1,
+                lengths, lengthTargets
+            });
+
         }
 
     }
