@@ -1,8 +1,8 @@
 {
-  "id": 685,
+  "id": 686,
   "name": "Regular Water",
-  "fragment": "#define TAU 6.28318530718\n#define MAX_ITER 5\n\nprecision highp float;\nprecision highp int;\nuniform vec2 resolution;\nuniform vec3 backgroundColor;\nuniform vec3 Transparent_Tiling_Caustic1457229021399_133_color;\nuniform float speed;\nuniform float brightness;\nuniform float time;\nuniform vec3 Soild_Color1457229028755_156_color;\nuniform float alpha;\nvarying vec2 Transparent_Tiling_Caustic1457229021399_133_vUv;\nvarying vec2 Soild_Color1457229028755_156_vUv;\nvec4 Transparent_Tiling_Caustic1457229021399_133_main() \n{\n    vec4 Transparent_Tiling_Caustic1457229021399_133_gl_FragColor = vec4(0.0);\n    vec2 uv = Transparent_Tiling_Caustic1457229021399_133_vUv.xy * resolution;\n    vec2 p = mod(uv * TAU, TAU) - 250.0;\n    vec2 i = vec2(p);\n    float c = 1.0;\n    float inten = 0.005;\n    for (int n = 0;\n n < MAX_ITER; n++) \n    {\n        float t = time * speed * (1.0 - (3.5 / float(n + 1)));\n        i = p + vec2(cos(t - i.x) + sin(t + i.y), sin(t - i.y) + cos(t + i.x));\n        c += 1.0 / length(vec2(p.x / (sin(i.x + t) / inten), p.y / (cos(i.y + t) / inten)));\n    }\n    c /= float(MAX_ITER);\n    c = 1.17 - pow(c, brightness);\n    vec3 rgb = vec3(pow(abs(c), 8.0));\n    Transparent_Tiling_Caustic1457229021399_133_gl_FragColor = vec4(rgb * Transparent_Tiling_Caustic1457229021399_133_color + backgroundColor, length(rgb) + 0.1);\n    return Transparent_Tiling_Caustic1457229021399_133_gl_FragColor *= 0.4;\n}\nvec4 Soild_Color1457229028755_156_main(void) \n{\n    vec4 Soild_Color1457229028755_156_gl_FragColor = vec4(0.0);\n    Soild_Color1457229028755_156_gl_FragColor = vec4(Soild_Color1457229028755_156_color, alpha);\n    return Soild_Color1457229028755_156_gl_FragColor *= 1.0;\n}\nvoid main() \n{\n    gl_FragColor = (Transparent_Tiling_Caustic1457229021399_133_main() + Soild_Color1457229028755_156_main());}\n",
-  "vertex": "precision highp float;\nprecision highp int;\nuniform mat4 modelMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat3 normalMatrix;\nuniform vec3 cameraPosition;\nuniform float time;\nattribute vec3 position;\nattribute vec3 normal;\nattribute vec2 uv;\nattribute vec2 uv2;\nvarying vec3 vPosition;\nvarying vec3 vNormal;\nvarying vec2 Transparent_Tiling_Caustic1457229021399_133_vUv;\nvarying vec2 vUv2;\nvec4 Transparent_Tiling_Caustic1457229021399_133_main() \n{\n    vec4 Transparent_Tiling_Caustic1457229021399_133_gl_Position = vec4(0.0);\n    vNormal = normal;\n    Transparent_Tiling_Caustic1457229021399_133_vUv = uv;\n    vUv2 = uv2;\n    vPosition = position;\n    Transparent_Tiling_Caustic1457229021399_133_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Transparent_Tiling_Caustic1457229021399_133_gl_Position *= 0.4;\n}\nvec4 Soild_Color1457229028755_156_main() \n{\n    vec4 Soild_Color1457229028755_156_gl_Position = vec4(0.0);\n    Soild_Color1457229028755_156_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Soild_Color1457229028755_156_gl_Position *= 1.0;\n}\nvoid main() \n{\n    gl_Position = Transparent_Tiling_Caustic1457229021399_133_main() + Soild_Color1457229028755_156_main();}\n",
+  "fragment": "#define TAU 6.28318530718\n#define MAX_ITER 5\n\nprecision highp float;\nprecision highp int;\nuniform vec2 resolution;\nuniform vec3 backgroundColor;\nuniform vec3 Transparent_Tiling_Caustic1457229492246_20_color;\nuniform float speed;\nuniform vec2 flowSpeed;\nuniform float brightness;\nuniform float time;\nuniform vec3 Soild_Color1457229500066_43_color;\nuniform float alpha;\nvarying vec2 Transparent_Tiling_Caustic1457229492246_20_vUv;\nvarying vec2 Soild_Color1457229500066_43_vUv;\nvec4 Transparent_Tiling_Caustic1457229492246_20_main() \n{\n    vec4 Transparent_Tiling_Caustic1457229492246_20_gl_FragColor = vec4(0.0);\n    vec2 uv = (Transparent_Tiling_Caustic1457229492246_20_vUv.xy + (time * flowSpeed)) * resolution;\n    vec2 p = mod(uv * TAU, TAU) - 250.0;\n    vec2 i = vec2(p);\n    float c = 1.0;\n    float inten = 0.005;\n    for (int n = 0;\n n < MAX_ITER; n++) \n    {\n        float t = time * speed * (1.0 - (3.5 / float(n + 1)));\n        i = p + vec2(cos(t - i.x) + sin(t + i.y), sin(t - i.y) + cos(t + i.x));\n        c += 1.0 / length(vec2(p.x / (sin(i.x + t) / inten), p.y / (cos(i.y + t) / inten)));\n    }\n    c /= float(MAX_ITER);\n    c = 1.17 - pow(c, brightness);\n    vec3 rgb = vec3(pow(abs(c), 8.0));\n    Transparent_Tiling_Caustic1457229492246_20_gl_FragColor = vec4(rgb * Transparent_Tiling_Caustic1457229492246_20_color + backgroundColor, length(rgb) + 0.1);\n    return Transparent_Tiling_Caustic1457229492246_20_gl_FragColor *= 0.6;\n}\nvec4 Soild_Color1457229500066_43_main(void) \n{\n    vec4 Soild_Color1457229500066_43_gl_FragColor = vec4(0.0);\n    Soild_Color1457229500066_43_gl_FragColor = vec4(Soild_Color1457229500066_43_color, alpha);\n    return Soild_Color1457229500066_43_gl_FragColor *= 1.0;\n}\nvoid main() \n{\n    gl_FragColor = (Transparent_Tiling_Caustic1457229492246_20_main() + Soild_Color1457229500066_43_main());}\n",
+  "vertex": "precision highp float;\nprecision highp int;\nuniform mat4 modelMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat3 normalMatrix;\nuniform vec3 cameraPosition;\nuniform float time;\nattribute vec3 position;\nattribute vec3 normal;\nattribute vec2 uv;\nattribute vec2 uv2;\nvarying vec3 vPosition;\nvarying vec3 vNormal;\nvarying vec2 Transparent_Tiling_Caustic1457229492246_20_vUv;\nvarying vec2 vUv2;\nvec4 Transparent_Tiling_Caustic1457229492246_20_main() \n{\n    vec4 Transparent_Tiling_Caustic1457229492246_20_gl_Position = vec4(0.0);\n    vNormal = normal;\n    Transparent_Tiling_Caustic1457229492246_20_vUv = uv;\n    vUv2 = uv2;\n    vPosition = position;\n    Transparent_Tiling_Caustic1457229492246_20_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Transparent_Tiling_Caustic1457229492246_20_gl_Position *= 0.6;\n}\nvec4 Soild_Color1457229500066_43_main() \n{\n    vec4 Soild_Color1457229500066_43_gl_Position = vec4(0.0);\n    Soild_Color1457229500066_43_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Soild_Color1457229500066_43_gl_Position *= 1.0;\n}\nvoid main() \n{\n    gl_Position = Transparent_Tiling_Caustic1457229492246_20_main() + Soild_Color1457229500066_43_main();}\n",
   "uniforms": {
     "cameraPosition": {
       "type": "v3",
@@ -39,7 +39,15 @@
       "type": "f",
       "glslType": "float"
     },
-    "Transparent_Tiling_Caustic1457229021399_133_color": {
+    "flowSpeed": {
+      "value": {
+        "x": 0,
+        "y": "0.8"
+      },
+      "type": "v2",
+      "glslType": "vec2"
+    },
+    "Transparent_Tiling_Caustic1457229492246_20_color": {
       "value": {
         "r": 1,
         "g": 1,
@@ -49,21 +57,21 @@
       "glslType": "vec3"
     },
     "alpha": {
-      "value": "0.52454288",
+      "value": "0.6754199",
       "type": "f",
       "glslType": "float"
     },
-    "Soild_Color1457229028755_156_color": {
+    "Soild_Color1457229500066_43_color": {
       "value": {
-        "r": 0.10196078431372549,
-        "g": 0.6980392156862745,
+        "r": 0.26666666666666666,
+        "g": 0.6862745098039216,
         "b": 1
       },
       "type": "c",
       "glslType": "vec3"
     }
   },
-  "url": "http://shaderfrog.com/app/view/685",
+  "url": "http://shaderfrog.com/app/view/686",
   "user": {
     "username": "andrewray",
     "url": "http://shaderfrog.com/app/profile/andrewray"
