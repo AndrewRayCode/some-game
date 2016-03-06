@@ -42,7 +42,7 @@
     "flowSpeed": {
       "value": {
         "x": 0,
-        "y": "0.1"
+        "y": "0.2"
       },
       "type": "v2",
       "glslType": "vec2"
