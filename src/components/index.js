@@ -12,7 +12,7 @@ export Text from './Text/Text';
 export PausedScreen from './PausedScreen/PausedScreen';
 export TitleScreen from './TitleScreen/TitleScreen';
 export StaticEntities from './StaticEntities/StaticEntities';
-export Dirt from './entities/Dirt';
+export Waterfall from './entities/Waterfall';
 export FinishLine from './entities/FinishLine';
 export Floor from './entities/Floor';
 export Grid from './entities/Grid';

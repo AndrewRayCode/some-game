@@ -21,7 +21,7 @@ const defaultImpulse = 100.0;
 
 const raycaster = new THREE.Raycaster();
 
-export default class Dirt extends Component {
+export default class Waterfall extends Component {
 
     static propTypes = {
         position: PropTypes.object.isRequired,

@@ -98,7 +98,7 @@ const gameHeight = 400;
             } else if( entity.type === 'pushy' ) {
                 memo.currentLevelMovableEntities[ id ] = entity;
             // Things like waterfalls with no physical geometry
-            } else if( entity.type === 'dirt' ) {
+            } else if( entity.type === 'waterfall' ) {
                 memo.currentLevelRenderableEntities[ id ] = entity;
             // walls, floors, etc
             } else {

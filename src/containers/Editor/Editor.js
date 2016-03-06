@@ -17,7 +17,7 @@ import styles from './Editor.scss';
 
 import {
     Wall, Floor, Pushy, TubeBend, TubeStraight, Player, StaticEntities,
-    Shrink, House, Grow, FinishLine, Grid, EditorResources, Dirt,
+    Shrink, House, Grow, FinishLine, Grid, EditorResources, Waterfall,
 } from '../../components';
 
 import Textures from '../../helpers/Textures';
@@ -1150,9 +1150,9 @@ export default class Editor extends Component {
                     materialId="ghostMaterial"
                 />;
 
-            } else if( createType === 'dirt' ) {
+            } else if( createType === 'waterfall' ) {
 
-                previewObject = <Dirt
+                previewObject = <Waterfall
                     time={ time }
                     scale={ gridScale }
                     rotation={ createPreviewRotation }
@@ -1580,7 +1580,7 @@ export default class Editor extends Component {
                         step={ gridSnap }
                     />
 
-                    { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' || selectedObject.type === 'dirt' ) ? <div>
+                    { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' || selectedObject.type === 'waterfall' ) ? <div>
                         <br />
                         <br />
                         <b>Change Texture of Selection:</b>
@@ -1691,9 +1691,9 @@ export default class Editor extends Component {
                     <button onClick={ this.selectType( 'house' ) }>
                         House
                     </button>
-                    { createType === 'dirt' && '✓' }
-                    <button onClick={ this.selectType( 'dirt' ) }>
-                        Dirt
+                    { createType === 'waterfall' && '✓' }
+                    <button onClick={ this.selectType( 'waterfall' ) }>
+                        Waterfall
                     </button>
                     <br />
                     [L] { createType === 'chapter' && '✓' }

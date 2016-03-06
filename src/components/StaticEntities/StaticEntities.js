@@ -4,7 +4,7 @@ import Textures from '../../helpers/Textures'; // todo: pass as prop?
 
 import {
     Shrink, Grow, Wall, Floor, Pushy, TubeBend, TubeStraight, Player,
-    FinishLine, House, Dirt,
+    FinishLine, House, Waterfall,
 } from '../';
 
 export default class StaticEntities extends Component {
@@ -44,9 +44,9 @@ export default class StaticEntities extends Component {
                         materialId={ entity.materialId }
                     />;
 
-                } else if( entity.type === 'dirt' ) {
+                } else if( entity.type === 'waterfall' || entity.type === 'dirt' ) {
 
-                    return <Dirt
+                    return <Waterfall
                         time={ time }
                         ref={ entity.id }
                         key={ entity.id }
