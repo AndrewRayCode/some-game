@@ -62,7 +62,7 @@ export default class Waterfall extends Component {
 
                 const from = new CANNON.Vec3(
                     position.x - 0.4,
-                    position.y,
+                    position.y - 0.45,
                     position.z - 0.5 + ( ( 1 / rayCount ) * index ) + ( 0.5 / rayCount )
                 );
                 const to = new CANNON.Vec3(
