@@ -16,7 +16,7 @@ const bubbleGrowSize = 0.3;
 const bubbleGrowSpeed = 2.2;
 const foamSpeed = 4.2;
 
-const defaultImpulse = 50.0;
+const defaultImpulse = 20.0;
 
 const raycaster = new THREE.Raycaster();
 
