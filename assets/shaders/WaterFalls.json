@@ -44,7 +44,7 @@
       "glslType": "vec3"
     },
     "Transparent_Tiling_Caustic1457228550903_36_speed": {
-      "value": "0.5",
+      "value": "0.7",
       "type": "f",
       "glslType": "float"
     },
