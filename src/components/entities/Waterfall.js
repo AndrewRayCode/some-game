@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
+import { lerp } from '../../helpers/Utils';
 
 const rayCount = 4;
 const maxLength = 10;
@@ -13,10 +14,12 @@ const colRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
 
 const bubbleMinSize = 0.5;
 const foamGrowSize = 0.3;
-const foamGrowSpeed = 2.2;
+const foamGrowSpeed = 5.2;
 const foamSpeed = 4.2;
 
 const defaultImpulse = 20.0;
+
+const minimumPercentToShowFoam = 0.9;
 
 const raycaster = new THREE.Raycaster();
 
@@ -29,6 +32,7 @@ export default class Waterfall extends Component {
         world: PropTypes.object,
         paused: PropTypes.bool,
         time: PropTypes.number,
+        playerRadius: PropTypes.number,
     }
 
     constructor( props, context ) {
@@ -46,7 +50,7 @@ export default class Waterfall extends Component {
 
     _onUpdate() {
         
-        const { world, position, paused } = this.props;
+        const { world, position, paused, playerRadius } = this.props;
         const {
             counter, impulse,
             lengths: oldLengths,
@@ -62,7 +66,7 @@ export default class Waterfall extends Component {
 
                 const from = new CANNON.Vec3(
                     position.x - 0.4,
-                    position.y - 0.3,
+                    position.y - 0.5 + ( playerRadius || 0.45 ),
                     position.z - 0.5 + ( ( 1 / rayCount ) * index ) + ( 0.5 / rayCount )
                 );
                 const to = new CANNON.Vec3(
@@ -93,9 +97,10 @@ export default class Waterfall extends Component {
 
             });
 
-            const lengths = oldLengths.map( ( length, index ) =>
-                lengthTargets[ index ] > length ? length + 0.2 : lengthTargets[ index ]
-            );
+            const lengths = oldLengths.map( ( length, index ) => {
+                const target = lengthTargets[ index ];
+                return target > length ? Math.min( length + 0.2, target ) : target;
+            });
 
             this.setState({
                 counter: counter + 1,
@@ -108,8 +113,11 @@ export default class Waterfall extends Component {
 
     render() {
 
-        const { position, rotation, scale, time, materialId, } = this.props;
-        const { lengths } = this.state;
+        const {
+            position, rotation, scale, time, materialId, playerRadius
+        } = this.props;
+        const { lengths, lengthTargets } = this.state;
+        const waterfallHeight = -0.5 + ( playerRadius || 0.45 );
 
         return <group
             position={ position }
@@ -130,12 +138,21 @@ export default class Waterfall extends Component {
                 />
             </mesh>
 
-            { rayArray.map( ( zero, index ) =>
-                <group
+            {/* Foam */}
+            { rayArray.map( ( zero, index ) => {
+
+                const length = lengths[ index ];
+                const target = lengthTargets[ index ];
+                const percentToTarget = Math.max(
+                    ( 1.0 - ( Math.abs( target - length ) / target ) ) - minimumPercentToShowFoam,
+                    0
+                ) * ( 1 / ( 1 - minimumPercentToShowFoam ) );
+
+                return <group
                     key={ index }
                     position={ new THREE.Vector3(
-                        -0.5 + lengths[ index ],
-                        0,
+                        -0.5 + length,
+                        waterfallHeight,
                         -0.5 + ( ( 1 / rayCount ) * index ) + ( 0.5 / rayCount ),
                     ) }
                     scale={
@@ -148,7 +165,10 @@ export default class Waterfall extends Component {
                         ) }
                         scale={
                             new THREE.Vector3( 1, 1, 1 )
-                                .multiplyScalar( bubbleMinSize * 2 + foamGrowSize * Math.sin( foamGrowSpeed * time * 0.6 - index ) )
+                                .multiplyScalar(
+                                    ( bubbleMinSize * 2 + foamGrowSize * Math.sin( foamGrowSpeed * time * 0.6 - index ) ) *
+                                    percentToTarget
+                                )
                         }
                         rotation={ new THREE.Euler(
                             ( foamSpeed * time - index ) * 0.1,
@@ -169,7 +189,10 @@ export default class Waterfall extends Component {
                         ) }
                         scale={
                             new THREE.Vector3( 1, 1, 1 )
-                                .multiplyScalar( bubbleMinSize * 2 + foamGrowSize * Math.cos( foamGrowSpeed * time * 1.2 + index ) )
+                                .multiplyScalar(
+                                    ( bubbleMinSize * 2 + foamGrowSize * Math.cos( foamGrowSpeed * time * 1.2 + index ) ) *
+                                    percentToTarget
+                                )
                         }
                         rotation={ new THREE.Euler(
                             ( foamSpeed * time + index ) * 0.6,
@@ -184,15 +207,17 @@ export default class Waterfall extends Component {
                             resourceId="waterFoam"
                         />
                     </mesh>
-                </group>
-            )}
+                </group>;
 
+            })}
+
+            {/* Waterfalls */}
             { rayArray.map( ( zero, index ) =>
                 <mesh
                     key={ index }
                     position={ new THREE.Vector3(
                         -0.5 + ( lengths[ index ] / 2 ),
-                        0,
+                        waterfallHeight,
                         -0.5 + ( ( 1 / rayCount ) * index ) + ( 0.5 / rayCount )
                     ) }
                     scale={ new THREE.Vector3(

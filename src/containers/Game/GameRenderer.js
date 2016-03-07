@@ -987,7 +987,7 @@ export default class GameRenderer extends Component {
                 const playerBody = this._createPlayerBody(
                     new CANNON.Vec3(
                         playerPosition.x,
-                        1 + playerRadius,
+                        1 + newRadius,
                         playerPosition.z + radiusDiff
                     ),
                     newRadius,
@@ -1124,6 +1124,7 @@ export default class GameRenderer extends Component {
                 assets={ assets }
                 shaders={ shaders }
                 ref="staticEntities"
+                playerRadius={ playerRadius }
                 entities={ currentLevelRenderableEntitiesArray }
                 time={ time }
             />
@@ -1136,6 +1137,7 @@ export default class GameRenderer extends Component {
                 shaders={ shaders }
                 position={ nextChapter.position }
                 scale={ nextChapter.scale }
+                playerRadius={ playerRadius }
                 entities={ nextChaptersEntities[ nextChapter.chapterId ] }
                 time={ time }
             /> )}
@@ -1148,6 +1150,7 @@ export default class GameRenderer extends Component {
                 position={ previousChapterEntity.position }
                 scale={ previousChapterEntity.scale }
                 entities={ previousChapterEntities }
+                playerRadius={ playerRadius }
                 time={ time }
                 opacity={ 0.5 }
             /> }

@@ -20,7 +20,7 @@ export default class StaticEntities extends Component {
 
         const {
             entities, time, position, scale, opacity, shaders, assets, world,
-            paused
+            paused, playerRadius
         } = this.props;
 
         return <group
@@ -54,6 +54,7 @@ export default class StaticEntities extends Component {
                         scale={ entity.scale }
                         world={ world }
                         paused={ paused }
+                        playerRadius={ playerRadius }
                         materialId={ entity.materialId }
                     />;
 
