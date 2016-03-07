@@ -3,15 +3,9 @@ import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
 import { lerp } from '../../helpers/Utils';
 
+// Waterfall configuration
 const rayCount = 4;
 const maxLength = 10;
-
-// dam son see http://stackoverflow.com/questions/5501581/javascript-new-arrayn-and-array-prototype-map-weirdness
-const rayArray = new Array( rayCount ).fill( 0 );
-const emitterPosition = new THREE.Vector3( -0.5, 0, 0 );
-const emitterScale = new THREE.Vector3( 0.1, 1, 1 );
-const colRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
-const axis = new THREE.Vector3( 0, 1, 0 );
 
 const bubbleMinSize = 0.5;
 const foamGrowSize = 0.3;
@@ -19,8 +13,16 @@ const foamGrowSpeed = 5.2;
 const foamSpeed = 4.2;
 
 const defaultImpulse = 20.0;
-
 const minimumPercentToShowFoam = 0.9;
+
+// Computed values
+
+// dam son see http://stackoverflow.com/questions/5501581/javascript-new-arrayn-and-array-prototype-map-weirdness
+const rayArray = new Array( rayCount ).fill( 0 );
+const emitterPosition = new THREE.Vector3( -0.5, 0, 0 );
+const emitterScale = new THREE.Vector3( 0.1, 1, 1 );
+const colRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
+const axis = new THREE.Vector3( 0, 1, 0 );
 
 const raycaster = new THREE.Raycaster();
 
@@ -40,35 +42,37 @@ export default class Waterfall extends Component {
 
         super( props, context );
 
-        this.state = {
-            lengths: rayArray.map( () => 1 ),
-            lengthTargets: rayArray.map( () => 1 ),
-            counter: 0,
-            impulse: ( props.impulse || defaultImpulse ) / Math.pow( 1 / props.scale.x, 3 ),
-            //fromVector, toVector
-        };
+        this.state = this.getStateFromProps( props, {} );
+
         this._onUpdate = this._onUpdate.bind( this );
 
     }
 
-    _onUpdate() {
-        
-        const { world, position, paused, playerRadius, rotation } = this.props;
-        const {
-            counter, impulse,
-            lengths: oldLengths,
-            lengthTargets: oldLengthTargets,
-            //fromVector, toVector
-        } = this.state;
+    componentWillReceiveProps( nextProps ) {
 
+        if( ( nextProps.playerRadius !== this.props.playerRadius ) ||
+           ( nextProps.rotation !== this.props.rotation ) ||
+           ( nextProps.position !== this.props.position )
+        ) {
+
+            this.setState( this.getStateFromProps( nextProps, this.state ) );
+
+        }
+
+    }
+
+    getStateFromProps( props, state ) {
+
+        const { position, rotation, playerRadius, scale } = props;
         const angle = new THREE.Euler().setFromQuaternion( rotation ).y;
+        const impulse = ( defaultImpulse / Math.pow( 1 / scale.x, 3 ) ) * ( playerRadius / 0.45 );
+        console.log('impulse',impulse);
 
-        if( world && !paused ) {
-
-            let lengthTargets = oldLengthTargets;
-
-            lengthTargets = rayArray.map( ( zero, index ) => {
-                const result = new CANNON.RaycastResult();
+        return {
+            lengths: state.lengths || rayArray.map( () => 1 ),
+            lengthTargets: state.lengths || rayArray.map( () => 1 ),
+            counter: 0,
+            hitVectors: rayArray.map( ( zero, index ) => {
 
                 const fromVector = new THREE.Vector3(
                     -0.499,
@@ -82,9 +86,37 @@ export default class Waterfall extends Component {
                     fromVector.z,
                 );
 
+                return {
+                    fromVector: fromVector.applyAxisAngle( axis, angle ).add( position ),
+                    toVector: toVector.applyAxisAngle( axis, angle ).add( position ),
+                    impulseVector: new THREE.Vector3( impulse, 0, 0 ).applyAxisAngle( axis, angle ),
+                };
+
+            })
+        };
+
+    }
+
+    _onUpdate() {
+        
+        const { world, position, paused } = this.props;
+        const {
+            counter,
+            lengths: oldLengths,
+            lengthTargets: oldLengthTargets,
+            hitVectors,
+        } = this.state;
+
+        if( world && !paused ) {
+
+            let lengthTargets = oldLengthTargets;
+
+            lengthTargets = rayArray.map( ( zero, index ) => {
+                const result = new CANNON.RaycastResult();
+
                 world.rayTest(
-                    fromVector.applyAxisAngle( axis, angle ).add( position ),
-                    toVector.applyAxisAngle( axis, angle ).add( position ),
+                    hitVectors[ index ].fromVector,
+                    hitVectors[ index ].toVector,
                     result
                 );
 
@@ -95,7 +127,7 @@ export default class Waterfall extends Component {
                     const { mass, position: bodyPosition, } = body;
                     if( mass ) {
                         body.applyImpulse(
-                            new THREE.Vector3( impulse, 0, 0 ).applyAxisAngle( axis, angle ),
+                            hitVectors[ index ].impulseVector,
                             new CANNON.Vec3( 0, 0, 0 )
                         );
                     }
