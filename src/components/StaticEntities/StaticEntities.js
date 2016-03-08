@@ -14,13 +14,15 @@ export default class StaticEntities extends Component {
         entities: PropTypes.array.isRequired,
         world: PropTypes.object,
         paused: PropTypes.bool,
+        playerRadius: PropTypes.number,
+        playerBody: PropTypes.object,
     }
 
     render() {
 
         const {
             entities, time, position, scale, opacity, shaders, assets, world,
-            paused, playerRadius
+            paused, playerRadius, playerBody,
         } = this.props;
 
         return <group
@@ -55,6 +57,7 @@ export default class StaticEntities extends Component {
                         world={ world }
                         paused={ paused }
                         playerRadius={ playerRadius }
+                        playerBody={ playerBody }
                         materialId={ entity.materialId }
                     />;
 

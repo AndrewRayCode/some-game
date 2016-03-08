@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
-import { lerp } from '../../helpers/Utils';
+import { boxToBoxCollision } from '../../helpers/Utils';
 
 // Waterfall configuration
 const rayCount = 4;
@@ -12,7 +12,7 @@ const foamGrowSize = 0.3;
 const foamGrowSpeed = 5.2;
 const foamSpeed = 4.2;
 
-const defaultImpulse = 20.0;
+const defaultImpulse = 40.0;
 const minimumPercentToShowFoam = 0.9;
 
 // Computed values
@@ -23,8 +23,11 @@ const emitterPosition = new THREE.Vector3( -0.5, 0, 0 );
 const emitterScale = new THREE.Vector3( 0.1, 1, 1 );
 const colRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
 const axis = new THREE.Vector3( 0, 1, 0 );
+// Which way the waterfall flows by default
+const forwardDirection = new THREE.Vector3( 1, 0, 0 );
 
 const raycaster = new THREE.Raycaster();
+const relativeCannonPoint = new CANNON.Vec3( 0, 0, 0 );
 
 export default class Waterfall extends Component {
 
@@ -36,6 +39,7 @@ export default class Waterfall extends Component {
         paused: PropTypes.bool,
         time: PropTypes.number,
         playerRadius: PropTypes.number,
+        playerBody: PropTypes.object,
     }
 
     constructor( props, context ) {
@@ -65,31 +69,58 @@ export default class Waterfall extends Component {
 
         const { position, rotation, playerRadius, scale } = props;
         const angle = new THREE.Euler().setFromQuaternion( rotation ).y;
-        const impulse = ( defaultImpulse / Math.pow( 1 / scale.x, 3 ) ) * ( playerRadius / 0.45 );
-        console.log('impulse',impulse);
+        const impulse = defaultImpulse * ( playerRadius || 0.45 );
+        const flowDirection2D = forwardDirection.clone().applyQuaternion( rotation );
 
         return {
             lengths: state.lengths || rayArray.map( () => 1 ),
             lengthTargets: state.lengths || rayArray.map( () => 1 ),
             counter: 0,
+            flowDirection2D: new THREE.Vector2( flowDirection2D.x, flowDirection2D.z ),
             hitVectors: rayArray.map( ( zero, index ) => {
 
-                const fromVector = new THREE.Vector3(
+                const streamHalfWidth = 0.5 / rayCount;
+
+                // Construct the unrotated vectors that define this stream in
+                // local space
+                const fromVectorInitial = new THREE.Vector3(
+                    // move close to left edge of emitter
                     -0.499,
+                    // move toward the back to intersect player
                     -0.5 + ( playerRadius || 0.45 ),
-                    -0.5 + ( ( 1 / rayCount ) * index ) + ( 0.5 / rayCount )
+                    // move to rectangle offset by index
+                    -0.5 + /* center */( ( 1 / rayCount ) * index ) + streamHalfWidth
                 );
 
-                const toVector = new THREE.Vector3(
-                    fromVector.x + maxLength,
-                    fromVector.y,
-                    fromVector.z,
+                const toVectorInitial = new THREE.Vector3(
+                    fromVectorInitial.x + maxLength,
+                    fromVectorInitial.y,
+                    fromVectorInitial.z,
                 );
 
+                const a = fromVectorInitial
+                    .clone()
+                    .sub( new THREE.Vector3( 0, 0, streamHalfWidth ) )
+                    .applyAxisAngle( axis, angle )
+                    .add( position );
+
+                const b = fromVectorInitial
+                    .clone()
+                    .add( new THREE.Vector3( 0, 0, streamHalfWidth ) )
+                    .applyAxisAngle( axis, angle )
+                    .add( position );
+
+                const startingPoints = {
+                    a: new THREE.Vector2( a.x, a.z ),
+                    b: new THREE.Vector2( b.x, b.z ),
+                };
+
+                // Note, these are all in world space except for the impulse
                 return {
-                    fromVector: fromVector.applyAxisAngle( axis, angle ).add( position ),
-                    toVector: toVector.applyAxisAngle( axis, angle ).add( position ),
+                    fromVector: fromVectorInitial.applyAxisAngle( axis, angle ).add( position ),
+                    toVector: toVectorInitial.applyAxisAngle( axis, angle ).add( position ),
                     impulseVector: new THREE.Vector3( impulse, 0, 0 ).applyAxisAngle( axis, angle ),
+                    fromVectorInitial, toVectorInitial, startingPoints,
                 };
 
             })
@@ -99,59 +130,94 @@ export default class Waterfall extends Component {
 
     _onUpdate() {
         
-        const { world, position, paused } = this.props;
+        const {
+            world, position, paused, playerBody, playerRadius
+        } = this.props;
+
         const {
             counter,
             lengths: oldLengths,
             lengthTargets: oldLengthTargets,
-            hitVectors,
+            hitVectors, fromVectorInitial, toVectorInitial,
+            flowDirection2D
         } = this.state;
 
-        if( world && !paused ) {
+        if( !world || paused ) {
+            return;
+        }
 
-            let lengthTargets = oldLengthTargets;
+        const playerBox = new THREE.Box2().setFromCenterAndSize(
+            new THREE.Vector2( playerBody.position.x, playerBody.position.z ),
+            new THREE.Vector2( playerRadius * 1.9, playerRadius * 1.9 ),
+        );
 
-            lengthTargets = rayArray.map( ( zero, index ) => {
-                const result = new CANNON.RaycastResult();
+        let lengthTargets = oldLengthTargets;
 
-                world.rayTest(
-                    hitVectors[ index ].fromVector,
-                    hitVectors[ index ].toVector,
-                    result
-                );
+        lengthTargets = rayArray.map( ( zero, index ) => {
 
-                const { hasHit, body, distance, hitPointWorld } = result;
+            const result = new CANNON.RaycastResult();
+            const {
+                fromVector, toVector, impulseVector, startingPoints
+            } = hitVectors[ index ];
 
-                if( hasHit ) {
+            world.rayTest(
+                fromVector,
+                toVector,
+                result
+            );
+
+            const { hasHit, body, distance, hitPointWorld } = result;
+            let hitLength;
+
+            if( hasHit ) {
+
+                if( body !== playerBody ) {
 
                     const { mass, position: bodyPosition, } = body;
                     if( mass ) {
-                        body.applyImpulse(
-                            hitVectors[ index ].impulseVector,
-                            new CANNON.Vec3( 0, 0, 0 )
-                        );
+                        body.applyImpulse( impulseVector, relativeCannonPoint );
                     }
-                    return distance;
-
-                } else {
-
-                    return maxLength;
 
                 }
+                hitLength = distance;
 
-            });
+            } else {
 
-            const lengths = oldLengths.map( ( length, index ) => {
-                const target = lengthTargets[ index ];
-                return target > length ? Math.min( length + 0.2, target ) : target;
-            });
+                hitLength = maxLength;
 
-            this.setState({
-                counter: counter + 1,
-                lengths, lengthTargets
-            });
+            }
 
-        }
+            const { a, b } = startingPoints;
+
+            const points = [ a, b,
+                a.clone().add( flowDirection2D.clone().multiplyScalar( hitLength * 1.1 ) ),
+                b.clone().add( flowDirection2D.clone().multiplyScalar( hitLength * 1.1 ) )
+            ];
+
+            const box = new THREE.Box2().setFromPoints( points );
+
+            if( box.intersectsBox( playerBox ) ) {
+
+                playerBody.applyImpulse( impulseVector, relativeCannonPoint );
+                hitLength = body === playerBody ?
+                    hitLength :
+                    fromVector.distanceTo( playerBody.position );
+
+            }
+
+            return hitLength;
+
+        });
+
+        const lengths = oldLengths.map( ( length, index ) => {
+            const target = lengthTargets[ index ];
+            return target > length ? Math.min( length + 0.2, target ) : target;
+        });
+
+        this.setState({
+            counter: counter + 1,
+            lengths, lengthTargets
+        });
 
     }
 

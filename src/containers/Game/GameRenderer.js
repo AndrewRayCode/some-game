@@ -380,11 +380,20 @@ export default class GameRenderer extends Component {
         } = this.props;
         const { playerContact } = this;
         const { keysDown } = this;
-        let forceX = 0;
-        let forceZ = 0;
 
-        const velocityMax = 5.0 * playerScale;
-        const moveForce = 200 / Math.pow( 1 / playerScale, 3 );
+        const { playerBody } = this;
+        const {
+            velocity: playerVelocity, position: playerPosition
+        } = playerBody;
+
+        let forceX = 0;
+
+        const deltaScale = delta * 0.1;
+        const velocityMoveMax = 5 * playerScale;
+        const velocityMax = 10.0 * velocityMoveMax;
+
+        const moveVelocity = 4 * playerScale;
+
         const airMoveForce = 50 / Math.pow( 1 / playerScale, 3 );
         const jumpForce = -Math.sqrt( 2.0 * 4 * 9.8 * playerRadius );
 
@@ -392,11 +401,11 @@ export default class GameRenderer extends Component {
         const isRight = ( KeyCodes.D in keysDown ) || ( KeyCodes.RIGHT in keysDown );
         const isUp = ( KeyCodes.W in keysDown ) || ( KeyCodes.UP in keysDown );
         const isDown = ( KeyCodes.S in keysDown ) || ( KeyCodes.DOWN in keysDown );
-        const playerPosition = new THREE.Vector3().copy( this.playerBody.position );
+        const playerPositionV3 = new THREE.Vector3().copy( playerPosition );
         const playerSnapped = new THREE.Vector3(
-            snapTo( playerPosition.x, playerScale ),
-            snapTo( playerPosition.y, playerScale ),
-            snapTo( playerPosition.z, playerScale )
+            snapTo( playerPositionV3.x, playerScale ),
+            snapTo( playerPositionV3.y, playerScale ),
+            snapTo( playerPositionV3.z, playerScale )
         ).addScalar( -playerScale / 2 );
 
         const contactKeys = Object.keys( playerContact );
@@ -421,19 +430,12 @@ export default class GameRenderer extends Component {
 
         }
 
+        // Determine which way the player is attempting to move
         if( isLeft ) {
-            const percentAwayFromTarget = Math.min( ( Math.abs( -velocityMax - this.playerBody.velocity.x ) / velocityMax ) * 4, 1 );
-            forceX -= moveForce * percentAwayFromTarget;
+            forceX = -1;
         }
         if( isRight ) {
-            const percentAwayFromTarget = Math.min( ( Math.abs( velocityMax - this.playerBody.velocity.x ) / velocityMax ) * 4, 1 );
-            forceX += moveForce * percentAwayFromTarget;
-        }
-        if( isUp ) {
-            forceZ -= airMoveForce;
-        }
-        if( isDown ) {
-            forceZ += airMoveForce;
+            forceX = 1;
         }
 
         let newTubeFlow;
@@ -452,14 +454,14 @@ export default class GameRenderer extends Component {
                 const thresholdPlayerEndsAt = isAtEntrance1 ? threshold2 : threshold1;
 
                 const playerTowardTube = playerSnapped.clone().add(
-                    new THREE.Vector3( forceX, 0, forceZ )
+                    new THREE.Vector3( forceX, 0, 0 )
                         .normalize()
                         .multiplyScalar( playerScale )
                 );
 
                 if( isInTubeRange && vec3Equals( playerTowardTube, tube.position ) ) {
 
-                    this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+                    playerBody.removeEventListener( 'collide', this.onPlayerCollide );
                     this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
 
                     const newPlayerContact = Object.keys( playerContact ).reduce( ( memo, key ) => {
@@ -479,7 +481,7 @@ export default class GameRenderer extends Component {
                     debuggingReplay = [];
 
                     newTubeFlow = [{
-                        start: playerPosition.clone(),
+                        start: playerPositionV3.clone(),
                         end: thresholdPlayerStartsAt
                     }, {
                         start: thresholdPlayerStartsAt,
@@ -565,7 +567,7 @@ export default class GameRenderer extends Component {
                     //console.log('FREE');
                     const lastTube = tubeFlow[ tubeIndex ];
 
-                    this.playerBody.addEventListener( 'collide', this.onPlayerCollide );
+                    playerBody.addEventListener( 'collide', this.onPlayerCollide );
                     this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
 
                     isDone = true;
@@ -574,7 +576,7 @@ export default class GameRenderer extends Component {
                         tubeFlow: null,
                         currentFlowPosition: null
                     };
-                    resetBodyPhysics( this.playerBody, new CANNON.Vec3(
+                    resetBodyPhysics( playerBody, new CANNON.Vec3(
                         lastTube.exit.x,
                         lastTube.exit.y,
                         lastTube.exit.z
@@ -629,13 +631,15 @@ export default class GameRenderer extends Component {
 
         if( !isFlowing ) {
 
-            if( forceX ) {
-                this.playerBody.applyImpulse(
-                    new CANNON.Vec3( forceX, 0, 0 ),
-                    new CANNON.Vec3( 0, 0, 0 )
-                );
+            if( ( isRight && playerVelocity.x < velocityMax ) ||
+                    ( isLeft && playerVelocity.x > -velocityMax ) ) {
+
+                playerVelocity.x = lerp( playerVelocity.x, forceX * velocityMoveMax, 0.1 );
+
             } else {
-                this.playerBody.velocity.x = lerp( this.playerBody.velocity.x, 0, 0.2 );
+
+                playerVelocity.x = lerp( playerVelocity.x, 0, 0.2 );
+
             }
 
             if( KeyCodes.SPACE in keysDown ) {
@@ -662,7 +666,7 @@ export default class GameRenderer extends Component {
 
                     if( jumpableWalls.down ) {
 
-                        this.playerBody.velocity.z = -Math.sqrt( 1.5 * 4 * 9.8 * playerRadius );
+                        playerVelocity.z = -Math.sqrt( 1.5 * 4 * 9.8 * playerRadius );
 
                     }
 
@@ -672,6 +676,10 @@ export default class GameRenderer extends Component {
 
             this.playerBody.velocity.x = Math.max(
                 Math.min( this.playerBody.velocity.x, velocityMax ),
+                -velocityMax
+            );
+            this.playerBody.velocity.z = Math.max(
+                Math.min( this.playerBody.velocity.z, velocityMax ),
                 -velocityMax
             );
 
@@ -1120,6 +1128,7 @@ export default class GameRenderer extends Component {
 
             <StaticEntities
                 paused={ paused }
+                playerBody={ this.playerBody }
                 world={ this.world }
                 assets={ assets }
                 shaders={ shaders }
@@ -1131,7 +1140,6 @@ export default class GameRenderer extends Component {
 
             { nextChapters.map( nextChapter => <StaticEntities
                 paused={ paused }
-                world={ this.world }
                 key={ nextChapter.id }
                 assets={ assets }
                 shaders={ shaders }
@@ -1144,7 +1152,6 @@ export default class GameRenderer extends Component {
 
             { previousChapterEntity && <StaticEntities
                 paused={ paused }
-                world={ this.world }
                 assets={ assets }
                 shaders={ shaders }
                 position={ previousChapterEntity.position }
