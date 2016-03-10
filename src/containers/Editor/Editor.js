@@ -18,6 +18,7 @@ import styles from './Editor.scss';
 import {
     Wall, Floor, Pushy, TubeBend, TubeStraight, Player, StaticEntities,
     Shrink, House, Grow, FinishLine, Grid, EditorResources, Waterfall,
+    TexturePicker, CreatePreviewObject
 } from '../../components';
 
 import Textures from '../../helpers/Textures';
@@ -272,6 +273,8 @@ export default class Editor extends Component {
             gridSnap,
             gridScale: new THREE.Vector3( gridSnap, gridSnap, gridSnap ),
             createMaterialId: 'ornateWall1',
+            createWrapMaterialId: 'shrinkWrapMaterial',
+            createFoamMaterialId: 'waterFoam',
             createType: 'wall',
             selecting: true,
             createPreviewRotation: new THREE.Quaternion( 0, 0, 0, 1 ),
@@ -301,6 +304,8 @@ export default class Editor extends Component {
         this._onOrbitChange = this._onOrbitChange.bind( this );
         this.selectType = this.selectType.bind( this );
         this.selectMaterialId = this.selectMaterialId.bind( this );
+        this.selectWrapMaterialId = this.selectWrapMaterialId.bind( this );
+        this.selectFoamMaterialId = this.selectFoamMaterialId.bind( this );
         this.changeMaterialId = this.changeMaterialId.bind( this );
         this.onChapterCreateChange = this.onChapterCreateChange.bind( this );
         this.deselectAll = this.deselectAll.bind( this );
@@ -722,10 +727,11 @@ export default class Editor extends Component {
         }
 
         const {
-            scene, previewPosition, camera, dragCreateBlock, container,
+            scene, previewComponent, camera, dragCreateBlock, container,
             staticEntities
         } = this.refs;
 
+        const { previewPosition } = previewComponent.refs;
         const { entityIds } = currentLevel;
         const bounds = container.getBoundingClientRect();
 
@@ -960,6 +966,24 @@ export default class Editor extends Component {
 
     }
 
+    selectWrapMaterialId( createWrapMaterialId ) {
+
+        return ( event ) => {
+            event.preventDefault();
+            this.setState({ createWrapMaterialId });
+        };
+
+    }
+
+    selectFoamMaterialId( createFoamMaterialId ) {
+
+        return ( event ) => {
+            event.preventDefault();
+            this.setState({ createFoamMaterialId });
+        };
+
+    }
+
     changeMaterialId( newMaterialId ) {
 
         return ( event ) => {
@@ -967,6 +991,30 @@ export default class Editor extends Component {
             this.props.changeEntityMaterial(
                 this.state.selectedObjectId,
                 newMaterialId
+            );
+        };
+
+    }
+
+    changeWrapMaterialId( newWrapMaterialId ) {
+
+        return ( event ) => {
+            event.preventDefault();
+            this.props.changeEntityWrapMaterial(
+                this.state.selectedObjectId,
+                newWrapMaterialId
+            );
+        };
+
+    }
+
+    changeFoamMaterialId( newFoamMaterialId ) {
+
+        return ( event ) => {
+            event.preventDefault();
+            this.props.changeEntityFoamMaterial(
+                this.state.selectedObjectId,
+                newFoamMaterialId
             );
         };
 
@@ -1024,6 +1072,14 @@ export default class Editor extends Component {
             previousChapterEntity, previousChapter, nextChapters, allChapters
         } = this.props;
 
+        const {
+            createType, selecting, selectedObjectId, creating, rotateable,
+            createPreviewPosition, gridScale, createPreviewRotation, gridSnap,
+            rotating, time, lightPosition, selectedNextChapter,
+            createMaterialId, createFoamMaterialId, createWrapMaterialId,
+            insertChapterId
+        } = this.state;
+
         if( !currentBookId ) {
 
             return <div>
@@ -1066,12 +1122,6 @@ export default class Editor extends Component {
 
         const { entityIds } = currentLevel;
 
-        const {
-            createType, selecting, selectedObjectId, creating, rotateable,
-            createPreviewPosition, gridScale, createPreviewRotation, gridSnap,
-            rotating, time, lightPosition, selectedNextChapter
-        } = this.state;
-
         const selectedObject = allEntities[ selectedObjectId ] ||
             selectedNextChapter;
 
@@ -1094,154 +1144,20 @@ export default class Editor extends Component {
 
         if( !rotateable && creating && createPreviewPosition ) {
 
-            if( createType === 'grow' ) {
-
-                previewObject = <Grow
-                    scale={ gridScale }
-                    rotation={ createPreviewRotation }
-                    position={ createPreviewPosition }
-                    time={ time }
-                    wrapMaterialId="ghostMaterial"
-                    ref="previewPosition"
-                    materialId="ghostMaterial"
-                />;
-
-            } else if( createType === 'shrink' ) {
-
-                previewObject = <Shrink
-                    scale={ gridScale }
-                    rotation={ createPreviewRotation }
-                    position={ createPreviewPosition }
-                    time={ time }
-                    wrapMaterialId="ghostMaterial"
-                    ref="previewPosition"
-                    materialId="ghostMaterial"
-                />;
-
-            } else if( createType === 'finish' ) {
-
-                previewObject = <FinishLine
-                    scale={ gridScale }
-                    rotation={ createPreviewRotation }
-                    position={ createPreviewPosition }
-                    ref="previewPosition"
-                    materialId="ghostMaterial"
-                    floorMaterialId="ghostMaterial"
-                />;
-
-            } else if( createType === 'wall' ) {
-
-                previewObject = <Wall
-                    shaders={ shaders }
-                    scale={ gridScale }
-                    rotation={ createPreviewRotation }
-                    position={ createPreviewPosition }
-                    ref="previewPosition"
-                    materialId="ghostMaterial"
-                />;
-
-            } else if( createType === 'pushy' ) {
-
-                previewObject = <Pushy
-                    scale={ gridScale }
-                    rotation={ createPreviewRotation }
-                    position={ createPreviewPosition }
-                    ref="previewPosition"
-                    materialId="ghostMaterial"
-                />;
-
-            } else if( createType === 'waterfall' ) {
-
-                previewObject = <Waterfall
-                    time={ time }
-                    scale={ gridScale }
-                    rotation={ createPreviewRotation }
-                    position={ createPreviewPosition }
-                    ref="previewPosition"
-                    materialId="ghostMaterial"
-                />;
-
-            } else if( createType === 'house' ) {
-
-                previewObject = <House
-                    assets={ assets }
-                    scale={ gridScale }
-                    rotation={ createPreviewRotation }
-                    position={ createPreviewPosition }
-                    ref="previewPosition"
-                    materialId="ghostMaterial"
-                />;
-
-            } else if( createType === 'floor' ) {
-
-                previewObject = <Floor
-                    assets={ assets }
-                    scale={ gridScale }
-                    rotation={ createPreviewRotation }
-                    position={ createPreviewPosition }
-                    ref="previewPosition"
-                    materialId="ghostMaterial"
-                />;
-
-            } else if( createType === 'tube' ) {
-
-                previewObject = <TubeStraight
-                    scale={ gridScale }
-                    rotation={ createPreviewRotation }
-                    position={ createPreviewPosition }
-                    ref="previewPosition"
-                    materialId="ghostMaterial"
-                />;
-
-            } else if( createType === 'tubebend' ) {
-
-                previewObject = <TubeBend
-                    scale={ gridScale }
-                    rotation={ createPreviewRotation }
-                    position={ createPreviewPosition }
-                    ref="previewPosition"
-                    materialId="ghostMaterial"
-                />;
-
-            } else if( createType === 'player' ) {
-
-                previewObject = <Player
-                    position={ createPreviewPosition }
-                    rotation={ createPreviewRotation }
-                    materialId="ghostMaterial"
-                    ref="previewPosition"
-                    radius={ 0.5 }
-                />;
-
-            } else if( createType === 'chapter' ) {
-
-                previewObject = <group
-                    position={ createPreviewPosition }
-                    quaternion={ createPreviewRotation }
-                    scale={ gridScale }
-                    ref="previewGroup"
-                >
-                    <Wall
-                        shaders={ shaders }
-                        position={ new THREE.Vector3( 0, 0, 0 ) }
-                        ref="previewPosition"
-                        materialId="ghostMaterial"
-                        position={ new THREE.Vector3( 0, 1, 0 ) }
-                        scale={ new THREE.Vector3( 8.01, 2.01, 8.01 ) }
-                    />
-                    <StaticEntities
-                        shaders={ shaders }
-                        assets={ assets }
-                        time={ time }
-                        position={ new THREE.Vector3( 0, 0, 0 ) }
-                        entities={
-                            currentLevels[ currentChapters[ this.state.insertChapterId ].levelId ].entityIds
-                                .map( id => allEntities[ id ] )
-                        }
-                    />
-                </group>;
-
-            }
+            previewObject = <CreatePreviewObject
+                scale={ gridScale }
+                rotation={ createPreviewRotation }
+                position={ createPreviewPosition }
+                time={ time }
+                ref="previewComponent"
+                shaders={ shaders }
+                assets={ assets }
+                entities={ insertChapterId ?
+                    currentLevels[ currentChapters[ insertChapterId ].levelId ].entityIds
+                        .map( id => allEntities[ id ] ) :
+                    null
+                }
+            />;
 
         }
 
@@ -1714,38 +1630,16 @@ export default class Editor extends Component {
                         Chapter
                     </button>
 
-                    { ( createType === 'wall' || createType === 'floor' ) && <div>
-
-                        { Object.keys( Textures ).map( key =>
-                            <button onClick={ this.selectMaterialId( key ) }
-                                style={
-                                    this.state.createMaterialId === key ? {
-                                        border: 'inset 1px blue'
-                                    } : null
-                                }
-                                key={ key }
-                            >
-                                <img
-                                    src={ Textures[ key ] }
-                                    height={ 20 }
-                                    width={ 20 }
-                                />
-                            </button>
-                        )}
-                        { Object.keys( CustomShaders ).map( key =>
-                            <button onClick={ this.selectMaterialId( key ) }
-                                style={
-                                    this.state.createMaterialId === key ? {
-                                        border: 'inset 1px blue'
-                                    } : null
-                                }
-                                key={ key }
-                            >
-                                { key }
-                            </button>
-                        )}
-
-                    </div> }
+                    <div>
+                        <b>Main Material Type</b>
+                        <br />
+                        <TexturePicker
+                            shaders={ CustomShaders }
+                            textures={ Textures }
+                            selectedId={ createMaterialId }
+                            onSelect={ this.selectWrapMaterialId }
+                        />
+                    </div>
 
                 </div> : null }
 

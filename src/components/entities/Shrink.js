@@ -13,19 +13,15 @@ export default class Shrink extends Component {
     render() {
 
         const {
-            position, rotation, scale, materialId, wrapMaterialId, time
+            position, scale, materialId, wrapMaterialId, time
         } = this.props;
 
         return <group
-            rotation={ rotation ? new THREE.Euler().setFromQuaternion( rotation
-                .clone().multiply( new THREE.Quaternion()
-                    .setFromEuler( new THREE.Euler(
-                        0,
-                        THREE.Math.degToRad( time * 0.1 ),
-                        0
-                    ) )
-                )
-            ) : null }
+            rotation={ new THREE.Euler(
+                0,
+                THREE.Math.degToRad( time * 50 ),
+                0
+            ) }
             position={ position }
             scale={ scale }
         >
@@ -38,18 +34,14 @@ export default class Shrink extends Component {
                     resourceId="1x1plane"
                 />
                 <materialResource
-                    resourceId={ materialId }
+                    resourceId={ materialId || 'shrinkMaterial' }
                 />
             </mesh>
             <mesh
-                rotation={ new THREE.Euler().setFromQuaternion( rotation
-                    .clone().multiply( new THREE.Quaternion()
-                        .setFromEuler( new THREE.Euler(
-                            THREE.Math.degToRad( time * 0.05 ),
-                            0,
-                            0
-                        ) )
-                    )
+                rotation={ new THREE.Euler(
+                    THREE.Math.degToRad( time * 50 ),
+                    0,
+                    0
                 ) }
                 ref="mesh"
             >
@@ -57,7 +49,7 @@ export default class Shrink extends Component {
                     resourceId="radius1sphere"
                 />
                 <materialResource
-                    resourceId={ wrapMaterialId }
+                    resourceId={ wrapMaterialId || 'shrinkWrapMaterial' }
                 />
             </mesh>
         </group>;

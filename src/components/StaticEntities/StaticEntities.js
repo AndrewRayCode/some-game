@@ -139,8 +139,8 @@ export default class StaticEntities extends Component {
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
-                        wrapMaterialId="shrinkWrapMaterial"
-                        materialId="shrinkMaterial"
+                        wrapMaterialId={ entity.wrapMaterialId }
+                        materialId={ entity.materialId }
                     />;
 
                 } else if( entity.type === 'grow' ) {
@@ -152,8 +152,8 @@ export default class StaticEntities extends Component {
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
-                        wrapMaterialId="growWrapMaterial"
-                        materialId="growMaterial"
+                        wrapMaterialId={ entity.wrapMaterialId }
+                        materialId={ entity.materialId }
                     />;
 
                 } else if( entity.type === 'player' ) {

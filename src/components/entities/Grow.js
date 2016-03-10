@@ -11,7 +11,10 @@ export default class Grow extends Component {
 
     render() {
 
-        const { position, rotation, scale, materialId, wrapMaterialId, time } = this.props;
+        const {
+            position, rotation, scale, materialId, wrapMaterialId, time
+        } = this.props;
+        console.log('hey',time);
 
         return <group
             rotation={ new THREE.Euler().setFromQuaternion( rotation
@@ -35,7 +38,7 @@ export default class Grow extends Component {
                     resourceId="1x1plane"
                 />
                 <materialResource
-                    resourceId={ materialId }
+                    resourceId={ materialId || 'growMaterial' }
                 />
             </mesh>
             <mesh
@@ -54,7 +57,7 @@ export default class Grow extends Component {
                     resourceId="radius1sphere"
                 />
                 <materialResource
-                    resourceId={ wrapMaterialId }
+                    resourceId={ wrapMaterialId || 'growWrapMaterial' }
                 />
             </mesh>
         </group>;

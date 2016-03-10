@@ -1,0 +1,61 @@
+{
+  "id": 695,
+  "name": "Shrink Colors",
+  "fragment": "#extension GL_OES_standard_derivatives : enable\n\nprecision highp float;\nuniform vec3 Inner_Glow1457568482232_69_color;\nuniform float Inner_Glow1457568482232_69_start;\nuniform float Inner_Glow1457568482232_69_end;\nuniform float Inner_Glow1457568482232_69_alpha;\nuniform vec3 Glow_Effect1457568491007_86_color;\nuniform float Glow_Effect1457568491007_86_start;\nuniform float Glow_Effect1457568491007_86_end;\nuniform float Glow_Effect1457568491007_86_alpha;\nvarying vec3 Inner_Glow1457568482232_69_fPosition;\nvarying vec3 Inner_Glow1457568482232_69_fNormal;\nvarying vec3 Glow_Effect1457568491007_86_fPosition;\nvarying vec3 Glow_Effect1457568491007_86_fNormal;\nvec4 Inner_Glow1457568482232_69_main() \n{\n    vec4 Inner_Glow1457568482232_69_gl_FragColor = vec4(0.0);\n    vec3 normal = normalize(Inner_Glow1457568482232_69_fNormal);\n    vec3 eye = normalize(-Inner_Glow1457568482232_69_fPosition.xyz);\n    float rim = 1.0 - smoothstep(Inner_Glow1457568482232_69_start, Inner_Glow1457568482232_69_end, 1.0 - dot(normal, eye));\n    Inner_Glow1457568482232_69_gl_FragColor = vec4(clamp(rim, 0.0, 1.0) * Inner_Glow1457568482232_69_alpha * Inner_Glow1457568482232_69_color, 0.2);\n    return Inner_Glow1457568482232_69_gl_FragColor *= 1.0;\n}\nvec4 Glow_Effect1457568491007_86_main() \n{\n    vec4 Glow_Effect1457568491007_86_gl_FragColor = vec4(0.0);\n    vec3 normal = normalize(Glow_Effect1457568491007_86_fNormal);\n    vec3 eye = normalize(-Glow_Effect1457568491007_86_fPosition.xyz);\n    float rim = smoothstep(Glow_Effect1457568491007_86_start, Glow_Effect1457568491007_86_end, 1.0 - dot(normal, eye));\n    Glow_Effect1457568491007_86_gl_FragColor = vec4(clamp(rim, 0.0, 1.0) * Glow_Effect1457568491007_86_alpha * Glow_Effect1457568491007_86_color, 9.0);\n    return Glow_Effect1457568491007_86_gl_FragColor *= 1.0;\n}\nvoid main() \n{\n    gl_FragColor = (Inner_Glow1457568482232_69_main() + Glow_Effect1457568491007_86_main());}\n",
+  "vertex": "precision highp float;\nuniform mat3 normalMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nattribute vec3 position;\nattribute vec3 normal;\nvarying vec3 Inner_Glow1457568482232_69_fNormal;\nvarying vec3 Inner_Glow1457568482232_69_fPosition;\nvarying vec3 Glow_Effect1457568491007_86_fNormal;\nvarying vec3 Glow_Effect1457568491007_86_fPosition;\nvec4 Inner_Glow1457568482232_69_main() \n{\n    vec4 Inner_Glow1457568482232_69_gl_Position = vec4(0.0);\n    Inner_Glow1457568482232_69_fNormal = normalize(normalMatrix * normal);\n    vec4 pos = modelViewMatrix * vec4(position, 1.0);\n    Inner_Glow1457568482232_69_fPosition = pos.xyz;\n    Inner_Glow1457568482232_69_gl_Position = projectionMatrix * pos;\n    return Inner_Glow1457568482232_69_gl_Position *= 1.0;\n}\nvec4 Glow_Effect1457568491007_86_main() \n{\n    vec4 Glow_Effect1457568491007_86_gl_Position = vec4(0.0);\n    Glow_Effect1457568491007_86_fNormal = normalize(normalMatrix * normal);\n    vec4 pos = modelViewMatrix * vec4(position, 1.0);\n    Glow_Effect1457568491007_86_fPosition = pos.xyz;\n    Glow_Effect1457568491007_86_gl_Position = projectionMatrix * pos;\n    return Glow_Effect1457568491007_86_gl_Position *= 1.0;\n}\nvoid main() \n{\n    gl_Position = Inner_Glow1457568482232_69_main() + Glow_Effect1457568491007_86_main();}\n",
+  "uniforms": {
+    "Inner_Glow1457568482232_69_color": {
+      "value": {
+        "r": 0.9882352941176471,
+        "g": 0.4235294117647059,
+        "b": 0.996078431372549
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "Inner_Glow1457568482232_69_start": {
+      "value": "0",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Inner_Glow1457568482232_69_end": {
+      "value": "0.60348738",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Inner_Glow1457568482232_69_alpha": {
+      "value": "1",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Glow_Effect1457568491007_86_color": {
+      "value": {
+        "r": 0.1411764705882353,
+        "g": 0.3333333333333333,
+        "b": 0.9921568627450981
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "Glow_Effect1457568491007_86_start": {
+      "value": "0",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Glow_Effect1457568491007_86_end": {
+      "value": "1",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Glow_Effect1457568491007_86_alpha": {
+      "value": "1",
+      "type": "f",
+      "glslType": "float"
+    }
+  },
+  "url": "http://shaderfrog.com/app/view/695",
+  "user": {
+    "username": "andrewray",
+    "url": "http://shaderfrog.com/app/profile/andrewray"
+  }
+}

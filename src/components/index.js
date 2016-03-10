@@ -5,6 +5,8 @@
  *
  */
 
+export CreatePreviewObject from './Editor/CreatePreviewObject';
+export TexturePicker from './Editor/TexturePicker';
 export Kbd from './Kbd/Kbd';
 export EditorResources from './EditorResources/EditorResources';
 export GameResources from './GameResources/GameResources';

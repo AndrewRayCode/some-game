@@ -548,13 +548,12 @@ export default class GameRenderer extends Component {
 
         if( this.state.tubeFlow ) {
 
-            const time = elapsedTime;
             let { startTime, tubeIndex } = this.state;
             const { tubeFlow } = this.state;
 
             const isLastTube = tubeIndex === tubeFlow.length - 1;
 
-            let currentPercent = ( ( time - startTime ) * 1000 ) / ( tubeIndex === 0 ?
+            let currentPercent = ( ( elapsedTime - startTime ) * 1000 ) / ( tubeIndex === 0 ?
                 tubeStartTravelDurationMs : tubeTravelDurationMs
             ) * ( this.state.debug ? 0.1 : 1 );
             let isDone;

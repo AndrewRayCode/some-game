@@ -224,7 +224,8 @@ export default class Waterfall extends Component {
     render() {
 
         const {
-            position, rotation, scale, time, materialId, playerRadius
+            position, rotation, scale, time, materialId, playerRadius,
+            foamMaterialId
         } = this.props;
         const { lengths, lengthTargets } = this.state;
         const waterfallHeight = -0.5 + ( playerRadius || 0.45 );
@@ -290,7 +291,7 @@ export default class Waterfall extends Component {
                             resourceId="radius1sphere"
                         />
                         <materialResource
-                            resourceId="waterFoam"
+                            resourceId={ foamMaterialId || 'waterFoam' }
                         />
                     </mesh>
                     <mesh
@@ -314,7 +315,7 @@ export default class Waterfall extends Component {
                             resourceId="radius1sphere"
                         />
                         <materialResource
-                            resourceId="waterFoam"
+                            resourceId={ foamMaterialId || 'waterFoam' }
                         />
                     </mesh>
                 </group>;
