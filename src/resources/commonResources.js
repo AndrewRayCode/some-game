@@ -18,6 +18,7 @@ export default [
         </meshPhongMaterial>
     ),
     <boxGeometry
+        key={ 11947 }
         resourceId="1x1box"
         width={ 1 }
         height={ 1 }
@@ -26,16 +27,19 @@ export default [
         heightSegments={ 1 }
     />,
     <meshBasicMaterial
+        key={ 11948 }
         resourceId="transparent"
         visible={ false }
     />,
     <meshPhongMaterial
+        key={ 11949 }
         resourceId="finishFlag"
         side={ THREE.DoubleSide }
         transparent
         opacity={ 0.7 }
     />,
     <meshPhongMaterial
+        key={ 11950 }
         resourceId="placeholder2"
         side={ THREE.DoubleSide }
         transparent
@@ -43,6 +47,7 @@ export default [
         color={ 0x00ff00 }
     />,
     <meshPhongMaterial
+        key={ 11951 }
         resourceId="placeholder"
         side={ THREE.DoubleSide }
         transparent
@@ -50,6 +55,7 @@ export default [
         color={ 0xff0000 }
     />,
     <planeBufferGeometry
+        key={ 11952 }
         resourceId="1x1plane"
         width={ 1 }
         height={ 1 }
@@ -57,6 +63,7 @@ export default [
         heightSegments={ 1 }
     />,
     <sphereGeometry
+        key={ 11953 }
         resourceId="radius1sphere"
         radius={ 0.5 }
         widthSegments={ 6 }

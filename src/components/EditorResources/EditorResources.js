@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import {
     EditorResources as editorResources,
     commonResources, gameResources, PausedScreenResources,
-    StaticEntitiesResources, TitleScreenResources,
+    StaticEntitiesResources,
 } from '../../resources';
 
 @connect(
@@ -35,7 +35,6 @@ export default class EditorResources extends Component {
             { gameResources }
             { PausedScreenResources }
             { StaticEntitiesResources }
-            { TitleScreenResources }
         </resources>;
 
     }

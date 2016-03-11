@@ -14,17 +14,12 @@ export default class Grow extends Component {
         const {
             position, rotation, scale, materialId, wrapMaterialId, time
         } = this.props;
-        console.log('hey',time);
 
         return <group
-            rotation={ new THREE.Euler().setFromQuaternion( rotation
-                .clone().multiply( new THREE.Quaternion()
-                    .setFromEuler( new THREE.Euler(
-                        0,
-                        THREE.Math.degToRad( time * -0.1 ),
-                        0
-                    ) )
-                )
+            rotation={ new THREE.Euler(
+                0,
+                THREE.Math.degToRad( time * 50 ),
+                0
             ) }
             position={ position }
             scale={ scale }
@@ -42,14 +37,10 @@ export default class Grow extends Component {
                 />
             </mesh>
             <mesh
-                rotation={ new THREE.Euler().setFromQuaternion( rotation
-                    .clone().multiply( new THREE.Quaternion()
-                        .setFromEuler( new THREE.Euler(
-                            THREE.Math.degToRad( time * 0.05 ),
-                            0,
-                            0
-                        ) )
-                    )
+                rotation={ new THREE.Euler(
+                    THREE.Math.degToRad( time * 50 ),
+                    0,
+                    0
                 ) }
                 ref="mesh"
             >

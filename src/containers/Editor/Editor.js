@@ -18,7 +18,7 @@ import styles from './Editor.scss';
 import {
     Wall, Floor, Pushy, TubeBend, TubeStraight, Player, StaticEntities,
     Shrink, House, Grow, FinishLine, Grid, EditorResources, Waterfall,
-    TexturePicker, CreatePreviewObject
+    TexturePicker, CreatePreviewObject, Kbd
 } from '../../components';
 
 import Textures from '../../helpers/Textures';
@@ -728,10 +728,10 @@ export default class Editor extends Component {
 
         const {
             scene, previewComponent, camera, dragCreateBlock, container,
-            staticEntities
+            staticEntities,
         } = this.refs;
 
-        const { previewPosition } = previewComponent.refs;
+        const { previewPosition, previewGroup } = ( previewComponent || {} ).refs || {};
         const { entityIds } = currentLevel;
         const bounds = container.getBoundingClientRect();
 
@@ -755,10 +755,10 @@ export default class Editor extends Component {
                     ) &&
                     intersection.object !== dragCreateBlock &&
                     !( intersection.object instanceof THREE.Line ) &&
-                    ( !this.refs.previewGroup || (
-                        ( intersection.object.parent !== this.refs.previewGroup ) &&
-                        ( intersection.object.parent && intersection.object.parent.parent !== this.refs.previewGroup ) &&
-                        ( intersection.object.parent.parent && intersection.object.parent.parent.parent !== this.refs.previewGroup )
+                    ( !previewGroup || (
+                        ( intersection.object.parent !== previewGroup ) &&
+                        ( intersection.object.parent && intersection.object.parent.parent !== previewGroup ) &&
+                        ( intersection.object.parent.parent && intersection.object.parent.parent.parent !== previewGroup )
                     ) );
             })
             .sort( ( a, b ) => {
@@ -1069,7 +1069,7 @@ export default class Editor extends Component {
             currentBookId, nextChaptersEntities,
             currentChapters, currentChapterId, currentChapter,
             firstChapterIdsContainingLevel, previousChapterEntities,
-            previousChapterEntity, previousChapter, nextChapters, allChapters
+            previousChapterEntity, previousChapter, nextChapters, allChapters,
         } = this.props;
 
         const {
@@ -1077,7 +1077,7 @@ export default class Editor extends Component {
             createPreviewPosition, gridScale, createPreviewRotation, gridSnap,
             rotating, time, lightPosition, selectedNextChapter,
             createMaterialId, createFoamMaterialId, createWrapMaterialId,
-            insertChapterId
+            insertChapterId, dragCreating
         } = this.state;
 
         if( !currentBookId ) {
@@ -1107,7 +1107,7 @@ export default class Editor extends Component {
                 <ul>
                 { ( Object.keys( currentLevels ) || [] ).map( id => {
                     return <li key={ id }>
-                        <a onClick={ this.props.selectLevelAndChapter.bind( null, id, firstChapterIdsContainingLevel[ id ] ) }>
+                        <a onClick={ this.selectLevelAndChapter.bind( null, id, firstChapterIdsContainingLevel[ id ] ) }>
                             { currentLevels[ id ].name }
                         </a>
                     </li>;
@@ -1142,14 +1142,16 @@ export default class Editor extends Component {
 
         let previewObject = null;
 
-        if( !rotateable && creating && createPreviewPosition ) {
+        if( !dragCreating && !rotateable && creating && createType &&
+                createPreviewPosition
+            ) {
 
             previewObject = <CreatePreviewObject
+                createType={ createType }
                 scale={ gridScale }
-                rotation={ createPreviewRotation }
-                position={ createPreviewPosition }
+                createPreviewRotation={ createPreviewRotation }
+                createPreviewPosition={ createPreviewPosition }
                 time={ time }
-                ref="previewComponent"
                 shaders={ shaders }
                 assets={ assets }
                 entities={ insertChapterId ?
@@ -1241,7 +1243,7 @@ export default class Editor extends Component {
                                 />
                             </mesh> }
 
-                            { this.state.dragCreating ? <mesh
+                            { dragCreating ? <mesh
                                 position={ this.state.createPreviewPosition }
                                 scale={ this.state.createPreviewScale }
                                 ref="dragCreateBlock"
@@ -1252,7 +1254,9 @@ export default class Editor extends Component {
                                 <materialResource
                                     resourceId="ghostMaterial"
                                 />
-                            </mesh> : previewObject }
+                            </mesh> : null }
+                                
+                            { previewObject }
 
                             <Grid
                                 position={ this.state.gridPosition }
@@ -1556,50 +1560,43 @@ export default class Editor extends Component {
                 { creating ? <div>
                     <b>Create</b>
                     <br />
-                    [W] { createType === 'wall' && '✓' }
                     <button onClick={ this.selectType( 'wall' ) }>
-                        Wall
+                        { createType === 'wall' && '✓' }
+                        <Kbd>W</Kbd>all
                     </button>
-                    <br />
-                    [F] { createType === 'floor' && '✓' }
                     <button onClick={ this.selectType( 'floor' ) }>
-                        Floor
+                        { createType === 'floor' && '✓' }
+                        <Kbd>F</Kbd>loor
                     </button>
-                    <br />
-                    [P] { createType === 'pushy' && '✓' }
                     <button onClick={ this.selectType( 'pushy' ) }>
-                        Pushy
+                        { createType === 'pushy' && '✓' }
+                        <Kbd>P</Kbd>ushy
                     </button>
-                    <br />
-                    [T] { createType === 'tube' && '✓' }
                     <button onClick={ this.selectType( 'tube' ) }>
-                        Tube Straight
+                        { createType === 'tube' && '✓' }
+                        <Kbd>T</Kbd>ube Straight
                     </button>
-                    <br />
-                    [B] { createType === 'tubebend' && '✓' }
                     <button onClick={ this.selectType( 'tubebend' ) }>
-                        Tube Bend
+                        { createType === 'tubebend' && '✓' }
+                        Tube <Kbd>B</Kbd>end
                     </button>
-                    <br />
-                    [K] { createType === 'shrink' && '✓' }
                     <button onClick={ this.selectType( 'shrink' ) }>
-                        Shrink
+                        { createType === 'shrink' && '✓' }
+                        <Kbd>S</Kbd>hrink
                     </button>
-                    <br />
-                    [O] { createType === 'grow' && '✓' }
                     <button onClick={ this.selectType( 'grow' ) }>
-                        Grow
+                        { createType === 'grow' && '✓' }
+                        Gr<Kbd>o</Kbd>w
                     </button>
-                    <br />
-                    [A] { createType === 'player' && '✓' }
                     <button onClick={ this.selectType( 'player' ) }>
-                        Player
+                        { createType === 'player' && '✓' }
+                        Pl<Kbd>a</Kbd>yer
                     </button>
-                    <br />
-                    [H] { createType === 'finish' && '✓' }
                     <button onClick={ this.selectType( 'finish' ) }>
-                        Finish
+                        { createType === 'finish' && '✓' }
+                        Finis<Kbd>h</Kbd>
                     </button>
+
                     <br />
                     <b>Extras</b>
                     <br />
@@ -1611,8 +1608,7 @@ export default class Editor extends Component {
                     <button onClick={ this.selectType( 'waterfall' ) }>
                         Waterfall
                     </button>
-                    <br />
-                    [L] { createType === 'chapter' && '✓' }
+                    { createType === 'chapter' && '✓' }
                     <select
                         onChange={ this.onChapterCreateChange }
                         value={ this.state.insertChapterId }

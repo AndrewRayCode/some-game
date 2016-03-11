@@ -3,17 +3,17 @@ import React3 from 'react-three-renderer';
 import {
     Wall, Floor, Pushy, TubeBend, TubeStraight, Player, StaticEntities,
     Shrink, House, Grow, FinishLine, Waterfall,
-} from '../../components';
+} from '../';
 import THREE from 'three';
 
-export default class Editor extends Component {
+export default class CreatePreviewObject extends Component {
 
     static propTypes = {
         createType: PropTypes.string.isRequired,
         createPreviewPosition: PropTypes.object.isRequired,
         createPreviewRotation: PropTypes.object.isRequired,
         time: PropTypes.number.isRequired,
-        gridScale: PropTypes.object.isRequired,
+        scale: PropTypes.object.isRequired,
         shaders: PropTypes.object.isRequired,
         assets: PropTypes.object.isRequired,
         chapterEntities: PropTypes.object
@@ -29,7 +29,7 @@ export default class Editor extends Component {
 
         const {
             createType, createPreviewPosition, createPreviewRotation, time,
-            gridScale, shaders, assets, chapterEntities
+            scale, shaders, assets, chapterEntities
         } = this.props;
 
         switch( createType ) {
@@ -37,7 +37,7 @@ export default class Editor extends Component {
             case 'grow':
 
                 return <Grow
-                    scale={ gridScale }
+                    scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     time={ time }
@@ -49,7 +49,7 @@ export default class Editor extends Component {
             case 'shrink':
 
                 return <Shrink
-                    scale={ gridScale }
+                    scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     time={ time }
@@ -61,7 +61,7 @@ export default class Editor extends Component {
             case 'finish':
 
                 return <FinishLine
-                    scale={ gridScale }
+                    scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     ref="previewPosition"
@@ -72,8 +72,7 @@ export default class Editor extends Component {
             case 'wall':
 
                 return <Wall
-                    shaders={ shaders }
-                    scale={ gridScale }
+                    scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     ref="previewPosition"
@@ -83,7 +82,7 @@ export default class Editor extends Component {
             case 'pushy':
 
                 return <Pushy
-                    scale={ gridScale }
+                    scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     ref="previewPosition"
@@ -94,7 +93,7 @@ export default class Editor extends Component {
 
                 return <Waterfall
                     time={ time }
-                    scale={ gridScale }
+                    scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     ref="previewPosition"
@@ -105,7 +104,7 @@ export default class Editor extends Component {
 
                 return <House
                     assets={ assets }
-                    scale={ gridScale }
+                    scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     ref="previewPosition"
@@ -116,7 +115,7 @@ export default class Editor extends Component {
 
                 return <Floor
                     assets={ assets }
-                    scale={ gridScale }
+                    scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     ref="previewPosition"
@@ -126,7 +125,7 @@ export default class Editor extends Component {
             case 'tube':
 
                 return <TubeStraight
-                    scale={ gridScale }
+                    scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     ref="previewPosition"
@@ -136,7 +135,7 @@ export default class Editor extends Component {
             case 'tubebend':
 
                 return <TubeBend
-                    scale={ gridScale }
+                    scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     ref="previewPosition"
@@ -158,11 +157,10 @@ export default class Editor extends Component {
                 return <group
                     position={ createPreviewPosition }
                     quaternion={ createPreviewRotation }
-                    scale={ gridScale }
+                    scale={ scale }
                     ref="previewGroup"
                 >
                     <Wall
-                        shaders={ shaders }
                         position={ new THREE.Vector3( 0, 0, 0 ) }
                         ref="previewPosition"
                         materialId="ghostMaterial"

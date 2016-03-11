@@ -33,12 +33,14 @@ const straightExtrudeSettings = {
 
 export default [
     <meshPhongMaterial
+        key={ 8991 }
         resourceId="finishFlag"
         side={ THREE.DoubleSide }
         transparent
         opacity={ 0.7 }
     />,
     <meshPhongMaterial
+        key={ 8992 }
         resourceId="tubeMaterial"
         side={ THREE.DoubleSide }
         transparent
@@ -51,6 +53,7 @@ export default [
         />
     </meshPhongMaterial>,
     <extrudeGeometry
+        key={ 8993 }
         resourceId="tubeBend"
         settings={ extrudeSettings }
     >
@@ -59,6 +62,7 @@ export default [
         />
     </extrudeGeometry>,
     <extrudeGeometry
+        key={ 8994 }
         resourceId="tubeStraight"
         settings={ straightExtrudeSettings }
     >
