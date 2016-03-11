@@ -9,7 +9,7 @@ import {
     createLevel, selectLevelAndChapter, deserializeLevels, renameLevel,
     addNextChapter, removeNextChapter, insetChapter, changeEntityType,
     createBook, selectBook, renameChapter, renameBook, createChapterFromLevel,
-    saveAll
+    saveAll, changeEntityWrapMaterial, changeEntityFoamMaterial
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -252,7 +252,8 @@ function snapTo( number, interval ) {
         changeEntityMaterial, addNextChapter, renameLevel,
         createLevel, renameChapter, renameBook, removeNextChapter,
         insetChapter, changeEntityType, createBook, selectBook,
-        selectLevelAndChapter, createChapterFromLevel, saveAll
+        selectLevelAndChapter, createChapterFromLevel, saveAll,
+        changeEntityFoamMaterial, changeEntityWrapMaterial,
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -304,8 +305,8 @@ export default class Editor extends Component {
         this._onOrbitChange = this._onOrbitChange.bind( this );
         this.selectType = this.selectType.bind( this );
         this.selectMaterialId = this.selectMaterialId.bind( this );
-        this.selectWrapMaterialId = this.selectWrapMaterialId.bind( this );
-        this.selectFoamMaterialId = this.selectFoamMaterialId.bind( this );
+        this.changeWrapMaterialId = this.changeWrapMaterialId.bind( this );
+        this.changeFoamMaterialId = this.changeFoamMaterialId.bind( this );
         this.changeMaterialId = this.changeMaterialId.bind( this );
         this.onChapterCreateChange = this.onChapterCreateChange.bind( this );
         this.deselectAll = this.deselectAll.bind( this );
@@ -966,24 +967,6 @@ export default class Editor extends Component {
 
     }
 
-    selectWrapMaterialId( createWrapMaterialId ) {
-
-        return ( event ) => {
-            event.preventDefault();
-            this.setState({ createWrapMaterialId });
-        };
-
-    }
-
-    selectFoamMaterialId( createFoamMaterialId ) {
-
-        return ( event ) => {
-            event.preventDefault();
-            this.setState({ createFoamMaterialId });
-        };
-
-    }
-
     changeMaterialId( newMaterialId ) {
 
         return ( event ) => {
@@ -1422,9 +1405,9 @@ export default class Editor extends Component {
                 <br />
                 <br />
                 { selecting && selectedObject ? <div>
-                    <b>Object Seelcted</b>
+                    <b>Object Selcted</b>
                     <br />
-                    Press [X] to delete this object
+                    Press <Kbd>X</Kbd> to delete this object
                     <br />
                     <br />
                     <b>type:</b> { selectedNextChapter ? 'nextChapter' : selectedObject.type }
@@ -1467,7 +1450,7 @@ export default class Editor extends Component {
                     />
 
                     <br />
-                    <b>rotation euler</b>:
+                    <b>rotation quaternion</b>:
                     <br />
 
                     x <input
@@ -1500,59 +1483,75 @@ export default class Editor extends Component {
                         step={ gridSnap }
                     />
 
+                    w <input
+                        type="number"
+                        style={{ width: '40px' }}
+                        value={ selectedObject.rotation.w }
+                        onChange={ this.onRotateSelectedObject.bind( this, 'w' ) }
+                        min={-Infinity}
+                        max={Infinity}
+                        step={ gridSnap }
+                    />
+
                     { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' || selectedObject.type === 'waterfall' ) ? <div>
                         <br />
                         <br />
-                        <b>Change Texture of Selection:</b>
+                        <b>Change materialId of Selection:</b>
                         <br />
 
-                        { Object.keys( Textures ).map( key =>
-                            <button onClick={ this.changeMaterialId( key ) }
-                                style={
-                                    ( currentLevelStaticEntities[
-                                        selectedObjectId
-                                    ] || {} ).materialId === key ? {
-                                        border: 'inset 1px blue'
-                                    } : null
-                                }
-                                key={ key }
-                            >
-                                <img
-                                    src={ Textures[ key ] }
-                                    height={ 20 }
-                                    width={ 20 }
-                                />
-                            </button>
-                        )}
-                        { Object.keys( CustomShaders ).map( key =>
-                            <button onClick={ this.changeMaterialId( key ) }
-                                style={
-                                    ( currentLevelStaticEntities[
-                                        selectedObjectId
-                                    ] || {} ).materialId === key ? {
-                                        border: 'inset 1px blue'
-                                    } : null
-                                }
-                                key={ key }
-                            >
-                                { key }
-                            </button>
-                        )}
+                        <TexturePicker
+                            onSelect={ this.changeMaterialId }
+                            selectedId={ ( currentLevelStaticEntities[
+                                selectedObjectId
+                            ] || {} ).materialId }
+                            shaders={ shaders }
+                            textures={ Textures }
+                        />
+                    </div> : null }
 
-                        { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) && <div>
-                            <br /><br />
-                            <button
-                                onClick={
-                                    this.props.changeEntityType.bind(
-                                        null,
-                                        selectedObjectId,
-                                        selectedObject.type === 'wall' ? 'floor' : 'wall'
-                                    )
-                                }
-                            >
-                                Switch type to { selectedObject.type === 'wall' ? 'Floor' : 'Wall' }
-                            </button>
-                        </div> }
+                    { selectedObject.type === 'waterfall' ? <div>
+                        <br />
+                        <b>Change foamMaterialId of Selection:</b>
+                        <br />
+
+                        <TexturePicker
+                            onSelect={ this.changeFoamMaterialId }
+                            selectedId={ ( currentLevelStaticEntities[
+                                selectedObjectId
+                            ] || {} ).foamMaterialId }
+                            shaders={ shaders }
+                            textures={ Textures }
+                        />
+                    </div> : null }
+
+                    { ( selectedObject.type === 'grow' || selectedObject.type === 'shrink'  ) ? <div>
+                        <br />
+                        <b>Change wrapMaterialId of Selection:</b>
+                        <br />
+
+                        <TexturePicker
+                            onSelect={ this.changeWrapMaterialId }
+                            selectedId={ ( currentLevelStaticEntities[
+                                selectedObjectId
+                            ] || {} ).wrapMaterialId }
+                            shaders={ shaders }
+                            textures={ Textures }
+                        />
+                    </div> : null }
+
+                    { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) ? <div>
+                        <br /><br />
+                        <button
+                            onClick={
+                                this.props.changeEntityType.bind(
+                                    null,
+                                    selectedObjectId,
+                                    selectedObject.type === 'wall' ? 'floor' : 'wall'
+                                )
+                            }
+                        >
+                            Switch type to { selectedObject.type === 'wall' ? 'Floor' : 'Wall' }
+                        </button>
                     </div> : null }
 
                 </div> : null }

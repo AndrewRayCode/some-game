@@ -59,6 +59,7 @@ export default class StaticEntities extends Component {
                         playerRadius={ playerRadius }
                         playerBody={ playerBody }
                         materialId={ entity.materialId }
+                        foamMaterialId={ entity.foamMaterialId }
                     />;
 
                 } else if( entity.type === 'pushy' ) {
@@ -141,6 +142,7 @@ export default class StaticEntities extends Component {
                         scale={ entity.scale }
                         wrapMaterialId={ entity.wrapMaterialId }
                         materialId={ entity.materialId }
+                        wrapMaterialId={ entity.wrapMaterialId }
                     />;
 
                 } else if( entity.type === 'grow' ) {
@@ -154,6 +156,7 @@ export default class StaticEntities extends Component {
                         scale={ entity.scale }
                         wrapMaterialId={ entity.wrapMaterialId }
                         materialId={ entity.materialId }
+                        wrapMaterialId={ entity.wrapMaterialId }
                     />;
 
                 } else if( entity.type === 'player' ) {
