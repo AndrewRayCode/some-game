@@ -7,6 +7,7 @@ const CustomShaders = {
     regularWater: require( '../../assets/shaders/Regular_Water.json' ),
     waterFoam: require( '../../assets/shaders/Water_Foam.json' ),
     shrinkColors: require( '../../assets/shaders/Shrink_Colors.json' ),
+    growColors: require( '../../assets/shaders/Grow_Colors.json' ),
 };
 
 export default CustomShaders;

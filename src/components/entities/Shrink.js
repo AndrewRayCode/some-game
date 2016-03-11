@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import THREE from 'three';
 
 const rotationOffset = new THREE.Euler( Math.PI / 2, 0, 0 );
-const billboardScale = new THREE.Vector3( 0.7, 0.7, 0.7 );
+const billboardScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
 
 export default class Shrink extends Component {
 
@@ -34,7 +34,7 @@ export default class Shrink extends Component {
                     resourceId="1x1plane"
                 />
                 <materialResource
-                    resourceId={ materialId || 'shrinkMaterial' }
+                    resourceId="shrinkMaterial"
                 />
             </mesh>
             <mesh

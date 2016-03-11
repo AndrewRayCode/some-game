@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import THREE from 'three';
 
 const rotationOffset = new THREE.Euler( Math.PI / 2, 0, 0 );
+const billboardScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
 
 export default class Grow extends Component {
 
@@ -12,7 +13,7 @@ export default class Grow extends Component {
     render() {
 
         const {
-            position, rotation, scale, materialId, wrapMaterialId, time
+            position, rotation, scale, wrapMaterialId, time
         } = this.props;
 
         return <group
@@ -25,7 +26,7 @@ export default class Grow extends Component {
             scale={ scale }
         >
             <mesh
-                scale={ new THREE.Vector3( 0.7, 0.7, 0.7 ) }
+                scale={ billboardScale }
                 rotation={ rotationOffset }
                 ref="mesh2"
             >
@@ -33,7 +34,7 @@ export default class Grow extends Component {
                     resourceId="1x1plane"
                 />
                 <materialResource
-                    resourceId={ materialId || 'growMaterial' }
+                    resourceId="growMaterial"
                 />
             </mesh>
             <mesh

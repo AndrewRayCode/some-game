@@ -129,6 +129,7 @@ export function shadersReducer( shaders = {}, action = {} ) {
                     json: action.data,
                     material,
                     resource: <rawShaderMaterial
+                        depthTest={ ( /wrap/i ).test( name ) }
                         transparent
                         key={ name }
                         resourceId={ name }

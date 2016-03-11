@@ -1130,6 +1130,7 @@ export default class Editor extends Component {
             ) {
 
             previewObject = <CreatePreviewObject
+                ref="previewComponent"
                 createType={ createType }
                 scale={ gridScale }
                 createPreviewRotation={ createPreviewRotation }
@@ -1632,7 +1633,7 @@ export default class Editor extends Component {
                             shaders={ CustomShaders }
                             textures={ Textures }
                             selectedId={ createMaterialId }
-                            onSelect={ this.selectWrapMaterialId }
+                            onSelect={ this.selectMaterialId }
                         />
                     </div>
 
