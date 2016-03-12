@@ -11,6 +11,7 @@ export Kbd from './Kbd/Kbd';
 export EditorResources from './EditorResources/EditorResources';
 export GameResources from './GameResources/GameResources';
 export Text from './Text/Text';
+export ConfirmRestartScreen from './ConfirmRestartScreen/ConfirmRestartScreen';
 export PausedScreen from './PausedScreen/PausedScreen';
 export TitleScreen from './TitleScreen/TitleScreen';
 export StaticEntities from './StaticEntities/StaticEntities';

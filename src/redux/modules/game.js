@@ -11,6 +11,7 @@ const shrinkForceMultiplier = 1 / ( 8 * Math.sqrt( 2 ) );
 
 const GAME_SELECT_CHAPTER = 'game/GAME_SELECT_CHAPTER';
 const START_GAME = 'game/START_GAME';
+const RESTART_CHAPTER = 'game/RESTART_CHAPTER';
 const STOP_GAME = 'game/STOP_GAME';
 const SCALE_PLAYER = 'game/SCALE_PLAYER';
 
@@ -25,12 +26,15 @@ export function game( state = defaultGameState, action = {} ) {
     switch( action.type ) {
 
         case START_GAME:
+        case RESTART_CHAPTER:
 
-            const { entities, levels, chapters, books } = action;
+            const {
+                entities, levels, chapters, books, recursionBusterId
+            } = action;
 
             return {
                 ...state,
-                chapters, books,
+                recursionBusterId, chapters, books,
 
                 // Remove player entities from each level
                 levels: Object.keys( levels ).reduce( ( memo, id ) => {
@@ -159,6 +163,14 @@ export function startGame( bookId, chapterId, levels, entities, books, chapters 
     return {
         type: START_GAME,
         bookId, chapterId, levels, entities, chapters, books
+    };
+}
+
+export function restartChapter( chapterId, entities, levels, chapters, books ) {
+    return {
+        type: RESTART_CHAPTER,
+        recursionBusterId: Date.now(),
+        chapterId, entities, levels, chapters, books
     };
 }
 

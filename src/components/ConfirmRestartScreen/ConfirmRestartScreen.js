@@ -9,7 +9,6 @@ const cameraAspect = gameWidth / gameHeight;
 const cameraFov = 75;
 const cameraPosition = new THREE.Vector3( 0, 8, 0 );
 const lookAt = new THREE.Vector3( 0, 0, 0 );
-const raycaster = new THREE.Raycaster();
 
 const sceneOffset = new THREE.Vector3( 100, 100, 100 );
 
@@ -17,14 +16,13 @@ const bgRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
 const bgPosition = new THREE.Vector3( 0, -2, 0 );
 const bgScale = new THREE.Vector3( 18, 18, 18 );
 
-export default class PausedScreen extends Component {
+export default class ConfirmRestartScreen extends Component {
     
     static propTypes = {
         letters: React.PropTypes.object.isRequired,
         fonts: React.PropTypes.object.isRequired,
-        onUnpause: React.PropTypes.func.isRequired,
-        onRestart: React.PropTypes.func.isRequired,
-        onReturnToMenu: React.PropTypes.func.isRequired,
+        onConfirm: React.PropTypes.func.isRequired,
+        onDeny: React.PropTypes.func.isRequired,
         onClickRegionLeave: React.PropTypes.func.isRequired,
         onClickRegionEnter: React.PropTypes.func.isRequired,
     }
@@ -43,17 +41,13 @@ export default class PausedScreen extends Component {
 
     onMouseDown( hovered, event ) {
 
-        if( hovered === 'restart' ) {
+        if( hovered === 'confirm' ) {
 
-            this.props.onRestart();
+            this.props.onConfirm();
 
-        } else if( hovered === 'unpause' ) {
+        } else if( hovered === 'deny' ) {
 
-            this.props.onUnpause();
-
-        } else if( hovered === 'menu' ) {
-
-            this.props.onReturnToMenu();
+            this.props.onDeny();
 
         }
 
@@ -76,14 +70,14 @@ export default class PausedScreen extends Component {
     render() {
 
         const { fonts, letters } = this.props;
-        const { unpause, menu, restart } = this.state;
+        const { confirm, deny } = this.state;
 
         return <object3D
             position={ sceneOffset }
         >
 
             <perspectiveCamera
-                name="pausedCamera"
+                name="confirmRestartCamera"
                 fov={ cameraFov }
                 aspect={ cameraAspect }
                 near={ 0.1 }
@@ -108,64 +102,48 @@ export default class PausedScreen extends Component {
 
             <Text
                 position={ new THREE.Vector3( -4.5, 0, 0 ) }
-                scale={ new THREE.Vector3( 0.7, 0.7, 0.7 ) }
-                fonts={ fonts }
-                letters={ letters }
-                fontName="Sniglet Regular"
-                text="Today I'm A Galaxy"
-                materialId="universeInALetter"
-            />
-
-            <Text
-                position={ new THREE.Vector3( -1, 0, 0 ) }
-                scale={ new THREE.Vector3( 1.5, 1.5, 1.5 ) }
-                text="Paused"
+                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.9 ) }
+                text="Restart This"
                 materialId="universeInALetter"
                 fontName="Sniglet Regular"
                 fonts={ fonts }
                 letters={ letters }
             />
+            <Text
+                position={ new THREE.Vector3( -3, 0, 0 ) }
+                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.9 ) }
+                text="Level?"
+                materialId="universeInALetter"
+                fontName="Sniglet Regular"
+                fonts={ fonts }
+                letters={ letters }
+            />
 
             <Text
-                onMouseEnter={ this.onMouseEnter.bind( null, 'unpause' ) }
-                onMouseLeave={ this.onMouseLeave.bind( null, 'unpause') }
-                onMouseDown={ this.onMouseDown.bind( null, 'unpause' ) }
+                onMouseEnter={ this.onMouseEnter.bind( null, 'confirm' ) }
+                onMouseLeave={ this.onMouseLeave.bind( null, 'confirm') }
+                onMouseDown={ this.onMouseDown.bind( null, 'confirm' ) }
                 scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 ) }
                 fontName="Sniglet Regular"
                 position={ new THREE.Vector3( 1, 0, 0 ) }
-                text="Unpause (p)"
+                text="Restart"
                 materialId={
-                    unpause ? 'universeInAMenuHover' : 'universeInAMenu'
+                    confirm ? 'universeInAMenuHover' : 'universeInAMenu'
                 }
                 fonts={ fonts }
                 letters={ letters }
             />
 
             <Text
-                onMouseEnter={ this.onMouseEnter.bind( null, 'restart' ) }
-                onMouseLeave={ this.onMouseLeave.bind( null, 'restart') }
-                onMouseDown={ this.onMouseDown.bind( null, 'restart' ) }
+                onMouseEnter={ this.onMouseEnter.bind( null, 'deny' ) }
+                onMouseLeave={ this.onMouseLeave.bind( null, 'deny') }
+                onMouseDown={ this.onMouseDown.bind( null, 'deny' ) }
                 scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 ) }
                 fontName="Sniglet Regular"
                 position={ new THREE.Vector3( 2.5, 0, 0 ) }
-                text="Restart This Level (r)"
+                text="Cancel"
                 materialId={
-                    restart ? 'universeInAMenuHover' : 'universeInAMenu'
-                }
-                fonts={ fonts }
-                letters={ letters }
-            />
-
-            <Text
-                onMouseEnter={ this.onMouseEnter.bind( null, 'menu' ) }
-                onMouseLeave={ this.onMouseLeave.bind( null, 'menu') }
-                onMouseDown={ this.onMouseDown.bind( null, 'menu' ) }
-                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 ) }
-                fontName="Sniglet Regular"
-                position={ new THREE.Vector3( 4, 0, 0 ) }
-                text="Return to Menu (m)"
-                materialId={
-                    menu ? 'universeInAMenuHover' : 'universeInAMenu'
+                    deny ? 'universeInAMenuHover' : 'universeInAMenu'
                 }
                 fonts={ fonts }
                 letters={ letters }

@@ -10,14 +10,16 @@ import {
 } from '../../redux/modules/editor';
 import { areAssetsLoaded, loadAllAssets } from '../../redux/modules/assets';
 import {
-    scalePlayer, advanceChapter, startGame, stopGame
+    scalePlayer, advanceChapter, startGame, stopGame, restartChapter
 } from '../../redux/modules/game';
 
 import { getSphereMass, without } from '../../helpers/Utils';
 import KeyCodes from '../../helpers/KeyCodes';
 
 import GameRenderer from './GameRenderer';
-import { TitleScreen, GameResources, PausedScreen, Kbd } from '../../components';
+import {
+    TitleScreen, GameResources, PausedScreen, ConfirmRestartScreen, Kbd
+} from '../../components';
 
 import styles from './Game.scss';
 import classNames from 'classnames/bind';
@@ -45,12 +47,14 @@ const gameHeight = 400;
         const {
             entities: allEntities,
             chapters: allChapters,
-            levels, entities, books,
+            levels, entities, books, chapters,
         } = state.game;
 
         const {
             gameChapterData,
             currentGameBook: currentBookId,
+            levels: originalLevels,
+            entities: originalEntities,
             assets, fonts, letters
         } = state;
 
@@ -60,8 +64,8 @@ const gameHeight = 400;
             return {
                 books: state.books,
                 chapters: state.chapters,
-                levels: state.levels,
-                entities: state.entities,
+                originalLevels,
+                originalEntities,
                 fonts, letters,
             };
 
@@ -196,7 +200,8 @@ const gameHeight = 400;
         return {
             levels, currentLevel, currentLevelId, currentChapterId,
             currentLevelAllEntities, currentLevelStaticEntities, allEntities,
-            nextChaptersEntities, assets, fonts, letters,
+            nextChaptersEntities, assets, fonts, letters, originalLevels,
+            originalEntities, books, chapters,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray, nextChapters, previousChapterEntities,
             previousChapterFinishEntity, previousChapterEntity,
@@ -221,7 +226,7 @@ const gameHeight = 400;
     },
     dispatch => bindActionCreators({
         scalePlayer, advanceChapter, loadAllAssets, deserializeLevels,
-        startGame, stopGame
+        startGame, stopGame, restartChapter
     }, dispatch )
 )
 export default class GameGUI extends Component {
@@ -235,6 +240,8 @@ export default class GameGUI extends Component {
 
         this.selectBook = this.selectBook.bind( this );
         this.onExitToTitle = this.onExitToTitle.bind( this );
+        this.onConfirmRestart = this.onConfirmRestart.bind( this );
+        this.onDenyRestart = this.onDenyRestart.bind( this );
         this._onAnimate = this._onAnimate.bind( this );
         this._onRenderUpdate = this._onRenderUpdate.bind( this );
         this.onClickRegionLeave = this.onClickRegionLeave.bind( this );
@@ -242,6 +249,7 @@ export default class GameGUI extends Component {
         this.createMouseInput = this.createMouseInput.bind( this );
         this.onPause = this.onPause.bind( this );
         this.onUnpause = this.onUnpause.bind( this );
+        this.onShowConfirmRestartScreen = this.onShowConfirmRestartScreen.bind( this );
         this.onBeforeRender = this.onBeforeRender.bind( this );
         this.onWindowBlur = this.onWindowBlur.bind( this );
         this.onKeyDown = this.onKeyDown.bind( this );
@@ -300,32 +308,12 @@ export default class GameGUI extends Component {
 
     }
 
-    componentDidUpdate( prevProps, prevState ) {
-
-        //if( prevProps.gameStarted !== this.props.gameStarted ||
-            //prevState.paused !== this.state.paused
-        //) {
-
-            //const { titleScreen, gameRenderer, pauseScreen } = this.refs;
-            //const camera = pauseScreen ?
-                //pauseScreen.refs.camera : (
-                    //titleScreen ?
-                    //titleScreen.refs.camera :
-                    //gameRenderer.refs.camera
-                //);
-
-            //this.state.mouseInput._camera = camera;
-
-        //}
-
-    }
-
     selectBook( book ) {
 
         this.setState({ clickable: false });
-        const { levels, entities, books, chapters } = this.props;
+        const { originalLevels, originalEntities, books, chapters } = this.props;
         this.props.startGame(
-            book.id, book.chapterIds[ 0 ], levels, entities, books, chapters
+            book.id, book.chapterIds[ 0 ], originalLevels, originalEntities, books, chapters
         );
 
     }
@@ -334,6 +322,29 @@ export default class GameGUI extends Component {
 
         this.setState({ clickable: false, paused: false });
         this.props.stopGame();
+
+    }
+
+    onConfirmRestart() {
+
+        this.setState({
+            clickable: false,
+            paused: false,
+            confirmRestart: false,
+        });
+
+        const { currentChapterId, originalEntities, originalLevels, chapters, books } = this.props;
+        this.props.restartChapter( currentChapterId, originalEntities, originalLevels, chapters, books );
+
+    }
+
+    onDenyRestart() {
+
+        this.setState({
+            clickable: false,
+            paused: true,
+            confirmRestart: false,
+        });
 
     }
 
@@ -369,7 +380,7 @@ export default class GameGUI extends Component {
         } = this.refs;
 
         const { gameStarted } = this.props;
-        const { _fps, paused } = this.state;
+        const { _fps, paused, confirmRestart } = this.state;
         const { keysDown } = this;
         const newState = {};
 
@@ -414,18 +425,36 @@ export default class GameGUI extends Component {
 
         if( gameStarted && paused ) {
 
-            if(
-                ( KeyCodes.ESC in keysDown ) || ( KeyCodes.P in keysDown ) ||
-                    ( KeyCodes.SPACE in keysDown )
-            ) {
+            if( confirmRestart ) {
 
-                this.pauseKeyListeningUntilKeyUp();
-                this.onUnpause();
+                if( KeyCodes.ESC in keysDown ) {
 
-            } else if( KeyCodes.M in keysDown ) {
+                    this.pauseKeyListeningUntilKeyUp();
+                    this.onDenyRestart();
 
-                this.pauseKeyListeningUntilKeyUp();
-                this.onExitToTitle();
+                } else if( KeyCodes.ENTER in keysDown ) {
+
+                    this.pauseKeyListeningUntilKeyUp();
+                    this.onConfirmRestart();
+
+                }
+
+            } else {
+
+                if(
+                    ( KeyCodes.ESC in keysDown ) || ( KeyCodes.P in keysDown ) ||
+                        ( KeyCodes.SPACE in keysDown )
+                ) {
+
+                    this.pauseKeyListeningUntilKeyUp();
+                    this.onUnpause();
+
+                } else if( KeyCodes.M in keysDown ) {
+
+                    this.pauseKeyListeningUntilKeyUp();
+                    this.onExitToTitle();
+
+                }
 
             }
 
@@ -435,6 +464,11 @@ export default class GameGUI extends Component {
 
                 this.pauseKeyListeningUntilKeyUp();
                 this.onPause();
+
+            } else if( KeyCodes.R in keysDown ) {
+
+                this.pauseKeyListeningUntilKeyUp();
+                this.onShowConfirmRestartScreen();
 
             }
 
@@ -481,13 +515,31 @@ export default class GameGUI extends Component {
 
     onPause() {
 
-        this.setState({ clickable: false, paused: true });
+        this.setState({
+            clickable: false,
+            paused: true,
+            confirmRestart: false,
+        });
 
     }
 
     onUnpause() {
 
-        this.setState({ clickable: false, paused: false });
+        this.setState({
+            clickable: false,
+            paused: false,
+            confirmRestart: false,
+        });
+
+    }
+
+    onShowConfirmRestartScreen() {
+
+        this.setState({
+            clickable: false,
+            paused: true,
+            confirmRestart: true,
+        });
 
     }
 
@@ -502,7 +554,9 @@ export default class GameGUI extends Component {
 
     render() {
 
-        const { fps, mouseInput, clickable, paused, } = this.state;
+        const {
+            fps, mouseInput, clickable, paused, confirmRestart,
+        } = this.state;
 
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
@@ -534,7 +588,16 @@ export default class GameGUI extends Component {
                 cameraName="mainCamera"
             />
 
-            { paused ? <viewport
+            { confirmRestart ? <viewport
+                x={ 0 }
+                y={ 0 }
+                width={ gameWidth }
+                height={ gameHeight }
+                cameraName="confirmRestartCamera"
+                onBeforeRender={ this.onBeforeRender }
+            /> : null }
+
+            { !confirmRestart && paused ? <viewport
                 x={ 0 }
                 y={ 0 }
                 width={ gameWidth }
@@ -582,13 +645,26 @@ export default class GameGUI extends Component {
                         books={ Object.values( books ) }
                     />
                 }
-                { paused ? <PausedScreen
+
+                { !confirmRestart && paused ? <PausedScreen
                     ref="pauseScreen"
                     mouseInput={ mouseInput }
                     onClickRegionLeave={ this.onClickRegionLeave }
                     onClickRegionEnter={ this.onClickRegionEnter }
                     onUnpause={ this.onUnpause }
                     onReturnToMenu={ this.onExitToTitle }
+                    onRestart={ this.onShowConfirmRestartScreen }
+                    fonts={ fonts }
+                    letters={ letters }
+                /> : null }
+
+                { confirmRestart ? <ConfirmRestartScreen
+                    ref="pauseScreen"
+                    mouseInput={ mouseInput }
+                    onClickRegionLeave={ this.onClickRegionLeave }
+                    onClickRegionEnter={ this.onClickRegionEnter }
+                    onConfirm={ this.onConfirmRestart }
+                    onDeny={ this.onDenyRestart }
                     fonts={ fonts }
                     letters={ letters }
                 /> : null }
