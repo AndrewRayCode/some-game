@@ -1,6 +1,4 @@
 import React, { Component, PropTypes } from 'react';
-import THREE from 'three';
-import Textures from '../../helpers/Textures'; // todo: pass as prop?
 
 import {
     Shrink, Grow, Wall, Floor, Pushy, TubeBend, TubeStraight, Player,
@@ -21,8 +19,8 @@ export default class StaticEntities extends Component {
     render() {
 
         const {
-            entities, time, position, scale, opacity, shaders, assets, world,
-            paused, playerRadius, playerBody,
+            entities, time, position, scale, shaders, assets, world, paused,
+            playerRadius, playerBody,
         } = this.props;
 
         return <group

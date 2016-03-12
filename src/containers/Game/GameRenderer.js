@@ -1,22 +1,14 @@
 import React, { Component, PropTypes } from 'react';
-import React3 from 'react-three-renderer';
 import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
-import { browserHistory } from 'react-router';
-import { scalePlayer, advanceChapter, } from '../../redux/modules/game';
 import KeyCodes from '../../helpers/KeyCodes';
 import Cardinality from '../../helpers/Cardinality';
 import { Pushy, Player, StaticEntities } from '../../components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
-    getCameraDistanceToPlayer, getCardinalityOfVector, snapVectorAngleTo,
-    resetBodyPhysics, lookAtVector, findNextTube, snapTo, lerpVectors
+    getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,
+    lookAtVector, findNextTube, snapTo, lerpVectors
 } from '../../helpers/Utils';
-import styles from './Game.scss';
-
-const fontRotation = new THREE.Quaternion().setFromEuler(
-    new THREE.Euler( -Math.PI / 2, 0, 0 )
-);
 
 const factorConstraint = new CANNON.Vec3( 1, 0, 1 );
 const angularUprightConstraint = new CANNON.Vec3( 0, 0, 0 );
@@ -36,19 +28,12 @@ const gameHeight = 400;
 const cameraAspect = gameWidth / gameHeight;
 const cameraFov = 75;
 
-const shadowD = 20;
-const boxes = 5;
-
 const tubeTravelDurationMs = 200;
 const tubeStartTravelDurationMs = 50;
 
 const levelTransitionDuration = 500;
 
 const scaleDurationMs = 300;
-
-const coolDownTimeMs = 500;
-
-const raycaster = new THREE.Raycaster();
 
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
@@ -155,7 +140,7 @@ export default class GameRenderer extends Component {
     _setupPhysics( props, playerPositionOverride ) {
 
         const {
-            playerRadius, playerDensity, playerMass, pushyDensity,
+            playerRadius, playerDensity, pushyDensity,
             currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray
         } = props;
 
@@ -190,7 +175,7 @@ export default class GameRenderer extends Component {
             ) );
 
             pushyBody.addShape( pushyShape );
-            pushyBody.position.copy( entity.position );
+            pushyBody.position.copy( position );
             this.world.addBody( pushyBody );
             return pushyBody;
 
@@ -296,10 +281,7 @@ export default class GameRenderer extends Component {
     transitionFromLastChapterToNextChapter( nextProps ) {
 
         const {
-            currentChapterId, nextChapters, previousChapterEntity
-        } = this.props;
-        const {
-            cameraPosition, cameraTourTarget, currentTransitionPosition
+            cameraPosition, currentTransitionPosition
         } = this.state;
 
         const { previousChapterNextChapter } = nextProps;
@@ -383,8 +365,7 @@ export default class GameRenderer extends Component {
         };
 
         const {
-            playerScale, playerRadius, playerMass,
-            currentLevelStaticEntitiesArray
+            playerScale, playerRadius, currentLevelStaticEntitiesArray
         } = this.props;
         const { playerContact } = this;
         const { keysDown } = this;
@@ -396,19 +377,11 @@ export default class GameRenderer extends Component {
 
         let forceX = 0;
 
-        const deltaScale = delta * 0.1;
         const velocityMoveMax = 5 * playerScale;
         const velocityMax = 10.0 * velocityMoveMax;
 
-        const moveVelocity = 4 * playerScale;
-
-        const airMoveForce = 50 / Math.pow( 1 / playerScale, 3 );
-        const jumpForce = -Math.sqrt( 2.0 * 4 * 9.8 * playerRadius );
-
         const isLeft = ( KeyCodes.A in keysDown ) || ( KeyCodes.LEFT in keysDown );
         const isRight = ( KeyCodes.D in keysDown ) || ( KeyCodes.RIGHT in keysDown );
-        const isUp = ( KeyCodes.W in keysDown ) || ( KeyCodes.UP in keysDown );
-        const isDown = ( KeyCodes.S in keysDown ) || ( KeyCodes.DOWN in keysDown );
         const playerPositionV3 = new THREE.Vector3().copy( playerPosition );
         const playerSnapped = new THREE.Vector3(
             snapTo( playerPositionV3.x, playerScale ),
@@ -1028,7 +1001,7 @@ export default class GameRenderer extends Component {
 
     }
 
-    onWindowBlur( event ) {
+    onWindowBlur() {
 
         this.keysDown = {};
 
@@ -1057,11 +1030,10 @@ export default class GameRenderer extends Component {
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
-            playerRadius, playerScale, playerMass, nextChapters,
-            nextChaptersEntities, previousChapterEntities,
-            previousChapterEntity, currentLevelRenderableEntitiesArray,
-            previousChapterFinishEntity, assets, shaders, fonts, mouseInput,
-            letters, paused
+            playerRadius, playerScale, nextChapters, nextChaptersEntities,
+            previousChapterEntities, previousChapterEntity,
+            currentLevelRenderableEntitiesArray, previousChapterFinishEntity,
+            assets, shaders, paused
         } = this.props;
 
         const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;

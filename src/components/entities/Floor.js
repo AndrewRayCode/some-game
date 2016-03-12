@@ -8,7 +8,7 @@ export default class Floor extends Component {
 
     render() {
 
-        const { position, rotation, scale, materialId, time } = this.props;
+        const { position, rotation, scale, materialId } = this.props;
 
         return <group
             position={ position }

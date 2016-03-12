@@ -16,9 +16,8 @@ import classNames from 'classnames/bind';
 import styles from './Editor.scss';
 
 import {
-    Wall, Floor, Pushy, TubeBend, TubeStraight, Player, StaticEntities,
-    Shrink, House, Grow, FinishLine, Grid, EditorResources, Waterfall,
-    TexturePicker, CreatePreviewObject, Kbd
+    StaticEntities, Grid, EditorResources, TexturePicker, CreatePreviewObject,
+    Kbd
 } from '../../components';
 
 import Textures from '../../helpers/Textures';
@@ -49,25 +48,6 @@ const speed = 0.1;
 const gameWidth = 400;
 const gameHeight = 400;
 
-const tubeRadius = 0.5;
-const randomSpline = new THREE.QuadraticBezierCurve3(
-    new THREE.Vector3( 0, 0, 0 ),
-    new THREE.Vector3( 0, tubeRadius, 0 ),
-    new THREE.Vector3( tubeRadius, tubeRadius )
-);
-
-const extrudeSettings = {
-    curveSegments: 50,
-    amount: 10,
-    bevelEnabled: false,
-    bevelSegments: 0,
-    steps: 18,
-    bevelSize: 0,
-    closed: false,
-    extrudePath: randomSpline,
-    bevelThickness: 0
-};
-
 const raycaster = new THREE.Raycaster();
 
 function snapTo( number, interval ) {
@@ -91,7 +71,7 @@ function snapTo( number, interval ) {
         }
     }
 }, {
-    promise: ({ store: { dispatch, getState } }) => {
+    promise: ({ store: { dispatch } }) => {
         if( !__SERVER__ ) {
             return dispatch( deserializeLevels() );
         }
@@ -354,19 +334,19 @@ export default class Editor extends Component {
 
     }
 
-    componentDidUpdate( prevProps ) {
+    componentDidUpdate() {
 
         this._setUpOrbitControls();
 
     }
 
-    onWindowBlur( event ) {
+    onWindowBlur() {
 
         this.keysPressed = {};
 
     }
 
-    onInputBlur( event ) {
+    onInputBlur() {
 
         if( this.focused ) {
 
@@ -569,6 +549,7 @@ export default class Editor extends Component {
 
         let state = {
             time: elapsedTime,
+            delta,
             rotateable,
             lightPosition: new THREE.Vector3(
                 radius * Math.sin( elapsedTime * speed ),
@@ -717,9 +698,7 @@ export default class Editor extends Component {
 
     onMouseMove( event ) {
         
-        const {
-            currentLevelId, currentLevel, nextChapters, previousChapterEntity,
-        } = this.props;
+        const { currentLevelId, currentLevel, nextChapters, } = this.props;
 
         if( !currentLevelId ) {
 
@@ -902,16 +881,14 @@ export default class Editor extends Component {
 
     }
 
-    onMouseUp( event ) {
+    onMouseUp() {
 
         const {
             rotateable, dragCreating, createType, createPreviewPosition,
             createPreviewScale, createPreviewRotation, createMaterialId,
         } = this.state;
 
-        const {
-            currentLevelId, allLevels: levels, currentChapterId
-        } = this.props;
+        const { currentLevelId, currentChapterId, } = this.props;
 
         if( rotateable ) {
 
@@ -1046,7 +1023,7 @@ export default class Editor extends Component {
     render() {
 
         const {
-            chapters, books, currentLevels, currentLevelId, currentLevel,
+            books, currentLevels, currentLevelId, currentLevel,
             currentBook, currentLevelStaticEntities, shaders, assets,
             allEntities, currentLevelStaticEntitiesArray,
             currentBookId, nextChaptersEntities,
@@ -1059,8 +1036,7 @@ export default class Editor extends Component {
             createType, selecting, selectedObjectId, creating, rotateable,
             createPreviewPosition, gridScale, createPreviewRotation, gridSnap,
             rotating, time, lightPosition, selectedNextChapter,
-            createMaterialId, createFoamMaterialId, createWrapMaterialId,
-            insertChapterId, dragCreating
+            createMaterialId, insertChapterId, dragCreating
         } = this.state;
 
         if( !currentBookId ) {
@@ -1102,8 +1078,6 @@ export default class Editor extends Component {
             </div>;
 
         }
-
-        const { entityIds } = currentLevel;
 
         const selectedObject = allEntities[ selectedObjectId ] ||
             selectedNextChapter;
@@ -1301,14 +1275,14 @@ export default class Editor extends Component {
                                 { chapter.name }
                                 <br />
                                 <button
-                                    onClick={ event => this.props.removeNextChapter(
+                                    onClick={ () => this.props.removeNextChapter(
                                         currentChapter.id, nextChapter.id
                                     ) }
                                 >
                                     Remove
                                 </button>
                                 <button
-                                    onClick={ event => this.props.insetChapter(
+                                    onClick={ () => this.props.insetChapter(
                                         //currentLevelId, data.level.id,
                                         //data.entity.id,
                                         //previousChapterEntity.id,

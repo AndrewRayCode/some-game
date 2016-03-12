@@ -1,5 +1,4 @@
 import React, { Component, PropTypes } from 'react';
-import React3 from 'react-three-renderer';
 import THREE from 'three';
 import { Text } from '../';
 
@@ -9,7 +8,6 @@ const cameraAspect = gameWidth / gameHeight;
 const cameraFov = 75;
 const cameraPosition = new THREE.Vector3( 0, 8, 0 );
 const lookAt = new THREE.Vector3( 0, 0, 0 );
-const raycaster = new THREE.Raycaster();
 
 const sceneOffset = new THREE.Vector3( 100, 100, 100 );
 
@@ -20,13 +18,13 @@ const bgScale = new THREE.Vector3( 18, 18, 18 );
 export default class PausedScreen extends Component {
     
     static propTypes = {
-        letters: React.PropTypes.object.isRequired,
-        fonts: React.PropTypes.object.isRequired,
-        onUnpause: React.PropTypes.func.isRequired,
-        onRestart: React.PropTypes.func.isRequired,
-        onReturnToMenu: React.PropTypes.func.isRequired,
-        onClickRegionLeave: React.PropTypes.func.isRequired,
-        onClickRegionEnter: React.PropTypes.func.isRequired,
+        letters: PropTypes.object.isRequired,
+        fonts: PropTypes.object.isRequired,
+        onUnpause: PropTypes.func.isRequired,
+        onRestart: PropTypes.func.isRequired,
+        onReturnToMenu: PropTypes.func.isRequired,
+        onClickRegionLeave: PropTypes.func.isRequired,
+        onClickRegionEnter: PropTypes.func.isRequired,
     }
 
     constructor( props, context ) {

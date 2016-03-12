@@ -1,5 +1,4 @@
 import React, { Component, PropTypes } from 'react';
-import React3 from 'react-three-renderer';
 import THREE from 'three';
 import { Text } from '../';
 
@@ -19,12 +18,12 @@ const bgScale = new THREE.Vector3( 18, 18, 18 );
 export default class ConfirmRestartScreen extends Component {
     
     static propTypes = {
-        letters: React.PropTypes.object.isRequired,
-        fonts: React.PropTypes.object.isRequired,
-        onConfirm: React.PropTypes.func.isRequired,
-        onDeny: React.PropTypes.func.isRequired,
-        onClickRegionLeave: React.PropTypes.func.isRequired,
-        onClickRegionEnter: React.PropTypes.func.isRequired,
+        letters: PropTypes.object.isRequired,
+        fonts: PropTypes.object.isRequired,
+        onConfirm: PropTypes.func.isRequired,
+        onDeny: PropTypes.func.isRequired,
+        onClickRegionLeave: PropTypes.func.isRequired,
+        onClickRegionEnter: PropTypes.func.isRequired,
     }
 
     constructor( props, context ) {

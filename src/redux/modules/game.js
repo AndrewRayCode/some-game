@@ -1,11 +1,8 @@
 import THREE from 'three';
 
-const playerScale = 1;
 const playerRadius = 0.45;
 const playerDensity = 1000; // kg / m^3
 const pushyDensity = 750; // kg / m^3
-
-const shrinkForceMultiplier = 1 / ( 8 * Math.sqrt( 2 ) );
 
 // So the impulse you needs drops to 1/(8 * sqrt(2)) of the original.
 

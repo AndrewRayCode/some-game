@@ -1,14 +1,13 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three';
-import { browserHistory } from 'react-router';
 import { connect } from 'react-redux';
 import { asyncConnect } from 'redux-async-connect';
 import { bindActionCreators } from 'redux';
 import {
     areBooksLoaded, loadAllBooks, deserializeLevels
 } from '../../redux/modules/editor';
-import { areAssetsLoaded, loadAllAssets } from '../../redux/modules/assets';
+import { loadAllAssets } from '../../redux/modules/assets';
 import {
     scalePlayer, advanceChapter, startGame, stopGame, restartChapter
 } from '../../redux/modules/game';
@@ -47,12 +46,11 @@ const gameHeight = 400;
         const {
             entities: allEntities,
             chapters: allChapters,
-            levels, entities, books, chapters,
+            levels, books, chapters,
         } = state.game;
 
         const {
             gameChapterData,
-            currentGameBook: currentBookId,
             levels: originalLevels,
             entities: originalEntities,
             assets, fonts, letters
@@ -119,15 +117,6 @@ const gameHeight = 400;
         });
 
         // Books and chapters
-
-        const currentBook = books[ currentBookId ];
-        const { chapterIds } = currentBook;
-        const currentChapters = chapterIds.reduce(
-            ( memo, id ) => ({ ...memo, [ id ]: allChapters[ id ] }),
-            {}
-        );
-        const currentChaptersArray = Object.values( currentChapters );
-
         let previousChapterEntities;
         let previousChapterEntity;
         let previousChapterFinishData;

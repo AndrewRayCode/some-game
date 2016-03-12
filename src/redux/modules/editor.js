@@ -93,8 +93,6 @@ function entityPropertyReducer( entity, action ) {
 
         case ROTATE_ENTITY:
 
-            const rField = action.field;
-            const rValue = action.value;
             const { rotation } = entity;
 
             return {
@@ -789,7 +787,7 @@ export function updateBook( bookData, chapters ) {
 
 export function saveAll( levelData, entities, bookData, chapters ) {
 
-    return ( dispatch, getState, client ) =>
+    return ( dispatch, getState ) =>
         dispatch( levelData.saved ?
             updateLevel( levelData, entities ) :
             saveLevel( levelData, entities )
