@@ -293,19 +293,6 @@ export default class GameRenderer extends Component {
 
                 this.world.bodies = [];
 
-                // nextProps is the new data after the level transition. This obj
-                // determines the current level's size relative to the level we
-                // just came out of. So if we shrunk into this new smaller level,
-                // scale will be 0.125
-                //const { previousChapterNextChapter } = nextProps;
-
-                //const {
-                    //position: chapterPosition,
-                    //scale,
-                //} = previousChapterNextChapter;
-
-                //const multiplier = scale.x < 1 ? 8 : 0.125;
-
                 const newPosition = new CANNON.Vec3(
                     ( currentTransitionPosition.x - chapterPosition.x ) * multiplier,
                     1 + nextProps.playerRadius,
@@ -742,6 +729,7 @@ export default class GameRenderer extends Component {
         };
 
         const playerPosition = currentFlowPosition || this.playerBody.position;
+        const playerPositionV3 = new THREE.Vector3().copy( playerPosition );
 
         if( paused ) {
             this.setState( newState );
@@ -780,7 +768,7 @@ export default class GameRenderer extends Component {
             if( !this.touringSwitch ) {
                 newState.currentTourPercent = 0;
                 newState.touring = !newState.touring;
-                newState.cameraTourTarget = new THREE.Vector3().copy( playerPosition );
+                newState.cameraTourTarget = playerPositionV3;
                 this.touringSwitch = true;
             }
 
@@ -795,33 +783,22 @@ export default class GameRenderer extends Component {
             const {
                 currentTransitionStartTime, startTransitionPosition,
                 currentTransitionTarget, advanceToNextChapter,
-                transitionCameraPositionStart,
+                transitionCameraPositionStart, currentTransitionCameraTarget
             } = this.state;
 
-            const currentPosition = new THREE.Vector3().copy( this.playerBody.position );
             const transitionPercent = Math.min(
                 ( ( elapsedTime - currentTransitionStartTime ) * 1000 ) / levelTransitionDuration,
                 1
             );
 
-            const isNextChapterBigger = advanceToNextChapter.scale.x > 1;
-
             newState.currentTransitionPosition = startTransitionPosition
                 .clone()
                 .lerp( currentTransitionTarget, transitionPercent );
 
-            newState.cameraPosition = new THREE.Vector3(
-                lerp(
-                    transitionCameraPositionStart.x,
-                    currentTransitionTarget.x,
-                    transitionPercent
-                ),
-                transitionCameraPositionStart.y,
-                lerp(
-                    transitionCameraPositionStart.z,
-                    currentTransitionTarget.z,
-                    transitionPercent
-                ),
+            newState.cameraPosition = lerpVectors(
+                transitionCameraPositionStart,
+                currentTransitionCameraTarget,
+                transitionPercent
             );
 
             this.setState( newState, () => {
@@ -882,23 +859,6 @@ export default class GameRenderer extends Component {
 
         }
 
-        //let cameraDelta = 0;
-        //if( KeyCodes.Z in this.keysDown ) {
-            //cameraDelta = -0.1;
-        //} else if( KeyCodes.X in this.keysDown ) {
-            //cameraDelta = 0.1;
-        //}
-
-        //if( cameraDelta ) {
-
-            //state.cameraPosition = new THREE.Vector3(
-                //this.state.cameraPosition.x,
-                //this.state.cameraPosition.y + cameraDelta,
-                //this.state.cameraPosition.z
-            //);
-
-        //}
-
         // needs to be called before _getMeshStates
         this.updatePhysics( elapsedTime, delta );
 
@@ -943,21 +903,6 @@ export default class GameRenderer extends Component {
                     );
                     const isUp = cardinality === Cardinality.DOWN || cardinality === Cardinality.UP;
 
-                    const currentPosition = new THREE.Vector3().copy(
-                        this.playerBody.position
-                    );
-
-                    // Calculate where to tween the player to. *>2 to move
-                    // past the hit box for the level exit/entrance
-                    newState.startTransitionPosition = currentPosition;
-                    newState.currentTransitionPosition = currentPosition;
-                    newState.currentTransitionTarget = new THREE.Vector3(
-                        lerp( currentPosition.x, entity.position.x, isUp ? 0 : 2.5 ),
-                        currentPosition.y,
-                        lerp( currentPosition.z, entity.position.z, isUp ? 2.5 : 0 ),
-                    );
-                    newState.currentTransitionStartTime = elapsedTime;
-
                     if( entity === previousChapterFinishEntity ) {
 
                         newState.advanceToNextChapter = previousChapter;
@@ -972,6 +917,27 @@ export default class GameRenderer extends Component {
                         newState.advanceToNextChapter = nextChapter;
                     
                     }
+
+                    const isNextChapterBigger = newState.advanceToNextChapter.scale.x > 1;
+
+                    // Calculate where to tween the player to. *>2 to move
+                    // past the hit box for the level exit/entrance
+                    newState.startTransitionPosition = playerPositionV3;
+                    newState.currentTransitionPosition = playerPositionV3;
+                    const currentTransitionTarget = new THREE.Vector3(
+                        lerp( playerPositionV3.x, entity.position.x, isUp ? 0 : 2.5 ),
+                        playerPosition.y,
+                        lerp( playerPositionV3.z, entity.position.z, isUp ? 2.5 : 0 ),
+                    );
+                    newState.currentTransitionTarget = currentTransitionTarget;
+                    newState.currentTransitionStartTime = elapsedTime;
+                    newState.currentTransitionCameraTarget = new THREE.Vector3(
+                        currentTransitionTarget.x,
+                        getCameraDistanceToPlayer(
+                            playerPosition.y, cameraFov, playerScale * ( isNextChapterBigger ? 8 : 0.125 )
+                        ),
+                        currentTransitionTarget.z,
+                    );
 
                     newState.transitionCameraPositionStart = cameraPosition;
 

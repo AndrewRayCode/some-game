@@ -228,10 +228,18 @@ export function getCubeMass( density, side ) {
 
 }
 
-export function getCameraDistanceToPlayer( playerY, fov, objectSize ) {
+const playerScreenSpaceMultiplier = 4.9;
+export function getCameraDistanceToPlayer( playerY:number, fov:number, playerScale:number ) {
+
+    const cameraAdjustedDistance = Math.abs(
+        playerScale / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 )
+    );
+
+    // Solved graph for points (1,1) and (0,2)
+    const scaleBasedOnSize = -playerScale + 2;
 
     return playerY + Math.max(
-        5 * Math.abs( objectSize / Math.sin( ( fov * ( Math.PI / 180 ) ) / 2 ) ),
+        scaleBasedOnSize * playerScreenSpaceMultiplier * cameraAdjustedDistance,
         1
     );
 
