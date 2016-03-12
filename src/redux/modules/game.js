@@ -15,71 +15,103 @@ const RESTART_CHAPTER = 'game/RESTART_CHAPTER';
 const STOP_GAME = 'game/STOP_GAME';
 const SCALE_PLAYER = 'game/SCALE_PLAYER';
 
+// Find the player entity for this chapter to use the starting point, or
+// default to the middle
+function findPlayerPosition( levels, chapters, entities, chapterId ) {
+
+    return ( ( levels[ chapters[ chapterId ].levelId ].entityIds
+        .map( id => entities[ id ] )
+        .find( entity => entity.type === 'player' ) || {}
+    ).position || new THREE.Vector3( 0, 1.5, 0 ) ).clone();
+
+}
+
+function convertOriginalLevelsToGameLevels( levels, entities ) {
+
+    // Remove player entities from each level
+    return Object.keys( levels ).reduce( ( memo, id ) => {
+
+        const level = levels[ id ];
+        return {
+            ...memo,
+            [ id ]: {
+                ...level,
+                entityIds: level.entityIds.filter(
+                    eId => entities[ eId ].type !== 'player'
+                )
+            }
+        };
+
+    }, {} );
+
+}
+
+function convertOriginalEntitiesToGameEntities( originalEntities ) {
+
+    return Object.keys( originalEntities ).reduce( ( memo, id ) => {
+
+        const entity = originalEntities[ id ];
+        if( entity.type !== 'player' ) {
+
+            memo[ id ] = {
+                ...entity,
+                position: entity.position.clone(),
+                scale: entity.scale.clone(),
+                rotation: entity.rotation.clone(),
+            };
+
+        }
+
+        return memo;
+
+    }, {} );
+
+}
+
 const defaultGameState = {
     playerRadius, playerDensity, pushyDensity,
     playerScale: 1,
     entities: {},
     levels: {}
 };
+
 export function game( state = defaultGameState, action = {} ) {
+
+    const {
+        originalEntities, originalLevels, chapters, books,
+        recursionBusterId, restartBusterId, chapterId
+    } = action;
 
     switch( action.type ) {
 
         case START_GAME:
-        case RESTART_CHAPTER:
 
-            const {
-                originalEntities, originalLevels, chapters, books,
-                recursionBusterId, restartBusterId
-            } = action;
+            return {
+                ...state,
+                chapters, books,
+
+                recursionBusterId: recursionBusterId || state.recursionBusterId,
+
+                levels: convertOriginalLevelsToGameLevels( originalLevels, originalEntities ),
+                entities: convertOriginalEntitiesToGameEntities( originalEntities ),
+
+                playerPosition: findPlayerPosition( originalLevels, chapters, originalEntities, chapterId )
+            };
+
+        case RESTART_CHAPTER:
 
             return {
                 ...state,
                 chapters, books,
 
                 restartBusterId: restartBusterId || state.restartBusterId,
-                recursionBusterId: recursionBusterId || state.recursionBusterId,
 
-                // Remove player entities from each level
-                levels: Object.keys( originalLevels ).reduce( ( memo, id ) => {
+                levels: convertOriginalLevelsToGameLevels( originalLevels, originalEntities ),
+                entities: convertOriginalEntitiesToGameEntities( originalEntities ),
 
-                    const level = originalLevels[ id ];
-                    return {
-                        ...memo,
-                        [ id ]: {
-                            ...level,
-                            entityIds: level.entityIds.filter(
-                                eId => originalEntities[ eId ].type !== 'player'
-                            )
-                        }
-                    };
-
-                }, {} ),
-
-                entities: Object.keys( originalEntities ).reduce( ( memo, id ) => {
-
-                    const entity = originalEntities[ id ];
-                    if( entity.type !== 'player' ) {
-
-                        memo[ id ] = {
-                            ...entity,
-                            position: entity.position.clone(),
-                            scale: entity.scale.clone(),
-                            rotation: entity.rotation.clone(),
-                        };
-
-                    }
-
-                    return memo;
-
-                }, {} ),
-
-                // Find the player entity for this chapter to use the starting
-                // point, or default to the middle
-                playerPosition: ( ( originalLevels[ chapters[ action.chapterId ].levelId ].entityIds
-                    .map( id => originalEntities[ id ] )
-                    .find( entity => entity.type === 'player' ) || {}
-                ).position || new THREE.Vector3( 0, 1.5, 0 ) ).clone()
+                playerPosition: findPlayerPosition( originalLevels, chapters, originalEntities, chapterId ),
+                playerRadius: defaultGameState.playerRadius,
+                playerScale: defaultGameState.playerScale,
             };
 
         case GAME_SELECT_CHAPTER:
