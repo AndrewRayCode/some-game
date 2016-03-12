@@ -107,7 +107,6 @@ export default class GameRenderer extends Component {
         super( props, context );
 
         this.keysDown = {};
-        this.playerContact = {};
         
         const { playerPosition, playerScale } = props;
 
@@ -166,10 +165,12 @@ export default class GameRenderer extends Component {
             playerPosition, playerRadius, playerDensity
         );
 
+        this.playerContact = {};
+
         this.world.addBody( playerBody );
         this.playerBody = playerBody;
 
-        this.pushies = currentLevelMovableEntitiesArray.map( ( entity ) => {
+        this.pushies = currentLevelMovableEntitiesArray.map( entity => {
             const { position, scale } = entity;
 
             const pushyBody = new CANNON.Body({
@@ -242,6 +243,7 @@ export default class GameRenderer extends Component {
 
     }
 
+    // Don't forget to pass down any of these props from GameGUI!
     componentWillReceiveProps( nextProps ) {
 
         if( nextProps.recursionBusterId !== this.props.recursionBusterId ) {
@@ -254,7 +256,23 @@ export default class GameRenderer extends Component {
             this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
             this.world.bodies = [];
 
-            this._setupPhysics( nextProps, nextProps.playerPosition );
+            this.world.removeBody( this.playerBody );
+            this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+
+            this._setupPhysics( nextProps );
+
+            const { playerScale, playerPosition } = nextProps;
+
+            this.setState({
+                cameraPosition: new THREE.Vector3(
+                    playerPosition.x,
+                    getCameraDistanceToPlayer( playerPosition.y, cameraFov, playerScale ),
+                    playerPosition.z
+                ),
+                tubeFlow: null,
+                scaleStartTime: null,
+                advancing: false,
+            });
 
         }
 
@@ -405,7 +423,7 @@ export default class GameRenderer extends Component {
             for( let i = 0; i < contactKeys.length; i++ ) {
                 const key = contactKeys[ i ];
 
-                const physicsBody = this.world.bodies.find( ( entity ) => {
+                const physicsBody = this.world.bodies.find( entity => {
                     return entity.id.toString() === key;
                 });
 
@@ -456,7 +474,7 @@ export default class GameRenderer extends Component {
 
                     const newPlayerContact = Object.keys( playerContact ).reduce( ( memo, key ) => {
 
-                        const { entity } = this.world.bodies.find( ( search ) => {
+                        const { entity } = this.world.bodies.find( search => {
                             return search.id.toString() === key;
                         });
 
@@ -683,7 +701,7 @@ export default class GameRenderer extends Component {
 
     _getMeshStates( bodies ) {
 
-        return bodies.map( ( body ) => {
+        return bodies.map( body => {
             const { position, quaternion, scale } = body;
             return {
                 scale: new THREE.Vector3().copy( scale ),
@@ -1225,7 +1243,7 @@ export default class GameRenderer extends Component {
                 />
             </mesh> }
 
-            { debug && Object.keys( this.playerContact || {} ).map( ( key ) => {
+            { debug && Object.keys( this.playerContact || {} ).map( key => {
 
                 return <mesh
                     position={ playerPosition.clone().add( this.playerContact[ key ].clone().multiplyScalar( playerScale ) ) }

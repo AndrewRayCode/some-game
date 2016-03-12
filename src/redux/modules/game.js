@@ -58,9 +58,9 @@ export function game( state = defaultGameState, action = {} ) {
 
                 entities: Object.keys( originalEntities ).reduce( ( memo, id ) => {
 
-                    if( originalEntities[ id ].type !== 'player' ) {
+                    const entity = originalEntities[ id ];
+                    if( entity.type !== 'player' ) {
 
-                        const entity = originalEntities[ id ];
                         memo[ id ] = {
                             ...entity,
                             position: entity.position.clone(),

@@ -212,6 +212,7 @@ const gameHeight = 400;
             currentLevelRenderableEntitiesArray: Object.values( currentLevelRenderableEntities ),
 
             gameStarted: true,
+            restartBusterId: state.game.restartBusterId,
             recursionBusterId: state.game.recursionBusterId,
             playerPosition: state.game.playerPosition,
             playerRadius: state.game.playerRadius,
@@ -347,6 +348,7 @@ export default class GameGUI extends Component {
         const {
             currentChapterId, originalEntities, originalLevels, chapters, books
         } = this.props;
+
         this.props.restartChapter(
             currentChapterId, originalEntities, originalLevels, chapters, books
         );
