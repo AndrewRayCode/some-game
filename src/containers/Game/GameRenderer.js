@@ -3,9 +3,7 @@ import React3 from 'react-three-renderer';
 import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
 import { browserHistory } from 'react-router';
-import {
-    scalePlayer, advanceChapter, startGame
-} from '../../redux/modules/game';
+import { scalePlayer, advanceChapter, } from '../../redux/modules/game';
 import KeyCodes from '../../helpers/KeyCodes';
 import Cardinality from '../../helpers/Cardinality';
 import { Pushy, Player, StaticEntities } from '../../components';
@@ -248,70 +246,75 @@ export default class GameRenderer extends Component {
 
         if( nextProps.recursionBusterId !== this.props.recursionBusterId ) {
 
-            const {
-                currentChapterId, nextChapters, previousChapterEntity
-            } = this.props;
-            const {
-                cameraPosition, cameraTourTarget, currentTransitionPosition
-            } = this.state;
+            this.transitionFromLastChapterToNextChapter( nextProps );
 
-            const { previousChapterNextChapter } = nextProps;
-            const {
-                position: chapterPosition,
-                scale
-            } = previousChapterNextChapter;
+        } else if( nextProps.restartBusterId !== this.props.restartBusterId ) {
 
-            const multiplier = scale.x < 1 ? 8 : 0.125;
+            this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
+            this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+            this.world.bodies = [];
 
-            if( this.state.touring ) {
-                this.setState({
-                    cameraPosition: new THREE.Vector3(
-                        ( cameraPosition.x - chapterPosition.x ) * multiplier,
-                        ( cameraPosition.y ) * multiplier,
-                        ( cameraPosition.z - chapterPosition.z ) * multiplier
-                    ),
-                    cameraTourTarget: new THREE.Vector3(
-                        ( cameraTourTarget.x - chapterPosition.x ) * multiplier,
-                        ( cameraTourTarget.y ) * multiplier,
-                        ( cameraTourTarget.z - chapterPosition.z ) * multiplier
-                    ),
-                });
-            } else {
-                this.setState({
-                    cameraPosition: new THREE.Vector3(
-                        ( cameraPosition.x - chapterPosition.x ) * multiplier,
-                        getCameraDistanceToPlayer( 1 + nextProps.playerRadius, cameraFov, nextProps.playerScale ),
-                        ( cameraPosition.z - chapterPosition.z ) * multiplier
-                    ),
-                    currentTransitionPosition: null,
-                    currentTransitionTarget: null,
-                    isAdvancing: false,
-                });
-
-                this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
-                this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
-
-                this.world.bodies = [];
-
-                const newPosition = new CANNON.Vec3(
-                    ( currentTransitionPosition.x - chapterPosition.x ) * multiplier,
-                    1 + nextProps.playerRadius,
-                    ( currentTransitionPosition.z - chapterPosition.z ) * multiplier,
-                );
-
-                this._setupPhysics( nextProps, newPosition );
-
-            }
+            this._setupPhysics( nextProps, nextProps.playerPosition );
 
         }
 
+        //if( this.state.touring ) {
+            //this.setState({
+                //cameraPosition: new THREE.Vector3(
+                    //( cameraPosition.x - chapterPosition.x ) * multiplier,
+                    //( cameraPosition.y ) * multiplier,
+                    //( cameraPosition.z - chapterPosition.z ) * multiplier
+                //),
+                //cameraTourTarget: new THREE.Vector3(
+                    //( cameraTourTarget.x - chapterPosition.x ) * multiplier,
+                    //( cameraTourTarget.y ) * multiplier,
+                    //( cameraTourTarget.z - chapterPosition.z ) * multiplier
+                //),
+            //});
+        //}
+
     }
 
-    componentWillUpdate( nextProps, nextState ) {
+    transitionFromLastChapterToNextChapter( nextProps ) {
 
-        //if( nextProps.recursionBusterId !== this.props.recursionBusterId ) {
+        const {
+            currentChapterId, nextChapters, previousChapterEntity
+        } = this.props;
+        const {
+            cameraPosition, cameraTourTarget, currentTransitionPosition
+        } = this.state;
 
-        //}
+        const { previousChapterNextChapter } = nextProps;
+        const {
+            position: chapterPosition,
+            scale
+        } = previousChapterNextChapter;
+
+        const multiplier = scale.x < 1 ? 8 : 0.125;
+
+        this.setState({
+            cameraPosition: new THREE.Vector3(
+                ( cameraPosition.x - chapterPosition.x ) * multiplier,
+                getCameraDistanceToPlayer( 1 + nextProps.playerRadius, cameraFov, nextProps.playerScale ),
+                ( cameraPosition.z - chapterPosition.z ) * multiplier
+            ),
+            currentTransitionPosition: null,
+            currentTransitionTarget: null,
+            isAdvancing: false,
+        });
+
+        this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
+        this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+
+        this.world.bodies = [];
+
+        const newPosition = new CANNON.Vec3(
+            ( currentTransitionPosition.x - chapterPosition.x ) * multiplier,
+            1 + nextProps.playerRadius,
+            ( currentTransitionPosition.z - chapterPosition.z ) * multiplier,
+        );
+
+        this._setupPhysics( nextProps, newPosition );
 
     }
 

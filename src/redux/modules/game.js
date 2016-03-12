@@ -29,34 +29,38 @@ export function game( state = defaultGameState, action = {} ) {
         case RESTART_CHAPTER:
 
             const {
-                entities, levels, chapters, books, recursionBusterId
+                originalEntities, originalLevels, chapters, books,
+                recursionBusterId, restartBusterId
             } = action;
 
             return {
                 ...state,
-                recursionBusterId, chapters, books,
+                chapters, books,
+
+                restartBusterId: restartBusterId || state.restartBusterId,
+                recursionBusterId: recursionBusterId || state.recursionBusterId,
 
                 // Remove player entities from each level
-                levels: Object.keys( levels ).reduce( ( memo, id ) => {
+                levels: Object.keys( originalLevels ).reduce( ( memo, id ) => {
 
-                    const level = levels[ id ];
+                    const level = originalLevels[ id ];
                     return {
                         ...memo,
                         [ id ]: {
                             ...level,
                             entityIds: level.entityIds.filter(
-                                eId => entities[ eId ].type !== 'player'
+                                eId => originalEntities[ eId ].type !== 'player'
                             )
                         }
                     };
 
                 }, {} ),
 
-                entities: Object.keys( entities ).reduce( ( memo, id ) => {
+                entities: Object.keys( originalEntities ).reduce( ( memo, id ) => {
 
-                    if( entities[ id ].type !== 'player' ) {
+                    if( originalEntities[ id ].type !== 'player' ) {
 
-                        const entity = entities[ id ];
+                        const entity = originalEntities[ id ];
                         memo[ id ] = {
                             ...entity,
                             position: entity.position.clone(),
@@ -72,13 +76,14 @@ export function game( state = defaultGameState, action = {} ) {
 
                 // Find the player entity for this chapter to use the starting
                 // point, or default to the middle
-                playerPosition: ( ( levels[ chapters[ action.chapterId ].levelId ].entityIds
-                    .map( id => entities[ id ] )
+                playerPosition: ( ( originalLevels[ chapters[ action.chapterId ].levelId ].entityIds
+                    .map( id => originalEntities[ id ] )
                     .find( entity => entity.type === 'player' ) || {}
                 ).position || new THREE.Vector3( 0, 1.5, 0 ) ).clone()
             };
 
         case GAME_SELECT_CHAPTER:
+
             return {
                 ...state,
                 recursionBusterId: action.recursionBusterId,
@@ -159,18 +164,18 @@ export function gameBookReducer( state = defaultBookState, action = {} ) {
 
 }
 
-export function startGame( bookId, chapterId, levels, entities, books, chapters ) {
+export function startGame( bookId, chapterId, originalLevels, originalEntities, books, chapters ) {
     return {
         type: START_GAME,
-        bookId, chapterId, levels, entities, chapters, books
+        bookId, chapterId, originalLevels, originalEntities, chapters, books
     };
 }
 
-export function restartChapter( chapterId, entities, levels, chapters, books ) {
+export function restartChapter( chapterId, originalEntities, originalLevels, chapters, books ) {
     return {
         type: RESTART_CHAPTER,
-        recursionBusterId: Date.now(),
-        chapterId, entities, levels, chapters, books
+        restartBusterId: Date.now(),
+        chapterId, originalLevels, originalEntities, chapters, books
     };
 }
 

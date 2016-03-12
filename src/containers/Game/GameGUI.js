@@ -310,8 +310,15 @@ export default class GameGUI extends Component {
 
     selectBook( book ) {
 
-        this.setState({ clickable: false });
-        const { originalLevels, originalEntities, books, chapters } = this.props;
+        this.setState({
+            clickable: false,
+            paused: false,
+            confirmRestart: false,
+        });
+        const {
+            originalLevels, originalEntities, books, chapters
+        } = this.props;
+
         this.props.startGame(
             book.id, book.chapterIds[ 0 ], originalLevels, originalEntities, books, chapters
         );
@@ -320,7 +327,11 @@ export default class GameGUI extends Component {
 
     onExitToTitle() {
 
-        this.setState({ clickable: false, paused: false });
+        this.setState({
+            clickable: false,
+            paused: false,
+            confirmRestart: false,
+        });
         this.props.stopGame();
 
     }
@@ -333,8 +344,12 @@ export default class GameGUI extends Component {
             confirmRestart: false,
         });
 
-        const { currentChapterId, originalEntities, originalLevels, chapters, books } = this.props;
-        this.props.restartChapter( currentChapterId, originalEntities, originalLevels, chapters, books );
+        const {
+            currentChapterId, originalEntities, originalLevels, chapters, books
+        } = this.props;
+        this.props.restartChapter(
+            currentChapterId, originalEntities, originalLevels, chapters, books
+        );
 
     }
 
@@ -646,7 +661,7 @@ export default class GameGUI extends Component {
                     />
                 }
 
-                { !confirmRestart && paused ? <PausedScreen
+                { gameStarted && !confirmRestart && paused ? <PausedScreen
                     ref="pauseScreen"
                     mouseInput={ mouseInput }
                     onClickRegionLeave={ this.onClickRegionLeave }
@@ -658,7 +673,7 @@ export default class GameGUI extends Component {
                     letters={ letters }
                 /> : null }
 
-                { confirmRestart ? <ConfirmRestartScreen
+                { gameStarted && confirmRestart ? <ConfirmRestartScreen
                     ref="pauseScreen"
                     mouseInput={ mouseInput }
                     onClickRegionLeave={ this.onClickRegionLeave }

@@ -9,6 +9,7 @@ const KeyCodes = {
     ESC: 27,
     DEL: 8,
     SPACE: 32,
+    ENTER: 13,
 
     '[': 219,
     ']': 221,
