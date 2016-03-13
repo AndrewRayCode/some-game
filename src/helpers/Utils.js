@@ -364,12 +364,13 @@ export function snapTo( number, interval ) {
 
 }
 
-export function lerpVectors( vectorA, vectorB, alpha ) {
+export function lerpVectors( vectorA, vectorB, percent, easingFn ) {
 
-    return new THREE.Vector3().lerpVectors( vectorA, vectorB, alpha );
+    return new THREE.Vector3().lerpVectors(
+        vectorA, vectorB, easingFn ? easingFn( percent ) : percent
+    );
 
 }
-
 
 export function getFrustrumAt( distanceFromCamera:number, fov:number, aspect:number ) {
 

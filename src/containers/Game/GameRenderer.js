@@ -9,6 +9,7 @@ import {
     getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,
     lookAtVector, findNextTube, snapTo, lerpVectors
 } from '../../helpers/Utils';
+import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
 const factorConstraint = new CANNON.Vec3( 1, 0, 1 );
 const angularUprightConstraint = new CANNON.Vec3( 0, 0, 0 );
@@ -31,7 +32,9 @@ const cameraFov = 75;
 const tubeTravelDurationMs = 120;
 const tubeStartTravelDurationMs = 40;
 
-const levelTransitionDuration = 750;
+const zoomOutDurationMs = 1000;
+
+const levelTransitionDuration = 500;
 
 const scaleDurationMs = 300;
 
@@ -792,7 +795,8 @@ export default class GameRenderer extends Component {
             newState.cameraPosition = lerpVectors(
                 transitionCameraPositionStart,
                 currentTransitionCameraTarget,
-                transitionPercent
+                transitionPercent,
+                easeOutQuint
             );
 
             this.setState( newState, () => {
@@ -997,6 +1001,67 @@ export default class GameRenderer extends Component {
 
         }
 
+        if( KeyCodes.L in keysDown ) {
+
+            newState.zoomOutStartTime = this.state.zoomOutStartTime || elapsedTime;
+            newState.zoomBackInDuration = null;
+            newState.startZoomBackInTime = null;
+
+            const howFarZoomedOut = Math.min( ( ( elapsedTime - newState.zoomOutStartTime ) * 1000 ) / zoomOutDurationMs, 1 );
+
+            newState.cameraPositionZoomOut = lerpVectors(
+                newState.cameraPosition,
+                new THREE.Vector3(
+                    playerPosition.x / 4,
+                    0.5 + getCameraDistanceToPlayer( 1.5, cameraFov, 1 ),
+                    playerPosition.z / 4
+                ),
+                howFarZoomedOut,
+                easeOutQuint
+            );
+
+        } else if( this.state.cameraPositionZoomOut ) {
+
+            // Then start zooming in to the orignal target
+            if( !this.state.zoomBackInDuration ) {
+
+                const howFarZoomedOut = Math.min( ( ( elapsedTime - this.state.zoomOutStartTime ) * 1000 ) / zoomOutDurationMs, 1 );
+                newState.zoomBackInDuration = zoomOutDurationMs * howFarZoomedOut;
+                newState.startZoomBackInTime = elapsedTime;
+                newState.zoomOutStartTime = null;
+
+            }
+
+            const zoomBackInDuration = newState.zoomBackInDuration || this.state.zoomBackInDuration;
+            const startZoomBackInTime = newState.startZoomBackInTime || this.state.startZoomBackInTime;
+
+            const howFarZoomedIn = Math.min(
+                ( ( elapsedTime - startZoomBackInTime ) * 1000 ) / zoomBackInDuration,
+                1
+            );
+
+            newState.cameraPositionZoomOut = lerpVectors(
+                new THREE.Vector3(
+                    playerPosition.x / 4,
+                    0.5 + getCameraDistanceToPlayer( 1.5, cameraFov, 1 ),
+                    playerPosition.z / 4
+                ),
+                newState.cameraPosition,
+                howFarZoomedIn,
+                easeOutQuad
+            );
+
+            if( howFarZoomedIn === 1 ) {
+
+                newState.zoomBackInDuration = null;
+                newState.startZoomBackInTime = null;
+                newState.zoomOutStartTime = null;
+                newState.cameraPositionZoomOut = null;
+
+            }
+
+        }
+
         this.setState( newState );
 
     }
@@ -1023,9 +1088,9 @@ export default class GameRenderer extends Component {
     render() {
 
         const {
-            pushyPositions, time, cameraPosition, currentFlowPosition, debug,
-            touring, cameraTourTarget, entrance1, entrance2, tubeFlow,
-            tubeIndex, currentScalePercent, radiusDiff,
+            pushyPositions, time, cameraPosition, cameraPositionZoomOut,
+            currentFlowPosition, debug, touring, cameraTourTarget, entrance1,
+            entrance2, tubeFlow, tubeIndex, currentScalePercent, radiusDiff,
             currentTransitionPosition, currentTransitionTarget,
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
@@ -1063,7 +1128,7 @@ export default class GameRenderer extends Component {
                 aspect={ cameraAspect }
                 near={ 0.1 }
                 far={ 1000 }
-                position={ cameraPosition }
+                position={ cameraPositionZoomOut || cameraPosition }
                 quaternion={ lookAt }
                 ref="camera"
             />

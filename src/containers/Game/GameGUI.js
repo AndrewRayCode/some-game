@@ -31,7 +31,7 @@ import UpdateAllObjects from '../../helpers/UpdateAllObjects';
 
 const gameWidth = 400;
 const gameHeight = 400;
-const transitionFadeMs = 750;
+const transitionFadeMs = 1000;
 
 @asyncConnect([{
     promise: ({ store: { dispatch, getState } }) => {
@@ -413,7 +413,7 @@ export default class GameGUI extends Component {
         if( transitionFadeStartTime ) {
 
             newState.transitionFadeAlpha = Math.max(
-                0.7 - ( ( ( elapsedTime - transitionFadeStartTime ) * 1000 ) / transitionFadeMs ),
+                0.6 - ( ( ( elapsedTime - transitionFadeStartTime ) * 1000 ) / transitionFadeMs ),
                 0
             );
 
