@@ -41,42 +41,29 @@ export default class TitleScreen extends Component {
     }
 
 
-    onMouseDown( book, event ) {
+    onMouseDown( index, event ) {
 
-        const {
-            hoveredBook
-        } = this.state;
-
-        if( hoveredBook ) {
-
-            this.props.onSelect( hoveredBook );
-
-        }
+        this.props.onSelect( this.props.books[ index ] );
 
     }
 
-    onMouseEnter( book, event ) {
+    onMouseEnter( index, event ) {
 
         this.props.onClickRegionEnter();
-        this.setState({ hoveredBook: book });
+        this.setState({ [ index ]: true });
 
     }
 
-    onMouseLeave( book, event ) {
+    onMouseLeave( index, event ) {
 
         this.props.onClickRegionLeave();
-        if( this.state.hoveredBook === book ) {
-
-            this.setState({ hoveredBook: null });
-
-        }
+        this.setState({ [ index ]: null });
 
     }
 
     render() {
 
         const { books, fonts, letters } = this.props;
-        const { hoveredBook } = this.state;
 
         return <object3D>
 
@@ -110,20 +97,20 @@ export default class TitleScreen extends Component {
                 materialId="universeInALetter"
             />
 
-            { books.map( ( book, index ) =>
+            { books.map( ( { name, id }, index ) =>
                 <Text
-                    onMouseEnter={ this.onMouseEnter.bind( null, book ) }
-                    onMouseLeave={ this.onMouseLeave.bind( null, book ) }
-                    onMouseDown={ this.onMouseDown.bind( null, book ) }
-                    ref={ `book${ book.id }` }
+                    onMouseEnter={ this.onMouseEnter.bind( null, index ) }
+                    onMouseLeave={ this.onMouseLeave.bind( null, index ) }
+                    onMouseDown={ this.onMouseDown.bind( null, index ) }
+                    ref={ `book${ id }` }
                     position={ new THREE.Vector3( index * 1.4, 0, 0 ) }
-                    key={ book.id }
-                    text={ book.name }
+                    key={ id }
+                    text={ name }
                     fonts={ fonts }
                     letters={ letters }
                     fontName="Sniglet Regular"
                     materialId={
-                        book === hoveredBook ?
+                        this.state[ index ] ?
                             'universeInAMenuHover' : 'universeInAMenu'
                     }
                 />

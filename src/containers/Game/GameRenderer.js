@@ -1001,7 +1001,7 @@ export default class GameRenderer extends Component {
 
         }
 
-        if( KeyCodes.L in keysDown ) {
+        if( KeyCodes.L in keysDown && !this.state.zoomBackInDuration ) {
 
             newState.zoomOutStartTime = this.state.zoomOutStartTime || elapsedTime;
             newState.zoomBackInDuration = null;
