@@ -17,7 +17,8 @@ import KeyCodes from '../../helpers/KeyCodes';
 
 import GameRenderer from './GameRenderer';
 import {
-    TitleScreen, GameResources, PausedScreen, ConfirmRestartScreen, Kbd
+    TitleScreen, GameResources, PausedScreen, ConfirmRestartScreen, Kbd,
+    TransitionScreen
 } from '../../components';
 
 import styles from './Game.scss';
@@ -30,6 +31,7 @@ import UpdateAllObjects from '../../helpers/UpdateAllObjects';
 
 const gameWidth = 400;
 const gameHeight = 400;
+const transitionFadeMs = 500;
 
 @asyncConnect([{
     promise: ({ store: { dispatch, getState } }) => {
@@ -265,6 +267,22 @@ export default class GameGUI extends Component {
 
     }
 
+    componentWillReceiveProps( nextProps ) {
+
+        const { elapsedTime } = this.state;
+
+        if( nextProps.recursionBusterId !== this.props.recursionBusterId ) {
+
+            this.setState({ transitionFadeStartTime: elapsedTime });
+
+        } else if( nextProps.restartBusterId !== this.props.restartBusterId ) {
+
+            this.setState({ transitionFadeStartTime: elapsedTime });
+
+        }
+
+    }
+
     onKeyDown( event ) {
 
         const which = { [ event.which ]: true };
@@ -386,11 +404,31 @@ export default class GameGUI extends Component {
         } = this.refs;
 
         const { gameStarted } = this.props;
-        const { _fps, paused, confirmRestart } = this.state;
+        const {
+            _fps, paused, confirmRestart, transitionFadeStartTime
+        } = this.state;
         const { keysDown } = this;
-        const newState = {};
+        const newState = { elapsedTime, delta };
 
-        shaderFrog.updateShaders( elapsedTime );
+        if( transitionFadeStartTime ) {
+
+            newState.transitionFadeAlpha = Math.max(
+                0.75 - ( ( ( elapsedTime - transitionFadeStartTime ) * 1000 ) / transitionFadeMs ),
+                0
+            );
+
+            if( newState.transitionFadeAlpha === 0 ) {
+
+                newState.transitionFadeStartTime = null;
+                newState.transitionFadeAlpha = null;
+
+            }
+
+        }
+
+        shaderFrog.updateShaders( elapsedTime, {
+            uniforms: { transitionAlpha: newState.transitionFadeAlpha }
+        });
 
         if( !this.lastCalledTime ) {
            this.lastCalledTime = elapsedTime;
@@ -612,6 +650,15 @@ export default class GameGUI extends Component {
                 onBeforeRender={ this.onBeforeRender }
             /> : null }
 
+            <viewport
+                x={ 0 }
+                y={ 0 }
+                width={ gameWidth }
+                height={ gameHeight }
+                cameraName="transitionCamera"
+                onBeforeRender={ this.onBeforeRender }
+            />
+
             <scene ref="scene"
                 onUpdate={ this._onAnimate }
             >
@@ -674,6 +721,8 @@ export default class GameGUI extends Component {
                     fonts={ fonts }
                     letters={ letters }
                 /> : null }
+
+            <TransitionScreen />
 
             </scene>
 

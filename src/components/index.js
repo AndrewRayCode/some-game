@@ -9,6 +9,7 @@ export CreatePreviewObject from './Editor/CreatePreviewObject';
 export TexturePicker from './Editor/TexturePicker';
 export Kbd from './Kbd/Kbd';
 export EditorResources from './EditorResources/EditorResources';
+export TransitionScreen from './TransitionScreen/TransitionScreen';
 export GameResources from './GameResources/GameResources';
 export Text from './Text/Text';
 export ConfirmRestartScreen from './ConfirmRestartScreen/ConfirmRestartScreen';

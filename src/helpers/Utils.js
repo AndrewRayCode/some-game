@@ -365,6 +365,28 @@ export function snapTo( number, interval ) {
 }
 
 export function lerpVectors( vectorA, vectorB, alpha ) {
+
     return new THREE.Vector3().lerpVectors( vectorA, vectorB, alpha );
+
 }
 
+
+export function getFrustrumAt( distanceFromCamera:number, fov:number, aspect:number ) {
+
+    const frustumHeight = 2.0 * distanceFromCamera * Math.tan( fov * 0.5 * ( Math.PI / 180 ) );
+
+    const box = new THREE.Box2();
+    const size = new THREE.Vector2( frustumHeight * aspect, frustumHeight );
+
+    box.width = size.x;
+    box.height = size.y;
+
+    return box.setFromCenterAndSize(
+        new THREE.Vector2( 0, 0 ),
+        new THREE.Vector2(
+            frustumHeight * aspect,
+            frustumHeight
+        )
+    );
+
+}

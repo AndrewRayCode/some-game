@@ -1,0 +1,88 @@
+{
+  "id": 705,
+  "name": "Fractal Transition",
+  "fragment": "#define iterations 64\n\nprecision highp float;\nprecision highp int;\nuniform float transitionAlpha;\nuniform float time;\nuniform float speed;\nuniform float Julia_Fractal1457826927310_24_brightness;\nuniform float contrast;\nuniform float scale;\nuniform float phaseShift;\nuniform vec3 Julia_Fractal1457826927310_24_color;\nuniform vec3 backgroundColor;\nuniform mat4 modelMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat3 normalMatrix;\nuniform vec3 Cube_Edges1457826939553_43_color;\nuniform float Cube_Edges1457826939553_43_brightness;\nuniform float falloff;\nvarying vec2 Julia_Fractal1457826927310_24_vUv;\nvec2 complex_mult(vec2 a, vec2 b) \n{\n    return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);\n}\nvec4 GetColor(vec2 current) \n{\n    vec2 next;\n    float result = 0.0;\n    int stp = 0;\n    vec2 inputPosition = vec2(0.4 + 0.4 * sin(time * speed), 0.5 + 0.5 * cos(time * speed * phaseShift));\n    for (int i = 0;\n i < iterations; ++i) \n    {\n        next = complex_mult(current, current) + vec2(inputPosition.x - 0.5, inputPosition.y - 0.5) * 1.6;\n        if (dot(next, next) > 50.0) \n        {\n            break;\n        }\n         current = next;\n        result = Julia_Fractal1457826927310_24_brightness * dot(next, next) / contrast;\n        stp = i;\n    }\n    return stp < iterations - 1 ? vec4(vec3(clamp(Julia_Fractal1457826927310_24_color * pow(result - 0.25, 2.0) * 4.0, 0.0, 1.0)), 1.0) : vec4(backgroundColor, 1.0);\n}\nvarying vec3 Cube_Edges1457826939553_43_vPosition;\nvarying vec3 Cube_Edges1457826939553_43_vNormal;\nvarying vec2 Cube_Edges1457826939553_43_vUv;\nvarying vec2 Cube_Edges1457826939553_43_vUv2;\nvec4 Julia_Fractal1457826927310_24_main() \n{\n    vec4 Julia_Fractal1457826927310_24_gl_FragColor = vec4(0.0);\n    Julia_Fractal1457826927310_24_gl_FragColor = GetColor((Julia_Fractal1457826927310_24_vUv - 0.5) * scale);\n    return Julia_Fractal1457826927310_24_gl_FragColor *= 1.0;\n}\nvec4 Cube_Edges1457826939553_43_main() \n{\n    vec4 Cube_Edges1457826939553_43_gl_FragColor = vec4(0.0);\n    vec2 multiplier = pow(abs(Cube_Edges1457826939553_43_vUv - 0.5), vec2(falloff));\n    Cube_Edges1457826939553_43_gl_FragColor = vec4(Cube_Edges1457826939553_43_color * Cube_Edges1457826939553_43_brightness * length(multiplier), 1.0);\n    return Cube_Edges1457826939553_43_gl_FragColor *= 1.0;\n}\nvoid main() \n{\n    gl_FragColor = (Julia_Fractal1457826927310_24_main() + Cube_Edges1457826939553_43_main()) * vec4( 1.0, 1.0, 1.0, transitionAlpha );}\n",
+  "vertex": "precision highp float;\nprecision highp int;\nuniform mat4 modelMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat3 normalMatrix;\nuniform vec3 cameraPosition;\nuniform float time;\nattribute vec3 position;\nattribute vec3 normal;\nattribute vec2 uv;\nattribute vec2 uv2;\nvarying vec3 Julia_Fractal1457826927310_24_vPosition;\nvarying vec3 Julia_Fractal1457826927310_24_vNormal;\nvarying vec2 Julia_Fractal1457826927310_24_vUv;\nvarying vec2 Julia_Fractal1457826927310_24_vUv2;\nvarying vec3 Cube_Edges1457826939553_43_vPosition;\nvarying vec3 Cube_Edges1457826939553_43_vNormal;\nvarying vec2 Cube_Edges1457826939553_43_vUv;\nvarying vec2 Cube_Edges1457826939553_43_vUv2;\nvec4 Julia_Fractal1457826927310_24_main() \n{\n    vec4 Julia_Fractal1457826927310_24_gl_Position = vec4(0.0);\n    Julia_Fractal1457826927310_24_vNormal = normal;\n    Julia_Fractal1457826927310_24_vUv = uv;\n    Julia_Fractal1457826927310_24_vUv2 = uv2;\n    Julia_Fractal1457826927310_24_vPosition = position;\n    Julia_Fractal1457826927310_24_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Julia_Fractal1457826927310_24_gl_Position *= 1.0;\n}\nvec4 Cube_Edges1457826939553_43_main() \n{\n    vec4 Cube_Edges1457826939553_43_gl_Position = vec4(0.0);\n    Cube_Edges1457826939553_43_vNormal = normal;\n    Cube_Edges1457826939553_43_vUv = uv;\n    Cube_Edges1457826939553_43_vUv2 = uv2;\n    Cube_Edges1457826939553_43_vPosition = position;\n    Cube_Edges1457826939553_43_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Cube_Edges1457826939553_43_gl_Position *= 1.0;\n}\nvoid main() \n{\n    gl_Position = Julia_Fractal1457826927310_24_main() + Cube_Edges1457826939553_43_main();}\n",
+  "uniforms": {
+    "transitionAlpha": {
+      "type": "f",
+      "glslType": "float",
+      "value": 0.5
+    },
+    "cameraPosition": {
+      "type": "v3",
+      "glslType": "vec3"
+    },
+    "time": {
+      "type": "f",
+      "glslType": "float"
+    },
+    "scale": {
+      "value": "2.5035073",
+      "type": "f",
+      "glslType": "float"
+    },
+    "speed": {
+      "value": "1.42606622",
+      "type": "f",
+      "glslType": "float"
+    },
+    "backgroundColor": {
+      "value": {
+        "r": 0.10980392156862745,
+        "g": 0.03137254901960784,
+        "b": 0.2823529411764706
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "contrast": {
+      "value": "112.30008418",
+      "type": "f",
+      "glslType": "float"
+    },
+    "phaseShift": {
+      "value": "1.53324916",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Julia_Fractal1457826927310_24_brightness": {
+      "value": "2.75568182",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Julia_Fractal1457826927310_24_color": {
+      "value": {
+        "r": 0.6588235294117647,
+        "g": 0.5372549019607843,
+        "b": 0.9725490196078431
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "falloff": {
+      "value": "3.36410971",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Cube_Edges1457826939553_43_color": {
+      "value": {
+        "r": 0.5098039215686274,
+        "g": 0.21176470588235294,
+        "b": 1
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "Cube_Edges1457826939553_43_brightness": {
+      "value": "39.38366531",
+      "type": "f",
+      "glslType": "float"
+    }
+  },
+  "url": "http://shaderfrog.com/app/view/705",
+  "user": {
+    "username": "andrewray",
+    "url": "http://shaderfrog.com/app/profile/andrewray"
+  }
+}
