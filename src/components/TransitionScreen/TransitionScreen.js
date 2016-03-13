@@ -12,9 +12,9 @@ const lookAt = new THREE.Vector3( 0, 0, 0 );
 const sceneOffset = new THREE.Vector3( -300, -100, -200 );
 
 const bgRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
-const bgPosition = new THREE.Vector3( 0, 0, 0 );
+const bgPosition = new THREE.Vector3( 0, -2, 0 );
 
-const frustum = getFrustrumAt( cameraPosition.y, cameraFov, cameraAspect );
+const frustum = getFrustrumAt( cameraPosition.y + Math.abs( bgPosition.y ), cameraFov, cameraAspect );
 const bgScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( frustum.size().x );
 
 export default class ConfirmRestartScreen extends Component {

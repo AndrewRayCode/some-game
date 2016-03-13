@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import { Text } from '../';
+import { getFrustrumAt } from '../../helpers/Utils';
 
 const gameWidth = 400;
 const gameHeight = 400;
@@ -13,7 +14,9 @@ const sceneOffset = new THREE.Vector3( 100, 100, 100 );
 
 const bgRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
 const bgPosition = new THREE.Vector3( 0, -2, 0 );
-const bgScale = new THREE.Vector3( 18, 18, 18 );
+
+const frustum = getFrustrumAt( cameraPosition.y + Math.abs( bgPosition.y ), cameraFov, cameraAspect );
+const bgScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( frustum.size().x );
 
 export default class PausedScreen extends Component {
     
@@ -100,7 +103,7 @@ export default class PausedScreen extends Component {
                     resourceId="1x1plane"
                 />
                 <materialResource
-                    resourceId="sceneOverlay"
+                    resourceId="pauseBackground"
                 />
             </mesh>
 

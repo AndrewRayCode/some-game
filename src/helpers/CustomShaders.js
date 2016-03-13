@@ -9,6 +9,7 @@ const CustomShaders = {
     shrinkColors: require( '../../assets/shaders/Shrink_Colors.json' ),
     growColors: require( '../../assets/shaders/Grow_Colors.json' ),
     fractalTransition: require( '../../assets/shaders/Fractal_Transition.json' ),
+    pauseBackground: require( '../../assets/shaders/Pause_Screen_Background.json' ),
 };
 
 export default CustomShaders;

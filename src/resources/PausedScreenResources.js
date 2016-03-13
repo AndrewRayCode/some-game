@@ -7,6 +7,6 @@ export default [
         resourceId="sceneOverlay"
         color={ 0x220044 }
         transparent
-        opacity={ 0.4 }
+        opacity={ 0.5 }
     />
 ];
