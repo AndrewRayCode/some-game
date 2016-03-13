@@ -28,10 +28,10 @@ const gameHeight = 400;
 const cameraAspect = gameWidth / gameHeight;
 const cameraFov = 75;
 
-const tubeTravelDurationMs = 200;
-const tubeStartTravelDurationMs = 50;
+const tubeTravelDurationMs = 120;
+const tubeStartTravelDurationMs = 40;
 
-const levelTransitionDuration = 500;
+const levelTransitionDuration = 750;
 
 const scaleDurationMs = 300;
 
