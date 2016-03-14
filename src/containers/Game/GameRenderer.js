@@ -32,7 +32,8 @@ const cameraFov = 75;
 const tubeTravelDurationMs = 120;
 const tubeStartTravelDurationMs = 40;
 
-const zoomOutDurationMs = 1000;
+const zoomOutDurationMs = 750;
+const zoomInDurationMs = 500;
 
 const levelTransitionDuration = 500;
 
@@ -1026,7 +1027,7 @@ export default class GameRenderer extends Component {
             if( !this.state.zoomBackInDuration ) {
 
                 const howFarZoomedOut = Math.min( ( ( elapsedTime - this.state.zoomOutStartTime ) * 1000 ) / zoomOutDurationMs, 1 );
-                newState.zoomBackInDuration = zoomOutDurationMs * howFarZoomedOut;
+                newState.zoomBackInDuration = zoomInDurationMs * howFarZoomedOut;
                 newState.startZoomBackInTime = elapsedTime;
                 newState.zoomOutStartTime = null;
 

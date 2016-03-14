@@ -76,7 +76,6 @@ export default class StaticEntities extends Component {
                     return <Floor
                         ref={ entity.id }
                         key={ entity.id }
-                        assets={ assets }
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
@@ -88,6 +87,7 @@ export default class StaticEntities extends Component {
                     return <TubeStraight
                         ref={ entity.id }
                         key={ entity.id }
+                        assets={ assets }
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
@@ -99,6 +99,7 @@ export default class StaticEntities extends Component {
                     return <TubeBend
                         ref={ entity.id }
                         key={ entity.id }
+                        assets={ assets }
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }

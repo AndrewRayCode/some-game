@@ -135,6 +135,7 @@ export function lerp( start, target, percent ) {
 }
 
 const loaders = {
+    json: new THREE.JSONLoader(),
     obj: new THREE.OBJLoader(),
     font: new THREE.FontLoader(),
 };
@@ -187,6 +188,8 @@ export function uid() {
 
 export function assignUvs( geometry ) {
 
+    console.log('workign with',geometry);
+
     geometry.computeBoundingBox();
 
     const max     = geometry.boundingBox.max;
@@ -195,7 +198,7 @@ export function assignUvs( geometry ) {
     const offset  = new THREE.Vector2(0 - min.x, 0 - min.y);
     const range   = new THREE.Vector2(max.x - min.x, max.y - min.y);
 
-    geometry.faceVertexUvs[0] = [];
+    geometry.faceVertexUvs = [[]];
     const faces = geometry.faces;
 
     for( let i = 0; i < geometry.faces.length; i++ ) {

@@ -96,15 +96,23 @@ export function assetsReducer( assets = {}, action = {} ) {
     switch( action.type ) {
 
         case LOAD_SUCCESS:
-            return {
-                ...assets,
-                [ action.name ]: {
-                    ...action.model,
-                    geometry: action.model.children.map( child =>
-                        new THREE.Geometry().fromBufferGeometry( child.geometry )
-                    )
-                }
-            };
+            if( action.model instanceof THREE.Geometry ) {
+                return {
+                    ...assets,
+                    [ action.name ]: action.model,
+                };
+            } else {
+                return {
+                    ...assets,
+                    [ action.name ]: {
+                        ...action.model,
+                        geometry: action.model.children.map( child =>
+                            new THREE.Geometry().fromBufferGeometry( child.geometry )
+                        )
+                    }
+                };
+            }
+            break;
 
         case LOAD_FAIL:
             console.error( action );
@@ -180,8 +188,18 @@ export function loadAllAssets() {
     return dispatch => {
 
         dispatch( loadAsset(
-            require( '../../../assets/houseSF.obj' ),
+            require( '../../../assets/models/houseSF.obj' ),
             { name: 'house' }
+        ));
+
+        dispatch( loadAsset(
+            require( '../../../assets/models/tube.json' ),
+            { name: 'tube' }
+        ));
+
+        dispatch( loadAsset(
+            require( '../../../assets/models/tube-bend.json' ),
+            { name: 'tubeBend' }
         ));
 
         dispatch( loadFont(

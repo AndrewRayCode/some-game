@@ -126,6 +126,7 @@ export default class CreatePreviewObject extends Component {
 
                 return <TubeStraight
                     scale={ scale }
+                    assets={ assets }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     ref="previewPosition"
@@ -136,6 +137,7 @@ export default class CreatePreviewObject extends Component {
 
                 return <TubeBend
                     scale={ scale }
+                    assets={ assets }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     ref="previewPosition"

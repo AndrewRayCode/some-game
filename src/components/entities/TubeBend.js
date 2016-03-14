@@ -1,40 +1,43 @@
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 
-const offset = new THREE.Vector3( 0, -0.5, 0 );
-const rotationOffset = new THREE.Euler( 0, Math.PI / 2, 0 );
+const tubeScale = new THREE.Vector3( 0.9, 0.9, 0.9999 );
 
-export default class TubeBend extends Component {
+export default class House extends Component {
 
-    constructor(props, context) {
-
+    constructor( props, context ) {
         super( props, context );
-
     }
 
     render() {
 
-        const { position, rotation, scale, materialId } = this.props;
+        const { position, rotation, scale, materialId, assets } = this.props;
+        const { tubeBend } = assets;
+
+        if( !tubeBend ) {
+            return <mesh />;
+        }
+        const houseData = tubeBend;
 
         return <group
             position={ position }
-            rotation={ new THREE.Euler().setFromQuaternion( rotation ) }
+            quaternion={ rotation || new THREE.Quaternion( 0, 0, 0, 1 ) }
             scale={ scale }
         >
-
             <mesh
-                position={ offset }
-                rotation={ rotationOffset }
                 ref="mesh"
+                scale={ tubeScale }
             >
-                <geometryResource
-                    resourceId="tubeBend"
+                <geometry
+                    faces={ houseData.faces }
+                    vertices={ houseData.vertices }
+                    colors={ houseData.colors }
+                    faceVertexUvs={ houseData.faceVertexUvs }
                 />
                 <materialResource
                     resourceId={ materialId }
                 />
             </mesh>
-
         </group>;
 
     }
