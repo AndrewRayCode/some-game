@@ -1,7 +1,7 @@
 import React, { PropTypes, Component } from 'react';
 import React3 from 'react-three-renderer';
 import {
-    Wall, Floor, Pushy, TubeBend, TubeStraight, Player, StaticEntities,
+    Wall, MultiWall, Pushy, TubeBend, TubeStraight, Player, StaticEntities,
     Shrink, House, Grow, FinishLine, Waterfall,
 } from '../';
 import THREE from 'three';
@@ -112,14 +112,16 @@ export default class CreatePreviewObject extends Component {
                 />;
 
             case 'floor':
+            case 'multiwall':
 
-                return <Floor
+                return <MultiWall
                     assets={ assets }
                     scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
                     ref="previewPosition"
                     materialId="ghostMaterial"
+                    topMaterialId="ghostMaterial"
                 />;
 
             case 'tube':

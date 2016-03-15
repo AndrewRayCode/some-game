@@ -9,7 +9,8 @@ import {
     createLevel, selectLevelAndChapter, deserializeLevels, renameLevel,
     addNextChapter, removeNextChapter, insetChapter, changeEntityType,
     createBook, selectBook, renameChapter, renameBook, createChapterFromLevel,
-    saveAll, changeEntityWrapMaterial, changeEntityFoamMaterial
+    saveAll, changeEntityWrapMaterial, changeEntityFoamMaterial,
+    changeEntityTopMaterial,
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -234,6 +235,7 @@ function snapTo( number, interval ) {
         insetChapter, changeEntityType, createBook, selectBook,
         selectLevelAndChapter, createChapterFromLevel, saveAll,
         changeEntityFoamMaterial, changeEntityWrapMaterial,
+        changeEntityTopMaterial
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -286,6 +288,7 @@ export default class Editor extends Component {
         this.selectType = this.selectType.bind( this );
         this.selectMaterialId = this.selectMaterialId.bind( this );
         this.changeWrapMaterialId = this.changeWrapMaterialId.bind( this );
+        this.changeTopMaterialId = this.changeTopMaterialId.bind( this );
         this.changeFoamMaterialId = this.changeFoamMaterialId.bind( this );
         this.changeMaterialId = this.changeMaterialId.bind( this );
         this.onChapterCreateChange = this.onChapterCreateChange.bind( this );
@@ -466,7 +469,7 @@ export default class Editor extends Component {
 
             } else if( KeyCodes.F in keys ) {
 
-                createType = 'floor';
+                createType = 'multiwall';
 
             } else if( KeyCodes.T in keys ) {
 
@@ -963,6 +966,18 @@ export default class Editor extends Component {
             this.props.changeEntityWrapMaterial(
                 this.state.selectedObjectId,
                 newWrapMaterialId
+            );
+        };
+
+    }
+    
+    changeTopMaterialId( newTopMaterialId ) {
+
+        return ( event ) => {
+            event.preventDefault();
+            this.props.changeEntityTopMaterial(
+                this.state.selectedObjectId,
+                newTopMaterialId
             );
         };
 
@@ -1468,7 +1483,10 @@ export default class Editor extends Component {
                         step={ gridSnap }
                     />
 
-                    { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' || selectedObject.type === 'waterfall' ) ? <div>
+                    { ( selectedObject.type === 'wall' ||
+                            selectedObject.type === 'floor' ||
+                            selectedObject.type === 'multiwall' ||
+                            selectedObject.type === 'waterfall' ) ? <div>
                         <br />
                         <br />
                         <b>Change materialId of Selection:</b>
@@ -1514,18 +1532,35 @@ export default class Editor extends Component {
                         />
                     </div> : null }
 
-                    { ( selectedObject.type === 'wall' || selectedObject.type === 'floor' ) ? <div>
+                    { ( selectedObject.type === 'multiwall' || selectedObject.type === 'floor' ) ? <div>
+                        <br />
+                        <b>Change topMaterialId of Selection:</b>
+                        <br />
+
+                        <TexturePicker
+                            onSelect={ this.changeTopMaterialId }
+                            selectedId={ ( currentLevelStaticEntities[
+                                selectedObjectId
+                            ] || {} ).topMaterialId }
+                            shaders={ shaders }
+                            textures={ Textures }
+                        />
+                    </div> : null }
+
+                    { ( selectedObject.type === 'wall' ||
+                            selectedObject.type === 'multiwall' ||
+                            selectedObject.type === 'floor' ) ? <div>
                         <br /><br />
                         <button
                             onClick={
                                 this.props.changeEntityType.bind(
                                     null,
                                     selectedObjectId,
-                                    selectedObject.type === 'wall' ? 'floor' : 'wall'
+                                    selectedObject.type === 'wall' ? 'multiwall' : 'wall'
                                 )
                             }
                         >
-                            Switch type to { selectedObject.type === 'wall' ? 'Floor' : 'Wall' }
+                            Switch type to { selectedObject.type === 'wall' ? 'MultiWall' : 'Wall' }
                         </button>
                     </div> : null }
 
@@ -1538,9 +1573,9 @@ export default class Editor extends Component {
                         { createType === 'wall' && '✓' }
                         <Kbd>W</Kbd>all
                     </button>
-                    <button onClick={ this.selectType( 'floor' ) }>
-                        { createType === 'floor' && '✓' }
-                        <Kbd>F</Kbd>loor
+                    <button onClick={ this.selectType( 'multiwall' ) }>
+                        { createType === 'multiwall' && '✓' }
+                        MultiWall <Kbd>F</Kbd>
                     </button>
                     <button onClick={ this.selectType( 'pushy' ) }>
                         { createType === 'pushy' && '✓' }

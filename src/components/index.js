@@ -18,7 +18,7 @@ export TitleScreen from './TitleScreen/TitleScreen';
 export StaticEntities from './StaticEntities/StaticEntities';
 export Waterfall from './entities/Waterfall';
 export FinishLine from './entities/FinishLine';
-export Floor from './entities/Floor';
+export MultiWall from './entities/MultiWall';
 export Grid from './entities/Grid';
 export Grow from './entities/Grow';
 export House from './entities/House';

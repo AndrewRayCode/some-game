@@ -33,8 +33,6 @@ export default [
         key={ 4335 }
         resourceId="floorSideMaterial"
         color={ 0xee8a6f }
-        transparent
-        opacity={ 0.12 }
     />,
     <meshPhongMaterial
         key={ 4336 }

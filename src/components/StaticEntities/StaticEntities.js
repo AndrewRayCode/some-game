@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 
 import {
-    Shrink, Grow, Wall, Floor, Pushy, TubeBend, TubeStraight, Player,
+    Shrink, Grow, Wall, MultiWall, Pushy, TubeBend, TubeStraight, Player,
     FinishLine, House, Waterfall,
 } from '../';
 
@@ -71,15 +71,17 @@ export default class StaticEntities extends Component {
                         materialId="pushyMaterial"
                     />;
 
-                } else if( entity.type === 'floor' ) {
+                } else if( entity.type === 'floor' || entity.type === 'multiwall' ) {
 
-                    return <Floor
+                    return <MultiWall
                         ref={ entity.id }
                         key={ entity.id }
+                        assets={ assets }
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
                         materialId={ entity.materialId }
+                        topMaterialId={ entity.topMaterialId }
                     />;
 
                 } else if( entity.type === 'tube' ) {

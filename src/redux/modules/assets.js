@@ -194,6 +194,11 @@ export function loadAllAssets() {
     return dispatch => {
 
         dispatch( loadAsset(
+            require( '../../../assets/models/multiwall.json' ),
+            { name: 'multiwall' }
+        ));
+
+        dispatch( loadAsset(
             require( '../../../assets/models/houseSF.obj' ),
             { name: 'house' }
         ));

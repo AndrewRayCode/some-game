@@ -15,7 +15,7 @@ export default class TubeStraight extends Component {
         const { tube } = assets;
 
         if( !tube ) {
-            return <mesh />;
+            return <group />;
         }
 
         const { faces, vertices, colors, faceVertexUvs } = tube;

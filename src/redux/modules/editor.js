@@ -24,6 +24,7 @@ const UPDATE_BOOK_FAIL = 'editor/UPDATE_BOOK_FAIL';
 const ADD_ENTITY = 'editor/ADD_ENTITY';
 const CHANGE_ENTITY_MATERIAL_ID = 'editor/CHANGE_ENTITY_MATERIAL_ID';
 const CHANGE_ENTITY_WRAP_MATERIAL_ID = 'editor/CHANGE_ENTITY_WRAP_MATERIAL_ID';
+const CHANGE_ENTITY_TOP_MATERIAL_ID = 'editor/CHANGE_ENTITY_TOP_MATERIAL_ID';
 const CHANGE_ENTITY_FOAM_MATERIAL_ID = 'editor/CHANGE_ENTITY_FOAM_MATERIAL_ID';
 const CHANGE_ENTITY_TYPE = 'editor/CHANGE_ENTITY_TYPE';
 const DESERIALIZE = 'editor/DESERIALIZE';
@@ -75,6 +76,13 @@ function entityPropertyReducer( entity, action ) {
             return {
                 ...entity,
                 wrapMaterialId: action.newWrapMaterialId
+            };
+
+        case CHANGE_ENTITY_TOP_MATERIAL_ID:
+
+            return {
+                ...entity,
+                topMaterialId: action.newTopMaterialId
             };
 
         case MOVE_ENTITY:
@@ -158,6 +166,7 @@ export function entitiesReducer( entities = {}, action = {} ) {
         case CHANGE_ENTITY_MATERIAL_ID:
         case CHANGE_ENTITY_FOAM_MATERIAL_ID:
         case CHANGE_ENTITY_WRAP_MATERIAL_ID:
+        case CHANGE_ENTITY_TOP_MATERIAL_ID:
 
             return {
                 ...entities,
@@ -692,6 +701,13 @@ export function changeEntityWrapMaterial( id, newWrapMaterialId ) {
     return {
         type: CHANGE_ENTITY_WRAP_MATERIAL_ID,
         id, newWrapMaterialId
+    };
+}
+
+export function changeEntityTopMaterial( id, newTopMaterialId ) {
+    return {
+        type: CHANGE_ENTITY_TOP_MATERIAL_ID,
+        id, newTopMaterialId
     };
 }
 
