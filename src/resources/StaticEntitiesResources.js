@@ -1,36 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 
-const tubeRadius = 0.5;
-const bendSpline = new THREE.QuadraticBezierCurve3(
-    new THREE.Vector3( 0, 0, 0 ),
-    new THREE.Vector3( 0, tubeRadius, 0 ),
-    new THREE.Vector3( tubeRadius, tubeRadius )
-);
-
-const extrudeSettings = {
-    curveSegments: 5,
-    amount: 1,
-    bevelEnabled: false,
-    bevelSegments: 0,
-    steps: 10,
-    bevelSize: 0,
-    closed: false,
-    extrudePath: bendSpline,
-    bevelThickness: 0
-};
-
-const straightExtrudeSettings = {
-    curveSegments: 10,
-    amount: 1,
-    bevelEnabled: false,
-    bevelSegments: 0,
-    steps: 10,
-    bevelSize: 0,
-    closed: false,
-    bevelThickness: 0
-};
-
 export default [
     <meshPhongMaterial
         key={ 8991 }
@@ -47,27 +17,18 @@ export default [
     >
         <texture
             url={ require( '../../assets/tube-pattern-1.png' ) }
-            wrapS={ THREE.RepeatWrapping }
-            wrapT={ THREE.RepeatWrapping }
             anisotropy={ 16 }
         />
     </meshPhongMaterial>,
-    <extrudeGeometry
+    <meshPhongMaterial
         key={ 8993 }
-        resourceId="tubeBend"
-        settings={ extrudeSettings }
+        resourceId="tubeBendMaterial"
+        side={ THREE.DoubleSide }
+        transparent
     >
-        <shapeResource
-            resourceId="tubeWall"
+        <texture
+            url={ require( '../../assets/tube-bend-pattern-1.png' ) }
+            anisotropy={ 16 }
         />
-    </extrudeGeometry>,
-    <extrudeGeometry
-        key={ 8994 }
-        resourceId="tubeStraight"
-        settings={ straightExtrudeSettings }
-    >
-        <shapeResource
-            resourceId="tubeWall"
-        />
-    </extrudeGeometry>
+    </meshPhongMaterial>,
 ];

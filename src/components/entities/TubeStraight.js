@@ -1,9 +1,9 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 
-const tubeScale = new THREE.Vector3( 0.9, 0.9, 0.9999 );
+const tubeRotation = new THREE.Euler( Math.PI / 2, 0, 0 );
 
-export default class House extends Component {
+export default class TubeStraight extends Component {
 
     constructor( props, context ) {
         super( props, context );
@@ -17,7 +17,8 @@ export default class House extends Component {
         if( !tube ) {
             return <mesh />;
         }
-        const houseData = tube;
+
+        const { faces, vertices, colors, faceVertexUvs } = tube;
 
         return <group
             position={ position }
@@ -26,13 +27,13 @@ export default class House extends Component {
         >
             <mesh
                 ref="mesh"
-                scale={ tubeScale }
+                rotation={ tubeRotation }
             >
                 <geometry
-                    faces={ houseData.faces }
-                    vertices={ houseData.vertices }
-                    colors={ houseData.colors }
-                    faceVertexUvs={ houseData.faceVertexUvs }
+                    faces={ faces }
+                    vertices={ vertices }
+                    colors={ colors }
+                    faceVertexUvs={ faceVertexUvs }
                 />
                 <materialResource
                     resourceId={ materialId }

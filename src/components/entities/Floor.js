@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import THREE from 'three';
 
-const topPosition = new THREE.Vector3( 0, 0.51, 0 );
+const topPosition = new THREE.Vector3( 0, 0.50, 0 );
 const topRotation = new THREE.Euler( -THREE.Math.degToRad( 90 ), 0, 0 );
 
 export default class Floor extends Component {

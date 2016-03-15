@@ -25,15 +25,18 @@ export function letterGeometryReducer( letters = {}, action = {} ) {
             const { font } = action.payload;
             const { glyphs } = font.data;
 
+            window.fonts = window.fonts || {};
+
             return {
                 ...letters,
                 [ name ]: Object.keys( glyphs ).reduce( ( memo, glyph ) => {
                     const data = glyphs[ glyph ];
-                    return {
+                    const glyphName = `${ name }_${ glyph }`;
+                    window.fonts[ glyphName ] = window.fonts[ glyphName ] || {
                         ...memo,
                         [ glyph ]: <textGeometry
-                            key={ `${ name }_${ glyph }` }
-                            resourceId={ `${ name }_${ glyph }` }
+                            key={ glyphName }
+                            resourceId={ glyphName }
                             userData={ data }
                             size={ 1 }
                             height={ 0.25 }
@@ -44,6 +47,7 @@ export function letterGeometryReducer( letters = {}, action = {} ) {
                             text={ glyph }
                         />
                     };
+                    return window.fonts[ glyphName ];
                 }, {} )
             };
 
@@ -102,14 +106,16 @@ export function assetsReducer( assets = {}, action = {} ) {
                     [ action.name ]: action.model,
                 };
             } else {
+                window.assets = window.assets || {};
+                window.assets[ action.name ] = window.assets[ action.name ] || {
+                    ...action.model,
+                    geometry: action.model.children.map( child =>
+                        new THREE.Geometry().fromBufferGeometry( child.geometry )
+                    )
+                };
                 return {
                     ...assets,
-                    [ action.name ]: {
-                        ...action.model,
-                        geometry: action.model.children.map( child =>
-                            new THREE.Geometry().fromBufferGeometry( child.geometry )
-                        )
-                    }
+                    [ action.name ]: window.assets[ action.name ]
                 };
             }
             break;

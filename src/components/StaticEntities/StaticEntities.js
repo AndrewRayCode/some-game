@@ -103,7 +103,7 @@ export default class StaticEntities extends Component {
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
-                        materialId="tubeMaterial"
+                        materialId="tubeBendMaterial"
                     />;
 
                 } else if( entity.type === 'house' ) {

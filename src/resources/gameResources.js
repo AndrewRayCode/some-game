@@ -43,43 +43,6 @@ export default [
         transparent
         opacity={ 0.12 }
     />,
-    <shape
-        resourceId="tubeWall"
-        key={ 4337 }
-    >
-        <absArc
-            x={ 0 }
-            y={ 0 }
-            radius={ 0.5 }
-            startAngle={ 0 }
-            endAngle={ Math.PI * 2 }
-            clockwise={ false }
-        />
-        <hole>
-            <absArc
-                x={ 0 }
-                y={ 0 }
-                radius={ 0.4 }
-                startAngle={ 0 }
-                endAngle={ Math.PI * 2 }
-                clockwise
-            />
-        </hole>
-    </shape>,
-    <meshPhongMaterial
-        key={ 4338 }
-        resourceId="tubeMaterial"
-        color={ 0xffffff }
-        side={ THREE.DoubleSide }
-        transparent
-    >
-        <texture
-            url={ require( '../../assets/tube-pattern-1.png' ) }
-            wrapS={ THREE.RepeatWrapping }
-            wrapT={ THREE.RepeatWrapping }
-            anisotropy={ 16 }
-        />
-    </meshPhongMaterial>,
     <meshPhongMaterial
         key={ 4340 }
         resourceId="shrinkWrapMaterial"
