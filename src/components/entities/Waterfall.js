@@ -1,11 +1,11 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import CANNON from 'cannon/src/Cannon';
-import { boxToBoxCollision } from '../../helpers/Utils';
+import { clampVector3 } from '../../helpers/Utils';
 
 // Waterfall configuration
 const rayCount = 4;
-const maxLength = 10;
+const maxLength = 1.5;
 
 const bubbleMinSize = 0.5;
 const foamGrowSize = 0.3;
@@ -26,7 +26,6 @@ const axis = new THREE.Vector3( 0, 1, 0 );
 // Which way the waterfall flows by default
 const forwardDirection = new THREE.Vector3( 1, 0, 0 );
 
-const raycaster = new THREE.Raycaster();
 const relativeCannonPoint = new CANNON.Vec3( 0, 0, 0 );
 
 export default class Waterfall extends Component {
@@ -199,9 +198,13 @@ export default class Waterfall extends Component {
             if( box.intersectsBox( playerBox ) ) {
 
                 playerBody.applyImpulse( impulseVector, relativeCannonPoint );
-                hitLength = body === playerBody ?
-                    hitLength :
-                    fromVector.distanceTo( playerBody.position );
+                hitLength = Math.min(
+                    body === playerBody ?
+                        hitLength :
+                        fromVector.distanceTo( playerBody.position
+                    ),
+                    maxLength
+                );
 
             }
 

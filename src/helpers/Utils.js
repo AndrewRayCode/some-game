@@ -394,3 +394,10 @@ export function getFrustrumAt( distanceFromCamera:number, fov:number, aspect:num
     );
 
 }
+
+export function clampVector3( v3, min, max ) {
+
+    const length = v3.length();
+    return v3.clone().setLength( Math.max( Math.min( max, length ) ) );
+
+}
