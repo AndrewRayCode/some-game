@@ -16,7 +16,11 @@ export ConfirmRestartScreen from './ConfirmRestartScreen/ConfirmRestartScreen';
 export PausedScreen from './PausedScreen/PausedScreen';
 export TitleScreen from './TitleScreen/TitleScreen';
 export StaticEntities from './StaticEntities/StaticEntities';
+
+// Individual entities
+export SegmentedEmitter from './entities/SegmentedEmitter';
 export Waterfall from './entities/Waterfall';
+export Puffer from './entities/Puffer';
 export FinishLine from './entities/FinishLine';
 export MultiWall from './entities/MultiWall';
 export Grid from './entities/Grid';

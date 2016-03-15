@@ -17,7 +17,7 @@ const bgPosition = new THREE.Vector3( 0, -2, 0 );
 const frustum = getFrustrumAt( cameraPosition.y + Math.abs( bgPosition.y ), cameraFov, cameraAspect );
 const bgScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( frustum.size().x );
 
-export default class ConfirmRestartScreen extends Component {
+export default class TransitionScreen extends Component {
     
     static propTypes = {
         letters: PropTypes.object.isRequired,

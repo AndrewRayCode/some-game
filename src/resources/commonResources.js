@@ -68,5 +68,11 @@ export default [
         radius={ 0.5 }
         widthSegments={ 6 }
         heightSegments={ 6 }
-    />
+    />,
+    <meshBasicMaterial
+        key={ 11954 }
+        resourceId="semitransparent"
+        opacity={ 0.1 }
+        color={ 0xff0000 }
+    />,
 ];

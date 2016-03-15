@@ -10,7 +10,7 @@ import {
     addNextChapter, removeNextChapter, insetChapter, changeEntityType,
     createBook, selectBook, renameChapter, renameBook, createChapterFromLevel,
     saveAll, changeEntityWrapMaterial, changeEntityFoamMaterial,
-    changeEntityTopMaterial,
+    changeEntityTopMaterial, changeEntityProperty
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -235,7 +235,7 @@ function snapTo( number, interval ) {
         insetChapter, changeEntityType, createBook, selectBook,
         selectLevelAndChapter, createChapterFromLevel, saveAll,
         changeEntityFoamMaterial, changeEntityWrapMaterial,
-        changeEntityTopMaterial
+        changeEntityTopMaterial, changeEntityProperty
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -292,6 +292,7 @@ export default class Editor extends Component {
         this.changeFoamMaterialId = this.changeFoamMaterialId.bind( this );
         this.changeMaterialId = this.changeMaterialId.bind( this );
         this.onChapterCreateChange = this.onChapterCreateChange.bind( this );
+        this.onPropertyChange = this.onPropertyChange.bind( this );
         this.deselectAll = this.deselectAll.bind( this );
         this.createLevel = this.createLevel.bind( this );
         this.selectLevelAndChapter = this.selectLevelAndChapter.bind( this );
@@ -381,6 +382,12 @@ export default class Editor extends Component {
         this.setState({
             insertChapterId: event.target.value
         });
+
+    }
+
+    onPropertyChange( id, property, event ) {
+
+        this.props.changeEntityProperty( id, property, event.target.value );
 
     }
 
@@ -736,6 +743,9 @@ export default class Editor extends Component {
                     intersection.object !== (
                         previewPosition && previewPosition.refs.mesh2
                     ) &&
+                    intersection.object !== (
+                        previewPosition && previewPosition.refs.child && previewPosition.refs.child.refs.mesh
+                    ) &&
                     intersection.object !== dragCreateBlock &&
                     !( intersection.object instanceof THREE.Line ) &&
                     ( !previewGroup || (
@@ -762,7 +772,10 @@ export default class Editor extends Component {
                     ( ref.refs.mesh === objectIntersection.parent.parent ) ||
                     ( ref.refs.mesh2 === objectIntersection ) ||
                     ( ref.refs.mesh2 === objectIntersection.parent ) ||
-                    ( ref.refs.mesh2 === objectIntersection.parent.parent )
+                    ( ref.refs.mesh2 === objectIntersection.parent.parent ) ||
+                    ( ref.refs.child && ref.refs.child.refs.mesh === objectIntersection ) ||
+                    ( ref.refs.child && ref.refs.child.refs.mesh === objectIntersection.parent ) ||
+                    ( ref.refs.child && ref.refs.child.refs.mesh === objectIntersection.parent.parent )
                 );
 
             });
@@ -1483,9 +1496,25 @@ export default class Editor extends Component {
                         step={ gridSnap }
                     />
 
+                    { ( selectedObject.type === 'puffer' ||
+                            selectedObject.type === 'waterfall' ) ? <div>
+                        <b>Impulse:</b>
+                        <input
+                            value={ selectedObject.impulse }
+                            onChange={ this.onPropertyChange.bind( null, selectedObject.id, 'impulse' ) }
+                        />
+                        <br />
+                        <b>Max Length:</b>
+                        <input
+                            value={ selectedObject.maxLength }
+                            onChange={ this.onPropertyChange.bind( null, selectedObject.id, 'maxLength' ) }
+                        />
+                    </div> : null }
+
                     { ( selectedObject.type === 'wall' ||
                             selectedObject.type === 'floor' ||
                             selectedObject.type === 'multiwall' ||
+                            selectedObject.type === 'puffer' ||
                             selectedObject.type === 'waterfall' ) ? <div>
                         <br />
                         <br />
@@ -1616,6 +1645,10 @@ export default class Editor extends Component {
                     { createType === 'waterfall' && '✓' }
                     <button onClick={ this.selectType( 'waterfall' ) }>
                         Waterfall
+                    </button>
+                    { createType === 'puffer' && '✓' }
+                    <button onClick={ this.selectType( 'puffer' ) }>
+                        Puffer
                     </button>
                     { createType === 'chapter' && '✓' }
                     <select

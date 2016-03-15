@@ -100,7 +100,7 @@ const transitionFadeMs = 1000;
             } else if( entity.type === 'pushy' ) {
                 memo.currentLevelMovableEntities[ id ] = entity;
             // Things like waterfalls with no physical geometry
-            } else if( entity.type === 'waterfall' ) {
+            } else if( entity.type === 'waterfall' || entity.type === 'puffer' ) {
                 memo.currentLevelRenderableEntities[ id ] = entity;
             // walls, floors, etc
             } else {

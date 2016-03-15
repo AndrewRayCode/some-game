@@ -2,7 +2,7 @@ import React, { PropTypes, Component } from 'react';
 import React3 from 'react-three-renderer';
 import {
     Wall, MultiWall, Pushy, TubeBend, TubeStraight, Player, StaticEntities,
-    Shrink, House, Grow, FinishLine, Waterfall,
+    Shrink, House, Grow, FinishLine, Waterfall, Puffer
 } from '../';
 import THREE from 'three';
 
@@ -96,6 +96,19 @@ export default class CreatePreviewObject extends Component {
                     scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
+                    helperMaterial="ghostMaterial"
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                />;
+
+            case 'puffer':
+
+                return <Puffer
+                    time={ time }
+                    scale={ scale }
+                    rotation={ createPreviewRotation }
+                    position={ createPreviewPosition }
+                    helperMaterial="ghostMaterial"
                     ref="previewPosition"
                     materialId="ghostMaterial"
                 />;

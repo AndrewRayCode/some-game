@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 
 import {
     Shrink, Grow, Wall, MultiWall, Pushy, TubeBend, TubeStraight, Player,
-    FinishLine, House, Waterfall,
+    FinishLine, House, Waterfall, Puffer,
 } from '../';
 
 export default class StaticEntities extends Component {
@@ -43,12 +43,32 @@ export default class StaticEntities extends Component {
                         materialId={ entity.materialId }
                     />;
 
-                } else if( entity.type === 'waterfall' || entity.type === 'dirt' ) {
+                } else if( entity.type === 'puffer' ) {
+
+                    return <Puffer
+                        time={ time }
+                        ref={ entity.id }
+                        key={ entity.id }
+                        impulse={ entity.impulse }
+                        maxLength={ entity.maxLength }
+                        position={ entity.position }
+                        rotation={ entity.rotation }
+                        scale={ entity.scale }
+                        world={ world }
+                        paused={ paused }
+                        playerRadius={ playerRadius }
+                        playerBody={ playerBody }
+                        materialId={ entity.materialId }
+                    />;
+
+                } else if( entity.type === 'waterfall' ) {
 
                     return <Waterfall
                         time={ time }
                         ref={ entity.id }
                         key={ entity.id }
+                        impulse={ entity.impulse }
+                        maxLength={ entity.maxLength }
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }

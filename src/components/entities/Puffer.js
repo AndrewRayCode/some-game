@@ -13,7 +13,6 @@ export default class Waterfall extends Component {
         playerRadius: PropTypes.number,
         playerBody: PropTypes.object,
         materialId: PropTypes.string.isRequired,
-        foamMaterialId: PropTypes.string,
         helperMaterial: PropTypes.string,
     }
 
@@ -21,22 +20,19 @@ export default class Waterfall extends Component {
 
         const {
             position, rotation, scale, world, paused, time, playerRadius,
-            playerBody, materialId, foamMaterialId, maxLength, impulse,
-            helperMaterial
+            playerBody, materialId, maxLength, impulse, helperMaterial
         } = this.props;
 
         return <SegmentedEmitter
             ref="child"
-            foam
             maxLength={ maxLength || 10 }
             impulse={ impulse || 100 }
-            rayCount={ 4 }
+            rayCount={ 2 }
             materialId={ materialId }
-            foamMaterialId={ foamMaterialId }
             position={ position }
             rotation={ rotation }
-            helperMaterial={ helperMaterial }
             scale={ scale }
+            helperMaterial={ helperMaterial }
             world={ world }
             paused={ paused }
             time={ time }
@@ -47,3 +43,4 @@ export default class Waterfall extends Component {
     }
 
 }
+
