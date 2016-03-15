@@ -379,13 +379,16 @@ export default class GameRenderer extends Component {
             velocity: playerVelocity, position: playerPosition
         } = playerBody;
 
-        let forceX = 0;
+        let directionX = 0;
+        let directionZ = 0;
 
         const velocityMoveMax = 5 * playerScale;
         const velocityMax = 10.0 * velocityMoveMax;
 
         const isLeft = ( KeyCodes.A in keysDown ) || ( KeyCodes.LEFT in keysDown );
         const isRight = ( KeyCodes.D in keysDown ) || ( KeyCodes.RIGHT in keysDown );
+        const isUp = ( KeyCodes.W in keysDown ) || ( KeyCodes.UP in keysDown );
+        const isDown = ( KeyCodes.S in keysDown ) || ( KeyCodes.DOWN in keysDown );
         const playerPositionV3 = new THREE.Vector3().copy( playerPosition );
         const playerSnapped = new THREE.Vector3(
             snapTo( playerPositionV3.x, playerScale ),
@@ -417,10 +420,17 @@ export default class GameRenderer extends Component {
 
         // Determine which way the player is attempting to move
         if( isLeft ) {
-            forceX = -1;
+            directionX = -1;
         }
         if( isRight ) {
-            forceX = 1;
+            directionX = 1;
+        }
+        // Use for tube direction
+        if( isUp ) {
+            directionZ = -1;
+        }
+        if( isDown ) {
+            directionZ = 1;
         }
 
         let newTubeFlow;
@@ -439,7 +449,7 @@ export default class GameRenderer extends Component {
                 const thresholdPlayerEndsAt = isAtEntrance1 ? threshold2 : threshold1;
 
                 const playerTowardTube = playerSnapped.clone().add(
-                    new THREE.Vector3( forceX, 0, 0 )
+                    new THREE.Vector3( directionX, 0, directionZ )
                         .normalize()
                         .multiplyScalar( playerScale )
                 );
@@ -618,7 +628,7 @@ export default class GameRenderer extends Component {
             if( ( isRight && playerVelocity.x < velocityMax ) ||
                     ( isLeft && playerVelocity.x > -velocityMax ) ) {
 
-                playerVelocity.x = lerp( playerVelocity.x, forceX * velocityMoveMax, 0.1 );
+                playerVelocity.x = lerp( playerVelocity.x, directionX * velocityMoveMax, 0.1 );
 
             } else {
 
