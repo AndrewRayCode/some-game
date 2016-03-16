@@ -21,6 +21,7 @@ export StaticEntities from './StaticEntities/StaticEntities';
 export SegmentedEmitter from './entities/SegmentedEmitter';
 export Waterfall from './entities/Waterfall';
 export Puffer from './entities/Puffer';
+export ParticleEmitter from './entities/ParticleEmitter';
 export FinishLine from './entities/FinishLine';
 export MultiWall from './entities/MultiWall';
 export Grid from './entities/Grid';

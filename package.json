@@ -136,6 +136,7 @@
     "scroll-behavior": "^0.3.2",
     "serialize-javascript": "^1.1.2",
     "serve-favicon": "^2.3.0",
+    "shader-particle-engine": "git://github.com/DelvarWorld/ShaderParticleEngine.git#forever",
     "shaderfrog-runtime": "0.0.15",
     "socket.io": "^1.3.7",
     "socket.io-client": "^1.3.7",
