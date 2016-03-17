@@ -20,7 +20,7 @@ export default class StaticEntities extends Component {
 
         const {
             entities, time, position, scale, shaders, assets, world, paused,
-            playerRadius, playerBody,
+            playerRadius, playerBody, debug
         } = this.props;
 
         return <group
@@ -49,6 +49,7 @@ export default class StaticEntities extends Component {
                         time={ time }
                         ref={ entity.id }
                         key={ entity.id }
+                        debug={ debug }
                         impulse={ entity.impulse }
                         maxLength={ entity.maxLength }
                         position={ entity.position }
@@ -88,7 +89,7 @@ export default class StaticEntities extends Component {
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
-                        materialId="pushyMaterial"
+                        materialId={ entity.materialId }
                     />;
 
                 } else if( entity.type === 'floor' || entity.type === 'multiwall' ) {

@@ -30,7 +30,7 @@ export default class Pushy extends Component {
                 colors={ geo.colors }
             />
             <materialResource
-                resourceId={ materialId }
+                resourceId={ materialId || 'pushyMaterial' }
             />
         </mesh>;
 

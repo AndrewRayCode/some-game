@@ -168,9 +168,11 @@ export default class GameRenderer extends Component {
                 linearFactor: factorConstraint,
                 angularFactor: angularUprightConstraint,
             });
+
             // Copy scale to pushyBody so _getMeshStates can access it to pass
             // to three
             pushyBody.scale = scale;
+            pushyBody.entityId = entity.id;
 
             const pushyShape = new CANNON.Box( new CANNON.Vec3(
                 0.45 * scale.x,
@@ -688,12 +690,13 @@ export default class GameRenderer extends Component {
 
     _getMeshStates( bodies ) {
 
-        return bodies.map( body => {
-            const { position, quaternion, scale } = body;
+        return bodies.map( cannonBody => {
+            const { position, quaternion, scale, entityId } = cannonBody;
             return {
                 scale: new THREE.Vector3().copy( scale ),
                 position: new THREE.Vector3().copy( position ),
-                quaternion: new THREE.Quaternion().copy( quaternion )
+                quaternion: new THREE.Quaternion().copy( quaternion ),
+                entityId
             };
         });
 
@@ -1109,7 +1112,7 @@ export default class GameRenderer extends Component {
             playerRadius, playerScale, nextChapters, nextChaptersEntities,
             previousChapterEntities, previousChapterEntity,
             currentLevelRenderableEntitiesArray, previousChapterFinishEntity,
-            assets, shaders, paused
+            assets, shaders, paused, allEntities
         } = this.props;
 
         const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;
@@ -1152,12 +1155,12 @@ export default class GameRenderer extends Component {
                 materialId="playerMaterial"
             />
 
-            { pushyPositions.map( ( entity, index ) => <Pushy
+            { pushyPositions.map( ( cannonBody, index ) => <Pushy
                 key={ index }
-                scale={ entity.scale }
-                materialId="pushyMaterial"
-                position={ entity.position }
-                quaternion={ entity.quaternion }
+                scale={ cannonBody.scale }
+                materialId={ allEntities[ cannonBody.entityId ].materialId }
+                position={ cannonBody.position }
+                quaternion={ cannonBody.quaternion }
             /> ) }
 
             <StaticEntities
@@ -1166,6 +1169,7 @@ export default class GameRenderer extends Component {
                 world={ this.world }
                 assets={ assets }
                 shaders={ shaders }
+                debug={ debug }
                 ref="staticEntities"
                 playerRadius={ playerRadius }
                 entities={ currentLevelRenderableEntitiesArray }
@@ -1177,6 +1181,7 @@ export default class GameRenderer extends Component {
                 key={ nextChapter.id }
                 assets={ assets }
                 shaders={ shaders }
+                debug={ debug }
                 position={ nextChapter.position }
                 scale={ nextChapter.scale }
                 playerRadius={ playerRadius }
@@ -1188,6 +1193,7 @@ export default class GameRenderer extends Component {
                 paused={ paused }
                 assets={ assets }
                 shaders={ shaders }
+                debug={ debug }
                 position={ previousChapterEntity.position }
                 scale={ previousChapterEntity.scale }
                 entities={ previousChapterEntities }

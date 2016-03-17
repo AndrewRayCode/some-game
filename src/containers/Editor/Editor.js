@@ -1521,6 +1521,7 @@ export default class Editor extends Component {
                     { ( selectedObject.type === 'wall' ||
                             selectedObject.type === 'floor' ||
                             selectedObject.type === 'multiwall' ||
+                            selectedObject.type === 'pushy' ||
                             selectedObject.type === 'puffer' ||
                             selectedObject.type === 'waterfall' ) ? <div>
                         <br />

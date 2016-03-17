@@ -47,7 +47,8 @@ export default class Waterfall extends Component {
 
         const {
             position, rotation, scale, world, paused, time, playerRadius,
-            playerBody, materialId, maxLength, impulse, helperMaterial
+            playerBody, materialId, maxLength, impulse, helperMaterial,
+            debug
         } = this.props;
 
         const defaultMaxLength = maxLength || 10;
@@ -78,7 +79,7 @@ export default class Waterfall extends Component {
                 maxLength={ defaultMaxLength }
                 impulse={ impulse || 100 }
                 rayCount={ 2 }
-                materialId="transparent"
+                materialId={ debug ? 'ornateWall1' : 'transparent' }
                 position={ position }
                 rotation={ rotation }
                 scale={ scale }
