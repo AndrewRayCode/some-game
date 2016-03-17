@@ -99,6 +99,23 @@ export default class ParticleEmitter extends Component {
 
     }
 
+    componentWillReceiveProps( nextProps ) {
+
+        if( this.emitter && (
+                nextProps.rotation !== this.props.rotation ||
+                nextProps.opacity !== this.props.opacity
+            ) ) {
+
+            const { rotation, velocity, velocitySpread, opacity } = nextProps;
+
+            this.emitter.opacity.value = opacity;
+            this.emitter.velocity.value = velocity.clone().applyQuaternion( rotation );
+            this.emitter.velocity.spread = velocitySpread.clone().applyQuaternion( rotation );
+
+        }
+
+    }
+
     _onUpdate( elapsedTime, delta ) {
 
         if( this.particleGroup ) {
@@ -109,10 +126,11 @@ export default class ParticleEmitter extends Component {
 
     render() {
 
-        const { emitterPosition } = this.props;
+        const { emitterPosition, rotation } = this.props;
 
         return <object3D
             onUpdate={ this._onUpdate }
+            rotation={ rotation }
             position={ emitterPosition }
             ref="obj3d"
         />;

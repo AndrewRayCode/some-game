@@ -18,6 +18,20 @@ export default class Waterfall extends Component {
         helperMaterial: PropTypes.string,
     }
 
+    constructor( props ) {
+
+        super( props );
+
+        if( __CLIENT__ ) {
+            this.state = {
+                smokeParticle: THREE.ImageUtils.loadTexture(
+                    require( '../../../assets/smoke-particle.png' )
+                )
+            };
+        }
+
+    }
+
     render() {
 
         const {
@@ -29,14 +43,12 @@ export default class Waterfall extends Component {
             <ParticleEmitter
                 rotation={ rotation }
                 emitterPosition={ position }
-                texture={ THREE.ImageUtils.loadTexture(
-                    require( '../../../assets/smoke-particle.png' )
-                )}
+                texture={ this.state.smokeParticle }
                 maxAge={ 2 }
-                positionSpread={ new THREE.Vector3( 0.5, 0, 0.0 ) }
-                opacity={[ 0.8, 0 ]}
+                positionSpread={ new THREE.Vector3( 0.0, 0, 0.0 ) }
+                opacity={[ 0.6, 0 ]}
                 opacitySpread={ 0.1 }
-                velocity={ new THREE.Vector3( 0, 2, 0 ) }
+                velocity={ new THREE.Vector3( 2, 0, 0 ) }
                 velocitySpread={ new THREE.Vector3( 0.1, 0.0, 0.1 ) }
                 color={[
                     new THREE.Color( 0xffffff ),
