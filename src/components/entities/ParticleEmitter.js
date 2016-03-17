@@ -8,7 +8,8 @@ const arrayOrNumber = PropTypes.oneOfType([
 const arrayOrObject = PropTypes.oneOfType([
     PropTypes.object, PropTypes.number
 ]);
-const defaultPosition = new THREE.Vector3( 0, 0, 0 );
+const defaultPosition = new THREE.Vector3( -0.5, 0, 0 );
+const emitterOffset = new THREE.Vector3( 0, -1, 0 );
 
 export default class ParticleEmitter extends Component {
 
@@ -21,7 +22,7 @@ export default class ParticleEmitter extends Component {
         positionSpread: PropTypes.object,
         opacity: arrayOrNumber,
         opacitySpread: PropTypes.number,
-        velocity: PropTypes.object,
+        velocity: PropTypes.number.isRequired,
         velocitySpread: PropTypes.object,
         color: arrayOrObject,
         colorSpread: PropTypes.object,
@@ -57,15 +58,15 @@ export default class ParticleEmitter extends Component {
         const emitter = this.emitter = new SPE.Emitter({
             maxAge: { value: maxAge },
             position: {
-                value: defaultPosition,
-                spread: positionSpread
+                value: defaultPosition.clone().applyQuaternion( rotation ),
+                spread: positionSpread.clone().applyQuaternion( rotation ),
             },
             opacity: {
                 value: opacity,
                 spread: opacitySpread
             },
             velocity: {
-                value: velocity.clone().applyQuaternion( rotation ),
+                value: new THREE.Vector3( velocity, 0, 0 ).clone().applyQuaternion( rotation ),
                 spread: velocitySpread.clone().applyQuaternion( rotation )
             },
             color: {
@@ -106,10 +107,14 @@ export default class ParticleEmitter extends Component {
                 nextProps.opacity !== this.props.opacity
             ) ) {
 
-            const { rotation, velocity, velocitySpread, opacity } = nextProps;
+            const {
+                rotation, velocity, velocitySpread, opacity, positionSpread
+            } = nextProps;
 
             this.emitter.opacity.value = opacity;
-            this.emitter.velocity.value = velocity.clone().applyQuaternion( rotation );
+            this.emitter.position.value = defaultPosition.clone().applyQuaternion( rotation );
+            this.emitter.position.spread = positionSpread.clone().applyQuaternion( rotation );
+            this.emitter.velocity.value = new THREE.Vector3( velocity, 0, 0 ).clone().applyQuaternion( rotation );
             this.emitter.velocity.spread = velocitySpread.clone().applyQuaternion( rotation );
 
         }
@@ -128,12 +133,15 @@ export default class ParticleEmitter extends Component {
 
         const { emitterPosition, rotation } = this.props;
 
-        return <object3D
-            onUpdate={ this._onUpdate }
-            rotation={ rotation }
+        return <group
             position={ emitterPosition }
-            ref="obj3d"
-        />;
+        >
+            <object3D
+                position={ emitterOffset }
+                onUpdate={ this._onUpdate }
+                ref="obj3d"
+            />
+        </group>;
 
     }
 

@@ -48,7 +48,7 @@ export default class Waterfall extends Component {
                 positionSpread={ new THREE.Vector3( 0.0, 0, 0.0 ) }
                 opacity={[ 0.6, 0 ]}
                 opacitySpread={ 0.1 }
-                velocity={ new THREE.Vector3( 2, 0, 0 ) }
+                velocity={ 2 }
                 velocitySpread={ new THREE.Vector3( 0.1, 0.0, 0.1 ) }
                 color={[
                     new THREE.Color( 0xffffff ),
