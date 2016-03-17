@@ -76,8 +76,13 @@ export default class SegmentedEmitter extends Component {
 
         return {
             rayArray,
+
+            // The actual lenghts tweening towards targets
             lengths: state.lengths || rayArray.map( () => 1 ),
+
+            // Where the waterfall should be ideally based on hit test
             lengthTargets: state.lengths || rayArray.map( () => 1 ),
+
             counter: 0,
             flowDirection2D: new THREE.Vector2( flowDirection2D.x, flowDirection2D.z ),
             hitVectors: rayArray.map( ( zero, index ) => {
@@ -206,8 +211,7 @@ export default class SegmentedEmitter extends Component {
                 hitLength = Math.min(
                     body === playerBody ?
                         hitLength :
-                        fromVector.distanceTo( playerBody.position
-                    ),
+                        fromVector.distanceTo( playerBody.position ),
                     maxLength
                 );
 
