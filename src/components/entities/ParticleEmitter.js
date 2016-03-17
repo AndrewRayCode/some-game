@@ -8,7 +8,7 @@ const arrayOrNumber = PropTypes.oneOfType([
 const arrayOrObject = PropTypes.oneOfType([
     PropTypes.object, PropTypes.number
 ]);
-const defaultPosition = new THREE.Vector3( -0.5, 0, 0 );
+const defaultPosition = new THREE.Vector3( -0.4, 0, 0 );
 const emitterOffset = new THREE.Vector3( 0, -1, 0 );
 
 export default class ParticleEmitter extends Component {
@@ -27,7 +27,7 @@ export default class ParticleEmitter extends Component {
         color: arrayOrObject,
         colorSpread: PropTypes.object,
         angle: arrayOrNumber,
-        angleRandomise: PropTypes.bool,
+        angleSpread: PropTypes.number,
         size: arrayOrNumber,
         sizeSpread: PropTypes.object,
         wiggle: PropTypes.number,
@@ -44,18 +44,58 @@ export default class ParticleEmitter extends Component {
 
     componentDidMount() {
 
+        this.createEmitter( this.props );
+
+    }
+
+    componentWillUnmount() {
+
+        this.tearDownEmitter();
+
+    }
+
+    componentWillReceiveProps( nextProps ) {
+
+        const {
+            rotation, velocity, velocitySpread, opacity, positionSpread,
+            maxAge, angle, angleSpread
+        } = nextProps;
+
+        if( this.emitter ) {
+            if(
+                velocity !== this.props.velocity ||
+                rotation !== this.props.rotation ||
+                velocitySpread !== this.props.velocitySpread ||
+                positionSpread !== this.props.positionSpread ||
+                opacity !== this.props.opacity ||
+                angle !== this.props.angle ||
+                angleSpread !== this.props.angleSpread ||
+                maxAge !== this.props.maxAge
+            ) {
+
+                this.tearDownEmitter();
+                this.createEmitter( nextProps );
+
+            }
+
+        }
+
+    }
+
+    createEmitter( props ) {
+
         const {
             positionSpread, rotation, texture, maxAge, opacity,
             opacitySpread, velocity, velocitySpread, color, colorSpread, angle,
-            angleRandomise, size, sizeSpread, wiggle, wiggleSpread,
+            angleSpread, size, sizeSpread, wiggle, wiggleSpread,
             particleCount,
-        } = this.props;
+        } = props;
 
-        const particleGroup = this.particleGroup = new SPE.Group({
+        const particleGroup = new SPE.Group({
             texture: { value: texture }
         });
         
-        const emitter = this.emitter = new SPE.Emitter({
+        const emitter = new SPE.Emitter({
             maxAge: { value: maxAge },
             position: {
                 value: defaultPosition.clone().applyQuaternion( rotation ),
@@ -75,7 +115,7 @@ export default class ParticleEmitter extends Component {
             },
             angle: {
                 value: angle,
-                randomise: angleRandomise
+                spread: angleSpread
             },
             size: {
                 value: size,
@@ -89,35 +129,19 @@ export default class ParticleEmitter extends Component {
         });
 
         particleGroup.addEmitter( emitter );
+
+        this.particleGroup = particleGroup;
+        this.emitter = emitter;
+
         this.refs.obj3d.add( particleGroup.mesh );
 
     }
-
-    componentWillUnmount() {
+    
+    tearDownEmitter() {
 
         this.particleGroup.removeEmitter( this.emitter );
         this.refs.obj3d.remove( this.particleGroup.mesh );
-
-    }
-
-    componentWillReceiveProps( nextProps ) {
-
-        if( this.emitter && (
-                nextProps.rotation !== this.props.rotation ||
-                nextProps.opacity !== this.props.opacity
-            ) ) {
-
-            const {
-                rotation, velocity, velocitySpread, opacity, positionSpread
-            } = nextProps;
-
-            this.emitter.opacity.value = opacity;
-            this.emitter.position.value = defaultPosition.clone().applyQuaternion( rotation );
-            this.emitter.position.spread = positionSpread.clone().applyQuaternion( rotation );
-            this.emitter.velocity.value = new THREE.Vector3( velocity, 0, 0 ).clone().applyQuaternion( rotation );
-            this.emitter.velocity.spread = velocitySpread.clone().applyQuaternion( rotation );
-
-        }
+        this.particleGroup.dispose();
 
     }
 

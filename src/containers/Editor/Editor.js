@@ -293,6 +293,7 @@ export default class Editor extends Component {
         this.changeMaterialId = this.changeMaterialId.bind( this );
         this.onChapterCreateChange = this.onChapterCreateChange.bind( this );
         this.onPropertyChange = this.onPropertyChange.bind( this );
+        this.onPropertyChangeNumber = this.onPropertyChangeNumber.bind( this );
         this.deselectAll = this.deselectAll.bind( this );
         this.createLevel = this.createLevel.bind( this );
         this.selectLevelAndChapter = this.selectLevelAndChapter.bind( this );
@@ -388,6 +389,12 @@ export default class Editor extends Component {
     onPropertyChange( id, property, event ) {
 
         this.props.changeEntityProperty( id, property, event.target.value );
+
+    }
+
+    onPropertyChangeNumber( id, property, event ) {
+
+        this.props.changeEntityProperty( id, property, parseFloat( event.target.value ) );
 
     }
 
@@ -1501,13 +1508,13 @@ export default class Editor extends Component {
                         <b>Impulse:</b>
                         <input
                             value={ selectedObject.impulse }
-                            onChange={ this.onPropertyChange.bind( null, selectedObject.id, 'impulse' ) }
+                            onChange={ this.onPropertyChangeNumber.bind( null, selectedObject.id, 'impulse' ) }
                         />
                         <br />
                         <b>Max Length:</b>
                         <input
                             value={ selectedObject.maxLength }
-                            onChange={ this.onPropertyChange.bind( null, selectedObject.id, 'maxLength' ) }
+                            onChange={ this.onPropertyChangeNumber.bind( null, selectedObject.id, 'maxLength' ) }
                         />
                     </div> : null }
 
