@@ -89,5 +89,10 @@ export default [
         radius={ 0.5 }
         widthSegments={ 20 }
         heightSegments={ 20 }
-    />
+    />,
+    <meshPhongMaterial
+        key={ 4345 }
+        resourceId="greenDebugMaterial"
+        color={ 0x00ff00 }
+    />,
 ];

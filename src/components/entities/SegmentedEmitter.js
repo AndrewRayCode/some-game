@@ -13,7 +13,7 @@ const minimumPercentToShowFoam = 0.9;
 
 // dam son see http://stackoverflow.com/questions/5501581/javascript-new-arrayn-and-array-prototype-map-weirdness
 const colRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
-const axis = new THREE.Vector3( 0, 1, 0 );
+const axis = new THREE.Vector3( 0, -1, 0 );
 // Which way the emitter flows by default
 const forwardDirection = new THREE.Vector3( 1, 0, 0 );
 const helperRotation = new THREE.Euler( 0, -Math.PI / 2, 0 );
@@ -89,8 +89,8 @@ export default class SegmentedEmitter extends Component {
 
                 const streamHalfWidth = 0.5 / rayCount;
 
-                // Construct the unrotated vectors that define this stream in
-                // local space
+                // Construct the *local* unrotated vectors that define this
+                // stream in local space
                 const fromVectorInitial = new THREE.Vector3(
                     // move close to left edge of emitter
                     -0.499,
@@ -106,16 +106,18 @@ export default class SegmentedEmitter extends Component {
                     fromVectorInitial.z,
                 );
 
+                // Calculate the initial two points for the hit test rectangle
+                // to do box test on. These are world points
                 const a = fromVectorInitial
                     .clone()
                     .sub( new THREE.Vector3( 0, 0, streamHalfWidth ) )
-                    .applyAxisAngle( axis, angle )
+                    .applyQuaternion( rotation )
                     .add( position );
 
                 const b = fromVectorInitial
                     .clone()
                     .add( new THREE.Vector3( 0, 0, streamHalfWidth ) )
-                    .applyAxisAngle( axis, angle )
+                    .applyQuaternion( rotation )
                     .add( position );
 
                 const startingPoints = {
@@ -125,10 +127,10 @@ export default class SegmentedEmitter extends Component {
 
                 // Note, these are all in world space except for the impulse
                 return {
-                    fromVector: fromVectorInitial.applyAxisAngle( axis, angle ).add( position ),
-                    toVector: toVectorInitial.applyAxisAngle( axis, angle ).add( position ),
-                    impulseVector: new THREE.Vector3( impulse, 0, 0 ).applyAxisAngle( axis, angle ),
-                    fromVectorInitial, toVectorInitial, startingPoints,
+                    fromVector: fromVectorInitial.applyQuaternion( rotation ).add( position ),
+                    toVector: toVectorInitial.applyQuaternion( rotation ).add( position ),
+                    impulseVector: new THREE.Vector3( impulse, 0, 0 ).applyQuaternion( rotation ),
+                    startingPoints,
                 };
 
             })
@@ -147,7 +149,7 @@ export default class SegmentedEmitter extends Component {
             rayArray,
             lengths: oldLengths,
             lengthTargets: oldLengthTargets,
-            hitVectors, fromVectorInitial, toVectorInitial,
+            hitVectors,
             flowDirection2D
         } = this.state;
 
@@ -185,6 +187,8 @@ export default class SegmentedEmitter extends Component {
                     const { mass, position: bodyPosition, } = body;
                     if( mass ) {
                         body.applyImpulse( impulseVector, relativeCannonPoint );
+                        //body.velocity.x += impulseVector.x;
+                        //body.velocity.z += impulseVector.z;
                     }
 
                 }
@@ -208,6 +212,8 @@ export default class SegmentedEmitter extends Component {
             if( box.intersectsBox( playerBox ) ) {
 
                 playerBody.applyImpulse( impulseVector, relativeCannonPoint );
+                //playerBody.velocity.x += impulseVector.x;
+                //playerBody.velocity.z += impulseVector.z;
                 hitLength = Math.min(
                     body === playerBody ?
                         hitLength :
@@ -237,12 +243,12 @@ export default class SegmentedEmitter extends Component {
 
         const {
             position, rotation, scale, time, materialId, playerRadius,
-            foamMaterialId, rayCount, foam, helperMaterial
+            foamMaterialId, rayCount, foam, helperMaterial, debug
         } = this.props;
         const { lengths, lengthTargets, rayArray, } = this.state;
         const waterfallHeight = -0.5 + ( playerRadius || 0.45 );
 
-        return <group
+        return <group><group
             position={ position }
             quaternion={ rotation || new THREE.Quaternion( 0, 0, 0, 1 ) }
             scale={ scale }
@@ -369,7 +375,32 @@ export default class SegmentedEmitter extends Component {
                 </mesh>
             )}
 
+        </group>
+
+        { debug ? <mesh
+            position={this.state.hitVectors[0].toVector}
+            scale={ new THREE.Vector3( 0.5, 6, 0.5 ) }
+        >
+            <geometryResource
+                resourceId="radius1sphere"
+            />
+            <materialResource
+                resourceId="entranceMaterial"
+            />
+        </mesh> : null }
+        { debug ? <mesh
+            position={this.state.hitVectors[0].fromVector}
+            scale={ new THREE.Vector3( 0.5, 6, 0.5 ) }
+        >
+            <geometryResource
+                resourceId="radius1sphere"
+            />
+            <materialResource
+                resourceId="exitMaterial"
+            />
+        </mesh> : null }
         </group>;
+
 
     }
 

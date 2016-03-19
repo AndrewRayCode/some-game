@@ -498,6 +498,11 @@ export default class GameGUI extends Component {
                     this.pauseKeyListeningUntilKeyUp();
                     this.onExitToTitle();
 
+                } else if( KeyCodes.R in keysDown ) {
+
+                    this.pauseKeyListeningUntilKeyUp();
+                    this.onShowConfirmRestartScreen();
+
                 }
 
             }

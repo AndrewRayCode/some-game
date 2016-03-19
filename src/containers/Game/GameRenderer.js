@@ -1,8 +1,8 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import CANNON from 'cannon/src/Cannon';
 import KeyCodes from '../../helpers/KeyCodes';
 import Cardinality from '../../helpers/Cardinality';
+import p2 from 'p2'; // i hope this doesn't fuck it all up
 import { Pushy, Player, StaticEntities } from '../../components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
@@ -11,8 +11,8 @@ import {
 } from '../../helpers/Utils';
 import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
-const factorConstraint = new CANNON.Vec3( 1, 0, 1 );
-const angularUprightConstraint = new CANNON.Vec3( 0, 0, 0 );
+//const factorConstraint = new CANNON.Vec3( 1, 0, 1 );
+//const angularUprightConstraint = new CANNON.Vec3( 0, 0, 0 );
 
 let debuggingReplay = [];
 
@@ -41,48 +41,48 @@ const scaleDurationMs = 300;
 
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
-const playerMaterial = new CANNON.Material( 'playerMaterial' );
-const pushyMaterial = new CANNON.Material( 'pushyMaterial' );
-const wallMaterial = new CANNON.Material( 'wallMaterial' );
+//const playerMaterial = new CANNON.Material( 'playerMaterial' );
+//const pushyMaterial = new CANNON.Material( 'pushyMaterial' );
+//const wallMaterial = new CANNON.Material( 'wallMaterial' );
 
-// Player to wall
-const playerToWallContact = new CANNON.ContactMaterial( playerMaterial, wallMaterial, {
-    friction: 0.0,
-    // Bounciness (0-1, higher is bouncier). How much energy is conserved
-    // after a collision
-    restitution: 0.1,
-    contactEquationStiffness: 1e12,
-    contactEquationRelaxation: 3,
-    frictionEquationStiffness: 1e8,
-    frictionEquationRegularizationTime: 3,
-    contactEquationRegularizationTime: 3,
-});
+//// Player to wall
+//const playerToWallContact = new CANNON.ContactMaterial( playerMaterial, wallMaterial, {
+    //friction: 0.0,
+    //// Bounciness (0-1, higher is bouncier). How much energy is conserved
+    //// after a collision
+    //restitution: 0.1,
+    //contactEquationStiffness: 1e12,
+    //contactEquationRelaxation: 3,
+    //frictionEquationStiffness: 1e8,
+    //frictionEquationRegularizationTime: 3,
+    //contactEquationRegularizationTime: 3,
+//});
 
-// Player to pushy
-const playerToPushyContact = new CANNON.ContactMaterial( playerMaterial, pushyMaterial, {
-    friction: 0,
-    // Bounciness (0-1, higher is bouncier). How much energy is conserved
-    // after a collision
-    restitution: 0,
-    contactEquationStiffness: 1e12,
-    contactEquationRelaxation: 3,
-    frictionEquationStiffness: 1e8,
-    frictionEquationRegularizationTime: 3,
-    contactEquationRegularizationTime: 3,
-});
+//// Player to pushy
+//const playerToPushyContact = new CANNON.ContactMaterial( playerMaterial, pushyMaterial, {
+    //friction: 0,
+    //// Bounciness (0-1, higher is bouncier). How much energy is conserved
+    //// after a collision
+    //restitution: 0,
+    //contactEquationStiffness: 1e12,
+    //contactEquationRelaxation: 3,
+    //frictionEquationStiffness: 1e8,
+    //frictionEquationRegularizationTime: 3,
+    //contactEquationRegularizationTime: 3,
+//});
 
-// Pushy to wall
-const puhshyToWallContact = new CANNON.ContactMaterial( pushyMaterial, wallMaterial, {
-    friction: 0.4,
-    // Bounciness (0-1, higher is bouncier). How much energy is conserved
-    // after a collision
-    restitution: 0,
-    contactEquationStiffness: 1e12,
-    contactEquationRelaxation: 3,
-    frictionEquationStiffness: 1e8,
-    frictionEquationRegularizationTime: 3,
-    contactEquationRegularizationTime: 3,
-});
+//// Pushy to wall
+//const puhshyToWallContact = new CANNON.ContactMaterial( pushyMaterial, wallMaterial, {
+    //friction: 0.1,
+    //// Bounciness (0-1, higher is bouncier). How much energy is conserved
+    //// after a collision
+    //restitution: 0,
+    //contactEquationStiffness: 1e12,
+    //contactEquationRelaxation: 3,
+    //frictionEquationStiffness: 1e8,
+    //frictionEquationRegularizationTime: 3,
+    //contactEquationRegularizationTime: 3,
+//});
 
 export default class GameRenderer extends Component {
 
@@ -110,27 +110,29 @@ export default class GameRenderer extends Component {
             pushyPositions: []
         };
 
-        const world = new CANNON.World();
+        const world = new p2.World({
+            gravity: [ 0, 9.82 ]
+        });
         this.world = world;
 
-        world.solver.iterations = 20; // Increase solver iterations (default is 10)
-        world.solver.tolerance = 0;   // Force solver to use all iterations
+        //world.solver.iterations = 20; // Increase solver iterations (default is 10)
+        //world.solver.tolerance = 0;   // Force solver to use all iterations
 
-        world.addContactMaterial( playerToPushyContact );
-        world.addContactMaterial( playerToWallContact );
-        world.addContactMaterial( puhshyToWallContact );
+        //world.addContactMaterial( playerToPushyContact );
+        //world.addContactMaterial( playerToWallContact );
+        //world.addContactMaterial( puhshyToWallContact );
 
-        world.quatNormalizeSkip = 0;
-        world.quatNormalizeFast = false;
+        //world.quatNormalizeSkip = 0;
+        //world.quatNormalizeFast = false;
 
-        world.gravity.set( 0, 0, 9.8 );
-        world.broadphase = new CANNON.NaiveBroadphase();
+        //world.gravity.set( 0, 0, 9.8 );
+        //world.broadphase = new CANNON.NaiveBroadphase();
 
         this.onWindowBlur = this.onWindowBlur.bind( this );
         this.onKeyDown = this.onKeyDown.bind( this );
         this.onKeyUp = this.onKeyUp.bind( this );
         this.updatePhysics = this.updatePhysics.bind( this );
-        this._onAnimate = this._onAnimate.bind( this );
+        this.onUpdate = this.onUpdate.bind( this );
         this._getMeshStates = this._getMeshStates.bind( this );
         this.onPlayerCollide = this.onPlayerCollide.bind( this );
         this.onPlayerContactEndTest = this.onPlayerContactEndTest.bind( this );
@@ -162,26 +164,27 @@ export default class GameRenderer extends Component {
         this.pushies = currentLevelMovableEntitiesArray.map( entity => {
             const { position, scale } = entity;
 
-            const pushyBody = new CANNON.Body({
+            const pushyBody = new p2.Body({
                 mass: getCubeMass( pushyDensity, scale.x * 0.5 ),
-                material: pushyMaterial,
-                linearFactor: factorConstraint,
-                angularFactor: angularUprightConstraint,
+                position: [ position.x, position.z ],
+                //material: pushyMaterial,
+                fixedRotation: true
             });
 
             // Copy scale to pushyBody so _getMeshStates can access it to pass
             // to three
             pushyBody.scale = scale;
             pushyBody.entityId = entity.id;
+            pushyBody.depth = position.y;
 
-            const pushyShape = new CANNON.Box( new CANNON.Vec3(
-                0.45 * scale.x,
-                0.4 * scale.y,
-                0.49 * scale.z,
-            ) );
+            const pushyShape = new p2.Box({
+                position: [
+                    0.45 * scale.x,
+                    0.45 * scale.z,
+                ]
+            });
 
             pushyBody.addShape( pushyShape );
-            pushyBody.position.copy( position );
             this.world.addBody( pushyBody );
             return pushyBody;
 
@@ -190,28 +193,30 @@ export default class GameRenderer extends Component {
         currentLevelStaticEntitiesArray.forEach( entity => {
 
             const { position, scale } = entity;
-            const entityBody = new CANNON.Body({
+            const entityBody = new p2.Body({
                 mass: 0,
-                material: wallMaterial
+                //material: wallMaterial,
+                fixedRotation: true,
+                position: [
+                    position.x,
+                    position.z
+                ]
             });
-            const boxShape = new CANNON.Box( new CANNON.Vec3(
-                scale.x * 0.5,
-                scale.y * 0.5,
-                scale.z * ( entity.type === 'house' ? 1.5 : 0.5 ),
-            ));
+            const boxShape = new p2.Box({
+                position: [
+                    scale.x * 0.5,
+                    scale.z * ( entity.type === 'house' ? 1.5 : 0.5 ),
+                ]
+            });
+
             entityBody.addShape( boxShape );
-            entityBody.position.set(
-                position.x,
-                position.y,
-                position.z
-            );
             entityBody.entity = entity;
             this.world.addBody( entityBody );
 
         } );
 
-        this.playerBody.addEventListener( 'collide', this.onPlayerCollide );
-        this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
+        //this.playerBody.addEventListener( 'collide', this.onPlayerCollide );
+        //this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
 
     }
 
@@ -229,8 +234,8 @@ export default class GameRenderer extends Component {
         window.removeEventListener( 'keydown', this.onKeyDown );
         window.removeEventListener( 'keyup', this.onKeyUp );
 
-        this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
-        this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
+        //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+        //this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
 
     }
 
@@ -243,12 +248,12 @@ export default class GameRenderer extends Component {
 
         } else if( nextProps.restartBusterId !== this.props.restartBusterId ) {
 
-            this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
-            this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+            //this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
+            //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
             this.world.bodies = [];
 
             this.world.removeBody( this.playerBody );
-            this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+            //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
             this._setupPhysics( nextProps );
 
@@ -309,16 +314,15 @@ export default class GameRenderer extends Component {
             isAdvancing: false,
         });
 
-        this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
-        this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+        //this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
+        //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
         this.world.bodies = [];
 
-        const newPosition = new CANNON.Vec3(
+        const newPosition = [
             ( currentTransitionPosition.x - chapterPosition.x ) * multiplier,
-            1 + nextProps.playerRadius,
             ( currentTransitionPosition.z - chapterPosition.z ) * multiplier,
-        );
+        ];
 
         this._setupPhysics( nextProps, newPosition );
 
@@ -378,7 +382,7 @@ export default class GameRenderer extends Component {
 
         const { playerBody } = this;
         const {
-            velocity: playerVelocity, position: playerPosition
+            velocity: playerVelocity, position: playerPosition2D
         } = playerBody;
 
         let directionX = 0;
@@ -391,11 +395,17 @@ export default class GameRenderer extends Component {
         const isRight = ( KeyCodes.D in keysDown ) || ( KeyCodes.RIGHT in keysDown );
         const isUp = ( KeyCodes.W in keysDown ) || ( KeyCodes.UP in keysDown );
         const isDown = ( KeyCodes.S in keysDown ) || ( KeyCodes.DOWN in keysDown );
-        const playerPositionV3 = new THREE.Vector3().copy( playerPosition );
+
+        const playerPosition = new THREE.Vector3(
+            playerPosition2D.x,
+            1 + playerRadius,
+            playerPosition2D.z,
+        ).clone();
+
         const playerSnapped = new THREE.Vector3(
-            snapTo( playerPositionV3.x, playerScale ),
-            snapTo( playerPositionV3.y, playerScale ),
-            snapTo( playerPositionV3.z, playerScale )
+            snapTo( playerPosition.x, playerScale ),
+            snapTo( playerPosition.y, playerScale ),
+            snapTo( playerPosition.z, playerScale )
         ).addScalar( -playerScale / 2 );
 
         const contactKeys = Object.keys( playerContact );
@@ -458,8 +468,8 @@ export default class GameRenderer extends Component {
 
                 if( isInTubeRange && vec3Equals( playerTowardTube, tube.position ) ) {
 
-                    playerBody.removeEventListener( 'collide', this.onPlayerCollide );
-                    this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
+                    //playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+                    //this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
 
                     const newPlayerContact = Object.keys( playerContact ).reduce( ( memo, key ) => {
 
@@ -478,7 +488,7 @@ export default class GameRenderer extends Component {
                     debuggingReplay = [];
 
                     newTubeFlow = [{
-                        start: playerPositionV3.clone(),
+                        start: playerPosition,
                         end: thresholdPlayerStartsAt
                     }, {
                         start: thresholdPlayerStartsAt,
@@ -563,8 +573,8 @@ export default class GameRenderer extends Component {
                     //console.log('FREE');
                     const lastTube = tubeFlow[ tubeIndex ];
 
-                    playerBody.addEventListener( 'collide', this.onPlayerCollide );
-                    this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
+                    //playerBody.addEventListener( 'collide', this.onPlayerCollide );
+                    //this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
 
                     isDone = true;
                     state = {
@@ -572,11 +582,10 @@ export default class GameRenderer extends Component {
                         tubeFlow: null,
                         currentFlowPosition: null
                     };
-                    resetBodyPhysics( playerBody, new CANNON.Vec3(
+                    resetBodyPhysics( playerBody, [
                         lastTube.exit.x,
-                        lastTube.exit.y,
                         lastTube.exit.z
-                    ) );
+                    ]);
                 } else {
                     //console.log('NEXT_TUBE');
                     tubeIndex++;
@@ -694,7 +703,7 @@ export default class GameRenderer extends Component {
             const { position, quaternion, scale, entityId } = cannonBody;
             return {
                 scale: new THREE.Vector3().copy( scale ),
-                position: new THREE.Vector3().copy( position ),
+                position: new THREE.Vector3( position.x, cannonBody.depth, position.z ),
                 quaternion: new THREE.Quaternion().copy( quaternion ),
                 entityId
             };
@@ -704,26 +713,26 @@ export default class GameRenderer extends Component {
 
     _createPlayerBody( position, radius, density ) {
 
-        const playerBody = new CANNON.Body({
-            material: playerMaterial,
+        const playerBody = new p2.Body({
+            //material: playerMaterial,
             mass: getSphereMass( density, radius ),
-            angularFactor: angularUprightConstraint,
-            linearFactor: factorConstraint,
+            fixedRotation: true,
+            position
         });
-        playerBody.addEventListener( 'collide', this.onPlayerCollide );
+        //playerBody.addEventListener( 'collide', this.onPlayerCollide );
 
-        const playerShape = new CANNON.Sphere( radius );
+        const playerShape = new p2.Circle({ radius });
 
         playerBody.addShape( playerShape );
-        playerBody.position = new CANNON.Vec3().copy( position );
+        //playerBody.position = new CANNON.Vec3().copy( position );
 
         return playerBody;
 
     }
 
-    _onAnimate( elapsedTime, delta ) {
+    onUpdate( elapsedTime, delta ) {
 
-        const { keysDown } = this;
+        const { keysDown, playerBody } = this;
         const {
             currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
             currentLevelId, nextChapters, previousChapterFinishEntity,
@@ -739,8 +748,14 @@ export default class GameRenderer extends Component {
             time: elapsedTime
         };
 
-        const playerPosition = currentFlowPosition || this.playerBody.position;
-        const playerPositionV3 = new THREE.Vector3().copy( playerPosition );
+        const playerPosition = (
+            currentFlowPosition ||
+            new THREE.Vector3(
+                playerBody.position.x,
+                1 + playerRadius,
+                playerBody.position.z,
+            )
+        ).clone();
 
         if( paused ) {
             this.setState( newState );
@@ -779,7 +794,7 @@ export default class GameRenderer extends Component {
             if( !this.touringSwitch ) {
                 newState.currentTourPercent = 0;
                 newState.touring = !newState.touring;
-                newState.cameraTourTarget = playerPositionV3;
+                newState.cameraTourTarget = playerPosition;
                 this.touringSwitch = true;
             }
 
@@ -888,7 +903,7 @@ export default class GameRenderer extends Component {
             lerp( cameraPosition.x, playerPosition.x, 0.05 / playerScale ),
             lerp(
                 cameraPosition.y,
-                getCameraDistanceToPlayer( this.playerBody.position.y, cameraFov, playerScale ),
+                getCameraDistanceToPlayer( playerPosition.y, cameraFov, playerScale ),
                 0.025 / playerScale,
             ),
             lerp( cameraPosition.z, playerPosition.z, 0.05 / playerScale ),
@@ -934,12 +949,12 @@ export default class GameRenderer extends Component {
 
                     // Calculate where to tween the player to. *>2 to move
                     // past the hit box for the level exit/entrance
-                    newState.startTransitionPosition = playerPositionV3;
-                    newState.currentTransitionPosition = playerPositionV3;
+                    newState.startTransitionPosition = playerPosition;
+                    newState.currentTransitionPosition = playerPosition;
                     const currentTransitionTarget = new THREE.Vector3(
-                        lerp( playerPositionV3.x, entity.position.x, isUp ? 0 : 2.5 ),
+                        lerp( playerPosition.x, entity.position.x, isUp ? 0 : 2.5 ),
                         playerPosition.y,
-                        lerp( playerPositionV3.z, entity.position.z, isUp ? 2.5 : 0 ),
+                        lerp( playerPosition.z, entity.position.z, isUp ? 2.5 : 0 ),
                     );
                     newState.currentTransitionTarget = currentTransitionTarget;
                     newState.currentTransitionStartTime = elapsedTime;
@@ -967,21 +982,20 @@ export default class GameRenderer extends Component {
                 const radiusDiff = playerRadius - newRadius;
 
                 this.world.removeBody( this.playerBody );
-                this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
+                //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
-                const playerBody = this._createPlayerBody(
-                    new CANNON.Vec3(
+                const newPlayerBody = this._createPlayerBody(
+                    [
                         playerPosition.x,
-                        1 + newRadius,
                         playerPosition.z + radiusDiff
-                    ),
+                    ],
                     newRadius,
-                    playerDensity
+                    playerDensity,
                 );
 
-                this.world.addBody( playerBody );
+                this.world.addBody( newPlayerBody );
 
-                this.playerBody = playerBody;
+                this.playerBody = newPlayerBody;
 
                 // Reset contact points
                 this.playerContact = {};
@@ -1115,12 +1129,17 @@ export default class GameRenderer extends Component {
             assets, shaders, paused, allEntities
         } = this.props;
 
+        const { playerBody } = this;
         const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;
         const adjustedPlayerRadius = playerRadius + scaleValue;
 
         const playerPosition = new THREE.Vector3()
             .copy(
-                currentTransitionPosition || currentFlowPosition || this.playerBody.position
+                currentTransitionPosition || currentFlowPosition || new THREE.Vector3(
+                    playerBody.position.x,
+                    1 + playerRadius,
+                    playerBody.position.z,
+                )
             ).sub(
                 new THREE.Vector3(
                     0, 0, radiusDiff ? currentScalePercent * radiusDiff : 0
@@ -1133,7 +1152,7 @@ export default class GameRenderer extends Component {
         );
 
         return <object3D
-            onUpdate={ this._onAnimate }
+            onUpdate={ this.onUpdate }
         >
 
             <perspectiveCamera
@@ -1151,7 +1170,6 @@ export default class GameRenderer extends Component {
                 ref="player"
                 position={ playerPosition }
                 radius={ adjustedPlayerRadius }
-                quaternion={ new THREE.Quaternion().copy( this.playerBody.quaternion ) }
                 materialId="playerMaterial"
             />
 
@@ -1160,7 +1178,6 @@ export default class GameRenderer extends Component {
                 scale={ cannonBody.scale }
                 materialId={ allEntities[ cannonBody.entityId ].materialId }
                 position={ cannonBody.position }
-                quaternion={ cannonBody.quaternion }
             /> ) }
 
             <StaticEntities
@@ -1313,6 +1330,37 @@ export default class GameRenderer extends Component {
                 </mesh>;
 
             }) }
+
+            { debug && this.world.contacts.reduce( ( memo, contact, index ) => {
+                const positions = [];
+
+                for( let ij = 0; ij < 2; ij++ ) {
+                    const b = ij === 0 ? contact.bi : contact.bj;
+                    const r = ij === 0 ? contact.ri : contact.rj;
+                    positions.push(
+                        <mesh
+                            scale={ new THREE.Vector3( playerScale * 0.1, playerScale * 3, playerScale * 0.1 ) }
+                            key={ `contact_${ index }_${ ij }` }
+                            position={
+                                new THREE.Vector3(
+                                    b.position.x + r.x,
+                                    b.position.y + r.y,
+                                    b.position.z + r.z
+                                )
+                            }
+                        >
+                            <geometryResource
+                                resourceId="radius1sphere"
+                            />
+                            <materialResource
+                                resourceId="greenDebugMaterial"
+                            />
+                        </mesh>
+                    );
+                }
+
+                return memo.concat( positions );
+            }, [] ) }
 
         </object3D>;
 

@@ -87,6 +87,7 @@ export default class Waterfall extends Component {
                 world={ world }
                 paused={ paused }
                 time={ time }
+                debug={ debug }
                 playerRadius={ playerRadius }
                 playerBody={ playerBody }
             />
