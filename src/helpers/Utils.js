@@ -296,31 +296,23 @@ export function snapVectorAngleTo( v3, snapAngle ) {
 export function resetBodyPhysics( body, position ) {
 
     // Position
-    body.position.copy( position );
-    body.previousPosition.copy( position );
-    body.interpolatedPosition.copy( position );
-    body.initPosition.copy( position );
+    body.position = position;
+    body.previousPosition = position;
+    body.interpolatedPosition = position;
 
-    // orientation
-    body.quaternion.set( 0, 0, 0, 1 );
-    body.initQuaternion.set( 0, 0, 0, 1 );
-    body.previousQuaternion.set( 0, 0, 0, 1 );
-    body.interpolatedQuaternion.set( 0, 0, 0, 1 );
 
     // Velocity
-    body.velocity.setZero();
-    body.initVelocity.setZero();
-    body.angularVelocity.setZero();
-    body.initAngularVelocity.setZero();
+    body.velocity = [ 0, 0 ];
+    body.angularVelocity = 0;
 
     // Force
-    body.force.setZero();
-    body.torque.setZero();
+    body.force = [ 0, 0 ];
 
     // Sleep state reset
     body.sleepState = 0;
     body.timeLastSleepy = 0;
     body._wakeUpAfterNarrowphase = false;
+
 }
 
 export function lookAtVector( sourcePoint, destPoint ) {

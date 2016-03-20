@@ -358,6 +358,8 @@ export default class GameRenderer extends Component {
         const { bodyA, bodyB, contactEquations } = event;
         const { playerBody, playerContact } = this;
 
+        // Figure out if either body equals the player, and if so, assign
+        // otherBody to the other body
         if( bodyA === playerBody ) {
 
             otherBody = bodyB;
@@ -370,13 +372,17 @@ export default class GameRenderer extends Component {
 
         if( otherBody ) {
 
+            // Get the contact point local to body a. There might be an easier
+            // way to do this but I can't figure out how
             const { contactPointA } = contactEquations[ 0 ];
 
+            // Convert it to world coordinates
             const contactPointWorld = [
                 contactPointA[ 0 ] + bodyA.position[ 0 ],
                 contactPointA[ 1 ] + bodyA.position[ 1 ]
             ];
 
+            // Calculate the normal to the player position
             const contactToPlayerNormal = p2.vec2.normalize( [ 0, 0 ], [
                 contactPointWorld[ 0 ] - playerBody.position[ 0 ],
                 contactPointWorld[ 1 ] - playerBody.position[ 1 ]
