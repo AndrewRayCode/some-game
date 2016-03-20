@@ -422,7 +422,7 @@ export default class GameRenderer extends Component {
 
         }
 
-        if( playerBody ) {
+        if( otherBody ) {
 
             //console.log('ended contact with ',otherBody.id);
             this.playerContact = without( playerContact, otherBody.id );
