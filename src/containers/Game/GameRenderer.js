@@ -112,11 +112,6 @@ export default class GameRenderer extends Component {
             pushyPositions: []
         };
 
-        const world = new p2.World({
-            gravity: [ 0, 9.82 ]
-        });
-        this.world = world;
-
         //world.solver.iterations = 20; // Increase solver iterations (default is 10)
         //world.solver.tolerance = 0;   // Force solver to use all iterations
 
@@ -136,12 +131,37 @@ export default class GameRenderer extends Component {
         this.updatePhysics = this.updatePhysics.bind( this );
         this.onUpdate = this.onUpdate.bind( this );
         this._getMeshStates = this._getMeshStates.bind( this );
-        this.onPlayerCollide = this.onPlayerCollide.bind( this );
-        this.onPlayerContactEndTest = this.onPlayerContactEndTest.bind( this );
+        this.onWorldEndContact = this.onWorldEndContact.bind( this );
+        this.onWorldBeginContact = this.onWorldBeginContact.bind( this );
         this._setupPhysics = this._setupPhysics.bind( this );
 
-        // Needs proper scoping of this before we can call it :(
-        this._setupPhysics( props );
+    }
+
+    _setupWorld( props ) {
+
+        const world = new p2.World({
+            gravity: [ 0, 9.82 ]
+        });
+
+        world.on( 'beginContact', this.onWorldBeginContact );
+        world.on( 'endContact', this.onWorldEndContact );
+
+        this.world = world;
+
+    }
+
+    _teardownWorld() {
+
+        const { world } = this;
+
+        // We could manually removeBody() for all bodies, but that does a lot
+        // of work that we don't care about, see
+        // http://schteppe.github.io/p2.js/docs/files/src_world_World.js.html#l1005
+        world.off( 'beginContact', this.onWorldBeginContact );
+        world.off( 'endContact', this.onWorldEndContact );
+        world.bodies = [];
+
+        this.world = null;
 
     }
 
@@ -218,7 +238,6 @@ export default class GameRenderer extends Component {
 
         } );
 
-        //this.playerBody.addEventListener( 'collide', this.onPlayerCollide );
         //this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
 
     }
@@ -229,6 +248,9 @@ export default class GameRenderer extends Component {
         window.addEventListener( 'keydown', this.onKeyDown );
         window.addEventListener( 'keyup', this.onKeyUp );
 
+        this._setupWorld( this.props );
+        this._setupPhysics( this.props );
+
     }
 
     componentWillUnmount() {
@@ -237,8 +259,7 @@ export default class GameRenderer extends Component {
         window.removeEventListener( 'keydown', this.onKeyDown );
         window.removeEventListener( 'keyup', this.onKeyUp );
 
-        //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
-        //this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
+        this._teardownWorld();
 
     }
 
@@ -331,13 +352,25 @@ export default class GameRenderer extends Component {
 
     }
 
-    onPlayerContactEndTest( event ) {
+    onWorldEndContact( event ) {
 
-        const otherBody = event.bodyA === this.playerBody ? event.bodyB : (
-            event.bodyB === this.playerBody ? event.bodyA : null
-        );
+        let playerBody;
+        let otherBody;
+        const { bodyA, bodyB } = event;
 
-        if( otherBody ) {
+        if( bodyA === this.playerBody ) {
+
+            playerBody = bodyA;
+            otherBody = bodyB;
+
+        } else if( bodyB === this.playerBody ) {
+
+            playerBody = bodyB;
+            otherBody = bodyA;
+
+        }
+
+        if( playerBody ) {
 
             //console.log('ended contact with ',otherBody.id);
             const { playerContact } = this;
@@ -347,23 +380,43 @@ export default class GameRenderer extends Component {
 
     }
 
-    onPlayerCollide( event ) {
+    onWorldBeginContact( event ) {
 
-        const { contact } = event;
-        const otherBody = contact.bi === this.playerBody ? contact.bj : contact.bi;
-        const contactNormal = getCardinalityOfVector( new THREE.Vector3().copy(
-            contact.bi === this.playerBody ?
-                contact.ni :
-                contact.ni.negate()
-        ));
+        let otherBody;
+        const { bodyA, bodyB, contactEquations } = event;
+        const { playerBody, playerContact } = this;
 
-        const { playerContact } = this;
+        if( bodyA === playerBody ) {
 
-        const assign = {
-            [ otherBody.id ]: contactNormal
-        };
-        //console.log('onPlayerColide with',otherBody.id, contactNormal);
-        this.playerContact = { ...playerContact, ...assign };
+            otherBody = bodyB;
+
+        } else if( bodyB === playerBody ) {
+
+            otherBody = bodyA;
+
+        }
+
+        if( otherBody ) {
+
+            const { normalA } = contactEquations[ 0 ];
+
+            const adjustedNormal = bodyA === playerBody ?
+                normalA :
+                p2.vec2.negate( [ 0, 0 ], normalA );
+
+            const contactNormal = getCardinalityOfVector( new THREE.Vector3(
+                adjustedNormal[ 0 ],
+                0,
+                adjustedNormal[ 1 ],
+            ));
+
+            const assign = {
+                [ otherBody.id ]: contactNormal
+            };
+            //console.log('onPlayerColide with',otherBody.id, contactNormal);
+            this.playerContact = { ...playerContact, ...assign };
+            
+        }
 
     }
 
@@ -391,7 +444,7 @@ export default class GameRenderer extends Component {
             return;
         }
 
-        let state = {
+        let newState = {
             entrances: []
         };
 
@@ -443,7 +496,7 @@ export default class GameRenderer extends Component {
                 const { entity } = physicsBody;
                 if( entity && ( entity.type === 'tube' || entity.type === 'tubebend' ) ) {
 
-                    state.entrances.push( getEntrancesForTube( entity, playerScale ) );
+                    newState.entrances.push( getEntrancesForTube( entity, playerScale ) );
 
                 }
 
@@ -467,11 +520,11 @@ export default class GameRenderer extends Component {
         }
 
         let newTubeFlow;
-        if( state.entrances.length ) {
+        if( newState.entrances.length ) {
 
-            for( let i = 0; i < state.entrances.length; i++ ) {
+            for( let i = 0; i < newState.entrances.length; i++ ) {
 
-                const tubeEntrances = state.entrances[ i ];
+                const tubeEntrances = newState.entrances[ i ];
 
                 const { tube, entrance1, entrance2, threshold1, threshold2, middle } = tubeEntrances;
                 const isAtEntrance1 = vec3Equals( playerSnapped, entrance1 );
@@ -486,6 +539,7 @@ export default class GameRenderer extends Component {
                         .normalize()
                         .multiplyScalar( playerScale )
                 );
+                newState.playerTowardTube = playerTowardTube;
 
                 if( isInTubeRange && vec3Equals( playerTowardTube, tube.position ) ) {
 
@@ -557,8 +611,8 @@ export default class GameRenderer extends Component {
 
                     this.playerContact = newPlayerContact;
 
-                    state = {
-                        ...state,
+                    newState = {
+                        ...newState,
                         playerSnapped,
                         startTime: elapsedTime,
                         tubeFlow: newTubeFlow,
@@ -598,8 +652,8 @@ export default class GameRenderer extends Component {
                     //this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
 
                     isDone = true;
-                    state = {
-                        ...state,
+                    newState = {
+                        ...newState,
                         tubeFlow: null,
                         currentFlowPosition: null
                     };
@@ -644,12 +698,12 @@ export default class GameRenderer extends Component {
                     );
                 }
 
-                state = {
-                    ...state,
+                newState = {
+                    ...newState,
                     currentFlowPosition, tubeIndex, startTime, currentPercent,
                     modPercent: ( currentPercent * 2 ) % 1,
                 };
-                debuggingReplay.push({ ...this.state, ...state, debug: true });
+                debuggingReplay.push({ ...this.state, ...newState, debug: true });
 
             }
 
@@ -685,7 +739,7 @@ export default class GameRenderer extends Component {
 
         }
 
-        this.setState( state );
+        this.setState( newState );
 
         // Step the physics world
         world.step( 1 / 60, delta, 3 );
@@ -1110,6 +1164,12 @@ export default class GameRenderer extends Component {
 
     render() {
 
+        if( !this.world ) {
+
+            return <object3D />;
+
+        }
+
         const {
             pushyPositions, time, cameraPosition, cameraPositionZoomOut,
             currentFlowPosition, debug, touring, cameraTourTarget, entrance1,
@@ -1306,6 +1366,17 @@ export default class GameRenderer extends Component {
                 />
                 <materialResource
                     resourceId="exitMaterial"
+                />
+            </mesh> }
+            { debug && this.state.playerTowardTube && <mesh
+                position={this.state.playerTowardTube }
+                scale={ new THREE.Vector3( 0.1, 3.5, 0.1 ).multiplyScalar( playerScale ) }
+            >
+                <geometryResource
+                    resourceId="playerGeometry"
+                />
+                <materialResource
+                    resourceId="greenDebugMaterial"
                 />
             </mesh> }
 
