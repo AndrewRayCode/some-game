@@ -352,34 +352,6 @@ export default class GameRenderer extends Component {
 
     }
 
-    onWorldEndContact( event ) {
-
-        let playerBody;
-        let otherBody;
-        const { bodyA, bodyB } = event;
-
-        if( bodyA === this.playerBody ) {
-
-            playerBody = bodyA;
-            otherBody = bodyB;
-
-        } else if( bodyB === this.playerBody ) {
-
-            playerBody = bodyB;
-            otherBody = bodyA;
-
-        }
-
-        if( playerBody ) {
-
-            //console.log('ended contact with ',otherBody.id);
-            const { playerContact } = this;
-            this.playerContact = without( playerContact, otherBody.id );
-
-        }
-
-    }
-
     onWorldBeginContact( event ) {
 
         let otherBody;
@@ -398,16 +370,22 @@ export default class GameRenderer extends Component {
 
         if( otherBody ) {
 
-            const { normalA } = contactEquations[ 0 ];
+            const { contactPointA } = contactEquations[ 0 ];
 
-            const adjustedNormal = bodyA === playerBody ?
-                normalA :
-                p2.vec2.negate( [ 0, 0 ], normalA );
+            const contactPointWorld = [
+                contactPointA[ 0 ] + bodyA.position[ 0 ],
+                contactPointA[ 1 ] + bodyA.position[ 1 ]
+            ];
+
+            const contactToPlayerNormal = p2.vec2.normalize( [ 0, 0 ], [
+                contactPointWorld[ 0 ] - playerBody.position[ 0 ],
+                contactPointWorld[ 1 ] - playerBody.position[ 1 ]
+            ]);
 
             const contactNormal = getCardinalityOfVector( new THREE.Vector3(
-                adjustedNormal[ 0 ],
+                contactToPlayerNormal[ 0 ],
                 0,
-                adjustedNormal[ 1 ],
+                contactToPlayerNormal[ 1 ],
             ));
 
             const assign = {
@@ -416,6 +394,33 @@ export default class GameRenderer extends Component {
             //console.log('onPlayerColide with',otherBody.id, contactNormal);
             this.playerContact = { ...playerContact, ...assign };
             
+        }
+
+    }
+
+
+    onWorldEndContact( event ) {
+
+        let otherBody;
+        const { bodyA, bodyB } = event;
+
+        const { playerBody, playerContact } = this;
+
+        if( bodyA === playerBody ) {
+
+            otherBody = bodyB;
+
+        } else if( bodyB === playerBody ) {
+
+            otherBody = bodyA;
+
+        }
+
+        if( playerBody ) {
+
+            //console.log('ended contact with ',otherBody.id);
+            this.playerContact = without( playerContact, otherBody.id );
+
         }
 
     }
@@ -1397,47 +1402,27 @@ export default class GameRenderer extends Component {
 
             }) }
 
-            { debug && this.world.narrowphase.contactEquations.reduce( ( memo, contact, index ) => {
+            { debug && this.world.narrowphase.contactEquations.map( ( contact, index ) => {
                 const { contactPointA, contactPointB, bodyA, bodyB } = contact;
-                return memo.concat([
-                    <mesh
-                        scale={ new THREE.Vector3( playerScale * 0.1, playerScale * 3, playerScale * 0.1 ) }
-                        key={ `contact_${ index }_a` }
-                        position={
-                            new THREE.Vector3(
-                                contactPointA[ 0 ] + bodyA.position[ 0 ],
-                                1,
-                                contactPointA[ 1 ] + bodyA.position[ 1 ]
-                            )
-                        }
-                    >
-                        <geometryResource
-                            resourceId="radius1sphere"
-                        />
-                        <materialResource
-                            resourceId="greenDebugMaterial"
-                        />
-                    </mesh>,
-                    <mesh
-                        scale={ new THREE.Vector3( playerScale * 0.1, playerScale * 3, playerScale * 0.1 ) }
-                        key={ `contact_${ index }_b` }
-                        position={
-                            new THREE.Vector3(
-                                contactPointB[ 0 ] + bodyB.position[ 0 ],
-                                1,
-                                contactPointB[ 1 ] + bodyB.position[ 1 ]
-                            )
-                        }
-                    >
-                        <geometryResource
-                            resourceId="radius1sphere"
-                        />
-                        <materialResource
-                            resourceId="greenDebugMaterial"
-                        />
-                    </mesh>
-                ]);
-            }, [] ) }
+                return <mesh
+                    scale={ new THREE.Vector3( playerScale * 0.1, playerScale * 3, playerScale * 0.1 ) }
+                    key={ `contact_${ index }_a` }
+                    position={
+                        new THREE.Vector3(
+                            contactPointA[ 0 ] + bodyA.position[ 0 ],
+                            1,
+                            contactPointA[ 1 ] + bodyA.position[ 1 ]
+                        )
+                    }
+                >
+                    <geometryResource
+                        resourceId="radius1sphere"
+                    />
+                    <materialResource
+                        resourceId="greenDebugMaterial"
+                    />
+                </mesh>;
+            }) }
 
         </object3D>;
 

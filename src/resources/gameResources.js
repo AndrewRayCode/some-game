@@ -95,4 +95,9 @@ export default [
         resourceId="greenDebugMaterial"
         color={ 0x00ff00 }
     />,
+    <meshPhongMaterial
+        key={ 4346 }
+        resourceId="purpleDebugMaterial"
+        color={ 0xff00ff }
+    />,
 ];
