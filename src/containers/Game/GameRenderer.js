@@ -41,6 +41,8 @@ const scaleDurationMs = 300;
 
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
+const yAxis = p2.vec2.fromValues( 0, -1 );
+
 //const playerMaterial = new CANNON.Material( 'playerMaterial' );
 //const pushyMaterial = new CANNON.Material( 'pushyMaterial' );
 //const wallMaterial = new CANNON.Material( 'wallMaterial' );
@@ -97,13 +99,13 @@ export default class GameRenderer extends Component {
 
         this.keysDown = {};
         
-        const { playerPosition, playerScale } = props;
+        const { playerPosition, playerScale, playerRadius } = props;
 
         this.state = {
             touring: false,
             cameraPosition: new THREE.Vector3(
                 playerPosition.x,
-                getCameraDistanceToPlayer( playerPosition.y, cameraFov, playerScale ),
+                getCameraDistanceToPlayer( 1 + playerRadius, cameraFov, playerScale ),
                 playerPosition.z
             ),
             lightPosition: new THREE.Vector3(),
@@ -153,7 +155,12 @@ export default class GameRenderer extends Component {
         const playerPosition = playerPositionOverride || props.playerPosition;
 
         const playerBody = this._createPlayerBody(
-            playerPosition, playerRadius, playerDensity
+            [
+                playerPosition.x,
+                playerPosition.z,
+            ],
+            playerRadius,
+            playerDensity
         );
 
         this.playerContact = {};
@@ -178,10 +185,8 @@ export default class GameRenderer extends Component {
             pushyBody.depth = position.y;
 
             const pushyShape = new p2.Box({
-                position: [
-                    0.45 * scale.x,
-                    0.45 * scale.z,
-                ]
+                width: 0.45 * scale.x,
+                height: 0.45 * scale.z,
             });
 
             pushyBody.addShape( pushyShape );
@@ -203,10 +208,8 @@ export default class GameRenderer extends Component {
                 ]
             });
             const boxShape = new p2.Box({
-                position: [
-                    scale.x * 0.5,
-                    scale.z * ( entity.type === 'house' ? 1.5 : 0.5 ),
-                ]
+                width: scale.x,
+                height: scale.z,
             });
 
             entityBody.addShape( boxShape );
@@ -364,6 +367,24 @@ export default class GameRenderer extends Component {
 
     }
 
+    _canJump( world, body ) {
+
+        return world.narrowphase.contactEquations.some( contact => {
+
+            if( contact.bodyA === body || contact.bodyB === body ) {
+
+                let d = p2.vec2.dot( contact.normalA, yAxis );
+                if( contact.bodyA === body ) {
+                    d *= -1;
+                }
+                return d > 0.5;
+
+            }
+
+        });
+
+    }
+
     updatePhysics( elapsedTime, delta ) {
 
         if( this.state.touring || this.state.isAdvancing ) {
@@ -380,7 +401,7 @@ export default class GameRenderer extends Component {
         const { playerContact } = this;
         const { keysDown } = this;
 
-        const { playerBody } = this;
+        const { playerBody, world } = this;
         const {
             velocity: playerVelocity, position: playerPosition2D
         } = playerBody;
@@ -397,9 +418,9 @@ export default class GameRenderer extends Component {
         const isDown = ( KeyCodes.S in keysDown ) || ( KeyCodes.DOWN in keysDown );
 
         const playerPosition = new THREE.Vector3(
-            playerPosition2D.x,
+            playerPosition2D[ 0 ],
             1 + playerRadius,
-            playerPosition2D.z,
+            playerPosition2D[ 1 ],
         ).clone();
 
         const playerSnapped = new THREE.Vector3(
@@ -415,7 +436,7 @@ export default class GameRenderer extends Component {
             for( let i = 0; i < contactKeys.length; i++ ) {
                 const key = contactKeys[ i ];
 
-                const physicsBody = this.world.bodies.find( entity => {
+                const physicsBody = world.bodies.find( entity => {
                     return entity.id.toString() === key;
                 });
 
@@ -473,7 +494,7 @@ export default class GameRenderer extends Component {
 
                     const newPlayerContact = Object.keys( playerContact ).reduce( ( memo, key ) => {
 
-                        const { entity } = this.world.bodies.find( search => {
+                        const { entity } = world.bodies.find( search => {
                             return search.id.toString() === key;
                         });
 
@@ -636,55 +657,29 @@ export default class GameRenderer extends Component {
 
         if( !isFlowing ) {
 
-            if( ( isRight && playerVelocity.x < velocityMax ) ||
-                    ( isLeft && playerVelocity.x > -velocityMax ) ) {
+            if( ( isRight && playerVelocity[ 0 ] < velocityMax ) ||
+                    ( isLeft && playerVelocity[ 0 ] > -velocityMax ) ) {
 
-                playerVelocity.x = lerp( playerVelocity.x, directionX * velocityMoveMax, 0.1 );
+                playerVelocity[ 0 ] = lerp( playerVelocity[ 0 ], directionX * velocityMoveMax, 0.1 );
 
             } else {
 
-                playerVelocity.x = lerp( playerVelocity.x, 0, 0.2 );
+                playerVelocity[ 0 ] = lerp( playerVelocity[ 0 ], 0, 0.2 );
 
             }
 
-            if( KeyCodes.SPACE in keysDown ) {
+            if( KeyCodes.SPACE in keysDown && this._canJump( world, playerBody ) ) {
 
-                const jumpableWalls = Object.keys( playerContact ).reduce( ( memo, key ) => {
-
-                    if( playerContact[ key ] === Cardinality.DOWN ) {
-                        memo.down = true;
-                    }
-
-                    if( playerContact[ key ] === Cardinality.LEFT ) {
-                        memo.left = true;
-                    }
-
-                    if( playerContact[ key ] === Cardinality.RIGHT ) {
-                        memo.right = true;
-                    }
-
-                    return memo;
-
-                }, {});
-
-                if( Object.keys( jumpableWalls ).length ) {
-
-                    if( jumpableWalls.down ) {
-
-                        playerVelocity.z = -Math.sqrt( 1.5 * 4 * 9.8 * playerRadius );
-
-                    }
-
-                }
+                playerVelocity[ 1 ] = -Math.sqrt( 1.5 * 4 * 9.8 * playerRadius );
 
             }
 
-            this.playerBody.velocity.x = Math.max(
-                Math.min( this.playerBody.velocity.x, velocityMax ),
+            playerVelocity[ 0 ] = Math.max(
+                Math.min( playerVelocity[ 0 ], velocityMax ),
                 -velocityMax
             );
-            this.playerBody.velocity.z = Math.max(
-                Math.min( this.playerBody.velocity.z, velocityMax ),
+            playerVelocity[ 1 ] = Math.max(
+                Math.min( playerVelocity[ 1 ], velocityMax ),
                 -velocityMax
             );
 
@@ -693,7 +688,7 @@ export default class GameRenderer extends Component {
         this.setState( state );
 
         // Step the physics world
-        this.world.step( 1 / 60, delta, 3 );
+        world.step( 1 / 60, delta, 3 );
 
     }
 
@@ -704,7 +699,7 @@ export default class GameRenderer extends Component {
             return {
                 scale: new THREE.Vector3().copy( scale ),
                 position: new THREE.Vector3( position.x, cannonBody.depth, position.z ),
-                quaternion: new THREE.Quaternion().copy( quaternion ),
+                //quaternion: new THREE.Quaternion().copy( quaternion ),
                 entityId
             };
         });
@@ -751,9 +746,9 @@ export default class GameRenderer extends Component {
         const playerPosition = (
             currentFlowPosition ||
             new THREE.Vector3(
-                playerBody.position.x,
+                playerBody.position[ 0 ],
                 1 + playerRadius,
-                playerBody.position.z,
+                playerBody.position[ 1 ],
             )
         ).clone();
 
@@ -1136,9 +1131,9 @@ export default class GameRenderer extends Component {
         const playerPosition = new THREE.Vector3()
             .copy(
                 currentTransitionPosition || currentFlowPosition || new THREE.Vector3(
-                    playerBody.position.x,
+                    playerBody.position[ 0 ],
                     1 + playerRadius,
-                    playerBody.position.z,
+                    playerBody.position[ 1 ],
                 )
             ).sub(
                 new THREE.Vector3(

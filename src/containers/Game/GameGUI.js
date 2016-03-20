@@ -104,7 +104,12 @@ const transitionFadeMs = 1000;
                 memo.currentLevelRenderableEntities[ id ] = entity;
             // walls, floors, etc
             } else {
-                memo.currentLevelStaticEntities[ id ] = entity;
+
+                // above plane of character
+                if( entity.position.y - ( entity.scale.y / 2 ) >= 1 ) {
+                    memo.currentLevelStaticEntities[ id ] = entity;
+                }
+
                 memo.currentLevelRenderableEntities[ id ] = entity;
             }
 
