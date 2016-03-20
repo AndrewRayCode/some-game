@@ -1326,35 +1326,46 @@ export default class GameRenderer extends Component {
 
             }) }
 
-            { debug && this.world.contacts.reduce( ( memo, contact, index ) => {
-                const positions = [];
-
-                for( let ij = 0; ij < 2; ij++ ) {
-                    const b = ij === 0 ? contact.bi : contact.bj;
-                    const r = ij === 0 ? contact.ri : contact.rj;
-                    positions.push(
-                        <mesh
-                            scale={ new THREE.Vector3( playerScale * 0.1, playerScale * 3, playerScale * 0.1 ) }
-                            key={ `contact_${ index }_${ ij }` }
-                            position={
-                                new THREE.Vector3(
-                                    b.position.x + r.x,
-                                    b.position.y + r.y,
-                                    b.position.z + r.z
-                                )
-                            }
-                        >
-                            <geometryResource
-                                resourceId="radius1sphere"
-                            />
-                            <materialResource
-                                resourceId="greenDebugMaterial"
-                            />
-                        </mesh>
-                    );
-                }
-
-                return memo.concat( positions );
+            { debug && this.world.narrowphase.contactEquations.reduce( ( memo, contact, index ) => {
+                const { contactPointA, contactPointB, bodyA, bodyB } = contact;
+                return memo.concat([
+                    <mesh
+                        scale={ new THREE.Vector3( playerScale * 0.1, playerScale * 3, playerScale * 0.1 ) }
+                        key={ `contact_${ index }_a` }
+                        position={
+                            new THREE.Vector3(
+                                contactPointA[ 0 ] + bodyA.position[ 0 ],
+                                1,
+                                contactPointA[ 1 ] + bodyA.position[ 1 ]
+                            )
+                        }
+                    >
+                        <geometryResource
+                            resourceId="radius1sphere"
+                        />
+                        <materialResource
+                            resourceId="greenDebugMaterial"
+                        />
+                    </mesh>,
+                    <mesh
+                        scale={ new THREE.Vector3( playerScale * 0.1, playerScale * 3, playerScale * 0.1 ) }
+                        key={ `contact_${ index }_b` }
+                        position={
+                            new THREE.Vector3(
+                                contactPointB[ 0 ] + bodyB.position[ 0 ],
+                                1,
+                                contactPointB[ 1 ] + bodyB.position[ 1 ]
+                            )
+                        }
+                    >
+                        <geometryResource
+                            resourceId="radius1sphere"
+                        />
+                        <materialResource
+                            resourceId="greenDebugMaterial"
+                        />
+                    </mesh>
+                ]);
             }, [] ) }
 
         </object3D>;
