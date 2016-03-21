@@ -11,9 +11,6 @@ import {
 } from '../../helpers/Utils';
 import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
-//const factorConstraint = new CANNON.Vec3( 1, 0, 1 );
-//const angularUprightConstraint = new CANNON.Vec3( 0, 0, 0 );
-
 let debuggingReplay = [];
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
@@ -43,49 +40,6 @@ const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
 const yAxis = p2.vec2.fromValues( 0, -1 );
 
-//const playerMaterial = new CANNON.Material( 'playerMaterial' );
-//const pushyMaterial = new CANNON.Material( 'pushyMaterial' );
-//const wallMaterial = new CANNON.Material( 'wallMaterial' );
-
-//// Player to wall
-//const playerToWallContact = new CANNON.ContactMaterial( playerMaterial, wallMaterial, {
-    //friction: 0.0,
-    //// Bounciness (0-1, higher is bouncier). How much energy is conserved
-    //// after a collision
-    //restitution: 0.1,
-    //contactEquationStiffness: 1e12,
-    //contactEquationRelaxation: 3,
-    //frictionEquationStiffness: 1e8,
-    //frictionEquationRegularizationTime: 3,
-    //contactEquationRegularizationTime: 3,
-//});
-
-//// Player to pushy
-//const playerToPushyContact = new CANNON.ContactMaterial( playerMaterial, pushyMaterial, {
-    //friction: 0,
-    //// Bounciness (0-1, higher is bouncier). How much energy is conserved
-    //// after a collision
-    //restitution: 0,
-    //contactEquationStiffness: 1e12,
-    //contactEquationRelaxation: 3,
-    //frictionEquationStiffness: 1e8,
-    //frictionEquationRegularizationTime: 3,
-    //contactEquationRegularizationTime: 3,
-//});
-
-//// Pushy to wall
-//const puhshyToWallContact = new CANNON.ContactMaterial( pushyMaterial, wallMaterial, {
-    //friction: 0.1,
-    //// Bounciness (0-1, higher is bouncier). How much energy is conserved
-    //// after a collision
-    //restitution: 0,
-    //contactEquationStiffness: 1e12,
-    //contactEquationRelaxation: 3,
-    //frictionEquationStiffness: 1e8,
-    //frictionEquationRegularizationTime: 3,
-    //contactEquationRegularizationTime: 3,
-//});
-
 export default class GameRenderer extends Component {
 
     static propTypes = {
@@ -112,19 +66,6 @@ export default class GameRenderer extends Component {
             pushyPositions: []
         };
 
-        //world.solver.iterations = 20; // Increase solver iterations (default is 10)
-        //world.solver.tolerance = 0;   // Force solver to use all iterations
-
-        //world.addContactMaterial( playerToPushyContact );
-        //world.addContactMaterial( playerToWallContact );
-        //world.addContactMaterial( puhshyToWallContact );
-
-        //world.quatNormalizeSkip = 0;
-        //world.quatNormalizeFast = false;
-
-        //world.gravity.set( 0, 0, 9.8 );
-        //world.broadphase = new CANNON.NaiveBroadphase();
-
         this.onWindowBlur = this.onWindowBlur.bind( this );
         this.onKeyDown = this.onKeyDown.bind( this );
         this.onKeyUp = this.onKeyUp.bind( this );
@@ -139,14 +80,49 @@ export default class GameRenderer extends Component {
 
     _setupWorld( props ) {
 
+        const playerMaterial = new p2.Material();
+        const pushyMaterial = new p2.Material();
+        const wallMaterial = new p2.Material();
+
+        // Player to wall
+        const playerToWallContact = new p2.ContactMaterial( playerMaterial, wallMaterial, {
+            friction: 0.0,
+            // Bounciness (0-1, higher is bouncier). How much energy is conserved
+            // after a collision
+            restitution: 0.1,
+        });
+
+        // Player to pushy
+        const playerToPushyContact = new p2.ContactMaterial( playerMaterial, pushyMaterial, {
+            friction: 0,
+            // Bounciness (0-1, higher is bouncier). How much energy is conserved
+            // after a collision
+            restitution: 0,
+        });
+
+        // Pushy to wall
+        const pushyToWallContact = new p2.ContactMaterial( pushyMaterial, wallMaterial, {
+            friction: 1.5,
+            // Bounciness (0-1, higher is bouncier). How much energy is conserved
+            // after a collision
+            restitution: 0,
+        });
+
         const world = new p2.World({
             gravity: [ 0, 9.82 ]
         });
+
+        world.addContactMaterial( playerToPushyContact );
+        world.addContactMaterial( playerToWallContact );
+        world.addContactMaterial( pushyToWallContact );
 
         world.on( 'beginContact', this.onWorldBeginContact );
         world.on( 'endContact', this.onWorldEndContact );
 
         this.world = world;
+        this.playerMaterial = playerMaterial;
+        this.pushyMaterial = pushyMaterial;
+        this.wallMaterial = wallMaterial;
 
     }
 
@@ -204,7 +180,6 @@ export default class GameRenderer extends Component {
             const pushyBody = new p2.Body({
                 mass: getCubeMass( pushyDensity, scale.x * 0.5 ),
                 position: [ position.x, position.z ],
-                //material: pushyMaterial,
                 fixedRotation: true
             });
 
@@ -212,11 +187,15 @@ export default class GameRenderer extends Component {
             // to three
             pushyBody.scale = scale;
             pushyBody.entityId = entity.id;
+
+            // Store the y position as "depth" to place this object correctly
+            // set back into the screen
             pushyBody.depth = position.y;
 
             const pushyShape = new p2.Box({
-                width: 0.45 * scale.x,
-                height: 0.45 * scale.z,
+                material: this.pushyMaterial,
+                width: 0.99 * scale.x,
+                height: 0.99 * scale.z,
             });
 
             pushyBody.addShape( pushyShape );
@@ -230,7 +209,6 @@ export default class GameRenderer extends Component {
             const { position, scale } = entity;
             const entityBody = new p2.Body({
                 mass: 0,
-                //material: wallMaterial,
                 fixedRotation: true,
                 position: [
                     position.x,
@@ -238,6 +216,7 @@ export default class GameRenderer extends Component {
                 ]
             });
             const boxShape = new p2.Box({
+                material: this.wallMaterial,
                 width: scale.x,
                 height: scale.z,
             });
@@ -247,8 +226,6 @@ export default class GameRenderer extends Component {
             this.world.addBody( entityBody );
 
         } );
-
-        //this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
 
     }
 
@@ -282,13 +259,7 @@ export default class GameRenderer extends Component {
 
         } else if( nextProps.restartBusterId !== this.props.restartBusterId ) {
 
-            //this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
-            //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
             this._emptyWorld( this.world );
-
-            //this.world.removeBody( this.playerBody );
-            //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
-
             this._setupPhysics( nextProps );
 
             const { playerScale, playerPosition } = nextProps;
@@ -347,9 +318,6 @@ export default class GameRenderer extends Component {
             currentTransitionTarget: null,
             isAdvancing: false,
         });
-
-        //this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
-        //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
         this._emptyWorld( this.world );
 
@@ -564,9 +532,6 @@ export default class GameRenderer extends Component {
 
                 if( isInTubeRange && vec3Equals( playerTowardTube, tube.position ) ) {
 
-                    //playerBody.removeEventListener( 'collide', this.onPlayerCollide );
-                    //this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
-
                     const newPlayerContact = Object.keys( playerContact ).reduce( ( memo, key ) => {
 
                         const { entity } = world.bodies.find( search => {
@@ -669,9 +634,6 @@ export default class GameRenderer extends Component {
                     //console.log('FREE');
                     const lastTube = tubeFlow[ tubeIndex ];
 
-                    //playerBody.addEventListener( 'collide', this.onPlayerCollide );
-                    //this.world.addEventListener( 'endContact', this.onPlayerContactEndTest );
-
                     isDone = true;
                     newState = {
                         ...newState,
@@ -773,8 +735,7 @@ export default class GameRenderer extends Component {
             const { position, quaternion, scale, entityId } = cannonBody;
             return {
                 scale: new THREE.Vector3().copy( scale ),
-                position: new THREE.Vector3( position.x, cannonBody.depth, position.z ),
-                //quaternion: new THREE.Quaternion().copy( quaternion ),
+                position: new THREE.Vector3( position[ 0 ], cannonBody.depth, position[ 1 ] ),
                 entityId
             };
         });
@@ -784,17 +745,17 @@ export default class GameRenderer extends Component {
     _createPlayerBody( position, radius, density ) {
 
         const playerBody = new p2.Body({
-            //material: playerMaterial,
             mass: getSphereMass( density, radius ),
             fixedRotation: true,
             position
         });
-        //playerBody.addEventListener( 'collide', this.onPlayerCollide );
 
-        const playerShape = new p2.Circle({ radius });
+        const playerShape = new p2.Circle({
+            material: this.playerMaterial,
+            radius
+        });
 
         playerBody.addShape( playerShape );
-        //playerBody.position = new CANNON.Vec3().copy( position );
 
         return playerBody;
 
@@ -1052,7 +1013,6 @@ export default class GameRenderer extends Component {
                 const radiusDiff = playerRadius - newRadius;
 
                 this.world.removeBody( this.playerBody );
-                //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
                 const newPlayerBody = this._createPlayerBody(
                     [

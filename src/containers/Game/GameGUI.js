@@ -481,7 +481,10 @@ export default class GameGUI extends Component {
                     this.pauseKeyListeningUntilKeyUp();
                     this.onDenyRestart();
 
-                } else if( KeyCodes.ENTER in keysDown ) {
+                } else if(
+                    ( KeyCodes.ENTER in keysDown ) ||
+                    ( KeyCodes.R in keysDown )
+                ) {
 
                     this.pauseKeyListeningUntilKeyUp();
                     this.onConfirmRestart();
@@ -491,7 +494,8 @@ export default class GameGUI extends Component {
             } else {
 
                 if(
-                    ( KeyCodes.ESC in keysDown ) || ( KeyCodes.P in keysDown ) ||
+                    ( KeyCodes.ESC in keysDown ) ||
+                        ( KeyCodes.P in keysDown ) ||
                         ( KeyCodes.SPACE in keysDown )
                 ) {
 
