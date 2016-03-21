@@ -159,26 +159,36 @@ export default class GameRenderer extends Component {
         // http://schteppe.github.io/p2.js/docs/files/src_world_World.js.html#l1005
         world.off( 'beginContact', this.onWorldBeginContact );
         world.off( 'endContact', this.onWorldEndContact );
-        world.bodies = [];
+        world.clear();
 
         this.world = null;
 
     }
 
-    _setupPhysics( props, playerPositionOverride ) {
+    _emptyWorld( world ) {
+
+        // p2 is a buncha junk apparently
+        const { bodies } = world;
+        for( let i = bodies.length - 1; i >= 0; i-- ) {
+            world.removeBody( bodies[ i ] );
+        }
+
+    }
+
+    _setupPhysics( props, playerPositionOverride2D ) {
 
         const {
             playerRadius, playerDensity, pushyDensity,
             currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray
         } = props;
 
-        const playerPosition = playerPositionOverride || props.playerPosition;
+        const playerPosition = playerPositionOverride2D || [
+            props.playerPosition.x,
+            props.playerPosition.z,
+        ];
 
         const playerBody = this._createPlayerBody(
-            [
-                playerPosition.x,
-                playerPosition.z,
-            ],
+            playerPosition,
             playerRadius,
             playerDensity
         );
@@ -274,9 +284,9 @@ export default class GameRenderer extends Component {
 
             //this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
             //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
-            this.world.bodies = [];
+            this._emptyWorld( this.world );
 
-            this.world.removeBody( this.playerBody );
+            //this.world.removeBody( this.playerBody );
             //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
             this._setupPhysics( nextProps );
@@ -341,14 +351,14 @@ export default class GameRenderer extends Component {
         //this.world.removeEventListener( 'endContact', this.onPlayerContactEndTest );
         //this.playerBody.removeEventListener( 'collide', this.onPlayerCollide );
 
-        this.world.bodies = [];
+        this._emptyWorld( this.world );
 
-        const newPosition = [
+        const newPosition2D = [
             ( currentTransitionPosition.x - chapterPosition.x ) * multiplier,
             ( currentTransitionPosition.z - chapterPosition.z ) * multiplier,
         ];
 
-        this._setupPhysics( nextProps, newPosition );
+        this._setupPhysics( nextProps, newPosition2D );
 
     }
 
