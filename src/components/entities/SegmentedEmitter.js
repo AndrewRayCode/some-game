@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import CANNON from 'cannon/src/Cannon';
-import { clampVector3 } from '../../helpers/Utils';
+import p2 from 'p2';
+import { v3toP2 } from '../../helpers/Utils';
 
 const bubbleMinSize = 0.5;
 const foamGrowSize = 0.3;
@@ -11,7 +11,6 @@ const minimumPercentToShowFoam = 0.9;
 
 // Computed values
 
-// dam son see http://stackoverflow.com/questions/5501581/javascript-new-arrayn-and-array-prototype-map-weirdness
 const colRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
 const axis = new THREE.Vector3( 0, -1, 0 );
 // Which way the emitter flows by default
@@ -19,7 +18,7 @@ const forwardDirection = new THREE.Vector3( 1, 0, 0 );
 const helperRotation = new THREE.Euler( 0, -Math.PI / 2, 0 );
 const helperPosition = new THREE.Vector3( -0.5, 0, 0 );
 
-const relativeCannonPoint = new CANNON.Vec3( 0, 0, 0 );
+const relativeImpulsePoint = [ 0, 0 ];
 
 export default class SegmentedEmitter extends Component {
 
@@ -69,6 +68,7 @@ export default class SegmentedEmitter extends Component {
             position, rotation, playerRadius, scale, maxLength, rayCount
         } = props;
 
+        // dam son see http://stackoverflow.com/questions/5501581/javascript-new-arrayn-and-array-prototype-map-weirdness
         const rayArray = new Array( rayCount ).fill( 0 );
         const angle = new THREE.Euler().setFromQuaternion( rotation ).y;
         const impulse = ( props.impulse / rayCount ) * ( playerRadius || 0.45 );
@@ -127,9 +127,15 @@ export default class SegmentedEmitter extends Component {
 
                 // Note, these are all in world space except for the impulse
                 return {
-                    fromVector: fromVectorInitial.applyQuaternion( rotation ).add( position ),
-                    toVector: toVectorInitial.applyQuaternion( rotation ).add( position ),
-                    impulseVector: new THREE.Vector3( impulse, 0, 0 ).applyQuaternion( rotation ),
+                    fromVector: v3toP2(
+                        fromVectorInitial.applyQuaternion( rotation ).add( position )
+                    ),
+                    toVector: v3toP2(
+                        toVectorInitial.applyQuaternion( rotation ).add( position )
+                    ),
+                    impulseVector: v3toP2(
+                        new THREE.Vector3( impulse, 0, 0 ).applyQuaternion( rotation )
+                    ),
                     startingPoints,
                 };
 
@@ -166,27 +172,30 @@ export default class SegmentedEmitter extends Component {
 
         lengthTargets = rayArray.map( ( zero, index ) => {
 
-            const result = new CANNON.RaycastResult();
             const {
-                fromVector, toVector, impulseVector, startingPoints
+                fromVector2D, toVector2D, impulseVector2D, startingPoints
             } = hitVectors[ index ];
 
-            world.rayTest(
-                fromVector,
-                toVector,
-                result
-            );
+            const ray = new p2.Ray({
+                mode: p2.Ray.CLOSEST,
+                from: fromVector2D,
+                to: toVector2D,
+            });
 
-            const { hasHit, body, distance, hitPointWorld } = result;
+            const result = new p2.RaycastResult();
+            world.raycast( result, ray );
+
+            const { body } = result;
+            const distance = result.getHitDistance( ray );
             let hitLength;
 
-            if( hasHit ) {
+            if( body ) {
 
                 if( body !== playerBody ) {
 
                     const { mass, position: bodyPosition, } = body;
                     if( mass ) {
-                        body.applyImpulse( impulseVector, relativeCannonPoint );
+                        body.applyImpulse( impulseVector2D, relativeImpulsePoint );
                         //body.velocity.x += impulseVector.x;
                         //body.velocity.z += impulseVector.z;
                     }
@@ -211,13 +220,13 @@ export default class SegmentedEmitter extends Component {
 
             if( box.intersectsBox( playerBox ) ) {
 
-                playerBody.applyImpulse( impulseVector, relativeCannonPoint );
+                playerBody.applyImpulse( impulseVector2D, relativeImpulsePoint );
                 //playerBody.velocity.x += impulseVector.x;
                 //playerBody.velocity.z += impulseVector.z;
                 hitLength = Math.min(
                     body === playerBody ?
                         hitLength :
-                        fromVector.distanceTo( playerBody.position ),
+                        p2.vec2.distance( fromVector2D, playerBody.position ),
                     maxLength
                 );
 

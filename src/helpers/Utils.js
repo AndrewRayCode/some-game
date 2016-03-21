@@ -393,3 +393,9 @@ export function clampVector3( v3, min, max ) {
     return v3.clone().setLength( Math.max( Math.min( max, length ) ) );
 
 }
+
+export function v3toP2( v3 ) {
+
+    return [ v3.x, v3.z ];
+
+}

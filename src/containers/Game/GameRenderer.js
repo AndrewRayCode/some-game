@@ -7,7 +7,7 @@ import { Pushy, Player, StaticEntities } from '../../components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,
-    lookAtVector, findNextTube, snapTo, lerpVectors
+    lookAtVector, findNextTube, snapTo, lerpVectors, v3toP2
 } from '../../helpers/Utils';
 import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
@@ -69,7 +69,7 @@ export default class GameRenderer extends Component {
         this.onWindowBlur = this.onWindowBlur.bind( this );
         this.onKeyDown = this.onKeyDown.bind( this );
         this.onKeyUp = this.onKeyUp.bind( this );
-        this.updatePhysics = this.updatePhysics.bind( this );
+        this._updatePhysics = this._updatePhysics.bind( this );
         this.onUpdate = this.onUpdate.bind( this );
         this._getMeshStates = this._getMeshStates.bind( this );
         this.onWorldEndContact = this.onWorldEndContact.bind( this );
@@ -158,10 +158,9 @@ export default class GameRenderer extends Component {
             currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray
         } = props;
 
-        const playerPosition = playerPositionOverride2D || [
-            props.playerPosition.x,
-            props.playerPosition.z,
-        ];
+        const playerPosition = playerPositionOverride2D || v3toP2(
+            props.playerPosition
+        );
 
         const playerBody = this._createPlayerBody(
             playerPosition,
@@ -179,7 +178,7 @@ export default class GameRenderer extends Component {
 
             const pushyBody = new p2.Body({
                 mass: getCubeMass( pushyDensity, scale.x * 0.5 ),
-                position: [ position.x, position.z ],
+                position: v3toP2( position ),
                 fixedRotation: true
             });
 
@@ -210,10 +209,7 @@ export default class GameRenderer extends Component {
             const entityBody = new p2.Body({
                 mass: 0,
                 fixedRotation: true,
-                position: [
-                    position.x,
-                    position.z
-                ]
+                position: v3toP2( position ),
             });
             const boxShape = new p2.Box({
                 material: this.wallMaterial,
@@ -427,7 +423,7 @@ export default class GameRenderer extends Component {
 
     }
 
-    updatePhysics( elapsedTime, delta ) {
+    _updatePhysics( elapsedTime, delta ) {
 
         if( this.state.touring || this.state.isAdvancing ) {
             return;
@@ -763,6 +759,10 @@ export default class GameRenderer extends Component {
 
     onUpdate( elapsedTime, delta ) {
 
+        if( !this.world ) {
+            return;
+        }
+
         const { keysDown, playerBody } = this;
         const {
             currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
@@ -918,7 +918,7 @@ export default class GameRenderer extends Component {
         }
 
         // needs to be called before _getMeshStates
-        this.updatePhysics( elapsedTime, delta );
+        this._updatePhysics( elapsedTime, delta );
 
         newState.pushyPositions = this._getMeshStates( this.pushies );
         newState.lightPosition = new THREE.Vector3(
