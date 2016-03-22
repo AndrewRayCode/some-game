@@ -6,7 +6,7 @@ import ParticleEmitter from './ParticleEmitter';
 const positionSpread = new THREE.Vector3( 0.0, 0, 0.6 );
 const opacity = [ 0.1, 0 ];
 const velocitySpread = new THREE.Vector3( 0.1, 0.0, 0.1 );
-const color = [
+const defaultColor = [
     new THREE.Color( 0xffffff ),
     new THREE.Color( 0xdddddd ),
 ];
@@ -25,6 +25,7 @@ export default class Waterfall extends Component {
         time: PropTypes.number,
         playerRadius: PropTypes.number,
         playerBody: PropTypes.object,
+        color: PropTypes.array,
         materialId: PropTypes.string.isRequired,
         helperMaterial: PropTypes.string,
     }
@@ -48,7 +49,7 @@ export default class Waterfall extends Component {
         const {
             position, rotation, scale, world, paused, time, playerRadius,
             playerBody, materialId, maxLength, impulse, helperMaterial,
-            debug
+            debug, color
         } = this.props;
 
         const defaultMaxLength = maxLength || 10;
@@ -65,7 +66,7 @@ export default class Waterfall extends Component {
                 opacitySpread={ 0.1 }
                 velocity={ velocity }
                 velocitySpread={ velocitySpread }
-                color={ color }
+                color={ color || defaultColor }
                 angle={ angle }
                 angleSpread={ angleSpread }
                 size={ 0.7 }

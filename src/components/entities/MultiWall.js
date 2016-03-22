@@ -38,7 +38,7 @@ export default class MultiWall extends Component {
                 />
             </mesh>
             <mesh
-                ref="mesh"
+                ref="mesh2"
             >
                 <geometry
                     faces={ faces }

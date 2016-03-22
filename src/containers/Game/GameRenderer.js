@@ -193,8 +193,8 @@ export default class GameRenderer extends Component {
 
             const pushyShape = new p2.Box({
                 material: this.pushyMaterial,
-                width: 0.99 * scale.x,
-                height: 0.99 * scale.z,
+                width: 0.9 * scale.x,
+                height: 0.9 * scale.z,
             });
 
             pushyBody.addShape( pushyShape );
