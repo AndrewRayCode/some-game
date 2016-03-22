@@ -7,7 +7,7 @@ import { Pushy, Player, StaticEntities } from '../../components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,
-    lookAtVector, findNextTube, snapTo, lerpVectors, v3toP2
+    lookAtVector, findNextTube, snapTo, lerpVectors, v3toP2, p2ToV3
 } from '../../helpers/Utils';
 import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
@@ -455,11 +455,7 @@ export default class GameRenderer extends Component {
         const isUp = ( KeyCodes.W in keysDown ) || ( KeyCodes.UP in keysDown );
         const isDown = ( KeyCodes.S in keysDown ) || ( KeyCodes.DOWN in keysDown );
 
-        const playerPosition = new THREE.Vector3(
-            playerPosition2D[ 0 ],
-            1 + playerRadius,
-            playerPosition2D[ 1 ],
-        ).clone();
+        const playerPosition = p2ToV3( playerPosition2D, 1 + playerRadius );
 
         const playerSnapped = new THREE.Vector3(
             snapTo( playerPosition.x, playerScale ),
@@ -731,7 +727,7 @@ export default class GameRenderer extends Component {
             const { position, quaternion, scale, entityId } = cannonBody;
             return {
                 scale: new THREE.Vector3().copy( scale ),
-                position: new THREE.Vector3( position[ 0 ], cannonBody.depth, position[ 1 ] ),
+                position: p2ToV3( position, cannonBody.depth ),
                 entityId
             };
         });
@@ -779,14 +775,8 @@ export default class GameRenderer extends Component {
             time: elapsedTime
         };
 
-        const playerPosition = (
-            currentFlowPosition ||
-            new THREE.Vector3(
-                playerBody.position[ 0 ],
-                1 + playerRadius,
-                playerBody.position[ 1 ],
-            )
-        ).clone();
+        const playerPosition = currentFlowPosition ||
+            p2ToV3( playerBody.position, 1 + playerRadius );
 
         if( paused ) {
             this.setState( newState );
@@ -1171,10 +1161,8 @@ export default class GameRenderer extends Component {
 
         const playerPosition = new THREE.Vector3()
             .copy(
-                currentTransitionPosition || currentFlowPosition || new THREE.Vector3(
-                    playerBody.position[ 0 ],
-                    1 + playerRadius,
-                    playerBody.position[ 1 ],
+                currentTransitionPosition || currentFlowPosition || p2ToV3(
+                    playerBody.position, 1 + playerRadius,
                 )
             ).sub(
                 new THREE.Vector3(
@@ -1383,13 +1371,7 @@ export default class GameRenderer extends Component {
                 return <mesh
                     scale={ new THREE.Vector3( playerScale * 0.1, playerScale * 3, playerScale * 0.1 ) }
                     key={ `contact_${ index }_a` }
-                    position={
-                        new THREE.Vector3(
-                            contactPointA[ 0 ] + bodyA.position[ 0 ],
-                            1,
-                            contactPointA[ 1 ] + bodyA.position[ 1 ]
-                        )
-                    }
+                    position={ p2ToV3( p2.vec2.add( [ 0, 0 ], contactPointA, bodyA.position ), 1 ) }
                 >
                     <geometryResource
                         resourceId="radius1sphere"

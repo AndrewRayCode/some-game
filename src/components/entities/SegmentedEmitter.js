@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import p2 from 'p2';
-import { v3toP2 } from '../../helpers/Utils';
+import { v3toP2, p2ToV3 } from '../../helpers/Utils';
 
 const bubbleMinSize = 0.5;
 const foamGrowSize = 0.3;
@@ -12,6 +12,7 @@ const minimumPercentToShowFoam = 0.9;
 // Computed values
 
 const colRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
+const toScreenRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
 const axis = new THREE.Vector3( 0, -1, 0 );
 // Which way the emitter flows by default
 const forwardDirection = new THREE.Vector3( 1, 0, 0 );
@@ -72,7 +73,7 @@ export default class SegmentedEmitter extends Component {
         const rayArray = new Array( rayCount ).fill( 0 );
         const angle = new THREE.Euler().setFromQuaternion( rotation ).y;
         const impulse = ( props.impulse / rayCount ) * ( playerRadius || 0.45 );
-        const flowDirection2D = forwardDirection.clone().applyQuaternion( rotation );
+        const flowDirection = forwardDirection.clone().applyQuaternion( rotation );
 
         return {
             rayArray,
@@ -84,7 +85,7 @@ export default class SegmentedEmitter extends Component {
             lengthTargets: state.lengths || rayArray.map( () => 1 ),
 
             counter: 0,
-            flowDirection2D: new THREE.Vector2( flowDirection2D.x, flowDirection2D.z ),
+            flowDirection2D: new THREE.Vector2( flowDirection.x, flowDirection.z ),
             hitVectors: rayArray.map( ( zero, index ) => {
 
                 const streamHalfWidth = 0.5 / rayCount;
@@ -93,7 +94,7 @@ export default class SegmentedEmitter extends Component {
                 // stream in local space
                 const fromVectorInitial = new THREE.Vector3(
                     // move close to left edge of emitter
-                    -0.499,
+                    -0.499999,
                     // move toward the back to intersect player
                     -0.5 + ( playerRadius || 0.45 ),
                     // move to rectangle offset by index
@@ -127,13 +128,13 @@ export default class SegmentedEmitter extends Component {
 
                 // Note, these are all in world space except for the impulse
                 return {
-                    fromVector: v3toP2(
+                    fromVector2D: v3toP2(
                         fromVectorInitial.applyQuaternion( rotation ).add( position )
                     ),
-                    toVector: v3toP2(
+                    toVector2D: v3toP2(
                         toVectorInitial.applyQuaternion( rotation ).add( position )
                     ),
-                    impulseVector: v3toP2(
+                    impulseVector2D: v3toP2(
                         new THREE.Vector3( impulse, 0, 0 ).applyQuaternion( rotation )
                     ),
                     startingPoints,
@@ -164,11 +165,13 @@ export default class SegmentedEmitter extends Component {
         }
 
         const playerBox = new THREE.Box2().setFromCenterAndSize(
-            new THREE.Vector2( playerBody.position.x, playerBody.position.z ),
+            new THREE.Vector2( playerBody.position[ 0 ], playerBody.position[ 1 ] ),
             new THREE.Vector2( playerRadius * 1.9, playerRadius * 1.9 ),
         );
 
         let lengthTargets = oldLengthTargets;
+
+        const boxes = [];
 
         lengthTargets = rayArray.map( ( zero, index ) => {
 
@@ -217,6 +220,7 @@ export default class SegmentedEmitter extends Component {
             ];
 
             const box = new THREE.Box2().setFromPoints( points );
+            boxes.push( box );
 
             if( box.intersectsBox( playerBox ) ) {
 
@@ -243,7 +247,7 @@ export default class SegmentedEmitter extends Component {
 
         this.setState({
             counter: counter + 1,
-            lengths, lengthTargets
+            lengths, lengthTargets, boxes, playerBox
         });
 
     }
@@ -257,157 +261,183 @@ export default class SegmentedEmitter extends Component {
         const { lengths, lengthTargets, rayArray, } = this.state;
         const waterfallHeight = -0.5 + ( playerRadius || 0.45 );
 
-        return <group><group
-            position={ position }
-            quaternion={ rotation || new THREE.Quaternion( 0, 0, 0, 1 ) }
-            scale={ scale }
-            onUpdate={ this._onUpdate }
-        >
-            <mesh
-                ref="mesh"
-                position={ helperPosition }
-                rotation={ helperRotation }
+        return <group>
+            <group
+                position={ position }
+                quaternion={ rotation || new THREE.Quaternion( 0, 0, 0, 1 ) }
+                scale={ scale }
+                onUpdate={ this._onUpdate }
             >
-                <geometryResource
-                    resourceId="1x1plane"
-                />
-                <materialResource
-                    resourceId={ helperMaterial || 'transparent' }
-                />
-            </mesh>
-            <mesh
-                ref="mesh"
-            >
-                <geometryResource
-                    resourceId="1x1box"
-                />
-                <materialResource
-                    resourceId="transparent"
-                />
-            </mesh>
-
-            {/* Foam */}
-            { foam ? rayArray.map( ( zero, index ) => {
-
-                const length = lengths[ index ];
-                const target = lengthTargets[ index ];
-                const percentToTarget = Math.max(
-                    ( 1.0 - ( Math.abs( target - length ) / target ) ) - minimumPercentToShowFoam,
-                    0
-                ) * ( 1 / ( 1 - minimumPercentToShowFoam ) );
-
-                return <group
-                    key={ index }
-                    position={ new THREE.Vector3(
-                        -0.5 + length,
-                        waterfallHeight,
-                        -0.5 + ( ( 1 / rayCount ) * index ) + ( 0.5 / rayCount ),
-                    ) }
-                    scale={
-                        new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 1 / rayCount )
-                    }
-                >
-                    <mesh
-                        position={ new THREE.Vector3(
-                            0, 0, -0.25
-                        ) }
-                        scale={
-                            new THREE.Vector3( 1, 1, 1 )
-                                .multiplyScalar(
-                                    ( bubbleMinSize * 2 + foamGrowSize * Math.sin( foamGrowSpeed * time * 0.6 - index ) ) *
-                                    percentToTarget
-                                )
-                        }
-                        rotation={ new THREE.Euler(
-                            ( foamSpeed * time - index ) * 0.1,
-                            ( foamSpeed * time + index ) * 1.1,
-                            foamSpeed * time
-                        )}
-                    >
-                        <geometryResource
-                            resourceId="radius1sphere"
-                        />
-                        <materialResource
-                            resourceId={ foamMaterialId || 'waterFoam' }
-                        />
-                    </mesh>
-                    <mesh
-                        position={ new THREE.Vector3(
-                            0, 0, 0.25
-                        ) }
-                        scale={
-                            new THREE.Vector3( 1, 1, 1 )
-                                .multiplyScalar(
-                                    ( bubbleMinSize * 2 + foamGrowSize * Math.cos( foamGrowSpeed * time * 1.2 + index ) ) *
-                                    percentToTarget
-                                )
-                        }
-                        rotation={ new THREE.Euler(
-                            ( foamSpeed * time + index ) * 0.6,
-                            foamSpeed * time,
-                            ( foamSpeed * time + index ) * 1.2,
-                        )}
-                    >
-                        <geometryResource
-                            resourceId="radius1sphere"
-                        />
-                        <materialResource
-                            resourceId={ foamMaterialId || 'waterFoam' }
-                        />
-                    </mesh>
-                </group>;
-
-            }) : null }
-
-            {/* Emitters */}
-            { rayArray.map( ( zero, index ) =>
                 <mesh
-                    key={ index }
-                    position={ new THREE.Vector3(
-                        -0.5 + ( lengths[ index ] / 2 ),
-                        waterfallHeight,
-                        -0.5 + ( ( 1 / rayCount ) * index ) + ( 0.5 / rayCount )
-                    ) }
-                    scale={ new THREE.Vector3(
-                        1 / rayCount,
-                        lengths[ index ],
-                        1,
-                    ) }
-                    rotation={ colRotation }
+                    ref="mesh"
+                    position={ helperPosition }
+                    rotation={ helperRotation }
                 >
                     <geometryResource
                         resourceId="1x1plane"
                     />
                     <materialResource
-                        resourceId={ materialId }
+                        resourceId={ helperMaterial || 'transparent' }
                     />
                 </mesh>
-            )}
+                <mesh
+                    ref="mesh"
+                >
+                    <geometryResource
+                        resourceId="1x1box"
+                    />
+                    <materialResource
+                        resourceId="transparent"
+                    />
+                </mesh>
 
-        </group>
+                {/* Foam */}
+                { foam ? rayArray.map( ( zero, index ) => {
 
-        { debug ? <mesh
-            position={this.state.hitVectors[0].toVector}
-            scale={ new THREE.Vector3( 0.5, 6, 0.5 ) }
-        >
-            <geometryResource
-                resourceId="radius1sphere"
-            />
-            <materialResource
-                resourceId="entranceMaterial"
-            />
-        </mesh> : null }
-        { debug ? <mesh
-            position={this.state.hitVectors[0].fromVector}
-            scale={ new THREE.Vector3( 0.5, 6, 0.5 ) }
-        >
-            <geometryResource
-                resourceId="radius1sphere"
-            />
-            <materialResource
-                resourceId="exitMaterial"
-            />
-        </mesh> : null }
+                    const length = lengths[ index ];
+                    const target = lengthTargets[ index ];
+                    const percentToTarget = Math.max(
+                        ( 1.0 - ( Math.abs( target - length ) / target ) ) - minimumPercentToShowFoam,
+                        0
+                    ) * ( 1 / ( 1 - minimumPercentToShowFoam ) );
+
+                    return <group
+                        key={ index }
+                        position={ new THREE.Vector3(
+                            -0.5 + length,
+                            waterfallHeight,
+                            -0.5 + ( ( 1 / rayCount ) * index ) + ( 0.5 / rayCount ),
+                        ) }
+                        scale={
+                            new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 1 / rayCount )
+                        }
+                    >
+                        <mesh
+                            position={ new THREE.Vector3(
+                                0, 0, -0.25
+                            ) }
+                            scale={
+                                new THREE.Vector3( 1, 1, 1 )
+                                    .multiplyScalar(
+                                        ( bubbleMinSize * 2 + foamGrowSize * Math.sin( foamGrowSpeed * time * 0.6 - index ) ) *
+                                        percentToTarget
+                                    )
+                            }
+                            rotation={ new THREE.Euler(
+                                ( foamSpeed * time - index ) * 0.1,
+                                ( foamSpeed * time + index ) * 1.1,
+                                foamSpeed * time
+                            )}
+                        >
+                            <geometryResource
+                                resourceId="radius1sphere"
+                            />
+                            <materialResource
+                                resourceId={ foamMaterialId || 'waterFoam' }
+                            />
+                        </mesh>
+                        <mesh
+                            position={ new THREE.Vector3(
+                                0, 0, 0.25
+                            ) }
+                            scale={
+                                new THREE.Vector3( 1, 1, 1 )
+                                    .multiplyScalar(
+                                        ( bubbleMinSize * 2 + foamGrowSize * Math.cos( foamGrowSpeed * time * 1.2 + index ) ) *
+                                        percentToTarget
+                                    )
+                            }
+                            rotation={ new THREE.Euler(
+                                ( foamSpeed * time + index ) * 0.6,
+                                foamSpeed * time,
+                                ( foamSpeed * time + index ) * 1.2,
+                            )}
+                        >
+                            <geometryResource
+                                resourceId="radius1sphere"
+                            />
+                            <materialResource
+                                resourceId={ foamMaterialId || 'waterFoam' }
+                            />
+                        </mesh>
+                    </group>;
+
+                }) : null }
+
+                {/* Emitters */}
+                { rayArray.map( ( zero, index ) =>
+                    <mesh
+                        key={ index }
+                        position={ new THREE.Vector3(
+                            -0.5 + ( lengths[ index ] / 2 ),
+                            waterfallHeight,
+                            -0.5 + ( ( 1 / rayCount ) * index ) + ( 0.5 / rayCount )
+                        ) }
+                        scale={ new THREE.Vector3(
+                            1 / rayCount,
+                            lengths[ index ],
+                            1,
+                        ) }
+                        rotation={ colRotation }
+                    >
+                        <geometryResource
+                            resourceId="1x1plane"
+                        />
+                        <materialResource
+                            resourceId={ materialId }
+                        />
+                    </mesh>
+                )}
+
+            </group>
+
+            { debug ? <mesh
+                position={ p2ToV3( this.state.hitVectors[ 0 ].toVector2D ) }
+                scale={ new THREE.Vector3( 0.5, 3, 0.5 ) }
+            >
+                <geometryResource
+                    resourceId="radius1sphere"
+                />
+                <materialResource
+                    resourceId="greenDebugMaterial"
+                />
+            </mesh> : null }
+            { debug ? <mesh
+                position={ p2ToV3( this.state.hitVectors[ 0 ].fromVector2D ) }
+                scale={ new THREE.Vector3( 0.5, 3, 0.5 ) }
+            >
+                <geometryResource
+                    resourceId="radius1sphere"
+                />
+                <materialResource
+                    resourceId="blueDebugMaterial"
+                />
+            </mesh> : null }
+            { debug ? this.state.boxes.map( ( box, index ) => <mesh
+                key={ index }
+                position={ new THREE.Vector3( box.center().x, 2, box.center().y ) }
+                scale={ new THREE.Vector3( box.size().x, box.size().y + 2, 1 ) }
+                rotation={ toScreenRotation }
+            >
+                <geometryResource
+                    resourceId="1x1plane"
+                />
+                <materialResource
+                    resourceId={ index % 2 ? 'purpleDebugMaterial' : 'greenDebugMaterial' }
+                />
+            </mesh> ) : null }
+            { debug ? <mesh
+                position={ new THREE.Vector3( this.state.playerBox.center().x, 2, this.state.playerBox.center().y ) }
+                scale={ new THREE.Vector3( this.state.playerBox.size().x, this.state.playerBox.size().y, 1 ) }
+                rotation={ toScreenRotation }
+            >
+                <geometryResource
+                    resourceId="1x1plane"
+                />
+                <materialResource
+                    resourceId="purpleDebugMaterial"
+                />
+            </mesh> : null }
         </group>;
 
 

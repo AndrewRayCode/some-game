@@ -68,6 +68,7 @@ export default class StaticEntities extends Component {
                         time={ time }
                         ref={ entity.id }
                         key={ entity.id }
+                        debug={ debug }
                         impulse={ entity.impulse }
                         maxLength={ entity.maxLength }
                         position={ entity.position }

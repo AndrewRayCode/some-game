@@ -92,12 +92,34 @@ export default [
     />,
     <meshPhongMaterial
         key={ 4345 }
+        transparent
+        opacity={ 0.9 }
+        side={ THREE.DoubleSide }
         resourceId="greenDebugMaterial"
         color={ 0x00ff00 }
     />,
     <meshPhongMaterial
         key={ 4346 }
+        transparent
+        opacity={ 0.9 }
+        side={ THREE.DoubleSide }
         resourceId="purpleDebugMaterial"
         color={ 0xff00ff }
+    />,
+    <meshPhongMaterial
+        key={ 4347 }
+        transparent
+        opacity={ 0.9 }
+        side={ THREE.DoubleSide }
+        resourceId="redDebugMaterial"
+        color={ 0xff0000 }
+    />,
+    <meshPhongMaterial
+        key={ 4348 }
+        transparent
+        opacity={ 0.9 }
+        side={ THREE.DoubleSide }
+        resourceId="blueDebugMaterial"
+        color={ 0x0000ff }
     />,
 ];
