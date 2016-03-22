@@ -102,7 +102,7 @@ export default class GameRenderer extends Component {
 
         // Pushy to wall
         const pushyToWallContact = new p2.ContactMaterial( pushyMaterial, wallMaterial, {
-            friction: 1.5,
+            friction: 0.5,
             // Bounciness (0-1, higher is bouncier). How much energy is conserved
             // after a collision
             restitution: 0,
@@ -723,11 +723,11 @@ export default class GameRenderer extends Component {
 
     _getMeshStates( bodies ) {
 
-        return bodies.map( cannonBody => {
-            const { position, quaternion, scale, entityId } = cannonBody;
+        return bodies.map( physicsBody => {
+            const { position, quaternion, scale, entityId } = physicsBody;
             return {
                 scale: new THREE.Vector3().copy( scale ),
-                position: p2ToV3( position, cannonBody.depth ),
+                position: p2ToV3( position, physicsBody.depth ),
                 entityId
             };
         });
@@ -1197,11 +1197,11 @@ export default class GameRenderer extends Component {
                 materialId="playerMaterial"
             />
 
-            { pushyPositions.map( ( cannonBody, index ) => <Pushy
+            { pushyPositions.map( ( physicsBody, index ) => <Pushy
                 key={ index }
-                scale={ cannonBody.scale }
-                materialId={ allEntities[ cannonBody.entityId ].materialId }
-                position={ cannonBody.position }
+                scale={ physicsBody.scale }
+                materialId={ allEntities[ physicsBody.entityId ].materialId }
+                position={ physicsBody.position }
             /> ) }
 
             <StaticEntities

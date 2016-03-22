@@ -1,6 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import CANNON from 'cannon/src/Cannon';
+import p2 from 'p2';
 import { connect } from 'react-redux';
 import { asyncConnect } from 'redux-async-connect';
 import { bindActionCreators } from 'redux';
@@ -49,7 +49,7 @@ export default class GameContainer extends Component {
         this.clientSet = setTimeout( () => {
 
             window.THREE = THREE;
-            window.CANNON = CANNON;
+            window.CANNON = p2;
 
             if( !this.props.assetsLoaded ) {
                 this.props.deserializeLevels();

@@ -100,7 +100,6 @@
     "babel-register": "^6.3.13",
     "babel-runtime": "^6.3.19",
     "body-parser": "^1.14.1",
-    "cannon": "git://github.com/schteppe/cannon.js.git#master",
     "classnames": "^2.2.3",
     "clone": "^1.0.2",
     "compression": "^1.6.0",
