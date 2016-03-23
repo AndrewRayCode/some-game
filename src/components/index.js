@@ -16,6 +16,7 @@ export ConfirmRestartScreen from './ConfirmRestartScreen/ConfirmRestartScreen';
 export PausedScreen from './PausedScreen/PausedScreen';
 export TitleScreen from './TitleScreen/TitleScreen';
 export StaticEntities from './StaticEntities/StaticEntities';
+export ArrayEditor from './ArrayEditor/ArrayEditor';
 
 // Individual entities
 export SegmentedEmitter from './entities/SegmentedEmitter';

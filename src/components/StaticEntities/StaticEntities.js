@@ -55,6 +55,7 @@ export default class StaticEntities extends Component {
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
+                        colors={ entity.colors }
                         world={ world }
                         paused={ paused }
                         playerRadius={ playerRadius }

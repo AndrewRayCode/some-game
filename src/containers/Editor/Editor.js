@@ -18,7 +18,7 @@ import styles from './Editor.scss';
 
 import {
     StaticEntities, Grid, EditorResources, TexturePicker, CreatePreviewObject,
-    Kbd
+    Kbd, ArrayEditor
 } from '../../components';
 
 import Textures from '../../helpers/Textures';
@@ -388,13 +388,13 @@ export default class Editor extends Component {
 
     onPropertyChange( id, property, event ) {
 
-        this.props.changeEntityProperty( id, property, event.target.value );
+        this.props.changeEntityProperty( id, property,  event.target ? event.target.value : event );
 
     }
 
     onPropertyChangeNumber( id, property, event ) {
 
-        this.props.changeEntityProperty( id, property, parseFloat( event.target.value ) );
+        this.props.changeEntityProperty( id, property, parseFloat( event.target ? event.target.value : event ) );
 
     }
 
@@ -1515,6 +1515,10 @@ export default class Editor extends Component {
                         <input
                             value={ selectedObject.maxLength }
                             onChange={ this.onPropertyChangeNumber.bind( null, selectedObject.id, 'maxLength' ) }
+                        />
+                        <ArrayEditor
+                            value={ selectedObject.colors || [] }
+                            onChange={ this.onPropertyChange.bind( null, selectedObject.id, 'colors' ) }
                         />
                     </div> : null }
 
