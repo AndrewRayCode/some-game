@@ -72,7 +72,8 @@ export default class SegmentedEmitter extends Component {
         // dam son see http://stackoverflow.com/questions/5501581/javascript-new-arrayn-and-array-prototype-map-weirdness
         const rayArray = new Array( rayCount ).fill( 0 );
         const angle = new THREE.Euler().setFromQuaternion( rotation ).y;
-        const impulse = ( props.impulse / rayCount ) * ( playerRadius || 0.45 );
+        const impulse = ( props.impulse / rayCount );
+        const playerImpulse = ( props.impulse / rayCount ) * ( playerRadius || 0.45 );
         const flowDirection = forwardDirection.clone().applyQuaternion( rotation );
 
         return {
@@ -137,6 +138,9 @@ export default class SegmentedEmitter extends Component {
                     impulseVector2D: v3toP2(
                         new THREE.Vector3( impulse, 0, 0 ).applyQuaternion( rotation )
                     ),
+                    playerImpulseVector2D: v3toP2(
+                        new THREE.Vector3( playerImpulse, 0, 0 ).applyQuaternion( rotation )
+                    ),
                     startingPoints,
                 };
 
@@ -176,7 +180,8 @@ export default class SegmentedEmitter extends Component {
         lengthTargets = rayArray.map( ( zero, index ) => {
 
             const {
-                fromVector2D, toVector2D, impulseVector2D, startingPoints
+                fromVector2D, toVector2D, impulseVector2D, startingPoints,
+                playerImpulseVector2D
             } = hitVectors[ index ];
 
             const ray = new p2.Ray({
@@ -199,8 +204,6 @@ export default class SegmentedEmitter extends Component {
                     const { mass, position: bodyPosition, } = body;
                     if( mass ) {
                         body.applyImpulse( impulseVector2D, relativeImpulsePoint );
-                        //body.velocity.x += impulseVector.x;
-                        //body.velocity.z += impulseVector.z;
                     }
 
                 }
@@ -224,9 +227,7 @@ export default class SegmentedEmitter extends Component {
 
             if( box.intersectsBox( playerBox ) ) {
 
-                playerBody.applyImpulse( impulseVector2D, relativeImpulsePoint );
-                //playerBody.velocity.x += impulseVector.x;
-                //playerBody.velocity.z += impulseVector.z;
+                playerBody.applyImpulse( playerImpulseVector2D, relativeImpulsePoint );
                 hitLength = Math.min(
                     body === playerBody ?
                         hitLength :
