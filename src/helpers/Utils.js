@@ -405,3 +405,9 @@ export function p2ToV3( p2, y ) {
     return new THREE.Vector3( p2[ 0 ], y || 0, p2[ 1 ] );
 
 }
+
+export function str2Hex( str ) {
+
+    return parseInt( str, 16 );
+
+}

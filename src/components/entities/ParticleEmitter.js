@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import SPE from 'shader-particle-engine';
+import { str2Hex } from '../../helpers/Utils';
 
 const arrayOrNumber = PropTypes.oneOfType([
     PropTypes.array, PropTypes.number
@@ -117,7 +118,7 @@ export default class ParticleEmitter extends Component {
             },
             color: {
                 value: ( color || defaultColor ).map( c => new THREE.Color(
-                    typeof c === 'string' ? parseFloat( c ) : c
+                    typeof c === 'string' ? str2Hex( c ) : c
                 ) ),
                 spread: colorSpread
             },
