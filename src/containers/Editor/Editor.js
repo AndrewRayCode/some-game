@@ -388,7 +388,15 @@ export default class Editor extends Component {
 
     onPropertyChange( id, property, event ) {
 
-        this.props.changeEntityProperty( id, property,  event.target ? event.target.value : event );
+        this.props.changeEntityProperty(
+            id,
+            property,
+            event.target ?
+                ( 'checked' in event.target ?
+                    event.target.checked :
+                    event.target.value
+                ) : event
+        );
 
     }
 
@@ -1071,7 +1079,7 @@ export default class Editor extends Component {
             createType, selecting, selectedObjectId, creating, rotateable,
             createPreviewPosition, gridScale, createPreviewRotation, gridSnap,
             rotating, time, lightPosition, selectedNextChapter,
-            createMaterialId, insertChapterId, dragCreating
+            createMaterialId, insertChapterId, dragCreating,
         } = this.state;
 
         if( !currentBookId ) {
@@ -1422,7 +1430,7 @@ export default class Editor extends Component {
                     <br />
                     <b>type:</b> { selectedNextChapter ? 'nextChapter' : selectedObject.type }
                     <br />
-                    <b>id:</b> { selectedObject.id }
+                    <b>id:</b> { selectedObjectId }
                     <br />
                     <b>scale:</b> { selectedObject.scale.x } { selectedObject.scale.y } { selectedObject.scale.z }
                     <br />
@@ -1503,22 +1511,36 @@ export default class Editor extends Component {
                         step={ gridSnap }
                     />
 
+                    <br />
+                    <label>
+                        Collision?
+
+                        <input
+                            type="checkbox"
+                            checked={ ( 'touchable' in selectedObject ) ?
+                                selectedObject.touchable :
+                                true
+                            }
+                            onChange={ this.onPropertyChange.bind( this, selectedObjectId, 'touchable' ) }
+                        />
+                    </label>
+
                     { ( selectedObject.type === 'puffer' ||
                             selectedObject.type === 'waterfall' ) ? <div>
                         <b>Impulse:</b>
                         <input
                             value={ selectedObject.impulse }
-                            onChange={ this.onPropertyChangeNumber.bind( null, selectedObject.id, 'impulse' ) }
+                            onChange={ this.onPropertyChangeNumber.bind( null, selectedObjectId, 'impulse' ) }
                         />
                         <br />
                         <b>Max Length:</b>
                         <input
                             value={ selectedObject.maxLength }
-                            onChange={ this.onPropertyChangeNumber.bind( null, selectedObject.id, 'maxLength' ) }
+                            onChange={ this.onPropertyChangeNumber.bind( null, selectedObjectId, 'maxLength' ) }
                         />
                         <ArrayEditor
                             value={ selectedObject.colors || [] }
-                            onChange={ this.onPropertyChange.bind( null, selectedObject.id, 'colors' ) }
+                            onChange={ this.onPropertyChange.bind( null, selectedObjectId, 'colors' ) }
                         />
                     </div> : null }
 
@@ -1558,7 +1580,7 @@ export default class Editor extends Component {
                         />
                     </div> : null }
 
-                    { ( selectedObject.type === 'grow' || selectedObject.type === 'shrink'  ) ? <div>
+                    { ( selectedObject.type === 'grow' || selectedObject.type === 'shrink' ) ? <div>
                         <br />
                         <b>Change wrapMaterialId of Selection:</b>
                         <br />

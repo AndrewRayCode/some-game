@@ -97,7 +97,7 @@ const transitionFadeMs = 1000;
                 ];
                 // needs to go into static to render
                 memo.currentLevelRenderableEntities[ id ] = entity;
-            } else if( entity.type === 'pushy' ) {
+            } else if( entity.movable === true || entity.type === 'pushy' ) {
                 memo.currentLevelMovableEntities[ id ] = entity;
             // Things like waterfalls with no physical geometry
             } else if( entity.type === 'waterfall' || entity.type === 'puffer' ) {
@@ -106,7 +106,8 @@ const transitionFadeMs = 1000;
             } else {
 
                 // above plane of character
-                if( entity.position.y - ( entity.scale.y / 2 ) >= 1 ) {
+                if( entity.touchable !== false &&
+                        entity.position.y - ( entity.scale.y / 2 ) >= 1 ) {
                     memo.currentLevelStaticEntities[ id ] = entity;
                 }
 
