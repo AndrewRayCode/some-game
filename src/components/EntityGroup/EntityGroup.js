@@ -5,7 +5,7 @@ import {
     FinishLine, House, Waterfall, Puffer,
 } from '../';
 
-export default class StaticEntities extends Component {
+export default class EntityGroup extends Component {
 
     static propTypes = {
         time: PropTypes.number,

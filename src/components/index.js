@@ -15,7 +15,7 @@ export Text from './Text/Text';
 export ConfirmRestartScreen from './ConfirmRestartScreen/ConfirmRestartScreen';
 export PausedScreen from './PausedScreen/PausedScreen';
 export TitleScreen from './TitleScreen/TitleScreen';
-export StaticEntities from './StaticEntities/StaticEntities';
+export EntityGroup from './EntityGroup/EntityGroup';
 export ArrayEditor from './ArrayEditor/ArrayEditor';
 
 // Individual entities

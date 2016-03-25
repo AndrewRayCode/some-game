@@ -17,7 +17,7 @@ import classNames from 'classnames/bind';
 import styles from './Editor.scss';
 
 import {
-    StaticEntities, Grid, EditorResources, TexturePicker, CreatePreviewObject,
+    EntityGroup, Grid, EditorResources, TexturePicker, CreatePreviewObject,
     Kbd, ArrayEditor
 } from '../../components';
 
@@ -1266,7 +1266,7 @@ export default class Editor extends Component {
                                 spacing={ gridSnap }
                             />
 
-                            <StaticEntities
+                            <EntityGroup
                                 ref="staticEntities"
                                 shaders={ shaders }
                                 assets={ assets }
@@ -1274,7 +1274,7 @@ export default class Editor extends Component {
                                 time={ time }
                             />
 
-                            { nextChapters.map( nextChapter => <StaticEntities
+                            { nextChapters.map( nextChapter => <EntityGroup
                                 key={ nextChapter.id }
                                 ref={ `nextChapter${ nextChapter.id }` }
                                 shaders={ shaders }
@@ -1285,7 +1285,7 @@ export default class Editor extends Component {
                                 time={ time }
                             /> )}
 
-                            { previousChapter && <StaticEntities
+                            { previousChapter && <EntityGroup
                                 ref="previousLevel"
                                 position={ previousChapterEntity.position }
                                 shaders={ shaders }
@@ -1522,6 +1522,20 @@ export default class Editor extends Component {
                                 true
                             }
                             onChange={ this.onPropertyChange.bind( this, selectedObjectId, 'touchable' ) }
+                        />
+                    </label>
+
+                    <br />
+                    <label>
+                        Movable?
+
+                        <input
+                            type="checkbox"
+                            checked={ ( 'movable' in selectedObject ) ?
+                                selectedObject.movable :
+                                selectedObject.type === 'pushy' ? true : false
+                            }
+                            onChange={ this.onPropertyChange.bind( this, selectedObjectId, 'movable' ) }
                         />
                     </label>
 

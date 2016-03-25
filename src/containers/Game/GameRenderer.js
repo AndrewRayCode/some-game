@@ -3,7 +3,7 @@ import THREE from 'three';
 import KeyCodes from '../../helpers/KeyCodes';
 import Cardinality from '../../helpers/Cardinality';
 import p2 from 'p2'; // i hope this doesn't fuck it all up
-import { Pushy, Player, StaticEntities } from '../../components';
+import { Pushy, Player, EntityGroup } from '../../components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,
@@ -63,7 +63,7 @@ export default class GameRenderer extends Component {
                 playerPosition.z
             ),
             lightPosition: new THREE.Vector3(),
-            pushyPositions: []
+            movableEntities: []
         };
 
         this.onWindowBlur = this.onWindowBlur.bind( this );
@@ -173,7 +173,7 @@ export default class GameRenderer extends Component {
         this.world.addBody( playerBody );
         this.playerBody = playerBody;
 
-        this.pushies = currentLevelMovableEntitiesArray.map( entity => {
+        this.physicsBodies = currentLevelMovableEntitiesArray.map( entity => {
             const { position, scale } = entity;
 
             const pushyBody = new p2.Body({
@@ -723,9 +723,13 @@ export default class GameRenderer extends Component {
 
     _getMeshStates( bodies ) {
 
+        const { allEntities } = this.props;
+
         return bodies.map( physicsBody => {
             const { position, quaternion, scale, entityId } = physicsBody;
+            const entity = allEntities[ physicsBody.entityId ];
             return {
+                ...entity,
                 scale: new THREE.Vector3().copy( scale ),
                 position: p2ToV3( position, physicsBody.depth ),
                 entityId
@@ -910,7 +914,7 @@ export default class GameRenderer extends Component {
         // needs to be called before _getMeshStates
         this._updatePhysics( elapsedTime, delta );
 
-        newState.pushyPositions = this._getMeshStates( this.pushies );
+        newState.movableEntities = this._getMeshStates( this.physicsBodies );
         newState.lightPosition = new THREE.Vector3(
             10 * Math.sin( elapsedTime * 0.001 * lightRotationSpeed ),
             10,
@@ -1142,7 +1146,7 @@ export default class GameRenderer extends Component {
         }
 
         const {
-            pushyPositions, time, cameraPosition, cameraPositionZoomOut,
+            movableEntities, time, cameraPosition, cameraPositionZoomOut,
             currentFlowPosition, debug, touring, cameraTourTarget, entrance1,
             entrance2, tubeFlow, tubeIndex, currentScalePercent, radiusDiff,
             currentTransitionPosition, currentTransitionTarget,
@@ -1197,14 +1201,20 @@ export default class GameRenderer extends Component {
                 materialId="playerMaterial"
             />
 
-            { pushyPositions.map( ( physicsBody, index ) => <Pushy
-                key={ index }
-                scale={ physicsBody.scale }
-                materialId={ allEntities[ physicsBody.entityId ].materialId }
-                position={ physicsBody.position }
-            /> ) }
+            <EntityGroup
+                paused={ paused }
+                playerBody={ this.playerBody }
+                world={ this.world }
+                assets={ assets }
+                shaders={ shaders }
+                debug={ debug }
+                ref="staticEntities"
+                playerRadius={ playerRadius }
+                entities={ movableEntities }
+                time={ time }
+            />
 
-            <StaticEntities
+            <EntityGroup
                 paused={ paused }
                 playerBody={ this.playerBody }
                 world={ this.world }
@@ -1217,7 +1227,7 @@ export default class GameRenderer extends Component {
                 time={ time }
             />
 
-            { nextChapters.map( nextChapter => <StaticEntities
+            { nextChapters.map( nextChapter => <EntityGroup
                 paused={ paused }
                 key={ nextChapter.id }
                 assets={ assets }
@@ -1230,7 +1240,7 @@ export default class GameRenderer extends Component {
                 time={ time }
             /> )}
 
-            { previousChapterEntity && <StaticEntities
+            { previousChapterEntity && <EntityGroup
                 paused={ paused }
                 assets={ assets }
                 shaders={ shaders }

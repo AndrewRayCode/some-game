@@ -1,7 +1,7 @@
 import React, { PropTypes, Component } from 'react';
 import React3 from 'react-three-renderer';
 import {
-    Wall, MultiWall, Pushy, TubeBend, TubeStraight, Player, StaticEntities,
+    Wall, MultiWall, Pushy, TubeBend, TubeStraight, Player, EntityGroup,
     Shrink, House, Grow, FinishLine, Waterfall, Puffer
 } from '../';
 import THREE from 'three';
@@ -184,7 +184,7 @@ export default class CreatePreviewObject extends Component {
                         position={ new THREE.Vector3( 0, 1, 0 ) }
                         scale={ new THREE.Vector3( 8.01, 2.01, 8.01 ) }
                     />
-                    <StaticEntities
+                    <EntityGroup
                         shaders={ shaders }
                         assets={ assets }
                         time={ time }
