@@ -269,8 +269,8 @@ export default class SegmentedEmitter extends Component {
                 scale={ scale }
                 onUpdate={ this._onUpdate }
             >
+                {/* for debugging rotation */}
                 <mesh
-                    ref="mesh"
                     position={ helperPosition }
                     rotation={ helperRotation }
                 >
@@ -281,6 +281,7 @@ export default class SegmentedEmitter extends Component {
                         resourceId={ helperMaterial || 'transparent' }
                     />
                 </mesh>
+                {/* for selectability */}
                 <mesh
                     ref="mesh"
                 >

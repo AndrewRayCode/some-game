@@ -1563,6 +1563,7 @@ export default class Editor extends Component {
                             selectedObject.type === 'multiwall' ||
                             selectedObject.type === 'pushy' ||
                             selectedObject.type === 'puffer' ||
+                            selectedObject.type === 'bridge' ||
                             selectedObject.type === 'waterfall' ) ? <div>
                         <br />
                         <br />
@@ -1686,19 +1687,22 @@ export default class Editor extends Component {
                     <br />
                     <b>Extras</b>
                     <br />
-                    { createType === 'house' && '✓' }
                     <button onClick={ this.selectType( 'house' ) }>
+                        { createType === 'house' && '✓' }
                         House
                     </button>
-                    { createType === 'waterfall' && '✓' }
                     <button onClick={ this.selectType( 'waterfall' ) }>
+                        { createType === 'waterfall' && '✓' }
                         Waterfall
                     </button>
-                    { createType === 'puffer' && '✓' }
                     <button onClick={ this.selectType( 'puffer' ) }>
+                        { createType === 'puffer' && '✓' }
                         Puffer
                     </button>
-                    { createType === 'chapter' && '✓' }
+                    <button onClick={ this.selectType( 'bridge' ) }>
+                        { createType === 'bridge' && '✓' }
+                        Bridge
+                    </button>
                     <select
                         onChange={ this.onChapterCreateChange }
                         value={ this.state.insertChapterId }
@@ -1713,6 +1717,7 @@ export default class Editor extends Component {
                         }) }
                     </select>
                     <button onClick={ this.selectType( 'chapter' ) }>
+                        { createType === 'chapter' && '✓' }
                         Chapter
                     </button>
 

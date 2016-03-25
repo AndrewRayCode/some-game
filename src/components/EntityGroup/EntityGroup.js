@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 
 import {
     Shrink, Grow, Wall, MultiWall, Pushy, TubeBend, TubeStraight, Player,
-    FinishLine, House, Waterfall, Puffer,
+    FinishLine, House, Waterfall, Puffer, Dirk
 } from '../';
 
 export default class EntityGroup extends Component {
@@ -40,6 +40,19 @@ export default class EntityGroup extends Component {
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
+                        materialId={ entity.materialId }
+                    />;
+
+                } else if( entity.type === 'bridge' ) {
+
+                    return <Dirk
+                        ref={ entity.id }
+                        key={ entity.id }
+                        assets={ assets }
+                        position={ entity.position }
+                        rotation={ entity.rotation }
+                        scale={ entity.scale }
+                        segments={ entity.segments }
                         materialId={ entity.materialId }
                     />;
 

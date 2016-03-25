@@ -19,6 +19,7 @@ export EntityGroup from './EntityGroup/EntityGroup';
 export ArrayEditor from './ArrayEditor/ArrayEditor';
 
 // Individual entities
+export Dirk from './entities/Dirk';
 export SegmentedEmitter from './entities/SegmentedEmitter';
 export Waterfall from './entities/Waterfall';
 export Puffer from './entities/Puffer';

@@ -69,6 +69,7 @@ export default class CreatePreviewObject extends Component {
                     floorMaterialId="ghostMaterial"
                 />;
 
+            case 'bridge':
             case 'wall':
 
                 return <Wall
