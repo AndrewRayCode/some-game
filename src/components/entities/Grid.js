@@ -47,7 +47,7 @@ export default class Grid extends Component {
                 position={ new THREE.Vector3(
                     ( i * spacing ) - ( width / 2 ), 0, 0
                 ).add( position.clone() ) }
-                rotation={new THREE.Euler( Math.PI / 2, 0, 0 )}
+                rotation={ new THREE.Euler( Math.PI / 2, 0, 0 ) }
             >
                 <shapeGeometryResource
                     resourceId="col"

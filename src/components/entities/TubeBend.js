@@ -1,6 +1,8 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 
+const defaultRotation = new THREE.Quaternion( 0, 0, 0, 1 );
+
 export default class TubeBend extends Component {
 
     constructor( props, context ) {
@@ -20,7 +22,7 @@ export default class TubeBend extends Component {
 
         return <group
             position={ position }
-            quaternion={ rotation || new THREE.Quaternion( 0, 0, 0, 1 ) }
+            quaternion={ rotation || defaultRotation }
             scale={ scale }
         >
             <mesh

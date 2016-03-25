@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import THREE from 'three';
 
+const defaultRotation = new THREE.Quaternion( 0, 0, 0, 1 );
 const topPosition = new THREE.Vector3( 0, 0.50, 0 );
 const topRotation = new THREE.Euler( -THREE.Math.degToRad( 90 ), 0, 0 );
 
@@ -22,7 +23,7 @@ export default class MultiWall extends Component {
 
         return <group
             position={ position }
-            quaternion={ rotation || new THREE.Quaternion( 0, 0, 0, 1 ) }
+            quaternion={ rotation || defaultRotation }
             scale={ scale }
         >
             <mesh

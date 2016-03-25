@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import THREE from 'three';
 
+const defaultRotation = new THREE.Quaternion( 0, 0, 0, 1 );
+
 export default class Wall extends Component {
 
     render() {
@@ -9,7 +11,7 @@ export default class Wall extends Component {
 
         return <group
             position={ position }
-            quaternion={ rotation || new THREE.Quaternion( 0, 0, 0, 1 ) }
+            quaternion={ rotation || defaultRotation }
             scale={ scale }
         >
             <mesh
