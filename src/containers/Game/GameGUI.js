@@ -86,6 +86,7 @@ const transitionFadeMs = 1000;
             currentLevelRenderableEntities,
             currentLevelMovableEntities,
             currentLevelTouchyArray,
+            currentLevelBridges,
         } = currentLevel.entityIds.reduce( ( memo, id ) => {
 
             const entity = allEntities[ id ];
@@ -102,6 +103,10 @@ const transitionFadeMs = 1000;
             // Things like waterfalls with no physical geometry
             } else if( entity.type === 'waterfall' || entity.type === 'puffer' ) {
                 memo.currentLevelRenderableEntities[ id ] = entity;
+            // bridges?
+            } else if( entity.type === 'bridge' ) {
+                memo.currentLevelBridges[ id ] = entity;
+                memo.currentLevelRenderableEntities[ id ] = entity;
             // walls, floors, etc
             } else {
 
@@ -117,6 +122,7 @@ const transitionFadeMs = 1000;
             return memo;
 
         }, {
+            currentLevelBridges: {},
             currentLevelRenderableEntities: {},
             currentLevelMovableEntities: {},
             currentLevelAllEntities: {},
@@ -207,6 +213,8 @@ const transitionFadeMs = 1000;
             currentLevelMovableEntitiesArray: Object.values( currentLevelMovableEntities ),
             currentLevelRenderableEntities,
             currentLevelRenderableEntitiesArray: Object.values( currentLevelRenderableEntities ),
+            currentLevelBridges,
+            currentLevelBridgesArray: Object.values( currentLevelBridges ),
 
             gameStarted: true,
             restartBusterId: state.game.restartBusterId,

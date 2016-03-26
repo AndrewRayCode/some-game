@@ -155,7 +155,8 @@ export default class GameRenderer extends Component {
 
         const {
             playerRadius, playerDensity, pushyDensity,
-            currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray
+            currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray,
+            currentLevelBridgesArray
         } = props;
 
         const playerPosition = playerPositionOverride2D || v3toP2(
@@ -168,9 +169,11 @@ export default class GameRenderer extends Component {
             playerDensity
         );
 
+        const { world } = this;
+
         this.playerContact = {};
 
-        this.world.addBody( playerBody );
+        world.addBody( playerBody );
         this.playerBody = playerBody;
 
         this.physicsBodies = currentLevelMovableEntitiesArray.map( entity => {
@@ -198,10 +201,134 @@ export default class GameRenderer extends Component {
             });
 
             pushyBody.addShape( pushyShape );
-            this.world.addBody( pushyBody );
+            world.addBody( pushyBody );
             return pushyBody;
 
         });
+
+        const anchorInsetPercent = 0.9;
+        
+        this.bridgePlanks = currentLevelBridgesArray.reduce( ( memo, bridgeEntity ) => {
+
+            const {
+                scale, position,
+                segments = 4,
+                paddingPercent = 0.1
+            } = bridgeEntity;
+
+            const { x: width, y: size } = scale;
+            const plankWidth = width / segments;
+            const plankStartX = -( width / 2 ) + ( plankWidth / 2 );
+
+            const segmentsArray = new Array( segments ).fill( 0 );
+
+            const planks = segmentsArray.map( ( zero, index ) => {
+
+                const plankBody = new p2.Body({
+                    mass: 1,
+                    position: [
+                        position.x + ( plankWidth * index + plankStartX ),
+                        position.z + ( 0.5 * size ),
+                    ],
+                });
+
+                const plankShape = new p2.Box({
+                    material: this.wallMaterial,
+                    width: plankWidth,
+                    height: 0.1 * size
+                });
+
+                plankBody.addShape( plankShape );
+
+                world.addBody( plankBody );
+
+                return plankBody;
+
+            });
+
+            segmentsArray.map( ( zero, index ) => {
+
+                const plankBody = planks[ index ];
+                const nextPlank = planks[ index + 1 ];
+
+                // Is this the first pank? anchor to the left
+                if( index === 0 ) {
+
+                    const beforeSpring = new p2.LinearSpring( plankBody, plankBody, {
+                        restLength: paddingPercent * plankWidth,
+                        stiffness: 10,
+                        worldAnchorA: [
+                            position.x + ( plankWidth * -1 + plankStartX ),
+                            position.z + ( 0.5 * size ),
+                        ],
+                        localAnchorB: [
+                            -1.0 * plankWidth * anchorInsetPercent * 0.5,
+                            0,
+                        ],
+                    });
+                    world.addSpring( beforeSpring );
+
+                }
+
+                // If there's a next plank, anchor to it
+                if( nextPlank ) {
+
+                    const betweenSpring = new p2.LinearSpring( plankBody, nextPlank, {
+                        restLength: 1,
+                        stiffness: 10,
+                        localAnchorA: [
+                            plankWidth * anchorInsetPercent * 0.5,
+                            0,
+                        ],
+                        localAnchorB: [
+                            -1.0 * plankWidth * anchorInsetPercent * 0.5,
+                            0,
+                        ],
+                    });
+                    world.addSpring( betweenSpring );
+
+                } else {
+
+                    const afterSpring = new p2.LinearSpring( plankBody, nextPlank, {
+                        restLength: 1,
+                        stiffness: 10,
+                        localAnchorA: [
+                            -1.0 * plankWidth * anchorInsetPercent * 0.5,
+                            0,
+                        ],
+                        worldAnchorB: [
+                            position.x + ( plankWidth * ( index + 1 ) + plankStartX ),
+                            position.z + ( 0.5 * size ),
+                        ],
+                    });
+                    world.addSpring( afterSpring );
+
+                }
+                
+
+            });
+            
+            // Create connected boxes
+            //var box1 =             var box2 = new p2.Body({
+                //mass: 1,
+                //position : [-4, (M/2)*l*1.05 + radius],
+                //angularVelocity : -2
+            //});
+            //box1.addShape(new p2.Box({ width: radius, height: radius }));
+            //box2.addShape(new p2.Box({ width: radius, height: radius }));
+            //world.addBody(box1);
+            //world.addBody(box2);
+            //var s = new p2.LinearSpring(box1, box2, {
+                //restLength : 1,
+                //stiffness : 10,
+                //localAnchorA : [0,0.5],
+                //localAnchorB : [0,0.5],
+            //});
+            //world.addSpring(s);
+
+            return memo;
+
+        }, [] );
 
         currentLevelStaticEntitiesArray.forEach( entity => {
 
@@ -219,7 +346,7 @@ export default class GameRenderer extends Component {
 
             entityBody.addShape( boxShape );
             entityBody.entity = entity;
-            this.world.addBody( entityBody );
+            world.addBody( entityBody );
 
         } );
 
@@ -771,7 +898,7 @@ export default class GameRenderer extends Component {
         } = this.props;
 
         const {
-            currentFlowPosition, cameraPosition, isAdvancing
+            currentFlowPosition, cameraPosition, isAdvancing, debug
         } = this.state;
 
         // In any state, (paused, etc), child components need the updaed time
@@ -826,6 +953,29 @@ export default class GameRenderer extends Component {
         } else {
 
             this.touringSwitch = false;
+
+        }
+
+        if( debug && ( ( KeyCodes['-'] in keysDown ) || ( KeyCodes['='] in keysDown ) ) ) {
+
+            if( !this.sizeSwitch ) {
+
+                if( KeyCodes['-'] in keysDown ) {
+
+                    this.props.scalePlayer( currentLevelId, null, 0.5 );
+
+                } else if( KeyCodes['='] in keysDown ) {
+
+                    this.props.scalePlayer( currentLevelId, null, 2 );
+
+                }
+
+                this.sizeSwitch = true;
+            }
+
+        } else {
+
+            this.sizeSwitch = false;
 
         }
 

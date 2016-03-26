@@ -63,7 +63,7 @@ export default class Dirk extends Component {
         // the bridge, while the y (or z) scale represent normal world scaling
         const { x: width, y: size } = scale;
 
-        // Calcualte the width of a plank. Note because we scale the whole
+        // Calculate the width of a plank. Note because we scale the whole
         // thing we don't need to incorporate overall size scale
         const plankWidth = width / segments;
 
