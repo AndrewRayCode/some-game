@@ -14,13 +14,14 @@ export default class EntityGroup extends Component {
         paused: PropTypes.bool,
         playerRadius: PropTypes.number,
         playerBody: PropTypes.object,
+        plankEntities: PropTypes.object,
     }
 
     render() {
 
         const {
             entities, time, position, scale, shaders, assets, world, paused,
-            playerRadius, playerBody, debug
+            playerRadius, playerBody, debug, plankEntities
         } = this.props;
 
         return <group
@@ -48,7 +49,9 @@ export default class EntityGroup extends Component {
                     return <Dirk
                         ref={ entity.id }
                         key={ entity.id }
+                        entityId={ entity.id }
                         assets={ assets }
+                        plankEntities={ plankEntities }
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }

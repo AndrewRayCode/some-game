@@ -72,6 +72,7 @@ export default class GameRenderer extends Component {
         this._updatePhysics = this._updatePhysics.bind( this );
         this.onUpdate = this.onUpdate.bind( this );
         this._getMeshStates = this._getMeshStates.bind( this );
+        this._getPlankStates = this._getPlankStates.bind( this );
         this.onWorldEndContact = this.onWorldEndContact.bind( this );
         this.onWorldBeginContact = this.onWorldBeginContact.bind( this );
         this._setupPhysics = this._setupPhysics.bind( this );
@@ -207,13 +208,18 @@ export default class GameRenderer extends Component {
         });
 
         const anchorInsetPercent = 0.9;
+        const fuckup = new p2.Body({ mass: 0, position: [ -800, -800 ] });
+        const planeshit = new p2.Plane();
+        fuckup.addShape( planeshit );
+        world.addBody( fuckup );
         
         this.bridgePlanks = currentLevelBridgesArray.reduce( ( memo, bridgeEntity ) => {
 
             const {
                 scale, position,
                 segments = 4,
-                paddingPercent = 0.1
+                paddingPercent = 0.1,
+                id
             } = bridgeEntity;
 
             const { x: width, y: size } = scale;
@@ -238,13 +244,19 @@ export default class GameRenderer extends Component {
                     height: 0.1 * size
                 });
 
+                plankBody.entityId = id;
+                plankBody.depth = position.y;
+
                 plankBody.addShape( plankShape );
 
                 world.addBody( plankBody );
+                memo.push( plankBody );
 
                 return plankBody;
 
             });
+
+            const springLength = plankWidth * 1.5;
 
             segmentsArray.map( ( zero, index ) => {
 
@@ -254,8 +266,8 @@ export default class GameRenderer extends Component {
                 // Is this the first pank? anchor to the left
                 if( index === 0 ) {
 
-                    const beforeSpring = new p2.LinearSpring( plankBody, plankBody, {
-                        restLength: paddingPercent * plankWidth,
+                    const beforeSpring = new p2.LinearSpring( fuckup, plankBody, {
+                        restLength: springLength,
                         stiffness: 10,
                         worldAnchorA: [
                             position.x + ( plankWidth * -1 + plankStartX ),
@@ -274,7 +286,7 @@ export default class GameRenderer extends Component {
                 if( nextPlank ) {
 
                     const betweenSpring = new p2.LinearSpring( plankBody, nextPlank, {
-                        restLength: 1,
+                        restLength: springLength,
                         stiffness: 10,
                         localAnchorA: [
                             plankWidth * anchorInsetPercent * 0.5,
@@ -289,8 +301,8 @@ export default class GameRenderer extends Component {
 
                 } else {
 
-                    const afterSpring = new p2.LinearSpring( plankBody, nextPlank, {
-                        restLength: 1,
+                    const afterSpring = new p2.LinearSpring( plankBody, fuckup, {
+                        restLength: springLength,
                         stiffness: 10,
                         localAnchorA: [
                             -1.0 * plankWidth * anchorInsetPercent * 0.5,
@@ -307,24 +319,6 @@ export default class GameRenderer extends Component {
                 
 
             });
-            
-            // Create connected boxes
-            //var box1 =             var box2 = new p2.Body({
-                //mass: 1,
-                //position : [-4, (M/2)*l*1.05 + radius],
-                //angularVelocity : -2
-            //});
-            //box1.addShape(new p2.Box({ width: radius, height: radius }));
-            //box2.addShape(new p2.Box({ width: radius, height: radius }));
-            //world.addBody(box1);
-            //world.addBody(box2);
-            //var s = new p2.LinearSpring(box1, box2, {
-                //restLength : 1,
-                //stiffness : 10,
-                //localAnchorA : [0,0.5],
-                //localAnchorB : [0,0.5],
-            //});
-            //world.addSpring(s);
 
             return memo;
 
@@ -853,7 +847,7 @@ export default class GameRenderer extends Component {
         const { allEntities } = this.props;
 
         return bodies.map( physicsBody => {
-            const { position, quaternion, scale, entityId } = physicsBody;
+            const { position, scale, entityId } = physicsBody;
             const entity = allEntities[ physicsBody.entityId ];
             return {
                 ...entity,
@@ -862,6 +856,32 @@ export default class GameRenderer extends Component {
                 entityId
             };
         });
+
+    }
+
+    _getPlankStates( plankBodies ) {
+
+        const { allEntities } = this.props;
+
+        return plankBodies.reduce( ( memo, plankBody ) => {
+
+            const { position, angle, scale, entityId } = plankBody;
+            const entity = allEntities[ plankBody.entityId ];
+
+            const planks = memo[ entityId ] = memo[ entityId ] || [];
+
+            return {
+                ...memo,
+                [ entityId ]: [
+                    ...planks, {
+                        position: p2ToV3( position, plankBody.depth )
+                            .sub( entity.position ),
+                        rotation: new THREE.Euler( 0, 0, 0 )
+                    }
+                ]
+            };
+
+        }, {} );
 
     }
 
@@ -881,6 +901,36 @@ export default class GameRenderer extends Component {
         playerBody.addShape( playerShape );
 
         return playerBody;
+
+    }
+
+    scalePlayer( playerRadius, playerPosition, playerDensity, entityId, currentLevelId, isShrinking ) {
+
+        const multiplier = isShrinking ? 0.5 : 2;
+        const newRadius = multiplier * playerRadius;
+        const radiusDiff = playerRadius - newRadius;
+
+        this.world.removeBody( this.playerBody );
+
+        const newPlayerBody = this._createPlayerBody(
+            [
+                playerPosition.x,
+                playerPosition.z + radiusDiff
+            ],
+            newRadius,
+            playerDensity,
+        );
+
+        this.world.addBody( newPlayerBody );
+
+        this.playerBody = newPlayerBody;
+
+        // Reset contact points
+        this.playerContact = {};
+
+        this.props.scalePlayer( currentLevelId, entityId, multiplier );
+
+        return radiusDiff;
 
     }
 
@@ -960,15 +1010,10 @@ export default class GameRenderer extends Component {
 
             if( !this.sizeSwitch ) {
 
-                if( KeyCodes['-'] in keysDown ) {
-
-                    this.props.scalePlayer( currentLevelId, null, 0.5 );
-
-                } else if( KeyCodes['='] in keysDown ) {
-
-                    this.props.scalePlayer( currentLevelId, null, 2 );
-
-                }
+                this.scalePlayer(
+                    playerRadius, playerPosition, playerDensity, null,
+                    currentLevelId, ( KeyCodes['-'] in keysDown )
+                );
 
                 this.sizeSwitch = true;
             }
@@ -1065,6 +1110,7 @@ export default class GameRenderer extends Component {
         this._updatePhysics( elapsedTime, delta );
 
         newState.movableEntities = this._getMeshStates( this.physicsBodies );
+        newState.plankEntities = this._getPlankStates( this.bridgePlanks );
         newState.lightPosition = new THREE.Vector3(
             10 * Math.sin( elapsedTime * 0.001 * lightRotationSpeed ),
             10,
@@ -1151,30 +1197,10 @@ export default class GameRenderer extends Component {
                     entity.position.distanceTo( playerPosition ) < playerRadius * 1.8
                 ) {
 
-                const isShrinking = entity.type === 'shrink';
-                const multiplier = isShrinking ? 0.5 : 2;
-                const newRadius = multiplier * playerRadius;
-                const radiusDiff = playerRadius - newRadius;
-
-                this.world.removeBody( this.playerBody );
-
-                const newPlayerBody = this._createPlayerBody(
-                    [
-                        playerPosition.x,
-                        playerPosition.z + radiusDiff
-                    ],
-                    newRadius,
-                    playerDensity,
+                const radiusDiff = this.scalePlayer(
+                    playerRadius, playerPosition, playerDensity, entity.id,
+                    currentLevelId, entity.type === 'shrink'
                 );
-
-                this.world.addBody( newPlayerBody );
-
-                this.playerBody = newPlayerBody;
-
-                // Reset contact points
-                this.playerContact = {};
-
-                this.props.scalePlayer( currentLevelId, entity.id, multiplier );
 
                 newState.scaleStartTime = elapsedTime;
                 newState.radiusDiff = radiusDiff;
@@ -1299,7 +1325,7 @@ export default class GameRenderer extends Component {
             movableEntities, time, cameraPosition, cameraPositionZoomOut,
             currentFlowPosition, debug, touring, cameraTourTarget, entrance1,
             entrance2, tubeFlow, tubeIndex, currentScalePercent, radiusDiff,
-            currentTransitionPosition, currentTransitionTarget,
+            currentTransitionPosition, currentTransitionTarget, plankEntities
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1374,6 +1400,7 @@ export default class GameRenderer extends Component {
                 ref="staticEntities"
                 playerRadius={ playerRadius }
                 entities={ currentLevelRenderableEntitiesArray }
+                plankEntities={ plankEntities }
                 time={ time }
             />
 

@@ -11,8 +11,10 @@ export default class Dirk extends Component {
     static propTypes = {
         position: PropTypes.object,
         rotation: PropTypes.object,
+        plankEntities: PropTypes.object,
         scale: PropTypes.object,
         materialId: PropTypes.string,
+        entityId: PropTypes.string,
         segments: PropTypes.number,
         paddingPercent: PropTypes.number,
     }
@@ -54,7 +56,8 @@ export default class Dirk extends Component {
     render() {
 
         const {
-            position, rotation, scale, materialId, segments, paddingPercent
+            position, rotation, scale, materialId, segments, paddingPercent,
+            plankEntities, entityId
         } = this.props;
 
         const { segmentArray } = this.state;
@@ -70,6 +73,8 @@ export default class Dirk extends Component {
         // Calculate how far from center the leftmost plank should be. Objects
         // are centered so include plankwidth
         const plankStartX = -( width / 2 ) + ( plankWidth / 2 );
+
+        const planks = plankEntities && plankEntities[ entityId ];
 
         return <group
             position={ position }
@@ -90,7 +95,8 @@ export default class Dirk extends Component {
             { segmentArray.map( ( zero, index ) => <mesh
                     ref={ `mesh${ index }` }
                     scale={ new THREE.Vector3( plankWidth - ( ( paddingPercent * plankWidth ) / 2 ), 1, 0.1 ) }
-                    position={ new THREE.Vector3( plankWidth * index + plankStartX, 0, 0.5 ) }
+                    position={ planks ? planks[ index ].position : new THREE.Vector3( plankWidth * index + plankStartX, 0, 0.5 ) }
+                    rotation={ planks ? planks[ index ].rotation : null }
                 >
                     <geometryResource
                         resourceId="1x1box"
