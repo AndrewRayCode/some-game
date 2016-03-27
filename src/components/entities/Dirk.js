@@ -94,7 +94,7 @@ export default class Dirk extends Component {
             </mesh>
             { segmentArray.map( ( zero, index ) => <mesh
                     ref={ `mesh${ index }` }
-                    scale={ new THREE.Vector3( plankWidth - ( ( paddingPercent * plankWidth ) / 2 ), 1, 0.1 ) }
+                    scale={ new THREE.Vector3( plankWidth - ( paddingPercent * plankWidth ), 1, 0.1 ) }
                     position={ planks ? planks[ index ].position : new THREE.Vector3( plankWidth * index + plankStartX, 0, 0.5 ) }
                     rotation={ planks ? planks[ index ].rotation : null }
                 >

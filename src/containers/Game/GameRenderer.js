@@ -207,9 +207,9 @@ export default class GameRenderer extends Component {
 
         });
 
-        const anchorInsetPercent = 0.9;
-        const fuckup = new p2.Body({ mass: 0, position: [ -800, -800 ] });
-        const planeshit = new p2.Plane();
+        const anchorInsetPercent = 0.1;
+        const fuckup = new p2.Body({ mass: 0, position: [ -100, -100 ] });
+        const planeshit = new p2.Box({ width: 0, height: 0 });
         fuckup.addShape( planeshit );
         world.addBody( fuckup );
         
@@ -223,15 +223,16 @@ export default class GameRenderer extends Component {
             } = bridgeEntity;
 
             const { x: width, y: size } = scale;
-            const plankWidth = width / segments;
+            const plankWidth = size * ( width / segments );
             const plankStartX = -( width / 2 ) + ( plankWidth / 2 );
+            const plankBodyWidth = plankWidth - ( paddingPercent * plankWidth );
 
             const segmentsArray = new Array( segments ).fill( 0 );
 
             const planks = segmentsArray.map( ( zero, index ) => {
 
                 const plankBody = new p2.Body({
-                    mass: 1,
+                    mass: getCubeMass( pushyDensity, plankWidth * 2 ),
                     position: [
                         position.x + ( plankWidth * index + plankStartX ),
                         position.z + ( 0.5 * size ),
@@ -240,7 +241,7 @@ export default class GameRenderer extends Component {
 
                 const plankShape = new p2.Box({
                     material: this.wallMaterial,
-                    width: plankWidth,
+                    width: plankBodyWidth,
                     height: 0.1 * size
                 });
 
@@ -256,25 +257,27 @@ export default class GameRenderer extends Component {
 
             });
 
-            const springLength = plankWidth * 1.5;
+            const restLength = ( ( plankWidth * paddingPercent ) +
+                ( plankBodyWidth * anchorInsetPercent * 2 ) ) * 0.5;
+            const stiffness = 250000 * width;
+            const damping = 10000;
 
             segmentsArray.map( ( zero, index ) => {
 
                 const plankBody = planks[ index ];
                 const nextPlank = planks[ index + 1 ];
 
-                // Is this the first pank? anchor to the left
+                // Is this the first plank? anchor to the left
                 if( index === 0 ) {
 
                     const beforeSpring = new p2.LinearSpring( fuckup, plankBody, {
-                        restLength: springLength,
-                        stiffness: 10,
+                        restLength, stiffness, damping,
                         worldAnchorA: [
-                            position.x + ( plankWidth * -1 + plankStartX ),
+                            position.x - ( width * size * 0.5 ) - ( plankBodyWidth * anchorInsetPercent * 2 /* little more cause no padding */ ),
                             position.z + ( 0.5 * size ),
                         ],
                         localAnchorB: [
-                            -1.0 * plankWidth * anchorInsetPercent * 0.5,
+                            -( plankBodyWidth / 2 ) + ( plankBodyWidth * anchorInsetPercent ),
                             0,
                         ],
                     });
@@ -286,37 +289,35 @@ export default class GameRenderer extends Component {
                 if( nextPlank ) {
 
                     const betweenSpring = new p2.LinearSpring( plankBody, nextPlank, {
-                        restLength: springLength,
-                        stiffness: 10,
+                        restLength, stiffness, damping,
                         localAnchorA: [
-                            plankWidth * anchorInsetPercent * 0.5,
+                            ( plankBodyWidth / 2 ) - ( plankBodyWidth * anchorInsetPercent ),
                             0,
                         ],
                         localAnchorB: [
-                            -1.0 * plankWidth * anchorInsetPercent * 0.5,
+                            -( plankBodyWidth / 2 ) + ( plankBodyWidth * anchorInsetPercent ),
                             0,
                         ],
                     });
+
                     world.addSpring( betweenSpring );
 
                 } else {
 
                     const afterSpring = new p2.LinearSpring( plankBody, fuckup, {
-                        restLength: springLength,
-                        stiffness: 10,
+                        restLength, stiffness, damping,
                         localAnchorA: [
-                            -1.0 * plankWidth * anchorInsetPercent * 0.5,
+                            ( plankWidth / 2 ) - ( plankBodyWidth * anchorInsetPercent ),
                             0,
                         ],
                         worldAnchorB: [
-                            position.x + ( plankWidth * ( index + 1 ) + plankStartX ),
+                            position.x + ( width * size * 0.5 ) + ( plankBodyWidth * anchorInsetPercent * 2 ),
                             position.z + ( 0.5 * size ),
                         ],
                     });
                     world.addSpring( afterSpring );
 
                 }
-                
 
             });
 
@@ -876,7 +877,7 @@ export default class GameRenderer extends Component {
                     ...planks, {
                         position: p2ToV3( position, plankBody.depth )
                             .sub( entity.position ),
-                        rotation: new THREE.Euler( 0, 0, 0 )
+                        rotation: new THREE.Euler( 0, -angle, 0 )
                     }
                 ]
             };
@@ -1006,7 +1007,7 @@ export default class GameRenderer extends Component {
 
         }
 
-        if( debug && ( ( KeyCodes['-'] in keysDown ) || ( KeyCodes['='] in keysDown ) ) ) {
+        if( ( KeyCodes['-'] in keysDown ) || ( KeyCodes['='] in keysDown ) ) {
 
             if( !this.sizeSwitch ) {
 

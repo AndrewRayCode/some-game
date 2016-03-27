@@ -428,7 +428,7 @@ export default class SegmentedEmitter extends Component {
                     resourceId={ index % 2 ? 'purpleDebugMaterial' : 'greenDebugMaterial' }
                 />
             </mesh> ) : null }
-            { debug ? <mesh
+            { debug && 0 ? <mesh
                 position={ new THREE.Vector3( this.state.playerBox.center().x, 2, this.state.playerBox.center().y ) }
                 scale={ new THREE.Vector3( this.state.playerBox.size().x, this.state.playerBox.size().y, 1 ) }
                 rotation={ toScreenRotation }
