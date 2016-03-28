@@ -12,11 +12,6 @@ const arrayOrObject = PropTypes.oneOfType([
 const defaultPosition = new THREE.Vector3( -0.4, 0, 0 );
 const emitterOffset = new THREE.Vector3( 0, -1, 0 );
 
-const defaultColor = [
-    0xffffff,
-    0xdddddd,
-];
-
 export default class ParticleEmitter extends Component {
 
     static propTypes = {
@@ -117,7 +112,7 @@ export default class ParticleEmitter extends Component {
                 spread: velocitySpread.clone().applyQuaternion( rotation )
             },
             color: {
-                value: ( color || defaultColor ).map( c => new THREE.Color(
+                value: color.map( c => new THREE.Color(
                     typeof c === 'string' ? str2Hex( c ) : c
                 ) ),
                 spread: colorSpread

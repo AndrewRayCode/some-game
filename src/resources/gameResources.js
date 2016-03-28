@@ -122,4 +122,13 @@ export default [
         resourceId="blueDebugMaterial"
         color={ 0x0000ff }
     />,
+    <cylinderGeometry
+        key={ 4349 }
+        resourceId="1x1cylinder"
+        radiusTop={ 0.5 }
+        radiusBottom={ 0.5 }
+        height={ 1 }
+        radialSegments={ 5 }
+        heightSegments={ 1 }
+    />,
 ];

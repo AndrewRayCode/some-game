@@ -144,11 +144,14 @@ export default class GameRenderer extends Component {
 
     _emptyWorld( world ) {
 
+        world.clear();
+        world.gravity = [ 0, 9.82 ];
+
         // p2 is a buncha junk apparently
-        const { bodies } = world;
-        for( let i = bodies.length - 1; i >= 0; i-- ) {
-            world.removeBody( bodies[ i ] );
-        }
+        //const { bodies } = world;
+        //for( let i = bodies.length - 1; i >= 0; i-- ) {
+            //world.removeBody( bodies[ i ] );
+        //}
 
     }
 
@@ -207,19 +210,17 @@ export default class GameRenderer extends Component {
 
         });
 
-        const anchorInsetPercent = 0.1;
-        const fuckup = new p2.Body({ mass: 0, position: [ -100, -100 ] });
-        const planeshit = new p2.Box({ width: 0, height: 0 });
-        fuckup.addShape( planeshit );
-        world.addBody( fuckup );
+        const emptyWorldAnchor = new p2.Body({
+            mass: 0,
+            position: [ -100, -100 ]
+        });
+        world.addBody( emptyWorldAnchor );
+        this.emptyWorldAnchor = emptyWorldAnchor;
         
         this.bridgePlanks = currentLevelBridgesArray.reduce( ( memo, bridgeEntity ) => {
 
             const {
-                scale, position,
-                segments = 4,
-                paddingPercent = 0.1,
-                id
+                scale, position, segments, paddingPercent, id
             } = bridgeEntity;
 
             const { x: width, y: size } = scale;
@@ -232,7 +233,7 @@ export default class GameRenderer extends Component {
             const planks = segmentsArray.map( ( zero, index ) => {
 
                 const plankBody = new p2.Body({
-                    mass: getCubeMass( pushyDensity, plankWidth * 2 ),
+                    mass: getCubeMass( pushyDensity, plankWidth * 3 ),
                     position: [
                         position.x + ( plankWidth * index + plankStartX ),
                         position.z + ( 0.5 * size ),
@@ -257,10 +258,12 @@ export default class GameRenderer extends Component {
 
             });
 
+            const anchorInsetPercent = 0.1;
             const restLength = ( ( plankWidth * paddingPercent ) +
                 ( plankBodyWidth * anchorInsetPercent * 2 ) ) * 0.5;
-            const stiffness = 250000 * width;
-            const damping = 10000;
+            const stiffness = 100000 * width * 2;
+            const damping = 1000;
+            const maxForce = 800000;
 
             segmentsArray.map( ( zero, index ) => {
 
@@ -270,26 +273,37 @@ export default class GameRenderer extends Component {
                 // Is this the first plank? anchor to the left
                 if( index === 0 ) {
 
-                    const beforeSpring = new p2.LinearSpring( fuckup, plankBody, {
-                        restLength, stiffness, damping,
-                        worldAnchorA: [
+                    const emptyAnchorBefore = new p2.Body({
+                        mass: 0,
+                        position: [
                             position.x - ( width * size * 0.5 ) - ( plankBodyWidth * anchorInsetPercent * 2 /* little more cause no padding */ ),
-                            position.z + ( 0.5 * size ),
+                            position.z - ( 0.4 * size ),
                         ],
+                    });
+
+                    const beforeSpring = new p2.DistanceConstraint( emptyAnchorBefore, plankBody, {
+                        restLength, stiffness, damping,
+                        maxForce, distance: restLength,
+                        localAnchorA: [ 0, 0 ],
                         localAnchorB: [
                             -( plankBodyWidth / 2 ) + ( plankBodyWidth * anchorInsetPercent ),
                             0,
                         ],
                     });
-                    world.addSpring( beforeSpring );
+
+                    beforeSpring.entityId = id;
+
+                    world.addBody( emptyAnchorBefore );
+                    world.addConstraint( beforeSpring );
 
                 }
 
                 // If there's a next plank, anchor to it
                 if( nextPlank ) {
 
-                    const betweenSpring = new p2.LinearSpring( plankBody, nextPlank, {
-                        restLength, stiffness, damping,
+                    const betweenSpring = new p2.DistanceConstraint( plankBody, nextPlank, {
+                        restLength, stiffness, damping, maxForce,
+                        distance: restLength,
                         localAnchorA: [
                             ( plankBodyWidth / 2 ) - ( plankBodyWidth * anchorInsetPercent ),
                             0,
@@ -300,22 +314,34 @@ export default class GameRenderer extends Component {
                         ],
                     });
 
-                    world.addSpring( betweenSpring );
+                    betweenSpring.entityId = id;
+
+                    world.addConstraint( betweenSpring );
 
                 } else {
 
-                    const afterSpring = new p2.LinearSpring( plankBody, fuckup, {
-                        restLength, stiffness, damping,
+                    const emptyAnchorAfter = new p2.Body({
+                        mass: 0,
+                        position: [
+                            position.x + ( width * size * 0.5 ) + ( plankBodyWidth * anchorInsetPercent * 2 ),
+                            position.z - ( 0.4 * size ),
+                        ],
+                    });
+
+                    const afterSpring = new p2.DistanceConstraint( plankBody, emptyAnchorAfter, {
+                        restLength, stiffness, damping, maxForce,
+                        distance: restLength,
                         localAnchorA: [
                             ( plankWidth / 2 ) - ( plankBodyWidth * anchorInsetPercent ),
                             0,
                         ],
-                        worldAnchorB: [
-                            position.x + ( width * size * 0.5 ) + ( plankBodyWidth * anchorInsetPercent * 2 ),
-                            position.z + ( 0.5 * size ),
-                        ],
+                        localAnchorB: [ 0, 0 ],
                     });
-                    world.addSpring( afterSpring );
+
+                    afterSpring.entityId = id;
+
+                    world.addBody( emptyAnchorAfter );
+                    world.addConstraint( afterSpring );
 
                 }
 

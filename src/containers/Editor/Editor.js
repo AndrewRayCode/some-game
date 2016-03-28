@@ -940,9 +940,48 @@ export default class Editor extends Component {
 
             } else {
 
+                let entityData = {};
+
+                if( createType === 'bridge' ) {
+
+                    entityData = {
+                        segments: 4,
+                        paddingPercent: 0.1,
+                        maxForce: 500000,
+                    };
+
+                } else if( createType === 'puffer' ) {
+
+                    entityData = {
+                        maxLength: 2,
+                        velocity: 2,
+                        angle: [ -Math.PI, Math.PI ],
+                        angleSpread: Math.PI / 2,
+                        opacity: [ 0.1, 0 ],
+                        colors: [
+                            0xffffff,
+                            0xdddddd,
+                        ]
+                    };
+
+                } else if( createType === 'waterfall' ) {
+
+                    entityData = {
+                        maxLength: 2,
+                        velocity: 2,
+                        angle: [ -Math.PI, Math.PI ],
+                        angleSpread: Math.PI / 2,
+                        opacity: [ 0.1, 0 ],
+                        materialId: 'regularWater',
+                        foamMaterialId: 'waterFoam'
+                    };
+
+                }
+
                 this.props.addEntity(
                     currentLevelId, createType, createPreviewPosition,
-                    createPreviewScale, createPreviewRotation, createMaterialId
+                    createPreviewScale, createPreviewRotation, createMaterialId,
+                    entityData
                 );
 
             }
@@ -1419,8 +1458,17 @@ export default class Editor extends Component {
             </div>
 
             <div className={ styles.sidebar }>
-                <b>Editor</b>
-                <br />
+                <button
+                    onClick={
+                        this.props.saveAll.bind(
+                            null, currentLevel, currentLevelStaticEntities,
+                            currentBook, currentChapters
+                        )
+                    }
+                >
+                    Save Level and Book
+                </button>
+
                 <br />
                 { selecting && selectedObject ? <div>
                     <b>Object Selcted</b>
@@ -1552,10 +1600,51 @@ export default class Editor extends Component {
                             value={ selectedObject.maxLength }
                             onChange={ this.onPropertyChangeNumber.bind( null, selectedObjectId, 'maxLength' ) }
                         />
+                        <br />
+                        <b>Velocity:</b>
+                        <input
+                            value={ selectedObject.velocity }
+                            onChange={ this.onPropertyChangeNumber.bind( null, selectedObjectId, 'velocity' ) }
+                        />
+                        <br />
+                        <b>Colors:</b>
                         <ArrayEditor
                             value={ selectedObject.colors || [] }
                             onChange={ this.onPropertyChange.bind( null, selectedObjectId, 'colors' ) }
                         />
+                        <br />
+                        <b>Opacity:</b>
+                        <ArrayEditor
+                            value={ selectedObject.opacity || [] }
+                            onChange={ this.onPropertyChange.bind( null, selectedObjectId, 'opacity' ) }
+                        />
+                        <br />
+                        <b>Angle:</b>
+                        <ArrayEditor
+                            value={ selectedObject.angle || [] }
+                            onChange={ this.onPropertyChange.bind( null, selectedObjectId, 'angle' ) }
+                        />
+                        <br />
+                        <b>angleSpread:</b>
+                        <input
+                            value={ selectedObject.angleSpread }
+                            onChange={ this.onPropertyChangeNumber.bind( null, selectedObjectId, 'angleSpread' ) }
+                        />
+                    </div> : null }
+
+                    { ( selectedObject.type === 'bridge' ) ? <div>
+                        <b>Segments:</b>
+                        <input
+                            value={ selectedObject.segments }
+                            onChange={ this.onPropertyChangeNumber.bind( null, selectedObjectId, 'segments' ) }
+                        />
+                        <br />
+                        <b>paddingPercent:</b>
+                        <input
+                            value={ selectedObject.paddingPercent }
+                            onChange={ this.onPropertyChangeNumber.bind( null, selectedObjectId, 'paddingPercent' ) }
+                        />
+                        <br />
                     </div> : null }
 
                     { ( selectedObject.type === 'wall' ||
@@ -1775,17 +1864,6 @@ export default class Editor extends Component {
                         currentChapterId, event.target.value
                     ) }
                 />
-
-                <button
-                    onClick={
-                        this.props.saveAll.bind(
-                            null, currentLevel, currentLevelStaticEntities,
-                            currentBook, currentChapters
-                        )
-                    }
-                >
-                    Save Level and Book
-                </button>
 
                 <br />
                 <br />

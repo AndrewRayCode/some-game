@@ -49,7 +49,7 @@ export default class GameContainer extends Component {
         this.clientSet = setTimeout( () => {
 
             window.THREE = THREE;
-            window.CANNON = p2;
+            window.p2 = p2;
 
             if( !this.props.assetsLoaded ) {
                 this.props.deserializeLevels();

@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 
 import {
     Shrink, Grow, Wall, MultiWall, Pushy, TubeBend, TubeStraight, Player,
-    FinishLine, House, Waterfall, Puffer, Dirk
+    FinishLine, House, Waterfall, Puffer, PlankBridge
 } from '../';
 
 export default class EntityGroup extends Component {
@@ -46,7 +46,7 @@ export default class EntityGroup extends Component {
 
                 } else if( entity.type === 'bridge' ) {
 
-                    return <Dirk
+                    return <PlankBridge
                         ref={ entity.id }
                         key={ entity.id }
                         entityId={ entity.id }
@@ -56,7 +56,9 @@ export default class EntityGroup extends Component {
                         rotation={ entity.rotation }
                         scale={ entity.scale }
                         segments={ entity.segments }
+                        paddingPercent={ entity.paddingPercent }
                         materialId={ entity.materialId }
+                        maxForce={ entity.maxForce }
                     />;
 
                 } else if( entity.type === 'puffer' ) {
@@ -77,6 +79,11 @@ export default class EntityGroup extends Component {
                         playerRadius={ playerRadius }
                         playerBody={ playerBody }
                         materialId={ entity.materialId }
+                        velocity={ entity.velocity }
+                        velocity={ entity.velocity }
+                        angle={ entity.angle }
+                        angleSpread={ entity.angleSpread }
+                        opacity={ entity.opacity }
                     />;
 
                 } else if( entity.type === 'waterfall' ) {
@@ -97,6 +104,11 @@ export default class EntityGroup extends Component {
                         playerBody={ playerBody }
                         materialId={ entity.materialId }
                         foamMaterialId={ entity.foamMaterialId }
+                        velocity={ entity.velocity }
+                        velocity={ entity.velocity }
+                        angle={ entity.angle }
+                        angleSpread={ entity.angleSpread }
+                        opacity={ entity.opacity }
                     />;
 
                 } else if( entity.type === 'pushy' ) {

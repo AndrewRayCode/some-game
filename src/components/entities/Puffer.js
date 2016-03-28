@@ -4,10 +4,7 @@ import SegmentedEmitter from './SegmentedEmitter';
 import ParticleEmitter from './ParticleEmitter';
 
 const positionSpread = new THREE.Vector3( 0.0, 0, 0.6 );
-const opacity = [ 0.1, 0 ];
 const velocitySpread = new THREE.Vector3( 0.1, 0.0, 0.1 );
-const angle = [ -Math.PI, Math.PI ];
-const angleSpread = Math.PI / 2;
 const sizeSpread = new THREE.Vector3( 0.5, 0.5, 0.5 );
 
 export default class Waterfall extends Component {
@@ -22,6 +19,9 @@ export default class Waterfall extends Component {
         playerRadius: PropTypes.number,
         playerBody: PropTypes.object,
         colors: PropTypes.array,
+        angle: PropTypes.array,
+        angleSpread: PropTypes.number,
+        opacity: PropTypes.array,
         materialId: PropTypes.string.isRequired,
         helperMaterial: PropTypes.string,
     }
@@ -45,18 +45,15 @@ export default class Waterfall extends Component {
         const {
             position, rotation, scale, world, paused, time, playerRadius,
             playerBody, materialId, maxLength, impulse, helperMaterial,
-            debug, colors
+            debug, colors, velocity, angle, angleSpread, opacity
         } = this.props;
-
-        const defaultMaxLength = maxLength || 10;
-        const velocity = 2;
 
         return <group>
             <ParticleEmitter
                 rotation={ rotation }
                 emitterPosition={ position }
                 texture={ this.state.smokeParticle }
-                maxAge={ defaultMaxLength / velocity }
+                maxAge={ maxLength / velocity }
                 positionSpread={ positionSpread }
                 opacity={ opacity }
                 opacitySpread={ 0.1 }
@@ -69,11 +66,11 @@ export default class Waterfall extends Component {
                 sizeSpread={ sizeSpread }
                 wiggle={ 0.1 }
                 wiggleSpread={ 0.2 }
-                particleCount={ Math.min( 40 * defaultMaxLength, 500 ) }
+                particleCount={ Math.min( 40 * maxLength, 500 ) }
             />
             <SegmentedEmitter
                 ref="child"
-                maxLength={ defaultMaxLength }
+                maxLength={ maxLength }
                 impulse={ impulse || 100 }
                 rayCount={ 2 }
                 materialId={ debug ? 'ornateWall1' : 'transparent' }

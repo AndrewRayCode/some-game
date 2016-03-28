@@ -160,7 +160,8 @@ export function entitiesReducer( entities = {}, action = {} ) {
                     position: action.position,
                     scale: action.scale,
                     rotation: action.rotation || new THREE.Quaternion( 0, 0, 0, 1 ),
-                    materialId: action.materialId
+                    materialId: action.materialId,
+                    ...( action.entityData || {} )
                 }
             };
 
@@ -663,11 +664,11 @@ export function selectLevelAndChapter( levelId, chapterId ) {
     };
 }
 
-export function addEntity( levelId, entityType, position, scale, rotation, materialId ) {
+export function addEntity( levelId, entityType, position, scale, rotation, materialId, entityData ) {
     return {
         type: ADD_ENTITY,
         id: uid(),
-        levelId, entityType, position, scale, rotation, materialId
+        levelId, entityType, position, scale, rotation, materialId, entityData
     };
 }
 
