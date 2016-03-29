@@ -12,6 +12,7 @@ export default class PlankBridge extends Component {
         position: PropTypes.object,
         rotation: PropTypes.object,
         plankEntities: PropTypes.object,
+        anchorEntities: PropTypes.object,
         scale: PropTypes.object,
         materialId: PropTypes.string,
         entityId: PropTypes.string,
@@ -58,7 +59,7 @@ export default class PlankBridge extends Component {
 
         const {
             position, rotation, scale, materialId, segments, paddingPercent,
-            plankEntities, entityId
+            plankEntities, anchorEntities, entityId
         } = this.props;
 
         const { segmentArray, segmentArrayWithAnchors } = this.state;
@@ -76,50 +77,53 @@ export default class PlankBridge extends Component {
         const plankStartX = -( width / 2 ) + ( plankWidth / 2 );
 
         const planks = plankEntities && plankEntities[ entityId ];
+        const constraints = anchorEntities && anchorEntities[ entityId ];
         let bridge;
 
         if( planks ) {
 
             const dorts = [];
             const dangits = [];
+            const durfs = [];
 
-            segmentArrayWithAnchors.forEach( ( zero, counter ) => {
-                const index = counter - 1;
-                const plank = planks[ index ];
+            segmentArrayWithAnchors.forEach( ( zero, index ) => {
+
+                const constraint = constraints[ index ];
+                const { positionA, positionB } = constraint || {};
+
+                const plank = planks[ index - 1 ];
                 const {
                     position: plankPosition,
                     rotation: plankRotation
                 } = plank || {};
-                const nextPlank = planks[ index + 1 ];
 
-                const prevAnchor = plank ?
-                    new THREE.Vector3(
-                        plank.position.x,
-                        0,
-                        plank.position.z,
-                    ) : new THREE.Vector3(
-                        -( width * 0.5 ) - ( plankWidth * anchorInsetPercent * 2 ),
-                        0,
-                        -0.4,
-                    );
+                const nextPlank = planks[ index ];
 
-                const nextAnchor = nextPlank ?
-                    new THREE.Vector3(
-                        nextPlank.position.x,
-                        0,
-                        nextPlank.position.z,
-                    ) : new THREE.Vector3(
-                        ( width * 0.5 ) + ( plankWidth * anchorInsetPercent * 2 ),
-                        0,
-                        -0.4,
-                    );
+                durfs.push(
+                    <mesh
+                        position={ positionB }
+                        scale={ new THREE.Vector3( 0.05, 2, 0.05 )}
+                    >
+                        <geometryResource
+                            resourceId="radius1sphere"
+                        />
+                        <materialResource
+                            resourceId="greenDebugMaterial"
+                        />
+                    </mesh>
+                );
 
-                if( !plank ) {
-                // Before anchor?
                 dangits.push(<group
                     key={ index }
-                    position={ prevAnchor }
-                    scale={ new THREE.Vector3( prevAnchor.distanceTo( nextAnchor ), 0.2, 0.2 ) }
+                    position={ positionA }
+                    rotation={ new THREE.Euler(
+                        0,
+                        Math.acos( positionA.clone().dot( positionB.clone().normalize() ) ),
+                        0,
+                    ) }
+                    scale={ new THREE.Vector3(
+                        positionA.distanceTo( positionB ), 0.2, 0.2
+                    ) }
                 >
                     <mesh
                         position={ defaultRopePosition }
@@ -133,7 +137,6 @@ export default class PlankBridge extends Component {
                         />
                     </mesh>
                 </group>);
-                }
 
                 if( plank ) {
 
@@ -161,6 +164,7 @@ export default class PlankBridge extends Component {
             bridge = <group>
                 { dangits }
                 { dorts }
+                { durfs }
             </group>;
 
         } else {

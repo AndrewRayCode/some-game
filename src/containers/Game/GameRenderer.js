@@ -73,6 +73,7 @@ export default class GameRenderer extends Component {
         this.onUpdate = this.onUpdate.bind( this );
         this._getMeshStates = this._getMeshStates.bind( this );
         this._getPlankStates = this._getPlankStates.bind( this );
+        this._getAnchorStates = this._getAnchorStates.bind( this );
         this.onWorldEndContact = this.onWorldEndContact.bind( this );
         this.onWorldBeginContact = this.onWorldBeginContact.bind( this );
         this._setupPhysics = this._setupPhysics.bind( this );
@@ -217,7 +218,7 @@ export default class GameRenderer extends Component {
         world.addBody( emptyWorldAnchor );
         this.emptyWorldAnchor = emptyWorldAnchor;
         
-        this.bridgePlanks = currentLevelBridgesArray.reduce( ( memo, bridgeEntity ) => {
+        const bridgeData = currentLevelBridgesArray.reduce( ( memo, bridgeEntity ) => {
 
             const {
                 scale, position, segments, paddingPercent, id
@@ -252,7 +253,7 @@ export default class GameRenderer extends Component {
                 plankBody.addShape( plankShape );
 
                 world.addBody( plankBody );
-                memo.push( plankBody );
+                memo.planks.push( plankBody );
 
                 return plankBody;
 
@@ -292,6 +293,8 @@ export default class GameRenderer extends Component {
                     });
 
                     beforeSpring.entityId = id;
+                    beforeSpring.depth = position.y;
+                    memo.constraints.push( beforeSpring );
 
                     world.addBody( emptyAnchorBefore );
                     world.addConstraint( beforeSpring );
@@ -315,6 +318,8 @@ export default class GameRenderer extends Component {
                     });
 
                     betweenSpring.entityId = id;
+                    betweenSpring.depth = position.y;
+                    memo.constraints.push( betweenSpring );
 
                     world.addConstraint( betweenSpring );
 
@@ -339,6 +344,8 @@ export default class GameRenderer extends Component {
                     });
 
                     afterSpring.entityId = id;
+                    afterSpring.depth = position.y;
+                    memo.constraints.push( afterSpring );
 
                     world.addBody( emptyAnchorAfter );
                     world.addConstraint( afterSpring );
@@ -349,7 +356,10 @@ export default class GameRenderer extends Component {
 
             return memo;
 
-        }, [] );
+        }, { planks: [], constraints: [] } );
+
+        this.plankData = bridgeData.planks;
+        this.plankConstraints = bridgeData.constraints;
 
         currentLevelStaticEntitiesArray.forEach( entity => {
 
@@ -886,11 +896,11 @@ export default class GameRenderer extends Component {
 
     }
 
-    _getPlankStates( plankBodies ) {
+    _getPlankStates( plankData ) {
 
         const { allEntities } = this.props;
 
-        return plankBodies.reduce( ( memo, plankBody ) => {
+        return plankData.reduce( ( memo, plankBody ) => {
 
             const { position, angle, scale, entityId } = plankBody;
             const entity = allEntities[ plankBody.entityId ];
@@ -904,6 +914,39 @@ export default class GameRenderer extends Component {
                         position: p2ToV3( position, plankBody.depth )
                             .sub( entity.position ),
                         rotation: new THREE.Euler( 0, -angle, 0 )
+                    }
+                ]
+            };
+
+        }, {} );
+
+    }
+    
+    _getAnchorStates( plankConstraints ) {
+
+        const { allEntities } = this.props;
+
+        return plankConstraints.reduce( ( memo, constraint ) => {
+
+            const { position, angle, scale, entityId } = constraint;
+            const entity = allEntities[ constraint.entityId ];
+
+            const planks = memo[ entityId ] = memo[ entityId ] || [];
+
+            const worldPositionA = [];
+            constraint.bodyA.toWorldFrame( worldPositionA, constraint.localAnchorA );
+
+            const worldPositionB = [];
+            constraint.bodyB.toWorldFrame( worldPositionB, constraint.localAnchorB );
+
+            return {
+                ...memo,
+                [ entityId ]: [
+                    ...planks, {
+                        positionA: p2ToV3( worldPositionA, constraint.depth )
+                            .sub( entity.position ),
+                        positionB: p2ToV3( worldPositionB, constraint.depth )
+                            .sub( entity.position ),
                     }
                 ]
             };
@@ -1137,7 +1180,8 @@ export default class GameRenderer extends Component {
         this._updatePhysics( elapsedTime, delta );
 
         newState.movableEntities = this._getMeshStates( this.physicsBodies );
-        newState.plankEntities = this._getPlankStates( this.bridgePlanks );
+        newState.plankEntities = this._getPlankStates( this.plankData );
+        newState.anchorEntities = this._getAnchorStates( this.plankConstraints );
         newState.lightPosition = new THREE.Vector3(
             10 * Math.sin( elapsedTime * 0.001 * lightRotationSpeed ),
             10,
@@ -1352,7 +1396,8 @@ export default class GameRenderer extends Component {
             movableEntities, time, cameraPosition, cameraPositionZoomOut,
             currentFlowPosition, debug, touring, cameraTourTarget, entrance1,
             entrance2, tubeFlow, tubeIndex, currentScalePercent, radiusDiff,
-            currentTransitionPosition, currentTransitionTarget, plankEntities
+            currentTransitionPosition, currentTransitionTarget, plankEntities,
+            anchorEntities
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1428,6 +1473,7 @@ export default class GameRenderer extends Component {
                 playerRadius={ playerRadius }
                 entities={ currentLevelRenderableEntitiesArray }
                 plankEntities={ plankEntities }
+                anchorEntities={ anchorEntities }
                 time={ time }
             />
 

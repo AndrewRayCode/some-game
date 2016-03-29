@@ -15,13 +15,14 @@ export default class EntityGroup extends Component {
         playerRadius: PropTypes.number,
         playerBody: PropTypes.object,
         plankEntities: PropTypes.object,
+        anchorEntities: PropTypes.object,
     }
 
     render() {
 
         const {
             entities, time, position, scale, shaders, assets, world, paused,
-            playerRadius, playerBody, debug, plankEntities
+            playerRadius, playerBody, debug, plankEntities, anchorEntities
         } = this.props;
 
         return <group
@@ -52,6 +53,7 @@ export default class EntityGroup extends Component {
                         entityId={ entity.id }
                         assets={ assets }
                         plankEntities={ plankEntities }
+                        anchorEntities={ anchorEntities }
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
