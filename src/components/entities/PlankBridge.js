@@ -5,6 +5,7 @@ const defaultRopeRotation = new THREE.Euler( 0, 0, Math.PI / 2 );
 const defaultRopePosition = new THREE.Vector3( 0.5, 0, 0 );
 const defaultRotation = new THREE.Quaternion( 0, 0, 0, 1 );
 const anchorInsetPercent = 0.1;
+const ropeVector = new THREE.Vector3( 1, 0, 0 );
 
 export default class PlankBridge extends Component {
 
@@ -101,6 +102,21 @@ export default class PlankBridge extends Component {
 
                 durfs.push(
                     <mesh
+                        key={ index }
+                        position={ positionA }
+                        scale={ new THREE.Vector3( 0.05, 2, 0.05 )}
+                    >
+                        <geometryResource
+                            resourceId="radius1sphere"
+                        />
+                        <materialResource
+                            resourceId="redDebugMaterial"
+                        />
+                    </mesh>
+                );
+                durfs.push(
+                    <mesh
+                        key={ index + '_dorf' }
                         position={ positionB }
                         scale={ new THREE.Vector3( 0.05, 2, 0.05 )}
                     >
@@ -113,12 +129,14 @@ export default class PlankBridge extends Component {
                     </mesh>
                 );
 
+                const subbed = positionB.clone().sub( positionA );
+
                 dangits.push(<group
                     key={ index }
                     position={ positionA }
                     rotation={ new THREE.Euler(
                         0,
-                        Math.acos( positionA.clone().dot( positionB.clone().normalize() ) ),
+                        ropeVector.angleTo( subbed ) * ( positionB.z > positionA.z ? -1 : 1 ),
                         0,
                     ) }
                     scale={ new THREE.Vector3(
