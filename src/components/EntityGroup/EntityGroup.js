@@ -60,6 +60,7 @@ export default class EntityGroup extends Component {
                         segments={ entity.segments }
                         paddingPercent={ entity.paddingPercent }
                         materialId={ entity.materialId }
+                        ropeMaterialId={ entity.ropeMaterialId }
                         maxForce={ entity.maxForce }
                     />;
 

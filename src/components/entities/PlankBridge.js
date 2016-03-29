@@ -1,8 +1,11 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 
+const ropeWidth = 0.05;
+const ropeSeparation = 0.45;
 const defaultRopeRotation = new THREE.Euler( 0, 0, Math.PI / 2 );
-const defaultRopePosition = new THREE.Vector3( 0.5, 0, 0 );
+const defaultRopePosition1 = new THREE.Vector3( 0.5, -ropeSeparation / ropeWidth, 0 );
+const defaultRopePosition2 = new THREE.Vector3( 0.5, ropeSeparation / ropeWidth, 0 );
 const defaultRotation = new THREE.Quaternion( 0, 0, 0, 1 );
 const anchorInsetPercent = 0.1;
 const ropeVector = new THREE.Vector3( 1, 0, 0 );
@@ -16,6 +19,7 @@ export default class PlankBridge extends Component {
         anchorEntities: PropTypes.object,
         scale: PropTypes.object,
         materialId: PropTypes.string,
+        ropeMaterialId: PropTypes.string,
         entityId: PropTypes.string,
         segments: PropTypes.number,
         paddingPercent: PropTypes.number,
@@ -60,7 +64,7 @@ export default class PlankBridge extends Component {
 
         const {
             position, rotation, scale, materialId, segments, paddingPercent,
-            plankEntities, anchorEntities, entityId
+            plankEntities, anchorEntities, entityId, ropeMaterialId
         } = this.props;
 
         const { segmentArray, segmentArrayWithAnchors } = this.state;
@@ -83,9 +87,8 @@ export default class PlankBridge extends Component {
 
         if( planks ) {
 
-            const dorts = [];
-            const dangits = [];
-            const durfs = [];
+            const plankMeshes = [];
+            const ropeMeshes = [];
 
             segmentArrayWithAnchors.forEach( ( zero, index ) => {
 
@@ -100,38 +103,9 @@ export default class PlankBridge extends Component {
 
                 const nextPlank = planks[ index ];
 
-                durfs.push(
-                    <mesh
-                        key={ index }
-                        position={ positionA }
-                        scale={ new THREE.Vector3( 0.05, 2, 0.05 )}
-                    >
-                        <geometryResource
-                            resourceId="radius1sphere"
-                        />
-                        <materialResource
-                            resourceId="redDebugMaterial"
-                        />
-                    </mesh>
-                );
-                durfs.push(
-                    <mesh
-                        key={ index + '_dorf' }
-                        position={ positionB }
-                        scale={ new THREE.Vector3( 0.05, 2, 0.05 )}
-                    >
-                        <geometryResource
-                            resourceId="radius1sphere"
-                        />
-                        <materialResource
-                            resourceId="greenDebugMaterial"
-                        />
-                    </mesh>
-                );
-
                 const subbed = positionB.clone().sub( positionA );
 
-                dangits.push(<group
+                ropeMeshes.push(<group
                     key={ index }
                     position={ positionA }
                     rotation={ new THREE.Euler(
@@ -140,25 +114,36 @@ export default class PlankBridge extends Component {
                         0,
                     ) }
                     scale={ new THREE.Vector3(
-                        positionA.distanceTo( positionB ), 0.2, 0.2
+                        positionA.distanceTo( positionB ), 0.05, 0.05
                     ) }
                 >
                     <mesh
-                        position={ defaultRopePosition }
+                        position={ defaultRopePosition1 }
                         rotation={ defaultRopeRotation }
                     >
                         <geometryResource
                             resourceId="1x1cylinder"
                         />
                         <materialResource
-                            resourceId={ 'redDebugMaterial' }
+                            resourceId={ ropeMaterialId }
+                        />
+                    </mesh>
+                    <mesh
+                        position={ defaultRopePosition2 }
+                        rotation={ defaultRopeRotation }
+                    >
+                        <geometryResource
+                            resourceId="1x1cylinder"
+                        />
+                        <materialResource
+                            resourceId={ ropeMaterialId }
                         />
                     </mesh>
                 </group>);
 
                 if( plank ) {
 
-                    dorts.push(
+                    plankMeshes.push(
                         <mesh
                             ref={ `mesh${ index }` }
                             key={ index }
@@ -180,9 +165,8 @@ export default class PlankBridge extends Component {
             } );
 
             bridge = <group>
-                { dangits }
-                { dorts }
-                { durfs }
+                { ropeMeshes }
+                { plankMeshes }
             </group>;
 
         } else {

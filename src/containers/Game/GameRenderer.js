@@ -234,7 +234,7 @@ export default class GameRenderer extends Component {
             const planks = segmentsArray.map( ( zero, index ) => {
 
                 const plankBody = new p2.Body({
-                    mass: getCubeMass( pushyDensity, plankWidth * 3 ),
+                    mass: getCubeMass( pushyDensity, plankWidth * 1 ),
                     position: [
                         position.x + ( plankWidth * index + plankStartX ),
                         position.z + ( 0.5 * size ),
@@ -260,11 +260,11 @@ export default class GameRenderer extends Component {
             });
 
             const anchorInsetPercent = 0.1;
-            const restLength = ( ( plankWidth * paddingPercent ) +
-                ( plankBodyWidth * anchorInsetPercent * 2 ) ) * 0.5;
+            const restLength = ( plankWidth * paddingPercent ) +
+                ( plankBodyWidth * anchorInsetPercent * 2 );
             const stiffness = 100000 * width * 2;
             const damping = 1000;
-            const maxForce = 800000;
+            const maxForce = 1000000;
 
             segmentsArray.map( ( zero, index ) => {
 

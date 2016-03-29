@@ -292,6 +292,7 @@ export default class Editor extends Component {
         this.changeFoamMaterialId = this.changeFoamMaterialId.bind( this );
         this.changeMaterialId = this.changeMaterialId.bind( this );
         this.onChapterCreateChange = this.onChapterCreateChange.bind( this );
+        this.onPropertyChangeBindPass = this.onPropertyChangeBindPass.bind( this );
         this.onPropertyChange = this.onPropertyChange.bind( this );
         this.onPropertyChangeNumber = this.onPropertyChangeNumber.bind( this );
         this.deselectAll = this.deselectAll.bind( this );
@@ -383,6 +384,21 @@ export default class Editor extends Component {
         this.setState({
             insertChapterId: event.target.value
         });
+
+    }
+
+    onPropertyChangeBindPass( id, property, newValue ) {
+
+        return () => {
+
+            console.log(id,property,newValue);
+            this.props.changeEntityProperty(
+                id,
+                property,
+                newValue
+            );
+
+        };
 
     }
 
@@ -948,6 +964,7 @@ export default class Editor extends Component {
                         segments: 4,
                         paddingPercent: 0.1,
                         maxForce: 500000,
+                        ropeMaterialId: 'brownStuco'
                     };
 
                 } else if( createType === 'puffer' ) {
@@ -1664,6 +1681,21 @@ export default class Editor extends Component {
                             selectedId={ ( currentLevelStaticEntities[
                                 selectedObjectId
                             ] || {} ).materialId }
+                            shaders={ shaders }
+                            textures={ Textures }
+                        />
+                    </div> : null }
+
+                    { selectedObject.type === 'bridge' ? <div>
+                        <br />
+                        <b>Change ropeMaterialId of Selection:</b>
+                        <br />
+
+                        <TexturePicker
+                            onSelect={ this.onPropertyChangeBindPass.bind( null, selectedObjectId, 'ropeMaterialId' ) }
+                            selectedId={ ( currentLevelStaticEntities[
+                                selectedObjectId
+                            ] || {} ).ropeMaterialId }
                             shaders={ shaders }
                             textures={ Textures }
                         />
