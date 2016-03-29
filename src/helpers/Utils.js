@@ -411,3 +411,12 @@ export function str2Hex( str ) {
     return parseInt( str, 16 );
 
 }
+
+export function reduceState( oldState, initialState, ...reducers ) {
+
+    return reducers.reduce(
+        ( currentState, reduce ) => reduce( oldState, currentState ),
+        initialState
+    );
+
+}

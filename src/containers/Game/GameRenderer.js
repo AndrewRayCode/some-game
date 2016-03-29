@@ -7,7 +7,8 @@ import { Pushy, Player, EntityGroup } from '../../components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,
-    lookAtVector, findNextTube, snapTo, lerpVectors, v3toP2, p2ToV3
+    lookAtVector, findNextTube, snapTo, lerpVectors, v3toP2, p2ToV3,
+    reduceState
 } from '../../helpers/Utils';
 import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
@@ -218,19 +219,24 @@ export default class GameRenderer extends Component {
         world.addBody( emptyWorldAnchor );
         this.emptyWorldAnchor = emptyWorldAnchor;
         
+        // Construct the data needed for all bridges (planks and anchors)
         const bridgeData = currentLevelBridgesArray.reduce( ( memo, bridgeEntity ) => {
 
             const {
                 scale, position, segments, paddingPercent, id
             } = bridgeEntity;
 
+            // This is duplicated in the bridge component which isn't ideal,
+            // but there are more comments there
             const { x: width, y: size } = scale;
             const plankWidth = size * ( width / segments );
             const plankStartX = -( width / 2 ) + ( plankWidth / 2 );
             const plankBodyWidth = plankWidth - ( paddingPercent * plankWidth );
 
+            // Generate an array to map over for how many planks there are
             const segmentsArray = new Array( segments ).fill( 0 );
 
+            // Build the planks only
             const planks = segmentsArray.map( ( zero, index ) => {
 
                 const plankBody = new p2.Body({
@@ -259,13 +265,20 @@ export default class GameRenderer extends Component {
 
             });
 
+            // Bridge plank constants. Hard coded for now, mabye put into the
+            // editor later, the problem is that things like distance are
+            // computed values. Actually could probably multiply computed
+            // value by some "relax" editor value
             const anchorInsetPercent = 0.1;
-            const restLength = ( plankWidth * paddingPercent ) +
+
+            // Calculate how long the ropes at rest should be between each
+            // plank
+            const distance = ( plankWidth * paddingPercent ) +
                 ( plankBodyWidth * anchorInsetPercent * 2 );
-            const stiffness = 100000 * width * 2;
-            const damping = 1000;
+
             const maxForce = 1000000;
 
+            // Build the anchors!
             segmentsArray.map( ( zero, index ) => {
 
                 const plankBody = planks[ index ];
@@ -274,6 +287,7 @@ export default class GameRenderer extends Component {
                 // Is this the first plank? anchor to the left
                 if( index === 0 ) {
 
+                    // Figure out the world position of the left anchor...
                     const emptyAnchorBefore = new p2.Body({
                         mass: 0,
                         position: [
@@ -282,9 +296,9 @@ export default class GameRenderer extends Component {
                         ],
                     });
 
-                    const beforeSpring = new p2.DistanceConstraint( emptyAnchorBefore, plankBody, {
-                        restLength, stiffness, damping,
-                        maxForce, distance: restLength,
+                    // Build a constraint with the proper anchor positions
+                    const beforeConstraint = new p2.DistanceConstraint( emptyAnchorBefore, plankBody, {
+                        maxForce, distance,
                         localAnchorA: [ 0, 0 ],
                         localAnchorB: [
                             -( plankBodyWidth / 2 ) + ( plankBodyWidth * anchorInsetPercent ),
@@ -292,21 +306,21 @@ export default class GameRenderer extends Component {
                         ],
                     });
 
-                    beforeSpring.entityId = id;
-                    beforeSpring.depth = position.y;
-                    memo.constraints.push( beforeSpring );
+                    // Data needed to group these anchors later at runtime
+                    beforeConstraint.entityId = id;
+                    beforeConstraint.depth = position.y;
+                    memo.constraints.push( beforeConstraint );
 
                     world.addBody( emptyAnchorBefore );
-                    world.addConstraint( beforeSpring );
+                    world.addConstraint( beforeConstraint );
 
                 }
 
                 // If there's a next plank, anchor to it
                 if( nextPlank ) {
 
-                    const betweenSpring = new p2.DistanceConstraint( plankBody, nextPlank, {
-                        restLength, stiffness, damping, maxForce,
-                        distance: restLength,
+                    const betweenConstraint = new p2.DistanceConstraint( plankBody, nextPlank, {
+                        maxForce, distance,
                         localAnchorA: [
                             ( plankBodyWidth / 2 ) - ( plankBodyWidth * anchorInsetPercent ),
                             0,
@@ -317,12 +331,13 @@ export default class GameRenderer extends Component {
                         ],
                     });
 
-                    betweenSpring.entityId = id;
-                    betweenSpring.depth = position.y;
-                    memo.constraints.push( betweenSpring );
+                    betweenConstraint.entityId = id;
+                    betweenConstraint.depth = position.y;
+                    memo.constraints.push( betweenConstraint );
 
-                    world.addConstraint( betweenSpring );
+                    world.addConstraint( betweenConstraint );
 
+                // Otherwise build the last world anchor
                 } else {
 
                     const emptyAnchorAfter = new p2.Body({
@@ -333,9 +348,8 @@ export default class GameRenderer extends Component {
                         ],
                     });
 
-                    const afterSpring = new p2.DistanceConstraint( plankBody, emptyAnchorAfter, {
-                        restLength, stiffness, damping, maxForce,
-                        distance: restLength,
+                    const afterConstraint = new p2.DistanceConstraint( plankBody, emptyAnchorAfter, {
+                        maxForce, distance,
                         localAnchorA: [
                             ( plankWidth / 2 ) - ( plankBodyWidth * anchorInsetPercent ),
                             0,
@@ -343,12 +357,12 @@ export default class GameRenderer extends Component {
                         localAnchorB: [ 0, 0 ],
                     });
 
-                    afterSpring.entityId = id;
-                    afterSpring.depth = position.y;
-                    memo.constraints.push( afterSpring );
+                    afterConstraint.entityId = id;
+                    afterConstraint.depth = position.y;
+                    memo.constraints.push( afterConstraint );
 
                     world.addBody( emptyAnchorAfter );
-                    world.addConstraint( afterSpring );
+                    world.addConstraint( afterConstraint );
 
                 }
 
@@ -1021,13 +1035,15 @@ export default class GameRenderer extends Component {
             currentFlowPosition, cameraPosition, isAdvancing, debug
         } = this.state;
 
-        // In any state, (paused, etc), child components need the updaed time
-        const newState = {
-            time: elapsedTime
-        };
-
         const playerPosition = currentFlowPosition ||
             p2ToV3( playerBody.position, 1 + playerRadius );
+
+        // In any state, (paused, etc), child components need the updaed time
+        const newState = {
+            keysDown,
+            playerPositionV3: playerPosition,
+            time: elapsedTime
+        };
 
         if( paused ) {
             this.setState( newState );
@@ -1300,7 +1316,7 @@ export default class GameRenderer extends Component {
 
         }
 
-        if( KeyCodes.L in keysDown && !this.state.zoomBackInDuration ) {
+        if( ( KeyCodes.L in keysDown ) && !this.state.zoomBackInDuration ) {
 
             newState.zoomOutStartTime = this.state.zoomOutStartTime || elapsedTime;
             newState.zoomBackInDuration = null;
