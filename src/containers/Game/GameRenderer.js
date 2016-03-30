@@ -17,18 +17,17 @@ import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
 const radialPoint = index => [
     Math.cos( THREE.Math.degToRad( 90 / index ) ) - 0.5,
-    Math.sin( THREE.Math.degToRad( 90 / index ) ) - 0.5
+    -( Math.sin( THREE.Math.degToRad( 90 / index ) ) - 0.5 )
 ];
 
-// Counter clockwise
+// Counter clockwise. Note that my y axis is swapped relative to p2 :(
 const curvedWallVertices = [
-    [ -0.5, -0.5 ], // bottom left
-    [ 0.5, -0.5 ], // bottom right
-    [ 0.5, 0.5 ],
-    [ -0.5, 0.5 ] // top left
+    [ -0.5, 0.5 ], // bottom left
+    [ 0.5, 0.5 ], // bottom right
+    radialPoint( 3 ),
+    radialPoint( 2 ),
+    [ -0.5, -0.5 ] // top left
 ];
-
-console.log( curvedWallVertices.map( a => `(${a[0]},${a[1]})` ).join(' '));
 
 let debuggingReplay = [];
 
