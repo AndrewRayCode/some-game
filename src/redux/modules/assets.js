@@ -222,6 +222,11 @@ export function loadAllAssets() {
             { name: 'diamondBox' }
         ));
 
+        dispatch( loadAsset(
+            require( '../../../assets/models/chamfer-box.json' ),
+            { name: 'chamferBox' }
+        ));
+
         Object.keys( CustomShaders ).forEach( key => {
 
             const json = CustomShaders[ key ];

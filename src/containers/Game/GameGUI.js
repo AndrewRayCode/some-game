@@ -98,7 +98,7 @@ const transitionFadeMs = 1000;
                 ];
                 // needs to go into static to render
                 memo.currentLevelRenderableEntities[ id ] = entity;
-            } else if( entity.movable === true || entity.type === 'pushy' ) {
+            } else if( entity.movable === true ) {
                 memo.currentLevelMovableEntities[ id ] = entity;
             // Things like waterfalls with no physical geometry
             } else if( entity.type === 'waterfall' || entity.type === 'puffer' ) {

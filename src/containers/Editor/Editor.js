@@ -503,7 +503,7 @@ export default class Editor extends Component {
 
             } else if( KeyCodes.P in keys ) {
 
-                createType = 'pushy';
+                createType = 'chamferbox';
 
             } else if( KeyCodes.F in keys ) {
 
@@ -1596,10 +1596,7 @@ export default class Editor extends Component {
 
                         <input
                             type="checkbox"
-                            checked={ ( 'movable' in selectedObject ) ?
-                                selectedObject.movable :
-                                selectedObject.type === 'pushy' ? true : false
-                            }
+                            checked={ selectedObject.movable }
                             onChange={ this.onPropertyChange.bind( this, selectedObjectId, 'movable' ) }
                         />
                     </label>
@@ -1668,7 +1665,7 @@ export default class Editor extends Component {
                             selectedObject.type === 'diamondbox' ||
                             selectedObject.type === 'floor' ||
                             selectedObject.type === 'multiwall' ||
-                            selectedObject.type === 'pushy' ||
+                            selectedObject.type === 'chamferbox' ||
                             selectedObject.type === 'puffer' ||
                             selectedObject.type === 'bridge' ||
                             selectedObject.type === 'waterfall' ) ? <div>
@@ -1777,9 +1774,9 @@ export default class Editor extends Component {
                         { createType === 'multiwall' && '✓' }
                         MultiWall <Kbd>F</Kbd>
                     </button>
-                    <button onClick={ this.selectType( 'pushy' ) }>
-                        { createType === 'pushy' && '✓' }
-                        <Kbd>P</Kbd>ushy
+                    <button onClick={ this.selectType( 'chamferbox' ) }>
+                        { createType === 'chamferbox' && '✓' }
+                        Chamfer Box <Kbd>P</Kbd>
                     </button>
                     <button onClick={ this.selectType( 'tube' ) }>
                         { createType === 'tube' && '✓' }

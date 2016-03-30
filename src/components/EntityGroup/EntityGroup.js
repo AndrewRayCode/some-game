@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 
 import {
-    Shrink, Grow, Wall, MultiWall, Pushy, TubeBend, TubeStraight, Player,
+    Shrink, Grow, Wall, MultiWall, ChamferBox, TubeBend, TubeStraight, Player,
     FinishLine, House, Waterfall, Puffer, PlankBridge, DiamondBox
 } from '../';
 
@@ -126,14 +126,15 @@ export default class EntityGroup extends Component {
                         opacity={ entity.opacity }
                     />;
 
-                } else if( entity.type === 'pushy' ) {
+                } else if( entity.type === 'chamferbox' ) {
 
-                    return <Pushy
+                    return <ChamferBox
                         ref={ entity.id }
                         key={ entity.id }
                         position={ entity.position }
                         rotation={ entity.rotation }
                         scale={ entity.scale }
+                        assets={ assets }
                         materialId={ entity.materialId }
                     />;
 

@@ -3,7 +3,7 @@ import THREE from 'three';
 import KeyCodes from '../../helpers/KeyCodes';
 import Cardinality from '../../helpers/Cardinality';
 import p2 from 'p2'; // i hope this doesn't fuck it all up
-import { Pushy, Player, EntityGroup } from '../../components';
+import { Player, EntityGroup } from '../../components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,

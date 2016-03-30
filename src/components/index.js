@@ -20,6 +20,7 @@ export ArrayEditor from './ArrayEditor/ArrayEditor';
 
 // Individual entities
 export DiamondBox from './entities/DiamondBox';
+export ChamferBox from './entities/ChamferBox';
 export PlankBridge from './entities/PlankBridge';
 export SegmentedEmitter from './entities/SegmentedEmitter';
 export Waterfall from './entities/Waterfall';
@@ -31,7 +32,6 @@ export Grid from './entities/Grid';
 export Grow from './entities/Grow';
 export House from './entities/House';
 export Player from './entities/Player';
-export Pushy from './entities/Pushy';
 export Shrink from './entities/Shrink';
 export TubeBend from './entities/TubeBend';
 export TubeStraight from './entities/TubeStraight';
