@@ -2,7 +2,7 @@ import React, { PropTypes, Component } from 'react';
 import React3 from 'react-three-renderer';
 import {
     Wall, MultiWall, ChamferBox, TubeBend, TubeStraight, Player, EntityGroup,
-    Shrink, House, Grow, FinishLine, Waterfall, Puffer, DiamondBox
+    Shrink, House, Grow, FinishLine, Waterfall, Puffer, DiamondBox, CurvedWall
 } from '../';
 import THREE from 'three';
 
@@ -89,6 +89,18 @@ export default class CreatePreviewObject extends Component {
                     position={ createPreviewPosition }
                     ref="previewPosition"
                     materialId="ghostMaterial"
+                />;
+
+            case 'curvedwall':
+
+                return <CurvedWall
+                    scale={ scale }
+                    assets={ assets }
+                    rotation={ createPreviewRotation }
+                    position={ createPreviewPosition }
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                    topMaterialId="ghostMaterial"
                 />;
 
             case 'chamferbox':

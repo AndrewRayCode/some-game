@@ -981,6 +981,12 @@ export default class Editor extends Component {
                         ]
                     };
 
+                } else if( createType === 'curvedwall' ) {
+
+                    entityData = {
+                        topMaterialId: 'brownStuco'
+                    };
+
                 } else if( createType === 'waterfall' ) {
 
                     entityData = {
@@ -1662,6 +1668,7 @@ export default class Editor extends Component {
                     </div> : null }
 
                     { ( selectedObject.type === 'wall' ||
+                            selectedObject.type === 'curvedwall' ||
                             selectedObject.type === 'diamondbox' ||
                             selectedObject.type === 'floor' ||
                             selectedObject.type === 'multiwall' ||
@@ -1729,7 +1736,10 @@ export default class Editor extends Component {
                         />
                     </div> : null }
 
-                    { ( selectedObject.type === 'multiwall' || selectedObject.type === 'floor' ) ? <div>
+                    { ( selectedObject.type === 'multiwall' ||
+                        selectedObject.type === 'floor' ||
+                        selectedObject.type === 'curvedwall'
+                    ) ? <div>
                         <br />
                         <b>Change topMaterialId of Selection:</b>
                         <br />
@@ -1806,6 +1816,10 @@ export default class Editor extends Component {
                     <br />
                     <b>Extras</b>
                     <br />
+                    <button onClick={ this.selectType( 'curvedwall' ) }>
+                        { createType === 'curvedwall' && '✓' }
+                        Curved Wall
+                    </button>
                     <button onClick={ this.selectType( 'diamondbox' ) }>
                         { createType === 'diamondbox' && '✓' }
                         Diamond Box

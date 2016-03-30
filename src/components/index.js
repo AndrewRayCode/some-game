@@ -19,6 +19,7 @@ export EntityGroup from './EntityGroup/EntityGroup';
 export ArrayEditor from './ArrayEditor/ArrayEditor';
 
 // Individual entities
+export CurvedWall from './entities/CurvedWall';
 export DiamondBox from './entities/DiamondBox';
 export ChamferBox from './entities/ChamferBox';
 export PlankBridge from './entities/PlankBridge';

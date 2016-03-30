@@ -15,6 +15,21 @@ import zoomInReducer from '../../state-reducers/zoomIn';
 
 import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
+const radialPoint = index => [
+    Math.cos( THREE.Math.degToRad( 90 / index ) ) - 0.5,
+    Math.sin( THREE.Math.degToRad( 90 / index ) ) - 0.5
+];
+
+// Counter clockwise
+const curvedWallVertices = [
+    [ -0.5, -0.5 ], // bottom left
+    [ 0.5, -0.5 ], // bottom right
+    [ 0.5, 0.5 ],
+    [ -0.5, 0.5 ] // top left
+];
+
+console.log( curvedWallVertices.map( a => `(${a[0]},${a[1]})` ).join(' '));
+
 let debuggingReplay = [];
 
 // see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
@@ -186,7 +201,7 @@ export default class GameRenderer extends Component {
             const { position, scale } = entity;
 
             const pushyBody = new p2.Body({
-                mass: getCubeMass( pushyDensity, scale.x * 0.5 ),
+                mass: getCubeMass( pushyDensity, scale.x * 0.8 ),
                 position: v3toP2( position ),
                 fixedRotation: true
             });
@@ -202,8 +217,8 @@ export default class GameRenderer extends Component {
 
             const pushyShape = new p2.Box({
                 material: this.pushyMaterial,
-                width: 0.9 * scale.x,
-                height: 0.9 * scale.z,
+                width: scale.x,
+                height: scale.z,
             });
 
             pushyBody.addShape( pushyShape );
@@ -377,23 +392,37 @@ export default class GameRenderer extends Component {
 
         currentLevelStaticEntitiesArray.forEach( entity => {
 
-            const { position, scale } = entity;
+            const { position, scale, rotation, type } = entity;
+
             const entityBody = new p2.Body({
                 mass: 0,
-                fixedRotation: true,
                 position: v3toP2( position ),
             });
-            const boxShape = new p2.Box({
-                material: this.wallMaterial,
-                width: scale.x,
-                height: scale.z,
-            });
+            
+            let shape;
+            if( type === 'curvedwall' ) {
 
-            entityBody.addShape( boxShape );
+                //shape = new p2.Convex({
+                    //material: this.wallMaterial,
+                    //vertices: curvedWallVertices
+                //});
+                entityBody.fromPolygon( curvedWallVertices );
+
+            } else {
+
+                shape = new p2.Box({
+                    material: this.wallMaterial,
+                    width: scale.x,
+                    height: scale.z,
+                });
+                entityBody.addShape( shape );
+
+            }
+
             entityBody.entity = entity;
             world.addBody( entityBody );
 
-        } );
+        });
 
     }
 

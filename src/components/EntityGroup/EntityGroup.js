@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 
 import {
     Shrink, Grow, Wall, MultiWall, ChamferBox, TubeBend, TubeStraight, Player,
-    FinishLine, House, Waterfall, Puffer, PlankBridge, DiamondBox
+    FinishLine, House, Waterfall, Puffer, PlankBridge, DiamondBox, CurvedWall
 } from '../';
 
 export default class EntityGroup extends Component {
@@ -33,7 +33,20 @@ export default class EntityGroup extends Component {
 
             { entities.map( ( entity ) => {
 
-                if( entity.type === 'diamondbox' ) {
+                if( entity.type === 'curvedwall' ) {
+
+                    return <CurvedWall
+                        ref={ entity.id }
+                        key={ entity.id }
+                        assets={ assets }
+                        position={ entity.position }
+                        rotation={ entity.rotation }
+                        scale={ entity.scale }
+                        materialId={ entity.materialId }
+                        topMaterialId={ entity.topMaterialId }
+                    />;
+
+                } else if( entity.type === 'diamondbox' ) {
 
                     return <DiamondBox
                         ref={ entity.id }

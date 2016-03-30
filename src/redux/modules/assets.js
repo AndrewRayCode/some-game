@@ -227,6 +227,16 @@ export function loadAllAssets() {
             { name: 'chamferBox' }
         ));
 
+        dispatch( loadAsset(
+            require( '../../../assets/models/curved-wall.json' ),
+            { name: 'curvedWall' }
+        ));
+
+        dispatch( loadAsset(
+            require( '../../../assets/models/curved-wall-top.json' ),
+            { name: 'curvedWallTop' }
+        ));
+
         Object.keys( CustomShaders ).forEach( key => {
 
             const json = CustomShaders[ key ];
