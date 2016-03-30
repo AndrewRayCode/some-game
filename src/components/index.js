@@ -19,6 +19,7 @@ export EntityGroup from './EntityGroup/EntityGroup';
 export ArrayEditor from './ArrayEditor/ArrayEditor';
 
 // Individual entities
+export DiamondBox from './entities/DiamondBox';
 export PlankBridge from './entities/PlankBridge';
 export SegmentedEmitter from './entities/SegmentedEmitter';
 export Waterfall from './entities/Waterfall';

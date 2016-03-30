@@ -1665,6 +1665,7 @@ export default class Editor extends Component {
                     </div> : null }
 
                     { ( selectedObject.type === 'wall' ||
+                            selectedObject.type === 'diamondbox' ||
                             selectedObject.type === 'floor' ||
                             selectedObject.type === 'multiwall' ||
                             selectedObject.type === 'pushy' ||
@@ -1808,6 +1809,10 @@ export default class Editor extends Component {
                     <br />
                     <b>Extras</b>
                     <br />
+                    <button onClick={ this.selectType( 'diamondbox' ) }>
+                        { createType === 'diamondbox' && '✓' }
+                        Diamond Box
+                    </button>
                     <button onClick={ this.selectType( 'house' ) }>
                         { createType === 'house' && '✓' }
                         House

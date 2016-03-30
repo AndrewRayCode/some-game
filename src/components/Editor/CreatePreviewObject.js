@@ -2,7 +2,7 @@ import React, { PropTypes, Component } from 'react';
 import React3 from 'react-three-renderer';
 import {
     Wall, MultiWall, Pushy, TubeBend, TubeStraight, Player, EntityGroup,
-    Shrink, House, Grow, FinishLine, Waterfall, Puffer
+    Shrink, House, Grow, FinishLine, Waterfall, Puffer, DiamondBox
 } from '../';
 import THREE from 'three';
 
@@ -33,6 +33,17 @@ export default class CreatePreviewObject extends Component {
         } = this.props;
 
         switch( createType ) {
+
+            case 'diamondbox':
+
+                return <DiamondBox
+                    assets={ assets }
+                    scale={ scale }
+                    rotation={ createPreviewRotation }
+                    position={ createPreviewPosition }
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                />;
 
             case 'grow':
 

@@ -217,6 +217,11 @@ export function loadAllAssets() {
             require( '../../../assets/sniglet_regular.typeface.js' )
         ));
 
+        dispatch( loadAsset(
+            require( '../../../assets/models/diamond-box.json' ),
+            { name: 'diamondBox' }
+        ));
+
         Object.keys( CustomShaders ).forEach( key => {
 
             const json = CustomShaders[ key ];

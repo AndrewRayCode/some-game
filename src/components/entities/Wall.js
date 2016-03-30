@@ -15,7 +15,7 @@ export default class Wall extends Component {
             scale={ scale }
         >
             <mesh
-                ref="mesh2"
+                ref="mesh"
             >
                 <geometryResource
                     resourceId="1x1box"
