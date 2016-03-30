@@ -8,24 +8,29 @@ import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,
     lookAtVector, findNextTube, snapTo, lerpVectors, v3toP2, p2ToV3,
-    reduceState
+    reduceState, deepArrayClone
 } from '../../helpers/Utils';
 import zoomOutReducer from '../../state-reducers/zoomOut';
 import zoomInReducer from '../../state-reducers/zoomIn';
 
 import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
-const radialPoint = index => [
-    Math.cos( THREE.Math.degToRad( 90 / index ) ) - 0.5,
-    -( Math.sin( THREE.Math.degToRad( 90 / index ) ) - 0.5 )
+const radialPoint = ( total, index ) => [
+    Math.cos( THREE.Math.degToRad( ( 90 / total ) * index ) ) - 0.5,
+    -( Math.sin( THREE.Math.degToRad( ( 90 / total ) * index ) ) - 0.5 )
 ];
+
+// Generate points along a curve between 0 and 90 degrees along a circle
+const radialPoints = total =>
+    new Array( total ).fill( 0 ).map( ( zero, index ) =>
+        radialPoint( total + 2, index + 1 )
+    );
 
 // Counter clockwise. Note that my y axis is swapped relative to p2 :(
 const curvedWallVertices = [
     [ -0.5, 0.5 ], // bottom left
     [ 0.5, 0.5 ], // bottom right
-    radialPoint( 3 ),
-    radialPoint( 2 ),
+    ...radialPoints( 3 ), // Curve
     [ -0.5, -0.5 ] // top left
 ];
 
@@ -401,11 +406,16 @@ export default class GameRenderer extends Component {
             let shape;
             if( type === 'curvedwall' ) {
 
-                //shape = new p2.Convex({
-                    //material: this.wallMaterial,
-                    //vertices: curvedWallVertices
-                //});
-                entityBody.fromPolygon( curvedWallVertices );
+                // Current version of p2 doesn't copy the vertices in and
+                // breaks when level restarts, lame. We have to map back to
+                // threejs to properly rotate and scale the verts
+                const vertices = deepArrayClone( curvedWallVertices )
+                    .map( xy =>
+                        v3toP2( p2ToV3( xy )
+                            .applyQuaternion( rotation )
+                            .multiply( scale ) )
+                    );
+                entityBody.fromPolygon( vertices );
 
             } else {
 

@@ -110,9 +110,7 @@ const transitionFadeMs = 1000;
             // walls, floors, etc
             } else {
 
-                // above plane of character
-                if( entity.touchable !== false &&
-                        entity.position.y - ( entity.scale.y / 2 ) >= 1 ) {
+                if( entity.touchable !== false ) {
                     memo.currentLevelStaticEntities[ id ] = entity;
                 }
 
