@@ -412,10 +412,10 @@ export function str2Hex( str ) {
 
 }
 
-export function reduceState( oldState, initialState, ...reducers ) {
+export function reduceState( props, oldState, initialState, ...reducers ) {
 
     return reducers.reduce(
-        ( currentState, reduce ) => reduce( oldState, currentState ),
+        ( currentState, reduce ) => reduce( props, oldState, currentState ),
         initialState
     );
 

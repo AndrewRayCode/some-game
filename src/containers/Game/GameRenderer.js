@@ -10,6 +10,9 @@ import {
     lookAtVector, findNextTube, snapTo, lerpVectors, v3toP2, p2ToV3,
     reduceState
 } from '../../helpers/Utils';
+import zoomOutReducer from '../../state-reducers/zoomOut';
+import zoomInReducer from '../../state-reducers/zoomIn';
+
 import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
 let debuggingReplay = [];
@@ -29,9 +32,6 @@ const cameraFov = 75;
 
 const tubeTravelDurationMs = 120;
 const tubeStartTravelDurationMs = 40;
-
-const zoomOutDurationMs = 750;
-const zoomInDurationMs = 500;
 
 const levelTransitionDuration = 500;
 
@@ -1040,7 +1040,7 @@ export default class GameRenderer extends Component {
 
         // In any state, (paused, etc), child components need the updaed time
         const newState = {
-            keysDown,
+            keysDown, cameraFov,
             playerPositionV3: playerPosition,
             time: elapsedTime
         };
@@ -1316,68 +1316,12 @@ export default class GameRenderer extends Component {
 
         }
 
-        if( ( KeyCodes.L in keysDown ) && !this.state.zoomBackInDuration ) {
+        const reducedState = reduceState(
+            this.props, this.state, newState,
+            zoomOutReducer, zoomInReducer
+        );
 
-            newState.zoomOutStartTime = this.state.zoomOutStartTime || elapsedTime;
-            newState.zoomBackInDuration = null;
-            newState.startZoomBackInTime = null;
-
-            const howFarZoomedOut = Math.min( ( ( elapsedTime - newState.zoomOutStartTime ) * 1000 ) / zoomOutDurationMs, 1 );
-
-            newState.cameraPositionZoomOut = lerpVectors(
-                newState.cameraPosition,
-                new THREE.Vector3(
-                    playerPosition.x / 4,
-                    0.5 + getCameraDistanceToPlayer( 1.5, cameraFov, 1 ),
-                    playerPosition.z / 4
-                ),
-                howFarZoomedOut,
-                easeOutQuint
-            );
-
-        } else if( this.state.cameraPositionZoomOut ) {
-
-            // Then start zooming in to the orignal target
-            if( !this.state.zoomBackInDuration ) {
-
-                const howFarZoomedOut = Math.min( ( ( elapsedTime - this.state.zoomOutStartTime ) * 1000 ) / zoomOutDurationMs, 1 );
-                newState.zoomBackInDuration = zoomInDurationMs * howFarZoomedOut;
-                newState.startZoomBackInTime = elapsedTime;
-                newState.zoomOutStartTime = null;
-
-            }
-
-            const zoomBackInDuration = newState.zoomBackInDuration || this.state.zoomBackInDuration;
-            const startZoomBackInTime = newState.startZoomBackInTime || this.state.startZoomBackInTime;
-
-            const howFarZoomedIn = Math.min(
-                ( ( elapsedTime - startZoomBackInTime ) * 1000 ) / zoomBackInDuration,
-                1
-            );
-
-            newState.cameraPositionZoomOut = lerpVectors(
-                new THREE.Vector3(
-                    playerPosition.x / 4,
-                    0.5 + getCameraDistanceToPlayer( 1.5, cameraFov, 1 ),
-                    playerPosition.z / 4
-                ),
-                newState.cameraPosition,
-                howFarZoomedIn,
-                easeOutQuad
-            );
-
-            if( howFarZoomedIn === 1 ) {
-
-                newState.zoomBackInDuration = null;
-                newState.startZoomBackInTime = null;
-                newState.zoomOutStartTime = null;
-                newState.cameraPositionZoomOut = null;
-
-            }
-
-        }
-
-        this.setState( newState );
+        this.setState( reducedState );
 
     }
 
@@ -1410,10 +1354,10 @@ export default class GameRenderer extends Component {
 
         const {
             movableEntities, time, cameraPosition, cameraPositionZoomOut,
-            currentFlowPosition, debug, touring, cameraTourTarget, entrance1,
-            entrance2, tubeFlow, tubeIndex, currentScalePercent, radiusDiff,
-            currentTransitionPosition, currentTransitionTarget, plankEntities,
-            anchorEntities
+            cameraPositionZoomIn, currentFlowPosition, debug, touring,
+            cameraTourTarget, entrance1, entrance2, tubeFlow, tubeIndex,
+            currentScalePercent, radiusDiff, currentTransitionPosition,
+            currentTransitionTarget, plankEntities, anchorEntities
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1453,7 +1397,7 @@ export default class GameRenderer extends Component {
                 aspect={ cameraAspect }
                 near={ 0.1 }
                 far={ 1000 }
-                position={ cameraPositionZoomOut || cameraPosition }
+                position={ cameraPositionZoomIn || cameraPositionZoomOut || cameraPosition }
                 quaternion={ lookAt }
                 ref="camera"
             />
