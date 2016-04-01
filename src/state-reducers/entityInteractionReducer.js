@@ -80,7 +80,7 @@ export default function entityInteractionReducer( actions, props, oldState, curr
                 newState.transitionCameraPositionStart = cameraPosition;
 
                 return {
-                    ...oldState,
+                    ...currentState,
                     ...newState
                 };
 
