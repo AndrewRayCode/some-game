@@ -11,6 +11,7 @@ import {
     applyMiddleware, deepArrayClone
 } from '../../helpers/Utils';
 import zoomReducer from '../../state-reducers/zoomReducer';
+import entityInteractionReducer from '../../state-reducers/entityInteractionReducer';
 
 import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
@@ -53,8 +54,6 @@ const tubeStartTravelDurationMs = 40;
 
 const levelTransitionDuration = 500;
 
-const scaleDurationMs = 300;
-
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
 const yAxis = p2.vec2.fromValues( 0, -1 );
@@ -96,6 +95,12 @@ export default class GameRenderer extends Component {
         this.onWorldEndContact = this.onWorldEndContact.bind( this );
         this.onWorldBeginContact = this.onWorldBeginContact.bind( this );
         this._setupPhysics = this._setupPhysics.bind( this );
+        this.scalePlayer = this.scalePlayer.bind( this );
+
+        // Things to pass to reducers so they can call them
+        this.reducerActions = {
+            scalePlayer: this.scalePlayer,
+        };
 
     }
 
@@ -194,8 +199,6 @@ export default class GameRenderer extends Component {
         );
 
         const { world } = this;
-
-        this.playerContact = {};
 
         world.addBody( playerBody );
         this.playerBody = playerBody;
@@ -432,6 +435,8 @@ export default class GameRenderer extends Component {
 
         });
 
+        this.setState({ playerContact: {} });
+
     }
 
     componentDidMount() {
@@ -539,7 +544,8 @@ export default class GameRenderer extends Component {
 
         let otherBody;
         const { bodyA, bodyB, contactEquations } = event;
-        const { playerBody, playerContact } = this;
+        const { playerBody } = this;
+        const { playerContact } = this.state;
 
         // Figure out if either body equals the player, and if so, assign
         // otherBody to the other body
@@ -581,7 +587,9 @@ export default class GameRenderer extends Component {
                 [ otherBody.id ]: contactNormal
             };
             //console.log('onPlayerColide with',otherBody.id, contactNormal);
-            this.playerContact = { ...playerContact, ...assign };
+            this.setState({
+                playerContact: { ...playerContact, ...assign }
+            });
             
         }
 
@@ -593,7 +601,8 @@ export default class GameRenderer extends Component {
         let otherBody;
         const { bodyA, bodyB } = event;
 
-        const { playerBody, playerContact } = this;
+        const { playerContact } = this.state;
+        const { playerBody, } = this;
 
         if( bodyA === playerBody ) {
 
@@ -608,7 +617,9 @@ export default class GameRenderer extends Component {
         if( otherBody ) {
 
             //console.log('ended contact with ',otherBody.id);
-            this.playerContact = without( playerContact, otherBody.id );
+            this.setState({
+                playerContact: without( playerContact, otherBody.id )
+            });
 
         }
 
@@ -645,7 +656,7 @@ export default class GameRenderer extends Component {
         const {
             playerScale, playerRadius, currentLevelStaticEntitiesArray
         } = this.props;
-        const { playerContact } = this;
+        const { playerContact } = this.state;
         const { keysDown } = this;
 
         const { playerBody, world } = this;
@@ -796,11 +807,10 @@ export default class GameRenderer extends Component {
 
                     //console.log('traversing',newTubeFlow.length - 1,'tubes');
 
-                    this.playerContact = newPlayerContact;
-
                     newState = {
                         ...newState,
                         playerSnapped,
+                        playerContact: newPlayerContact,
                         startTime: elapsedTime,
                         tubeFlow: newTubeFlow,
                         currentFlowPosition: newTubeFlow[ 0 ].start,
@@ -1047,7 +1057,7 @@ export default class GameRenderer extends Component {
         this.playerBody = newPlayerBody;
 
         // Reset contact points
-        this.playerContact = {};
+        this.setState({ playerContact: {} });
 
         this.props.scalePlayer( currentLevelId, entityId, multiplier );
 
@@ -1063,9 +1073,8 @@ export default class GameRenderer extends Component {
 
         const { keysDown, playerBody } = this;
         const {
-            currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
-            currentLevelId, nextChapters, previousChapterFinishEntity,
-            previousChapterEntity, previousChapter, paused
+            playerRadius, playerDensity, playerScale, currentLevelId,
+            nextChapters, paused
         } = this.props;
 
         const {
@@ -1254,108 +1263,9 @@ export default class GameRenderer extends Component {
             lerp( cameraPosition.z, playerPosition.z, 0.05 / playerScale ),
         );
 
-        for( let i = 0; i < currentLevelTouchyArray.length; i++ ) {
-
-            const entity = currentLevelTouchyArray[ i ];
-            const distance = entity.position.distanceTo( playerPosition );
-
-            if( entity.type === 'finish' ) {
-
-                // Dumb sphere to cube collision
-                if( distance < playerRadius + ( entity.scale.x / 2 ) - playerScale * 0.1 ) {
-
-                    this.playerContact = {};
-
-                    newState.isAdvancing = true;
-
-                    // this is almost certainly wrong to determine which way
-                    // the finish line element is facing
-                    const cardinality = getCardinalityOfVector(
-                        Cardinality.RIGHT.clone().applyQuaternion( entity.rotation )
-                    );
-                    const isUp = cardinality === Cardinality.DOWN || cardinality === Cardinality.UP;
-
-                    if( entity === previousChapterFinishEntity ) {
-
-                        newState.advanceToNextChapter = previousChapter;
-
-                    } else {
-
-                        const nextChapter = [ ...nextChapters ].sort( ( a, b ) =>
-                            a.position.distanceTo( entity.position ) -
-                            b.position.distanceTo( entity.position )
-                        )[ 0 ] || previousChapterEntity;
-
-                        newState.advanceToNextChapter = nextChapter;
-                    
-                    }
-
-                    const isNextChapterBigger = newState.advanceToNextChapter.scale.x > 1;
-
-                    // Calculate where to tween the player to. *>2 to move
-                    // past the hit box for the level exit/entrance
-                    newState.startTransitionPosition = playerPosition;
-                    newState.currentTransitionPosition = playerPosition;
-                    const currentTransitionTarget = new THREE.Vector3(
-                        lerp( playerPosition.x, entity.position.x, isUp ? 0 : 2.5 ),
-                        playerPosition.y,
-                        lerp( playerPosition.z, entity.position.z, isUp ? 2.5 : 0 ),
-                    );
-                    newState.currentTransitionTarget = currentTransitionTarget;
-                    newState.currentTransitionStartTime = elapsedTime;
-                    newState.currentTransitionCameraTarget = new THREE.Vector3(
-                        currentTransitionTarget.x,
-                        getCameraDistanceToPlayer(
-                            playerPosition.y, cameraFov, playerScale * ( isNextChapterBigger ? 8 : 0.125 )
-                        ),
-                        currentTransitionTarget.z,
-                    );
-
-                    newState.transitionCameraPositionStart = cameraPosition;
-
-                    this.setState( newState );
-                    return;
-                }
-
-            } else if( entity.scale.x === playerScale &&
-                    entity.position.distanceTo( playerPosition ) < playerRadius * 1.8
-                ) {
-
-                const radiusDiff = this.scalePlayer(
-                    playerRadius, playerPosition, playerDensity, entity.id,
-                    currentLevelId, entity.type === 'shrink'
-                );
-
-                newState.scaleStartTime = elapsedTime;
-                newState.radiusDiff = radiusDiff;
-
-                break;
-
-            }
-
-        }
-
-        if( newState.scaleStartTime || this.state.scaleStartTime ) {
-
-            const scaleStartTime = newState.scaleStartTime || this.state.scaleStartTime;
-            const currentScalePercent = 1 - ( ( ( elapsedTime - scaleStartTime ) * 1000 ) / scaleDurationMs );
-
-            if( currentScalePercent <= 0 ) {
-
-                newState.scaleStartTime = null;
-                newState.radiusDiff = null;
-
-            } else {
-
-                newState.currentScalePercent = currentScalePercent;
-
-            }
-
-        }
-
         const reducedState = applyMiddleware(
-            this.props, this.state, newState,
-            zoomReducer
+            this.reducerActions, this.props, this.state, newState,
+            zoomReducer, entityInteractionReducer
         );
 
         this.setState( reducedState );
@@ -1394,7 +1304,8 @@ export default class GameRenderer extends Component {
             cameraPositionZoomIn, currentFlowPosition, debug, touring,
             cameraTourTarget, entrance1, entrance2, tubeFlow, tubeIndex,
             currentScalePercent, radiusDiff, currentTransitionPosition,
-            currentTransitionTarget, plankEntities, anchorEntities
+            currentTransitionTarget, plankEntities, anchorEntities,
+            playerContact
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1606,10 +1517,10 @@ export default class GameRenderer extends Component {
                 />
             </mesh> }
 
-            { debug && Object.keys( this.playerContact || {} ).map( key => {
+            { debug && Object.keys( playerContact || {} ).map( key => {
 
                 return <mesh
-                    position={ playerPosition.clone().add( this.playerContact[ key ].clone().multiplyScalar( playerScale ) ) }
+                    position={ playerPosition.clone().add( playerContact[ key ].clone().multiplyScalar( playerScale ) ) }
                     scale={ new THREE.Vector3( 0.1, 3, 0.15 ).multiplyScalar( playerScale ) }
                     key={ key }
                 >

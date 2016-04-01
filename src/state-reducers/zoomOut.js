@@ -16,7 +16,7 @@ function zoomedOutPosition( cameraFov ) {
 
 }
 
-export default function zoomOutReducer( props, oldState, currentState ) {
+export default function zoomOutReducer( actions, props, oldState, currentState ) {
 
     const {
         zoomBackInDuration, zoomOutStartTime, cameraPositionZoomOut,

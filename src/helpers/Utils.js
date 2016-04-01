@@ -414,7 +414,7 @@ export function str2Hex( str ) {
 
 // Apply a series of reducers, continuation passing style, to the state object,
 // and return the transformed state
-export function applyMiddleware( props, oldState, initialState, ...reducers ) {
+export function applyMiddleware( actions, props, oldState, initialState, ...reducers ) {
 
     // Keep track of what reducer we're on, because when a reducer calls next()
     // it needs to call the next reducer in the array
@@ -426,7 +426,7 @@ export function applyMiddleware( props, oldState, initialState, ...reducers ) {
 
         return reducers[ index ] ?
             // Either call the next reducer...
-            reducers[ index ]( props, oldState, newState, next ) :
+            reducers[ index ]( actions, props, oldState, newState, next ) :
             // Or we're at the end
             newState;
 
