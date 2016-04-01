@@ -83,9 +83,18 @@ export default function zoomOutReducer( props, oldState, currentState ) {
 
     }
 
-    return {
-        ...currentState,
-        ...newState
-    };
+    if( Object.keys( newState ).length ) {
+
+        // Short circuit
+        return {
+            ...currentState,
+            ...newState
+        };
+
+    } else {
+
+        return currentState;
+
+    }
 
 }

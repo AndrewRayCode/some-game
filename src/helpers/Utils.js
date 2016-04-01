@@ -412,12 +412,91 @@ export function str2Hex( str ) {
 
 }
 
-export function reduceState( props, oldState, initialState, ...reducers ) {
+// Apply a series of reducers, continuation passing style, to the state object,
+// and return the transformed state
+export function applyMiddleware( props, oldState, initialState, ...reducers ) {
 
-    return reducers.reduce(
-        ( currentState, reduce ) => reduce( props, oldState, currentState ),
-        initialState
-    );
+    // Keep track of what reducer we're on, because when a reducer calls next()
+    // it needs to call the next reducer in the array
+    let index = -1;
+
+    const next = ( newState ) => {
+
+        index = index + 1;
+
+        return reducers[ index ] ?
+            // Either call the next reducer...
+            reducers[ index ]( props, oldState, newState, next ) :
+            // Or we're at the end
+            newState;
+
+    };
+
+    return next( initialState );
+
+}
+
+// Only one of these two reducers can run. If fn1 returns instead of caling
+// next(), we assume it short circuited, and fn2 should not run
+export function eitherOrReducer( fn1, fn2 ) {
+
+    return ( props, oldState, currentState, next ) => {
+
+        const fn1State = fn1( props, oldState, currentState );
+        const fn2State = fn2( props, oldState, currentState );
+
+        // If fn2 activates, and fn1 is not active, fn2 wins...
+        if( fn2State !== currentState && fn1State === currentState ) {
+
+            return next( fn2State );
+
+        } else if( fn1State !== currentState && fn2State === currentState ) {
+
+            return next( fn1State );
+
+        }
+
+        return next( currentState );
+
+    };
+
+
+    /*
+    // Return a middleware reducer...
+    return ( props, oldState, currentState, next ) => {
+
+        // We need to track if fn1 returned, or if it called next
+        let fn1PassThrough = false;
+
+        // Run fn1 with a custom next() callback...
+        const futureState = fn1( props, oldState, currentState, ( passedState ) => {
+
+            // Note that fn1 called next() meaning it did not modify the state
+            fn1PassThrough = true;
+
+            // Return the continuation through fn2, which will keep the chain
+            // going until it completes
+            return fn2( props, oldState, passedState, next );
+
+        });
+
+        // We count on the above to happen synchronously. When fn1 passes
+        // through (doesn't modify the state) then futureState will hold the
+        // result of the completed continuation value, since fn2 calls next()
+        if( fn1PassThrough ) {
+
+            return futureState;
+
+        // Otherwise fn1 short circuited, did not call next(), and futureState
+        // will hold the short circuited state from fn1
+        } else {
+
+            return next( futureState );
+        
+        }
+
+    };
+    */
 
 }
 

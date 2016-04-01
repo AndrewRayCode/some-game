@@ -13,6 +13,7 @@ export TransitionScreen from './TransitionScreen/TransitionScreen';
 export GameResources from './GameResources/GameResources';
 export Text from './Text/Text';
 export ConfirmRestartScreen from './ConfirmRestartScreen/ConfirmRestartScreen';
+export ConfirmMenuScreen from './ConfirmMenuScreen/ConfirmMenuScreen';
 export PausedScreen from './PausedScreen/PausedScreen';
 export TitleScreen from './TitleScreen/TitleScreen';
 export EntityGroup from './EntityGroup/EntityGroup';

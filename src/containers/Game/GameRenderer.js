@@ -8,10 +8,9 @@ import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,
     lookAtVector, findNextTube, snapTo, lerpVectors, v3toP2, p2ToV3,
-    reduceState, deepArrayClone
+    applyMiddleware, deepArrayClone
 } from '../../helpers/Utils';
-import zoomOutReducer from '../../state-reducers/zoomOut';
-import zoomInReducer from '../../state-reducers/zoomIn';
+import zoomReducer from '../../state-reducers/zoomReducer';
 
 import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
@@ -1354,9 +1353,9 @@ export default class GameRenderer extends Component {
 
         }
 
-        const reducedState = reduceState(
+        const reducedState = applyMiddleware(
             this.props, this.state, newState,
-            zoomOutReducer, zoomInReducer
+            zoomReducer
         );
 
         this.setState( reducedState );

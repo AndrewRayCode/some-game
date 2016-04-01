@@ -88,9 +88,19 @@ export default function zoomInReducer( props, oldState, currentState ) {
 
     }
 
-    return {
-        ...currentState,
-        ...newState
-    };
+    if( Object.keys( newState ).length ) {
+
+        // Short circut
+        return {
+            ...currentState,
+            ...newState
+        };
+
+    } else {
+
+        // Do nothing
+        return currentState;
+
+    }
 
 }
