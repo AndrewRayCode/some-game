@@ -12,6 +12,7 @@ import {
 } from '../../helpers/Utils';
 import zoomReducer from '../../state-reducers/zoomReducer';
 import entityInteractionReducer from '../../state-reducers/entityInteractionReducer';
+import debugSizeReducer from '../../state-reducers/debugSizeReducer';
 
 import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
 
@@ -1138,24 +1139,6 @@ export default class GameRenderer extends Component {
 
         }
 
-        if( ( KeyCodes['-'] in keysDown ) || ( KeyCodes['='] in keysDown ) ) {
-
-            if( !this.sizeSwitch ) {
-
-                this.scalePlayer(
-                    playerRadius, playerPosition, playerDensity, null,
-                    currentLevelId, ( KeyCodes['-'] in keysDown )
-                );
-
-                this.sizeSwitch = true;
-            }
-
-        } else {
-
-            this.sizeSwitch = false;
-
-        }
-
         if( isAdvancing ) {
 
             const {
@@ -1265,7 +1248,7 @@ export default class GameRenderer extends Component {
 
         const reducedState = applyMiddleware(
             this.reducerActions, this.props, this.state, newState,
-            zoomReducer, entityInteractionReducer
+            zoomReducer, entityInteractionReducer, debugSizeReducer
         );
 
         this.setState( reducedState );
