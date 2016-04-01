@@ -13,8 +13,7 @@ import {
 import zoomReducer from '../../state-reducers/zoomReducer';
 import entityInteractionReducer from '../../state-reducers/entityInteractionReducer';
 import debugSizeReducer from '../../state-reducers/debugSizeReducer';
-
-import { easeOutQuint, easeOutQuad } from '../../helpers/easing';
+import advanceLevelReducer from '../../state-reducers/advanceLevelReducer';
 
 const radialPoint = ( total, index ) => [
     Math.cos( THREE.Math.degToRad( ( 90 / total ) * index ) ) - 0.5,
@@ -52,8 +51,6 @@ const cameraFov = 75;
 
 const tubeTravelDurationMs = 120;
 const tubeStartTravelDurationMs = 40;
-
-const levelTransitionDuration = 500;
 
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
@@ -101,6 +98,7 @@ export default class GameRenderer extends Component {
         // Things to pass to reducers so they can call them
         this.reducerActions = {
             scalePlayer: this.scalePlayer,
+            advanceChapter: props.advanceChapter
         };
 
     }
@@ -1079,7 +1077,7 @@ export default class GameRenderer extends Component {
         } = this.props;
 
         const {
-            currentFlowPosition, cameraPosition, isAdvancing, debug
+            currentFlowPosition, cameraPosition, debug
         } = this.state;
 
         const playerPosition = currentFlowPosition ||
@@ -1136,44 +1134,6 @@ export default class GameRenderer extends Component {
         } else {
 
             this.touringSwitch = false;
-
-        }
-
-        if( isAdvancing ) {
-
-            const {
-                currentTransitionStartTime, startTransitionPosition,
-                currentTransitionTarget, advanceToNextChapter,
-                transitionCameraPositionStart, currentTransitionCameraTarget
-            } = this.state;
-
-            const transitionPercent = Math.min(
-                ( ( elapsedTime - currentTransitionStartTime ) * 1000 ) / levelTransitionDuration,
-                1
-            );
-
-            newState.currentTransitionPosition = startTransitionPosition
-                .clone()
-                .lerp( currentTransitionTarget, transitionPercent );
-
-            newState.cameraPosition = lerpVectors(
-                transitionCameraPositionStart,
-                currentTransitionCameraTarget,
-                transitionPercent,
-                easeOutQuint
-            );
-
-            this.setState( newState, () => {
-
-                if( transitionPercent === 1 ) {
-
-                    this.props.advanceChapter( advanceToNextChapter );
-
-                }
-
-            });
-
-            return;
 
         }
 
@@ -1248,7 +1208,8 @@ export default class GameRenderer extends Component {
 
         const reducedState = applyMiddleware(
             this.reducerActions, this.props, this.state, newState,
-            zoomReducer, entityInteractionReducer, debugSizeReducer
+            advanceLevelReducer, zoomReducer, entityInteractionReducer,
+            debugSizeReducer
         );
 
         this.setState( reducedState );

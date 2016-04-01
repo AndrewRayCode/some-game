@@ -18,7 +18,7 @@ export default function debugSizeReducer( actions, props, oldState, currentState
 
     if( ( KeyCodes['-'] in keysDown ) || ( KeyCodes['='] in keysDown ) ) {
 
-        if( !newState.sizeSwitch ) {
+        if( !sizeSwitch ) {
 
             actions.scalePlayer(
                 playerRadius, playerPositionV3, playerDensity, null,
