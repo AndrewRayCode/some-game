@@ -1,8 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import KeyCodes from '../../helpers/KeyCodes';
-import Cardinality from '../../helpers/Cardinality';
-import p2 from 'p2'; // i hope this doesn't fuck it all up
+import p2 from 'p2';
 import { Player, EntityGroup } from '../../components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
@@ -10,10 +9,10 @@ import {
     lookAtVector, findNextTube, snapTo, lerpVectors, v3toP2, p2ToV3,
     applyMiddleware, deepArrayClone
 } from '../../helpers/Utils';
-import zoomReducer from '../../state-reducers/zoomReducer';
-import entityInteractionReducer from '../../state-reducers/entityInteractionReducer';
-import debugSizeReducer from '../../state-reducers/debugSizeReducer';
-import advanceLevelReducer from '../../state-reducers/advanceLevelReducer';
+import {
+    tourReducer, zoomReducer, entityInteractionReducer, debugReducer,
+    advanceLevelReducer, defaultCameraReducer
+} from '../../state-reducers';
 
 const radialPoint = ( total, index ) => [
     Math.cos( THREE.Math.degToRad( ( 90 / total ) * index ) ) - 0.5,
@@ -103,7 +102,7 @@ export default class GameRenderer extends Component {
 
     }
 
-    _setupWorld( props ) {
+    _setupWorld() {
 
         const playerMaterial = new p2.Material();
         const pushyMaterial = new p2.Material();
@@ -962,7 +961,7 @@ export default class GameRenderer extends Component {
 
         return plankData.reduce( ( memo, plankBody ) => {
 
-            const { position, angle, scale, entityId } = plankBody;
+            const { position, angle, entityId } = plankBody;
             const entity = allEntities[ plankBody.entityId ];
 
             const planks = memo[ entityId ] = memo[ entityId ] || [];
@@ -988,7 +987,7 @@ export default class GameRenderer extends Component {
 
         return plankConstraints.reduce( ( memo, constraint ) => {
 
-            const { position, angle, scale, entityId } = constraint;
+            const { entityId } = constraint;
             const entity = allEntities[ constraint.entityId ];
 
             const planks = memo[ entityId ] = memo[ entityId ] || [];
@@ -1071,14 +1070,8 @@ export default class GameRenderer extends Component {
         }
 
         const { keysDown, playerBody } = this;
-        const {
-            playerRadius, playerDensity, playerScale, currentLevelId,
-            nextChapters, paused
-        } = this.props;
-
-        const {
-            currentFlowPosition, cameraPosition, debug
-        } = this.state;
+        const { playerRadius, paused } = this.props;
+        const { currentFlowPosition, } = this.state;
 
         const playerPosition = currentFlowPosition ||
             p2ToV3( playerBody.position, 1 + playerRadius );
@@ -1095,92 +1088,6 @@ export default class GameRenderer extends Component {
             return;
         }
 
-        //if( KeyCodes.V in this.keysDown ) {
-            //if( !this.dingingv ) {
-                //state.debuggingReplay = debuggingReplay;
-                //state.debuggingIndex = 0;
-                //window.debuggingReplay = debuggingReplay;
-                //this.dingingv = true;
-            //}
-        //} else {
-            //this.dingingv = false;
-        //}
-        //if( KeyCodes.M in this.keysDown ) {
-            //if( !this.dingingm && this.state.debuggingIndex < this.state.debuggingReplay.length - 1 ) {
-                //state.debuggingIndex = this.state.debuggingIndex + 1;
-                //this.dingingm = true;
-            //}
-        //} else {
-            //this.dingingm = false;
-        //}
-        //if( KeyCodes.L in this.keysDown ) {
-            //if( !this.dingingl && this.state.debuggingIndex > 1 ) {
-                //state.debuggingIndex = this.state.debuggingIndex - 1;
-                //this.dingingl = true;
-            //}
-        //} else {
-            //this.dingingl = false;
-        //}
-
-        if( KeyCodes.T in keysDown ) {
-
-            if( !this.touringSwitch ) {
-                newState.currentTourPercent = 0;
-                newState.touring = !newState.touring;
-                newState.cameraTourTarget = playerPosition;
-                this.touringSwitch = true;
-            }
-
-        } else {
-
-            this.touringSwitch = false;
-
-        }
-
-        if( this.state.touring ) {
-
-            let currentTourPercent = Math.min( this.state.currentTourPercent + 0.01, 1 );
-
-            newState.cameraPosition = this.state.cameraPosition.clone().lerp( new THREE.Vector3(
-                0,
-                6,
-                0,
-            ), 0.05 );
-
-            newState.cameraTourTarget = this.state.cameraTourTarget.clone().lerp( new THREE.Vector3(
-                0, 0, 0
-            ), 0.05 );
-
-            if( currentTourPercent >= 1 && nextChapters.length ) {
-
-                currentTourPercent = 0;
-                this.props.advanceChapter(
-                    nextChapters[ 0 ].chapterId,
-                    nextChapters[ 0 ].scale.x
-                );
-
-            }
-
-            newState.currentTourPercent = currentTourPercent;
-
-            this.setState( newState );
-            return;
-
-        }
-
-        if( KeyCodes['`'] in keysDown ) {
-
-            if( !this.debugSwitch ) {
-                newState.debug = !this.state.debug;
-                this.debugSwitch = true;
-            }
-
-        } else {
-
-            this.debugSwitch = false;
-
-        }
-
         // needs to be called before _getMeshStates
         this._updatePhysics( elapsedTime, delta );
 
@@ -1193,23 +1100,11 @@ export default class GameRenderer extends Component {
             10 * Math.cos( elapsedTime * 0.001 * lightRotationSpeed )
         );
 
-        // Lerp the camera position to the correct follow position. Lerp
-        // components individually to make the (y) camera zoom to player
-        // different
-        newState.cameraPosition = new THREE.Vector3(
-            lerp( cameraPosition.x, playerPosition.x, 0.05 / playerScale ),
-            lerp(
-                cameraPosition.y,
-                getCameraDistanceToPlayer( playerPosition.y, cameraFov, playerScale ),
-                0.025 / playerScale,
-            ),
-            lerp( cameraPosition.z, playerPosition.z, 0.05 / playerScale ),
-        );
-
+        // Apply the middleware
         const reducedState = applyMiddleware(
             this.reducerActions, this.props, this.state, newState,
-            advanceLevelReducer, zoomReducer, entityInteractionReducer,
-            debugSizeReducer
+            tourReducer, advanceLevelReducer, zoomReducer,
+            entityInteractionReducer, debugReducer, defaultCameraReducer
         );
 
         this.setState( reducedState );
@@ -1256,7 +1151,7 @@ export default class GameRenderer extends Component {
             playerRadius, playerScale, nextChapters, nextChaptersEntities,
             previousChapterEntities, previousChapterEntity,
             currentLevelRenderableEntitiesArray, previousChapterFinishEntity,
-            assets, shaders, paused, allEntities
+            assets, shaders, paused,
         } = this.props;
 
         const { playerBody } = this;
@@ -1479,7 +1374,7 @@ export default class GameRenderer extends Component {
             }) }
 
             { debug && this.world.narrowphase.contactEquations.map( ( contact, index ) => {
-                const { contactPointA, contactPointB, bodyA, bodyB } = contact;
+                const { contactPointA, bodyA } = contact;
                 return <mesh
                     scale={ new THREE.Vector3( playerScale * 0.1, playerScale * 3, playerScale * 0.1 ) }
                     key={ `contact_${ index }_a` }

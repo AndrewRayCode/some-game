@@ -1,25 +1,35 @@
-import KeyCodes from '../helpers/KeyCodes';
 import { lerpVectors } from '../helpers/Utils';
 import { easeOutQuint, } from '../helpers/easing';
 
 const levelTransitionDuration = 500;
 
-export default function debugSizeReducer( actions, props, oldState, currentState, next ) {
+export default function advanceLevelReducer( actions, props, oldState, currentState, next ) {
 
     const {
         currentTransitionStartTime, startTransitionPosition,
         currentTransitionTarget, advanceToNextChapter,
         transitionCameraPositionStart, currentTransitionCameraTarget,
-        isAdvancing
+        isAdvancing,
+        transitionPercent: lastTransitionPercent,
     } = oldState;
 
-    const { scalePlayer } = actions;
+    const { advanceChapter } = actions;
 
-    const { playerRadius, playerDensity, currentLevelId, } = props;
-
-    const { keysDown, playerPositionV3, time, } = currentState;
+    const { time, } = currentState;
 
     if( isAdvancing ) {
+
+        // This starts a chain of events that ends in
+        // transitionFromLastChapterToNextChapter() called by the game. This
+        // will only happen on the frame *after* the percent hits 1, because
+        // we need to ensure the state is set before changing levels. I don't
+        // remember why
+        if( lastTransitionPercent === 1 ) {
+
+            advanceChapter( advanceToNextChapter );
+            return currentState;
+
+        }
 
         const newState = {};
         const transitionPercent = Math.min(
@@ -27,6 +37,7 @@ export default function debugSizeReducer( actions, props, oldState, currentState
             1
         );
 
+        newState.transitionPercent = transitionPercent;
         newState.currentTransitionPosition = startTransitionPosition
             .clone()
             .lerp( currentTransitionTarget, transitionPercent );
@@ -37,16 +48,6 @@ export default function debugSizeReducer( actions, props, oldState, currentState
             transitionPercent,
             easeOutQuint
         );
-
-        if( transitionPercent === 1 ) {
-
-            // todo look at this later
-            setTimeout( () =>
-                actions.advanceChapter( advanceToNextChapter ),
-                0
-            );
-
-        }
 
         return {
             ...currentState,

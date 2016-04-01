@@ -2,10 +2,10 @@ import KeyCodes from '../helpers/KeyCodes';
 
 const scaleDurationMs = 300;
 
-export default function debugSizeReducer( actions, props, oldState, currentState, next ) {
+export default function debugReducer( actions, props, oldState, currentState, next ) {
 
     const {
-        sizeSwitch
+        sizeSwitch, debugSwitch, debug
     } = oldState;
 
     const { scalePlayer } = actions;
@@ -15,6 +15,19 @@ export default function debugSizeReducer( actions, props, oldState, currentState
     const { keysDown, playerPositionV3 } = currentState;
 
     const newState = {};
+
+    if( KeyCodes['`'] in keysDown ) {
+
+        if( !debugSwitch ) {
+            newState.debug = !debug;
+            newState.debugSwitch = true;
+        }
+
+    } else {
+
+        newState.debugSwitch = false;
+
+    }
 
     if( ( KeyCodes['-'] in keysDown ) || ( KeyCodes['='] in keysDown ) ) {
 

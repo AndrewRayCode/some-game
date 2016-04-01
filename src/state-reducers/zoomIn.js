@@ -20,11 +20,11 @@ export default function zoomInReducer( actions, props, oldState, currentState ) 
 
     const {
         zoomBackOutDuration, zoomInStartTime, cameraPositionZoomIn,
-        startZoomBackOutTime
+        startZoomBackOutTime, cameraPosition,
     } = oldState;
 
     const {
-        keysDown, time, playerPositionV3, cameraFov, cameraPosition,
+        keysDown, time, playerPositionV3, cameraFov,
     } = currentState;
 
     const { playerScale, } = props;

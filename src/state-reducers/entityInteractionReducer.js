@@ -14,8 +14,10 @@ export default function entityInteractionReducer( actions, props, oldState, curr
         previousChapterEntity, previousChapter,
     } = props;
 
+    const { cameraPosition, } = oldState;
+
     const {
-        currentFlowPosition, cameraPosition, playerPositionV3, time, cameraFov
+        playerPositionV3, time, cameraFov
     } = currentState;
 
     const newState = {};
