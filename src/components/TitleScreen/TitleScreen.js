@@ -69,13 +69,13 @@ export default class TitleScreen extends Component {
 
             <perspectiveCamera
                 name="mainCamera"
+                ref="camera"
                 fov={ cameraFov }
                 aspect={ cameraAspect }
                 near={ 0.1 }
                 far={ 1000 }
                 position={ cameraPosition }
                 lookAt={ lookAt }
-                ref="camera"
             />
 
             <Text

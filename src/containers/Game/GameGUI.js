@@ -18,7 +18,7 @@ import KeyCodes from '../../helpers/KeyCodes';
 import GameRenderer from './GameRenderer';
 import {
     TitleScreen, GameResources, PausedScreen, ConfirmRestartScreen, Kbd,
-    TransitionScreen
+    TransitionScreen, ConfirmMenuScreen
 } from '../../components';
 
 import styles from './Game.scss';
@@ -243,7 +243,9 @@ export default class GameGUI extends Component {
         this.keysDown = {};
 
         this.selectBook = this.selectBook.bind( this );
-        this.onExitToTitle = this.onExitToTitle.bind( this );
+        this.onExitToMenuConfirm = this.onExitToMenuConfirm.bind( this );
+        this.onExitToMenuDeny = this.onExitToMenuDeny.bind( this );
+        this.onShowConfirmMenuScreen = this.onShowConfirmMenuScreen.bind( this );
         this.onConfirmRestart = this.onConfirmRestart.bind( this );
         this.onDenyRestart = this.onDenyRestart.bind( this );
         this._onAnimate = this._onAnimate.bind( this );
@@ -334,6 +336,7 @@ export default class GameGUI extends Component {
             clickable: false,
             paused: false,
             confirmRestart: false,
+            confirmMenu: false,
         });
         const {
             originalLevels, originalEntities, books, chapters
@@ -345,12 +348,13 @@ export default class GameGUI extends Component {
 
     }
 
-    onExitToTitle() {
+    onExitToMenuConfirm() {
 
         this.setState({
             clickable: false,
             paused: false,
             confirmRestart: false,
+            confirmMenu: false,
         });
         this.props.stopGame();
 
@@ -362,6 +366,7 @@ export default class GameGUI extends Component {
             clickable: false,
             paused: false,
             confirmRestart: false,
+            confirmMenu: false,
         });
 
         const {
@@ -380,20 +385,19 @@ export default class GameGUI extends Component {
             clickable: false,
             paused: true,
             confirmRestart: false,
+            confirmMenu: false,
         });
 
     }
 
     createMouseInput() {
 
-        const { mouseInput, titleScreen, gameRenderer } = this.refs;
+        const { mouseInput, } = this.refs;
 
         if( mouseInput && !mouseInput.isReady() ) {
 
             const { scene, container } = this.refs;
-            const camera = titleScreen ?
-                titleScreen.refs.camera :
-                gameRenderer.refs.camera;
+            const camera = this._getActiveCameraFromRefs( this.refs );
 
             mouseInput.ready( scene, container, camera );
             mouseInput.setActive( false );
@@ -408,16 +412,36 @@ export default class GameGUI extends Component {
 
     }
 
+    // Determine the camera to use for mouse interaction
+    _getActiveCameraFromRefs( refs ) {
+
+        const {
+            gameRenderer, titleScreen, pausedScreen, confirmMenuScreen,
+            confirmRestartScreen
+        } = refs;
+
+        if( titleScreen ) {
+            return titleScreen.refs.camera;
+        } else if( pausedScreen ) {
+            return pausedScreen.refs.camera;
+        } else if( confirmMenuScreen ) {
+            return confirmMenuScreen.refs.camera;
+        } else if( confirmRestartScreen ) {
+            return confirmRestartScreen.refs.camera;
+        } else if( gameRenderer ) {
+            return gameRenderer.refs.camera;
+        }
+
+    }
+
     // Any global updates we can do, do here
     _onAnimate( elapsedTime, delta ) {
         
-        const {
-            mouseInput, titleScreen, gameRenderer, pauseScreen
-        } = this.refs;
+        const { mouseInput, } = this.refs;
 
         const { gameStarted } = this.props;
         const {
-            _fps, paused, confirmRestart, transitionFadeStartTime
+            _fps, paused, confirmRestart, transitionFadeStartTime, confirmMenu,
         } = this.state;
         const { keysDown } = this;
         const newState = { elapsedTime, delta };
@@ -469,18 +493,14 @@ export default class GameGUI extends Component {
 
             }
 
-            const camera = pauseScreen ?
-                pauseScreen.refs.camera : (
-                    titleScreen ?
-                    titleScreen.refs.camera :
-                    gameRenderer.refs.camera
-                );
-            mouseInput._camera = camera;
+            mouseInput._camera = this._getActiveCameraFromRefs( this.refs );
 
         }
 
+        // When the game is paused...
         if( gameStarted && paused ) {
 
+            // Restart level? keys
             if( confirmRestart ) {
 
                 if( KeyCodes.ESC in keysDown ) {
@@ -498,42 +518,75 @@ export default class GameGUI extends Component {
 
                 }
 
+            // Confirm return to menu? keys
+            } else if( confirmMenu ) {
+
+                // Confirm
+                if(
+                    ( KeyCodes.ENTER in keysDown ) ||
+                    ( KeyCodes.M in keysDown )
+                ) {
+
+                    this.pauseKeyListeningUntilKeyUp();
+                    this.onExitToMenuConfirm();
+
+                // Deny
+                } else if( KeyCodes.ESC in keysDown ) {
+
+                    this.pauseKeyListeningUntilKeyUp();
+                    this.onExitToMenuDeny();
+
+                }
+
+            // Regular old paused screen
             } else {
 
+                // Unpause game
                 if(
                     ( KeyCodes.ESC in keysDown ) ||
-                        ( KeyCodes.P in keysDown ) ||
-                        ( KeyCodes.SPACE in keysDown )
+                    ( KeyCodes.P in keysDown ) ||
+                    ( KeyCodes.SPACE in keysDown )
                 ) {
 
                     this.pauseKeyListeningUntilKeyUp();
                     this.onUnpause();
 
-                } else if( KeyCodes.M in keysDown ) {
-
-                    this.pauseKeyListeningUntilKeyUp();
-                    this.onExitToTitle();
-
+                // Restart level?
                 } else if( KeyCodes.R in keysDown ) {
 
                     this.pauseKeyListeningUntilKeyUp();
                     this.onShowConfirmRestartScreen();
 
+                // Exit to menu?
+                } else if( KeyCodes.M in keysDown ) {
+
+                    this.pauseKeyListeningUntilKeyUp();
+                    this.onShowConfirmMenuScreen();
+
                 }
 
             }
 
+        // Keys you can press during running game
         } else if( gameStarted ) {
 
+            // Pause?
             if( ( KeyCodes.ESC in keysDown ) || ( KeyCodes.P in keysDown ) ) {
 
                 this.pauseKeyListeningUntilKeyUp();
                 this.onPause();
 
+            // Restart level?
             } else if( KeyCodes.R in keysDown ) {
 
                 this.pauseKeyListeningUntilKeyUp();
                 this.onShowConfirmRestartScreen();
+
+            // Exit to menu?
+            } else if( KeyCodes.M in keysDown ) {
+
+                this.pauseKeyListeningUntilKeyUp();
+                this.onShowConfirmMenuScreen();
 
             }
 
@@ -598,6 +651,28 @@ export default class GameGUI extends Component {
 
     }
 
+    onShowConfirmMenuScreen() {
+
+        this.setState({
+            clickable: false,
+            paused: true,
+            confirmRestart: false,
+            confirmMenu: true,
+        });
+
+    }
+
+    onExitToMenuDeny() {
+
+        this.setState({
+            clickable: false,
+            paused: true,
+            confirmRestart: false,
+            confirmMenu: false,
+        });
+
+    }
+
     onShowConfirmRestartScreen() {
 
         this.setState({
@@ -620,13 +695,18 @@ export default class GameGUI extends Component {
     render() {
 
         const {
-            fps, mouseInput, clickable, paused, confirmRestart,
+            fps, mouseInput, clickable, paused, confirmRestart, confirmMenu,
         } = this.state;
 
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
         } = this.props;
 
+        // The mainCamera stuff is confusing. I don't fully understand it. All
+        // screens have a *ref* named camera. That's what this points to I
+        // suspect. For all of the viewports below, cameraName points to the
+        // *name* of the camera. So for all screens there should be a
+        // ref="camera" and a cameraName="uniqueCameraName"
         const react3 = <React3
             ref="renderer"
             mainCamera="camera"
@@ -662,7 +742,16 @@ export default class GameGUI extends Component {
                 onBeforeRender={ this.onBeforeRender }
             /> : null }
 
-            { !confirmRestart && paused ? <viewport
+            { confirmMenu ? <viewport
+                x={ 0 }
+                y={ 0 }
+                width={ gameWidth }
+                height={ gameHeight }
+                cameraName="confirmMenuCamera"
+                onBeforeRender={ this.onBeforeRender }
+            /> : null }
+
+            { !confirmRestart && !confirmMenu && paused ? <viewport
                 x={ 0 }
                 y={ 0 }
                 width={ gameWidth }
@@ -700,11 +789,6 @@ export default class GameGUI extends Component {
                         { ...this.props }
                         paused={ paused }
                         ref="gameRenderer"
-                        onPause={ this.onPause }
-                        onUnpause={ this.onUnpause }
-                        onExitToTitle={ this.onExitToTitle }
-                        onClickRegionLeave={ this.onClickRegionLeave }
-                        onClickRegionEnter={ this.onClickRegionEnter }
                         fonts={ fonts }
                         letters={ letters }
                         mouseInput={ mouseInput }
@@ -720,25 +804,36 @@ export default class GameGUI extends Component {
                     />
                 }
 
-                { gameStarted && !confirmRestart && paused ? <PausedScreen
-                    ref="pauseScreen"
+                { gameStarted && !confirmRestart && !confirmMenu && paused ? <PausedScreen
+                    ref="pausedScreen"
                     mouseInput={ mouseInput }
                     onClickRegionLeave={ this.onClickRegionLeave }
                     onClickRegionEnter={ this.onClickRegionEnter }
                     onUnpause={ this.onUnpause }
-                    onReturnToMenu={ this.onExitToTitle }
                     onRestart={ this.onShowConfirmRestartScreen }
+                    onShowConfirmMenuScreen={ this.onShowConfirmMenuScreen }
                     fonts={ fonts }
                     letters={ letters }
                 /> : null }
 
                 { gameStarted && confirmRestart ? <ConfirmRestartScreen
-                    ref="pauseScreen"
+                    ref="confirmRestartScreen"
                     mouseInput={ mouseInput }
                     onClickRegionLeave={ this.onClickRegionLeave }
                     onClickRegionEnter={ this.onClickRegionEnter }
                     onConfirm={ this.onConfirmRestart }
                     onDeny={ this.onDenyRestart }
+                    fonts={ fonts }
+                    letters={ letters }
+                /> : null }
+
+                { gameStarted && confirmMenu ? <ConfirmMenuScreen
+                    ref="confirmMenuScreen"
+                    mouseInput={ mouseInput }
+                    onClickRegionLeave={ this.onClickRegionLeave }
+                    onClickRegionEnter={ this.onClickRegionEnter }
+                    onConfirm={ this.onExitToMenuConfirm }
+                    onDeny={ this.onExitToMenuDeny }
                     fonts={ fonts }
                     letters={ letters }
                 /> : null }

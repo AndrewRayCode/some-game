@@ -77,13 +77,13 @@ export default class ConfirmRestartScreen extends Component {
 
             <perspectiveCamera
                 name="confirmRestartCamera"
+                ref="camera"
                 fov={ cameraFov }
                 aspect={ cameraAspect }
                 near={ 0.1 }
                 far={ 1000 }
                 position={ cameraPosition }
                 lookAt={ lookAt }
-                ref="camera"
             />
 
             <mesh

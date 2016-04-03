@@ -76,14 +76,14 @@ export default class ConfirmRestartScreen extends Component {
         >
 
             <perspectiveCamera
-                name="confirmRestartCamera"
+                name="confirmMenuCamera"
+                ref="camera"
                 fov={ cameraFov }
                 aspect={ cameraAspect }
                 near={ 0.1 }
                 far={ 1000 }
                 position={ cameraPosition }
                 lookAt={ lookAt }
-                ref="camera"
             />
 
             <mesh
@@ -102,7 +102,7 @@ export default class ConfirmRestartScreen extends Component {
             <Text
                 position={ new THREE.Vector3( -4.5, 0, 0 ) }
                 scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.9 ) }
-                text="Restart This"
+                text="Return to"
                 materialId="universeInALetter"
                 fontName="Sniglet Regular"
                 fonts={ fonts }
@@ -111,7 +111,7 @@ export default class ConfirmRestartScreen extends Component {
             <Text
                 position={ new THREE.Vector3( -3, 0, 0 ) }
                 scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.9 ) }
-                text="Level?"
+                text="Menu?"
                 materialId="universeInALetter"
                 fontName="Sniglet Regular"
                 fonts={ fonts }
@@ -125,7 +125,7 @@ export default class ConfirmRestartScreen extends Component {
                 scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 ) }
                 fontName="Sniglet Regular"
                 position={ new THREE.Vector3( 1, 0, 0 ) }
-                text="Restart"
+                text="Yup"
                 materialId={
                     confirm ? 'universeInAMenuHover' : 'universeInAMenu'
                 }
@@ -140,7 +140,7 @@ export default class ConfirmRestartScreen extends Component {
                 scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 ) }
                 fontName="Sniglet Regular"
                 position={ new THREE.Vector3( 2.5, 0, 0 ) }
-                text="Cancel"
+                text="Nope"
                 materialId={
                     deny ? 'universeInAMenuHover' : 'universeInAMenu'
                 }

@@ -79,6 +79,7 @@ export default class TransitionScreen extends Component {
 
             <perspectiveCamera
                 name="transitionCamera"
+                ref="camera"
                 fov={ cameraFov }
                 aspect={ cameraAspect }
                 near={ 0.1 }

@@ -1180,13 +1180,13 @@ export default class GameRenderer extends Component {
 
             <perspectiveCamera
                 name="mainCamera"
+                ref="camera"
                 fov={ cameraFov }
                 aspect={ cameraAspect }
                 near={ 0.1 }
                 far={ 1000 }
                 position={ cameraPositionZoomIn || cameraPositionZoomOut || cameraPosition }
                 quaternion={ lookAt }
-                ref="camera"
             />
 
             <Player

@@ -25,7 +25,7 @@ export default class PausedScreen extends Component {
         fonts: PropTypes.object.isRequired,
         onUnpause: PropTypes.func.isRequired,
         onRestart: PropTypes.func.isRequired,
-        onReturnToMenu: PropTypes.func.isRequired,
+        onShowConfirmMenuScreen: PropTypes.func.isRequired,
         onClickRegionLeave: PropTypes.func.isRequired,
         onClickRegionEnter: PropTypes.func.isRequired,
     }
@@ -54,7 +54,7 @@ export default class PausedScreen extends Component {
 
         } else if( hovered === 'menu' ) {
 
-            this.props.onReturnToMenu();
+            this.props.onShowConfirmMenuScreen();
 
         }
 
@@ -85,13 +85,13 @@ export default class PausedScreen extends Component {
 
             <perspectiveCamera
                 name="pausedCamera"
+                ref="camera"
                 fov={ cameraFov }
                 aspect={ cameraAspect }
                 near={ 0.1 }
                 far={ 1000 }
                 position={ cameraPosition }
                 lookAt={ lookAt }
-                ref="camera"
             />
 
             <mesh
