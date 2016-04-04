@@ -3,9 +3,9 @@ import {
     getCardinalityOfVector, getCameraDistanceToPlayer, lerp
 } from '../helpers/Utils';
 import THREE from 'three';
-import { easeOutBack, easeOutBounce, easeInOutElastic, easeInBack } from 'easing-utils';
+import { easeInElastic, easeInBounce, easeInOutElastic, easeInBack, easeInExpo } from 'easing-utils';
 
-const scaleDurationMs = 750;
+const scaleDurationMs = 1000;
 
 export default function entityInteractionReducer( actions, props, oldState, currentState, next ) {
 
@@ -126,20 +126,14 @@ export default function entityInteractionReducer( actions, props, oldState, curr
 
         const newScale = newPlayerRadius + radiusDiff * currentScalePercent;
 
-        newState.adjustedPlayerScale = new THREE.Vector3(
-            newPlayerRadius + Math.min( currentScalePercent / 0.2, 1 ) * scaleValue,
-            newPlayerRadius + THREE.Math.clamp( ( currentScalePercent - 0.4 ) / 0.2, 0, 1 ) * scaleValue,
-            newPlayerRadius + THREE.Math.clamp( ( currentScalePercent - 0.8 ) / 0.2, 0, 1 ) * scaleValue,
-        );
-
         // A multiplier on the player where 0.5 = base scale
         newState.adjustedPlayerScale = new THREE.Vector3(
-            newScale,
-            newScale,
-            newScale
+            newPlayerRadius + easeInElastic( THREE.Math.clamp( ( currentScalePercent - 0.25 ) / 0.75, 0, 1 ) ) * radiusDiff,
+            newPlayerRadius + easeInElastic( THREE.Math.clamp( ( currentScalePercent - 0.25 ) / 0.75, 0, 1 ) ) * radiusDiff,
+            newPlayerRadius + easeInElastic( Math.min( currentScalePercent / 0.75, 1 ) ) * radiusDiff,
         );
 
-        newState.scalingOffsetZ = currentScalePercent * radiusDiff;
+        newState.scalingOffsetZ = newState.adjustedPlayerScale.z - newPlayerRadius;
         
         if( currentScalePercent <= 0 ) {
 
