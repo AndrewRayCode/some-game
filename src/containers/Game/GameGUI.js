@@ -322,7 +322,9 @@ export default class GameGUI extends Component {
 
         this.keysDown = {};
 
-        if( this.props.gameStarted && !this.state.paused ) {
+        // This is dumb
+        if( window.location.href.indexOf( '3000' ) === -1 &&
+           this.props.gameStarted && !this.state.paused ) {
 
             this.onPause();
 

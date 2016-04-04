@@ -13,7 +13,6 @@ import {
     tourReducer, zoomReducer, entityInteractionReducer, debugReducer,
     advanceLevelReducer, defaultCameraReducer
 } from '../../state-reducers';
-import { easeInOutElastic } from 'easing-utils';
 
 const radialPoint = ( total, index ) => [
     Math.cos( THREE.Math.degToRad( ( 90 / total ) * index ) ) - 0.5,
@@ -1104,8 +1103,8 @@ export default class GameRenderer extends Component {
         // Apply the middleware
         const reducedState = applyMiddleware(
             this.reducerActions, this.props, this.state, newState,
-            tourReducer, advanceLevelReducer, zoomReducer,
-            entityInteractionReducer, debugReducer, defaultCameraReducer
+            tourReducer, advanceLevelReducer, zoomReducer, debugReducer,
+            entityInteractionReducer, defaultCameraReducer
         );
 
         this.setState( reducedState );
@@ -1145,7 +1144,7 @@ export default class GameRenderer extends Component {
             cameraTourTarget, entrance1, entrance2, tubeFlow, tubeIndex,
             currentScalePercent, radiusDiff, currentTransitionPosition,
             currentTransitionTarget, plankEntities, anchorEntities,
-            playerContact, adjustedPlayerScale
+            playerContact, scalingOffsetZ, adjustedPlayerScale
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1156,19 +1155,13 @@ export default class GameRenderer extends Component {
         } = this.props;
 
         const { playerBody } = this;
-        const scaleValue = radiusDiff ? easeInOutElastic( currentScalePercent ) * radiusDiff : 0;
-        const adjustedPlayerRadius = playerRadius + scaleValue;
 
         const playerPosition = new THREE.Vector3()
             .copy(
                 currentTransitionPosition || currentFlowPosition || p2ToV3(
                     playerBody.position, 1 + playerRadius,
                 )
-            ).sub(
-                new THREE.Vector3(
-                    0, 0, radiusDiff ? currentScalePercent * radiusDiff : 0
-                )
-            );
+            ).sub({ x: 0, y: 0, z: scalingOffsetZ || 0 });
 
         const lookAt = lookAtVector(
             cameraPosition,
@@ -1193,7 +1186,7 @@ export default class GameRenderer extends Component {
             <Player
                 ref="player"
                 position={ playerPosition }
-                radius={ adjustedPlayerRadius }
+                radius={ playerRadius }
                 scale={ adjustedPlayerScale }
                 materialId="playerMaterial"
             />

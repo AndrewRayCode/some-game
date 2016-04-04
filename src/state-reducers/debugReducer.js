@@ -1,4 +1,5 @@
 import KeyCodes from '../helpers/KeyCodes';
+import THREE from 'three';
 
 export default function debugReducer( actions, props, oldState, currentState, next ) {
 
@@ -36,11 +37,11 @@ export default function debugReducer( actions, props, oldState, currentState, ne
                 currentLevelId, ( KeyCodes['-'] in keysDown )
             );
 
-            newState.scaleStartTime = time;
+            newState.isShrinking = KeyCodes['-'] in keysDown;
             newState.radiusDiff = radiusDiff;
-            newState.currentScalePercent = 1;
-
+            newState.scaleStartTime = time;
             newState.sizeSwitch = true;
+
         }
 
     } else {

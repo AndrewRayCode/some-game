@@ -3,8 +3,9 @@ import {
     getCardinalityOfVector, getCameraDistanceToPlayer, lerp
 } from '../helpers/Utils';
 import THREE from 'three';
+import { easeOutBack, easeOutBounce, easeInOutElastic, easeInBack } from 'easing-utils';
 
-const scaleDurationMs = 1000;
+const scaleDurationMs = 750;
 
 export default function entityInteractionReducer( actions, props, oldState, currentState, next ) {
 
@@ -90,11 +91,13 @@ export default function entityInteractionReducer( actions, props, oldState, curr
                 distance < playerRadius * 1.8
             ) {
 
+            const isShrinking = entity.type === 'shrink';
             const radiusDiff = actions.scalePlayer(
                 playerRadius, playerPositionV3, playerDensity, entity.id,
-                currentLevelId, entity.type === 'shrink'
+                currentLevelId, isShrinking
             );
 
+            newState.isShrinking = isShrinking;
             newState.scaleStartTime = time;
             newState.radiusDiff = radiusDiff;
 
@@ -104,13 +107,48 @@ export default function entityInteractionReducer( actions, props, oldState, curr
 
     }
 
-    if( newState.scaleStartTime || oldState.scaleStartTime ) {
+    if( newState.scaleStartTime || oldState.scaleStartTime || /* from the debugger */currentState.scaleStartTime  ) {
 
-        const scaleStartTime = newState.scaleStartTime || oldState.scaleStartTime;
+        const radiusDiff = oldState.radiusDiff || newState.radiusDiff || currentState.radiusDiff;
+
+        // For the first frame, the scalePlayer() won't have completed, so the
+        // radius will be stale, and we need to manually adjust it
+        const newPlayerRadius = oldState.radiusDiff ?
+            playerRadius :
+            playerRadius * ( ( newState.isShrinking || currentState.isShrinking ) ? 0.5 : 2 );
+
+        const scaleStartTime = newState.scaleStartTime || oldState.scaleStartTime || currentState.scaleStartTime;
         const currentScalePercent = 1 - ( ( ( time - scaleStartTime ) * 1000 ) / scaleDurationMs );
 
+        const scaleValue = currentScalePercent * radiusDiff;
+        newState.scaleValue = scaleValue;
+        newState.adjustedPlayerRadius = newPlayerRadius + scaleValue;
+
+        const newScale = newPlayerRadius + radiusDiff * currentScalePercent;
+
+        newState.adjustedPlayerScale = new THREE.Vector3(
+            newPlayerRadius + Math.min( currentScalePercent / 0.2, 1 ) * scaleValue,
+            newPlayerRadius + THREE.Math.clamp( ( currentScalePercent - 0.4 ) / 0.2, 0, 1 ) * scaleValue,
+            newPlayerRadius + THREE.Math.clamp( ( currentScalePercent - 0.8 ) / 0.2, 0, 1 ) * scaleValue,
+        );
+
+        // A multiplier on the player where 0.5 = base scale
+        newState.adjustedPlayerScale = new THREE.Vector3(
+            newScale,
+            newScale,
+            newScale
+        );
+
+        newState.scalingOffsetZ = currentScalePercent * radiusDiff;
+        
         if( currentScalePercent <= 0 ) {
 
+            newState.isShrinking = null;
+            newState.scaleValue = null;
+            newState.scalingOffsetZ = null;
+            newState.adjustedPlayerScale = null;
+            newState.adjustedPlayerRadius = null;
+            newState.currentScalePercent = null;
             newState.scaleStartTime = null;
             newState.radiusDiff = null;
 
