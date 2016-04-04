@@ -1,7 +1,7 @@
 import KeyCodes from '../helpers/KeyCodes';
 import THREE from 'three';
 import { getCameraDistanceToPlayer, lerpVectors, } from '../helpers/Utils';
-import { easeOutQuint, easeOutQuad } from '../helpers/easing';
+import { easeOutQuint, easeOutQuad } from 'easing-utils';
 
 const zoomOutDurationMs = 750;
 const zoomInDurationMs = 500;

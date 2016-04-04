@@ -13,6 +13,7 @@ import {
     tourReducer, zoomReducer, entityInteractionReducer, debugReducer,
     advanceLevelReducer, defaultCameraReducer
 } from '../../state-reducers';
+import { easeInOutElastic } from 'easing-utils';
 
 const radialPoint = ( total, index ) => [
     Math.cos( THREE.Math.degToRad( ( 90 / total ) * index ) ) - 0.5,
@@ -1144,7 +1145,7 @@ export default class GameRenderer extends Component {
             cameraTourTarget, entrance1, entrance2, tubeFlow, tubeIndex,
             currentScalePercent, radiusDiff, currentTransitionPosition,
             currentTransitionTarget, plankEntities, anchorEntities,
-            playerContact
+            playerContact, adjustedPlayerScale
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1155,7 +1156,7 @@ export default class GameRenderer extends Component {
         } = this.props;
 
         const { playerBody } = this;
-        const scaleValue = radiusDiff ? currentScalePercent * radiusDiff : 0;
+        const scaleValue = radiusDiff ? easeInOutElastic( currentScalePercent ) * radiusDiff : 0;
         const adjustedPlayerRadius = playerRadius + scaleValue;
 
         const playerPosition = new THREE.Vector3()
@@ -1193,6 +1194,7 @@ export default class GameRenderer extends Component {
                 ref="player"
                 position={ playerPosition }
                 radius={ adjustedPlayerRadius }
+                scale={ adjustedPlayerScale }
                 materialId="playerMaterial"
             />
 

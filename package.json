@@ -103,6 +103,7 @@
     "classnames": "^2.2.3",
     "clone": "^1.0.2",
     "compression": "^1.6.0",
+    "easing-utils": "0.0.4",
     "express": "^4.13.3",
     "express-session": "^1.12.1",
     "file-loader": "^0.8.5",

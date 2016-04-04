@@ -1,7 +1,5 @@
 import KeyCodes from '../helpers/KeyCodes';
 
-const scaleDurationMs = 300;
-
 export default function debugReducer( actions, props, oldState, currentState, next ) {
 
     const {
@@ -12,7 +10,7 @@ export default function debugReducer( actions, props, oldState, currentState, ne
 
     const { playerRadius, playerDensity, currentLevelId, } = props;
 
-    const { keysDown, playerPositionV3 } = currentState;
+    const { keysDown, playerPositionV3, time, } = currentState;
 
     const newState = {};
 
@@ -33,10 +31,14 @@ export default function debugReducer( actions, props, oldState, currentState, ne
 
         if( !sizeSwitch ) {
 
-            actions.scalePlayer(
+            const radiusDiff = actions.scalePlayer(
                 playerRadius, playerPositionV3, playerDensity, null,
                 currentLevelId, ( KeyCodes['-'] in keysDown )
             );
+
+            newState.scaleStartTime = time;
+            newState.radiusDiff = radiusDiff;
+            newState.currentScalePercent = 1;
 
             newState.sizeSwitch = true;
         }

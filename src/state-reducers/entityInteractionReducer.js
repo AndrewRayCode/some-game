@@ -4,7 +4,7 @@ import {
 } from '../helpers/Utils';
 import THREE from 'three';
 
-const scaleDurationMs = 300;
+const scaleDurationMs = 1000;
 
 export default function entityInteractionReducer( actions, props, oldState, currentState, next ) {
 
@@ -87,7 +87,7 @@ export default function entityInteractionReducer( actions, props, oldState, curr
             }
 
         } else if( entity.scale.x === playerScale &&
-                entity.position.distanceTo( playerPositionV3 ) < playerRadius * 1.8
+                distance < playerRadius * 1.8
             ) {
 
             const radiusDiff = actions.scalePlayer(

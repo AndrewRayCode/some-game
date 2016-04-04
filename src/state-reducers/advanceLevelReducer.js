@@ -1,5 +1,5 @@
 import { lerpVectors } from '../helpers/Utils';
-import { easeOutQuint, } from '../helpers/easing';
+import { easeOutQuint, } from 'easing-utils';
 
 const levelTransitionDuration = 500;
 
