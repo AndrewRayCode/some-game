@@ -240,7 +240,6 @@ export default class GameGUI extends Component {
         super( props, context );
 
         this.state = {};
-        this.keysDown = {};
 
         this.selectBook = this.selectBook.bind( this );
         this.onExitToMenuConfirm = this.onExitToMenuConfirm.bind( this );
@@ -258,26 +257,18 @@ export default class GameGUI extends Component {
         this.onShowConfirmRestartScreen = this.onShowConfirmRestartScreen.bind( this );
         this.onBeforeRender = this.onBeforeRender.bind( this );
         this.onWindowBlur = this.onWindowBlur.bind( this );
-        this.onKeyDown = this.onKeyDown.bind( this );
-        this.onKeyUp = this.onKeyUp.bind( this );
-        this.pauseKeyListeningUntilKeyUp = this.pauseKeyListeningUntilKeyUp.bind( this );
-        this.unpauseKeyListening = this.unpauseKeyListening.bind( this );
 
     }
 
     componentDidMount() {
 
         window.addEventListener( 'blur', this.onWindowBlur );
-        window.addEventListener( 'keydown', this.onKeyDown );
-        window.addEventListener( 'keyup', this.onKeyUp );
 
     }
 
     componentWillUnmount() {
 
         window.removeEventListener( 'blur', this.onWindowBlur );
-        window.removeEventListener( 'keydown', this.onKeyDown );
-        window.removeEventListener( 'keyup', this.onKeyUp );
 
     }
 
@@ -297,30 +288,7 @@ export default class GameGUI extends Component {
 
     }
 
-    onKeyDown( event ) {
-
-        const which = { [ event.which ]: true };
-
-        if( event.which === KeyCodes.SPACE ||
-                event.which === KeyCodes.UP ||
-                event.which === KeyCodes.DOWN
-            ) {
-            event.preventDefault();
-        }
-
-        this.keysDown = Object.assign( {}, this.keysDown, which );
-
-    }
-
-    onKeyUp( event ) {
-
-        this.keysDown = without( this.keysDown, event.which );
-
-    }
-
     onWindowBlur() {
-
-        this.keysDown = {};
 
         // This is dumb
         if( window.location.href.indexOf( '3000' ) === -1 &&
@@ -499,6 +467,7 @@ export default class GameGUI extends Component {
 
         }
 
+        /*
         // When the game is paused...
         if( gameStarted && paused ) {
 
@@ -507,7 +476,6 @@ export default class GameGUI extends Component {
 
                 if( KeyCodes.ESC in keysDown ) {
 
-                    this.pauseKeyListeningUntilKeyUp();
                     this.onDenyRestart();
 
                 } else if(
@@ -515,7 +483,6 @@ export default class GameGUI extends Component {
                     ( KeyCodes.R in keysDown )
                 ) {
 
-                    this.pauseKeyListeningUntilKeyUp();
                     this.onConfirmRestart();
 
                 }
@@ -529,13 +496,11 @@ export default class GameGUI extends Component {
                     ( KeyCodes.M in keysDown )
                 ) {
 
-                    this.pauseKeyListeningUntilKeyUp();
                     this.onExitToMenuConfirm();
 
                 // Deny
                 } else if( KeyCodes.ESC in keysDown ) {
 
-                    this.pauseKeyListeningUntilKeyUp();
                     this.onExitToMenuDeny();
 
                 }
@@ -550,19 +515,16 @@ export default class GameGUI extends Component {
                     ( KeyCodes.SPACE in keysDown )
                 ) {
 
-                    this.pauseKeyListeningUntilKeyUp();
                     this.onUnpause();
 
                 // Restart level?
                 } else if( KeyCodes.R in keysDown ) {
 
-                    this.pauseKeyListeningUntilKeyUp();
                     this.onShowConfirmRestartScreen();
 
                 // Exit to menu?
                 } else if( KeyCodes.M in keysDown ) {
 
-                    this.pauseKeyListeningUntilKeyUp();
                     this.onShowConfirmMenuScreen();
 
                 }
@@ -575,39 +537,22 @@ export default class GameGUI extends Component {
             // Pause?
             if( ( KeyCodes.ESC in keysDown ) || ( KeyCodes.P in keysDown ) ) {
 
-                this.pauseKeyListeningUntilKeyUp();
                 this.onPause();
 
             // Restart level?
             } else if( KeyCodes.R in keysDown ) {
 
-                this.pauseKeyListeningUntilKeyUp();
                 this.onShowConfirmRestartScreen();
 
             // Exit to menu?
             } else if( KeyCodes.M in keysDown ) {
 
-                this.pauseKeyListeningUntilKeyUp();
                 this.onShowConfirmMenuScreen();
 
             }
 
         }
-
-    }
-
-    pauseKeyListeningUntilKeyUp() {
-
-        this.keysDown = {};
-        window.removeEventListener( 'keydown', this.onKeyDown );
-        window.addEventListener( 'keyup', this.unpauseKeyListening );
-
-    }
-
-    unpauseKeyListening() {
-
-        window.addEventListener( 'keydown', this.onKeyDown );
-        window.removeEventListener( 'keyup', this.unpauseKeyListening );
+        */
 
     }
 

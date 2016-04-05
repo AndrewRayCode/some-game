@@ -65,8 +65,6 @@ export default class GameRenderer extends Component {
     constructor( props, context ) {
 
         super( props, context );
-
-        this.keysDown = {};
         
         const { playerPosition, playerScale, playerRadius } = props;
 
@@ -81,9 +79,6 @@ export default class GameRenderer extends Component {
             movableEntities: []
         };
 
-        this.onWindowBlur = this.onWindowBlur.bind( this );
-        this.onKeyDown = this.onKeyDown.bind( this );
-        this.onKeyUp = this.onKeyUp.bind( this );
         this._updatePhysics = this._updatePhysics.bind( this );
         this.onUpdate = this.onUpdate.bind( this );
         this._getMeshStates = this._getMeshStates.bind( this );
@@ -439,20 +434,12 @@ export default class GameRenderer extends Component {
 
     componentDidMount() {
 
-        window.addEventListener( 'blur', this.onWindowBlur );
-        window.addEventListener( 'keydown', this.onKeyDown );
-        window.addEventListener( 'keyup', this.onKeyUp );
-
         this._setupWorld( this.props );
         this._setupPhysics( this.props );
 
     }
 
     componentWillUnmount() {
-
-        window.removeEventListener( 'blur', this.onWindowBlur );
-        window.removeEventListener( 'keydown', this.onKeyDown );
-        window.removeEventListener( 'keyup', this.onKeyUp );
 
         this._teardownWorld();
 
@@ -641,7 +628,7 @@ export default class GameRenderer extends Component {
 
     }
 
-    _updatePhysics( elapsedTime, delta ) {
+    _updatePhysics( elapsedTime, delta, keysDown ) {
 
         if( this.state.touring || this.state.isAdvancing ) {
             return;
@@ -655,7 +642,6 @@ export default class GameRenderer extends Component {
             playerScale, playerRadius, currentLevelStaticEntitiesArray
         } = this.props;
         const { playerContact } = this.state;
-        const { keysDown } = this;
 
         const { playerBody, world } = this;
         const {
@@ -668,10 +654,10 @@ export default class GameRenderer extends Component {
         const velocityMoveMax = 5 * playerScale;
         const velocityMax = 10.0 * velocityMoveMax;
 
-        const isLeft = ( KeyCodes.A in keysDown ) || ( KeyCodes.LEFT in keysDown );
-        const isRight = ( KeyCodes.D in keysDown ) || ( KeyCodes.RIGHT in keysDown );
-        const isUp = ( KeyCodes.W in keysDown ) || ( KeyCodes.UP in keysDown );
-        const isDown = ( KeyCodes.S in keysDown ) || ( KeyCodes.DOWN in keysDown );
+        const isLeft = keysDown.isPressed( 'A' ) || keysDown.isPressed( 'LEFT' );
+        const isRight = keysDown.isPressed( 'D' ) || keysDown.isPressed( 'RIGHT' );
+        const isUp = keysDown.isPressed( 'W' ) || keysDown.isPressed( 'UP' );
+        const isDown = keysDown.isPressed( 'S' ) || keysDown.isPressed( 'DOWN' );
 
         const playerPosition = p2ToV3( playerPosition2D, 1 + playerRadius );
 
@@ -914,7 +900,7 @@ export default class GameRenderer extends Component {
 
             }
 
-            if( KeyCodes.SPACE in keysDown && this._canJump( world, playerBody ) ) {
+            if( keysDown.isPressed( 'SPACE' ) && this._canJump( world, playerBody ) ) {
 
                 playerVelocity[ 1 ] = -Math.sqrt( 1.5 * 4 * 9.8 * playerRadius );
 
@@ -1063,13 +1049,13 @@ export default class GameRenderer extends Component {
 
     }
 
-    onUpdate( elapsedTime, delta ) {
+    onUpdate( elapsedTime, delta, keysDown ) {
 
         if( !this.world ) {
             return;
         }
 
-        const { keysDown, playerBody } = this;
+        const { playerBody } = this;
         const { playerRadius, paused } = this.props;
         const { currentFlowPosition, } = this.state;
 
@@ -1089,7 +1075,7 @@ export default class GameRenderer extends Component {
         }
 
         // needs to be called before _getMeshStates
-        this._updatePhysics( elapsedTime, delta );
+        this._updatePhysics( elapsedTime, delta, keysDown );
 
         newState.movableEntities = this._getMeshStates( this.physicsBodies );
         newState.plankEntities = this._getPlankStates( this.plankData );
@@ -1108,25 +1094,6 @@ export default class GameRenderer extends Component {
         );
 
         this.setState( reducedState );
-
-    }
-
-    onWindowBlur() {
-
-        this.keysDown = {};
-
-    }
-
-    onKeyDown( event ) {
-
-        const which = { [ event.which ]: true };
-        this.keysDown = Object.assign( {}, this.keysDown, which );
-
-    }
-
-    onKeyUp( event ) {
-
-        this.keysDown = without( this.keysDown, event.which );
 
     }
 

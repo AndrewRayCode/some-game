@@ -31,7 +31,7 @@ export default function zoomInReducer( actions, props, oldState, currentState ) 
 
     const newState = {};
 
-    if( ( KeyCodes.K in keysDown ) && !zoomBackOutDuration ) {
+    if( keysDown.isPressed( 'K' ) && !zoomBackOutDuration ) {
 
         newState.zoomInStartTime = zoomInStartTime || time;
 

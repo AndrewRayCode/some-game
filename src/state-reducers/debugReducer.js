@@ -3,9 +3,7 @@ import THREE from 'three';
 
 export default function debugReducer( actions, props, oldState, currentState, next ) {
 
-    const {
-        sizeSwitch, debugSwitch, debug
-    } = oldState;
+    const { debug } = oldState;
 
     const { scalePlayer } = actions;
 
@@ -15,38 +13,23 @@ export default function debugReducer( actions, props, oldState, currentState, ne
 
     const newState = {};
 
-    if( KeyCodes['`'] in keysDown ) {
+    if( keysDown.isFirstPress( '`' ) ) {
 
-        if( !debugSwitch ) {
-            newState.debug = !debug;
-            newState.debugSwitch = true;
-        }
-
-    } else {
-
-        newState.debugSwitch = false;
+        newState.debug = !debug;
 
     }
 
-    if( ( KeyCodes['-'] in keysDown ) || ( KeyCodes['='] in keysDown ) ) {
+    const minusPressed = keysDown.isFirstPress( '-' );
+    if( minusPressed || keysDown.isFirstPress( '=' ) ) {
 
-        if( !sizeSwitch ) {
+        const radiusDiff = actions.scalePlayer(
+            playerRadius, playerPositionV3, playerDensity, null,
+            currentLevelId, minusPressed
+        );
 
-            const radiusDiff = actions.scalePlayer(
-                playerRadius, playerPositionV3, playerDensity, null,
-                currentLevelId, ( KeyCodes['-'] in keysDown )
-            );
-
-            newState.isShrinking = KeyCodes['-'] in keysDown;
-            newState.radiusDiff = radiusDiff;
-            newState.scaleStartTime = time;
-            newState.sizeSwitch = true;
-
-        }
-
-    } else {
-
-        newState.sizeSwitch = false;
+        newState.isShrinking = minusPressed;
+        newState.radiusDiff = radiusDiff;
+        newState.scaleStartTime = time;
 
     }
 

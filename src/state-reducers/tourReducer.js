@@ -16,7 +16,7 @@ export default function tourReducer( actions, props, oldState, currentState, nex
 
     const newState = {};
 
-    if( KeyCodes.T in keysDown ) {
+    if( keysDown.isPressed( 'T' ) ) {
 
         if( !touringSwitch ) {
             newState.currentTourPercent = 0;

@@ -1,9 +1,11 @@
 import Module from 'react-three-renderer/lib/Module';
+import KeyCodes from './KeyCodes';
 
 import PropTypes from 'react/lib/ReactPropTypes';
 
 import events from 'events';
 const { EventEmitter } = events;
+import { without } from './Utils';
 
 import THREE from 'three';
 const clock = new THREE.Clock();
@@ -12,6 +14,30 @@ class UpdateAllObjects extends Module {
     constructor() {
         super();
 
+        this.onWindowBlur = this.onWindowBlur.bind( this );
+        this.onKeyDown = this.onKeyDown.bind( this );
+        this.onKeyUp = this.onKeyUp.bind( this );
+
+        this._keysDown = {
+            keys: {},
+            reset() {
+                this.keys = {};
+            },
+            getKey( code ) {
+                return this.keys[ KeyCodes[ code ] ];
+            },
+            isRepeated( keyCode ) {
+                const keyTest = this.getKey( keyCode );
+                return keyTest && keyTest.repeat;
+            },
+            isFirstPress( keyCode ) {
+                const keyTest = this.getKey( keyCode );
+                return keyTest && keyTest.firstPress;
+            },
+            isPressed( keyCode ) {
+                return !!this.getKey( keyCode );
+            },
+        };
         this._updatePropName = 'onUpdate';
         this._patchedDescriptors = [];
         this._activeCallbacks = new EventEmitter();
@@ -20,7 +46,7 @@ class UpdateAllObjects extends Module {
 
     update() {
         const delta = clock.getDelta();
-        this._activeCallbacks.emit('update', clock.elapsedTime, delta );
+        this._activeCallbacks.emit('update', clock.elapsedTime, delta, this._keysDown );
     }
 
     _addUpdateCallback(threeObject, callback) {
@@ -66,8 +92,43 @@ class UpdateAllObjects extends Module {
         }
     };
 
+    onWindowBlur() {
+
+        this._keysDown.reset();
+
+    }
+
+    onKeyDown( event ) {
+
+        const { which: key } = event;
+        const alreadyPressed = this._keysDown.keys[ key ];
+
+        const keyData = {
+            [ key ]: alreadyPressed ? { repeat: true } : { firstPress: true }
+        };
+
+        if( key === KeyCodes.SPACE ||
+                key === KeyCodes.UP ||
+                key === KeyCodes.DOWN
+            ) {
+            event.preventDefault();
+        }
+
+        this._keysDown.keys = { ...this._keysDown.keys, ...keyData };
+
+    }
+
+    onKeyUp( event ) {
+
+        this._keysDown.keys = without( this._keysDown.keys, event.which );
+
+    }
+
     setup(react3RendererInstance) {
         super.setup(react3RendererInstance);
+        window.addEventListener( 'blur', this.onWindowBlur );
+        window.addEventListener( 'keydown', this.onKeyDown );
+        window.addEventListener( 'keyup', this.onKeyUp );
 
         const Object3DDescriptor = react3RendererInstance.threeElementDescriptors.object3D.constructor;
 
