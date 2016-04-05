@@ -1,4 +1,3 @@
-import KeyCodes from '../helpers/KeyCodes';
 import THREE from 'three';
 
 export default function tourReducer( actions, props, oldState, currentState, next ) {

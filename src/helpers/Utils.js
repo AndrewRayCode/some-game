@@ -451,3 +451,13 @@ export function deepArrayClone( arr ) {
     }
 
 }
+
+export function wrapNumber( newNumber, upper, lower = 0 ) {
+
+    if( newNumber < lower ) {
+        return upper - 1;
+    }
+
+    return newNumber % ( upper - lower );
+
+}

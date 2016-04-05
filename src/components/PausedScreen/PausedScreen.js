@@ -1,6 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import { Text } from '../';
+import { Text, Logo, SelectableMenu } from '../';
 import { getFrustrumAt } from '../../helpers/Utils';
 
 const gameWidth = 400;
@@ -14,6 +14,15 @@ const sceneOffset = new THREE.Vector3( 100, 100, 100 );
 
 const bgRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
 const bgPosition = new THREE.Vector3( 0, -2, 0 );
+
+const logoPosition = new THREE.Vector3( -5, 0, 0 );
+const logoScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 );
+
+const titlePosition = new THREE.Vector3( -1.9, 0, 0 );
+const titleScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 1.5 );
+
+const menuPosition = new THREE.Vector3( 2, 0, 0 );
+const menuScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
 
 const frustum = getFrustrumAt( cameraPosition.y + Math.abs( bgPosition.y ), cameraFov, cameraAspect );
 const bgScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( frustum.size().x );
@@ -30,54 +39,12 @@ export default class PausedScreen extends Component {
         onClickRegionEnter: PropTypes.func.isRequired,
     }
 
-    constructor( props, context ) {
-
-        super( props, context );
-
-        this.state = {};
-
-        this.onMouseDown = this.onMouseDown.bind( this );
-        this.onMouseEnter = this.onMouseEnter.bind( this );
-        this.onMouseLeave = this.onMouseLeave.bind( this );
-
-    }
-
-    onMouseDown( hovered, event ) {
-
-        if( hovered === 'restart' ) {
-
-            this.props.onRestart();
-
-        } else if( hovered === 'unpause' ) {
-
-            this.props.onUnpause();
-
-        } else if( hovered === 'menu' ) {
-
-            this.props.onShowConfirmMenuScreen();
-
-        }
-
-    }
-
-    onMouseEnter( hovered, event ) {
-
-        this.props.onClickRegionEnter();
-        this.setState({ [ hovered ]: true });
-
-    }
-
-    onMouseLeave( hovered, event ) {
-
-        this.props.onClickRegionLeave();
-        this.setState({ [ hovered ]: null });
-
-    }
-
     render() {
 
-        const { fonts, letters } = this.props;
-        const { unpause, menu, restart } = this.state;
+        const {
+            fonts, letters, onUnpause, onRestart, onShowConfirmMenuScreen,
+            onClickRegionEnter, onClickRegionLeave
+        } = this.props;
 
         return <object3D
             position={ sceneOffset }
@@ -107,19 +74,16 @@ export default class PausedScreen extends Component {
                 />
             </mesh>
 
-            <Text
-                position={ new THREE.Vector3( -4.5, 0, 0 ) }
-                scale={ new THREE.Vector3( 0.7, 0.7, 0.7 ) }
+            <Logo
+                position={ logoPosition }
+                scale={ logoScale }
                 fonts={ fonts }
                 letters={ letters }
-                fontName="Sniglet Regular"
-                text="Today I'm A Galaxy"
-                materialId="universeInALetter"
             />
 
             <Text
-                position={ new THREE.Vector3( -1, 0, 0 ) }
-                scale={ new THREE.Vector3( 1.5, 1.5, 1.5 ) }
+                position={ titlePosition }
+                scale={ titleScale }
                 text="Paused"
                 materialId="universeInALetter"
                 fontName="Sniglet Regular"
@@ -127,49 +91,27 @@ export default class PausedScreen extends Component {
                 letters={ letters }
             />
 
-            <Text
-                onMouseEnter={ this.onMouseEnter.bind( null, 'unpause' ) }
-                onMouseLeave={ this.onMouseLeave.bind( null, 'unpause') }
-                onMouseDown={ this.onMouseDown.bind( null, 'unpause' ) }
-                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 ) }
-                fontName="Sniglet Regular"
-                position={ new THREE.Vector3( 1, 0, 0 ) }
-                text="Unpause (p)"
-                materialId={
-                    unpause ? 'universeInAMenuHover' : 'universeInAMenu'
-                }
+            <SelectableMenu
+                position={ menuPosition }
+                scale={ menuScale }
                 fonts={ fonts }
                 letters={ letters }
-            />
-
-            <Text
-                onMouseEnter={ this.onMouseEnter.bind( null, 'restart' ) }
-                onMouseLeave={ this.onMouseLeave.bind( null, 'restart') }
-                onMouseDown={ this.onMouseDown.bind( null, 'restart' ) }
-                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 ) }
-                fontName="Sniglet Regular"
-                position={ new THREE.Vector3( 2.5, 0, 0 ) }
-                text="Restart This Level (r)"
-                materialId={
-                    restart ? 'universeInAMenuHover' : 'universeInAMenu'
-                }
-                fonts={ fonts }
-                letters={ letters }
-            />
-
-            <Text
-                onMouseEnter={ this.onMouseEnter.bind( null, 'menu' ) }
-                onMouseLeave={ this.onMouseLeave.bind( null, 'menu') }
-                onMouseDown={ this.onMouseDown.bind( null, 'menu' ) }
-                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 ) }
-                fontName="Sniglet Regular"
-                position={ new THREE.Vector3( 4, 0, 0 ) }
-                text="Return to Menu (m)"
-                materialId={
-                    menu ? 'universeInAMenuHover' : 'universeInAMenu'
-                }
-                fonts={ fonts }
-                letters={ letters }
+                onClickRegionEnter={ onClickRegionEnter }
+                onClickRegionLeave={ onClickRegionLeave }
+                menuOptions={[
+                    {
+                        text: 'Unpause (p)',
+                        onSelect: onUnpause
+                    },
+                    {
+                        text: 'Restart this level (r)',
+                        onSelect: onRestart
+                    },
+                    {
+                        text: 'Return to menu (m)',
+                        onSelect: onShowConfirmMenuScreen
+                    },
+                ]}
             />
 
         </object3D>;

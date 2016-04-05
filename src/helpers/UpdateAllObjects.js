@@ -37,6 +37,14 @@ class UpdateAllObjects extends Module {
             isPressed( keyCode ) {
                 return !!this.getKey( keyCode );
             },
+            updateFirstPressed() {
+                for( const key in this.keys ) {
+                    const keyData = this.keys[ key ];
+                    if( keyData.firstPress ) {
+                        this.keys[ key ] = { repeat: true };
+                    }
+                }
+            }
         };
         this._updatePropName = 'onUpdate';
         this._patchedDescriptors = [];
@@ -47,6 +55,11 @@ class UpdateAllObjects extends Module {
     update() {
         const delta = clock.getDelta();
         this._activeCallbacks.emit('update', clock.elapsedTime, delta, this._keysDown );
+
+        // The problem is onKeyPress is repeated, but multiple frames might
+        // elapse before that happens. Update all firstPress to repeat after
+        // our callbacks so they will only get firstPress on one frame
+        this._keysDown.updateFirstPressed();
     }
 
     _addUpdateCallback(threeObject, callback) {
@@ -101,10 +114,9 @@ class UpdateAllObjects extends Module {
     onKeyDown( event ) {
 
         const { which: key } = event;
-        const alreadyPressed = this._keysDown.keys[ key ];
 
         const keyData = {
-            [ key ]: alreadyPressed ? { repeat: true } : { firstPress: true }
+            [ key ]: this._keysDown.keys[ key ] || { firstPress: true }
         };
 
         if( key === KeyCodes.SPACE ||

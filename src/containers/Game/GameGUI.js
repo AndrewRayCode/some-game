@@ -239,7 +239,9 @@ export default class GameGUI extends Component {
 
         super( props, context );
 
-        this.state = {};
+        this.state = {
+            elapsedTime: 0
+        };
 
         this.selectBook = this.selectBook.bind( this );
         this.onExitToMenuConfirm = this.onExitToMenuConfirm.bind( this );
@@ -735,6 +737,9 @@ export default class GameGUI extends Component {
                     <GameRenderer
                         { ...this.props }
                         paused={ paused }
+                        onPause={ this.onPause }
+                        onShowConfirmRestartScreen={ this.onShowConfirmRestartScreen }
+                        onShowConfirmMenuScreen={ this.onShowConfirmMenuScreen }
                         ref="gameRenderer"
                         fonts={ fonts }
                         letters={ letters }

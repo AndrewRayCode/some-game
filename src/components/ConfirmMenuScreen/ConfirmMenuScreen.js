@@ -1,6 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import { Text } from '../';
+import { Text, SelectableMenu } from '../';
 
 const gameWidth = 400;
 const gameHeight = 400;
@@ -15,6 +15,15 @@ const bgRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
 const bgPosition = new THREE.Vector3( 0, -2, 0 );
 const bgScale = new THREE.Vector3( 18, 18, 18 );
 
+const topTextPosition = new THREE.Vector3( -4.5, 0, 0 );
+const topTextScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.9 );
+
+const bottomTextPosition =  new THREE.Vector3( -3, 0, 0 );
+const bottomTextScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.9 );
+
+const menuPosition = new THREE.Vector3( 2, 0, 0 );
+const menuScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
+
 export default class ConfirmRestartScreen extends Component {
     
     static propTypes = {
@@ -26,50 +35,12 @@ export default class ConfirmRestartScreen extends Component {
         onClickRegionEnter: PropTypes.func.isRequired,
     }
 
-    constructor( props, context ) {
-
-        super( props, context );
-
-        this.state = {};
-
-        this.onMouseDown = this.onMouseDown.bind( this );
-        this.onMouseEnter = this.onMouseEnter.bind( this );
-        this.onMouseLeave = this.onMouseLeave.bind( this );
-
-    }
-
-    onMouseDown( hovered, event ) {
-
-        if( hovered === 'confirm' ) {
-
-            this.props.onConfirm();
-
-        } else if( hovered === 'deny' ) {
-
-            this.props.onDeny();
-
-        }
-
-    }
-
-    onMouseEnter( hovered, event ) {
-
-        this.props.onClickRegionEnter();
-        this.setState({ [ hovered ]: true });
-
-    }
-
-    onMouseLeave( hovered, event ) {
-
-        this.props.onClickRegionLeave();
-        this.setState({ [ hovered ]: null });
-
-    }
-
     render() {
 
-        const { fonts, letters } = this.props;
-        const { confirm, deny } = this.state;
+        const {
+            fonts, letters, onConfirm, onDeny, onClickRegionLeave,
+            onClickRegionEnter,
+        } = this.props;
 
         return <object3D
             position={ sceneOffset }
@@ -100,8 +71,8 @@ export default class ConfirmRestartScreen extends Component {
             </mesh>
 
             <Text
-                position={ new THREE.Vector3( -4.5, 0, 0 ) }
-                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.9 ) }
+                position={ topTextPosition }
+                scale={ topTextScale }
                 text="Return to"
                 materialId="universeInALetter"
                 fontName="Sniglet Regular"
@@ -109,43 +80,32 @@ export default class ConfirmRestartScreen extends Component {
                 letters={ letters }
             />
             <Text
-                position={ new THREE.Vector3( -3, 0, 0 ) }
-                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.9 ) }
+                position={ bottomTextPosition }
+                scale={ bottomTextScale }
                 text="Menu?"
                 materialId="universeInALetter"
                 fontName="Sniglet Regular"
                 fonts={ fonts }
                 letters={ letters }
             />
-
-            <Text
-                onMouseEnter={ this.onMouseEnter.bind( null, 'confirm' ) }
-                onMouseLeave={ this.onMouseLeave.bind( null, 'confirm') }
-                onMouseDown={ this.onMouseDown.bind( null, 'confirm' ) }
-                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 ) }
-                fontName="Sniglet Regular"
-                position={ new THREE.Vector3( 1, 0, 0 ) }
-                text="Yup"
-                materialId={
-                    confirm ? 'universeInAMenuHover' : 'universeInAMenu'
-                }
+            
+            <SelectableMenu
+                position={ menuPosition }
+                scale={ menuScale }
                 fonts={ fonts }
                 letters={ letters }
-            />
-
-            <Text
-                onMouseEnter={ this.onMouseEnter.bind( null, 'deny' ) }
-                onMouseLeave={ this.onMouseLeave.bind( null, 'deny') }
-                onMouseDown={ this.onMouseDown.bind( null, 'deny' ) }
-                scale={ new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 ) }
-                fontName="Sniglet Regular"
-                position={ new THREE.Vector3( 2.5, 0, 0 ) }
-                text="Nope"
-                materialId={
-                    deny ? 'universeInAMenuHover' : 'universeInAMenu'
-                }
-                fonts={ fonts }
-                letters={ letters }
+                onClickRegionEnter={ onClickRegionEnter }
+                onClickRegionLeave={ onClickRegionLeave }
+                menuOptions={[
+                    {
+                        text: 'Yup',
+                        onSelect: onConfirm
+                    },
+                    {
+                        text: 'Nope',
+                        onSelect: onDeny
+                    },
+                ]}
             />
 
         </object3D>;

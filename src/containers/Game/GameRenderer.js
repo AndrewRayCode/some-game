@@ -10,8 +10,8 @@ import {
     applyMiddleware, deepArrayClone
 } from '../../helpers/Utils';
 import {
-    tourReducer, zoomReducer, entityInteractionReducer, debugReducer,
-    advanceLevelReducer, defaultCameraReducer
+    gameKeyPressReducer, tourReducer, zoomReducer, entityInteractionReducer,
+    debugReducer, advanceLevelReducer, defaultCameraReducer
 } from '../../state-reducers';
 
 const radialPoint = ( total, index ) => [
@@ -58,6 +58,9 @@ const yAxis = p2.vec2.fromValues( 0, -1 );
 export default class GameRenderer extends Component {
 
     static propTypes = {
+        onPause: PropTypes.func.isRequired,
+        onShowConfirmRestartScreen: PropTypes.func.isRequired,
+        onShowConfirmMenuScreen: PropTypes.func.isRequired,
         fonts: PropTypes.object.isRequired,
         letters: PropTypes.object.isRequired,
     }
@@ -66,7 +69,10 @@ export default class GameRenderer extends Component {
 
         super( props, context );
         
-        const { playerPosition, playerScale, playerRadius } = props;
+        const {
+            playerPosition, playerScale, playerRadius, onPause, advanceChapter,
+            onShowConfirmMenuScreen, onShowConfirmRestartScreen
+        } = props;
 
         this.state = {
             touring: false,
@@ -80,7 +86,7 @@ export default class GameRenderer extends Component {
         };
 
         this._updatePhysics = this._updatePhysics.bind( this );
-        this.onUpdate = this.onUpdate.bind( this );
+        this._onUpdate = this._onUpdate.bind( this );
         this._getMeshStates = this._getMeshStates.bind( this );
         this._getPlankStates = this._getPlankStates.bind( this );
         this._getAnchorStates = this._getAnchorStates.bind( this );
@@ -92,7 +98,8 @@ export default class GameRenderer extends Component {
         // Things to pass to reducers so they can call them
         this.reducerActions = {
             scalePlayer: this.scalePlayer,
-            advanceChapter: props.advanceChapter
+            onPause, advanceChapter, onShowConfirmMenuScreen,
+            onShowConfirmRestartScreen
         };
 
     }
@@ -1049,7 +1056,7 @@ export default class GameRenderer extends Component {
 
     }
 
-    onUpdate( elapsedTime, delta, keysDown ) {
+    _onUpdate( elapsedTime, delta, keysDown ) {
 
         if( !this.world ) {
             return;
@@ -1089,7 +1096,7 @@ export default class GameRenderer extends Component {
         // Apply the middleware
         const reducedState = applyMiddleware(
             this.reducerActions, this.props, this.state, newState,
-            tourReducer, advanceLevelReducer, zoomReducer, debugReducer,
+            gameKeyPressReducer, tourReducer, advanceLevelReducer, zoomReducer, debugReducer,
             entityInteractionReducer, defaultCameraReducer
         );
 
@@ -1136,7 +1143,7 @@ export default class GameRenderer extends Component {
         );
 
         return <object3D
-            onUpdate={ this.onUpdate }
+            onUpdate={ this._onUpdate }
         >
 
             <perspectiveCamera

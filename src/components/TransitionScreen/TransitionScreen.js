@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import THREE from 'three';
 import { getFrustrumAt } from '../../helpers/Utils';
 
@@ -18,60 +18,8 @@ const frustum = getFrustrumAt( cameraPosition.y + Math.abs( bgPosition.y ), came
 const bgScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( frustum.size().x );
 
 export default class TransitionScreen extends Component {
-    
-    static propTypes = {
-        letters: PropTypes.object.isRequired,
-        fonts: PropTypes.object.isRequired,
-        onConfirm: PropTypes.func.isRequired,
-        onDeny: PropTypes.func.isRequired,
-        onClickRegionLeave: PropTypes.func.isRequired,
-        onClickRegionEnter: PropTypes.func.isRequired,
-    }
-
-    constructor( props, context ) {
-
-        super( props, context );
-
-        this.state = {};
-
-        this.onMouseDown = this.onMouseDown.bind( this );
-        this.onMouseEnter = this.onMouseEnter.bind( this );
-        this.onMouseLeave = this.onMouseLeave.bind( this );
-
-    }
-
-    onMouseDown( hovered, event ) {
-
-        if( hovered === 'confirm' ) {
-
-            this.props.onConfirm();
-
-        } else if( hovered === 'deny' ) {
-
-            this.props.onDeny();
-
-        }
-
-    }
-
-    onMouseEnter( hovered, event ) {
-
-        this.props.onClickRegionEnter();
-        this.setState({ [ hovered ]: true });
-
-    }
-
-    onMouseLeave( hovered, event ) {
-
-        this.props.onClickRegionLeave();
-        this.setState({ [ hovered ]: null });
-
-    }
 
     render() {
-
-        const { fonts, letters } = this.props;
-        const { confirm, deny } = this.state;
 
         return <object3D
             position={ sceneOffset }
