@@ -391,7 +391,6 @@ export default class Editor extends Component {
 
         return () => {
 
-            console.log(id,property,newValue);
             this.props.changeEntityProperty(
                 id,
                 property,
@@ -997,6 +996,18 @@ export default class Editor extends Component {
                         opacity: [ 0.1, 0 ],
                         materialId: 'regularWater',
                         foamMaterialId: 'waterFoam'
+                    };
+
+                } else if( createType === 'shrink' ) {
+
+                    entityData = {
+                        wrapMaterialId: 'shrinkColors',
+                    };
+
+                } else if( createType === 'grow' ) {
+
+                    entityData = {
+                        wrapMaterialId: 'growColors',
                     };
 
                 }
@@ -1798,7 +1809,7 @@ export default class Editor extends Component {
                     </button>
                     <button onClick={ this.selectType( 'shrink' ) }>
                         { createType === 'shrink' && '✓' }
-                        <Kbd>S</Kbd>hrink
+                        Shrin<Kbd>k</Kbd>
                     </button>
                     <button onClick={ this.selectType( 'grow' ) }>
                         { createType === 'grow' && '✓' }

@@ -128,9 +128,9 @@ export default function entityInteractionReducer( actions, props, oldState, curr
 
         // A multiplier on the player where 0.5 = base scale
         newState.adjustedPlayerScale = new THREE.Vector3(
+            newPlayerRadius + easeInBack( THREE.Math.clamp( ( currentScalePercent - 0.25 ) / 0.75, 0, 1 ) ) * radiusDiff,
             newPlayerRadius + easeInElastic( THREE.Math.clamp( ( currentScalePercent - 0.25 ) / 0.75, 0, 1 ) ) * radiusDiff,
-            newPlayerRadius + easeInElastic( THREE.Math.clamp( ( currentScalePercent - 0.25 ) / 0.75, 0, 1 ) ) * radiusDiff,
-            newPlayerRadius + easeInElastic( Math.min( currentScalePercent / 0.75, 1 ) ) * radiusDiff,
+            newPlayerRadius + easeInBounce( Math.min( currentScalePercent / 0.75, 1 ) ) * radiusDiff,
         );
 
         newState.scalingOffsetZ = newState.adjustedPlayerScale.z - newPlayerRadius;
