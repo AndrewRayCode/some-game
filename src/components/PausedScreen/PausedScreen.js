@@ -21,7 +21,7 @@ const logoScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 );
 const titlePosition = new THREE.Vector3( -1.9, 0, 0 );
 const titleScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 1.5 );
 
-const menuPosition = new THREE.Vector3( 2, 0, 0 );
+const menuPosition = new THREE.Vector3( 2.6, 0, 0 );
 const menuScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
 
 const frustum = getFrustrumAt( cameraPosition.y + Math.abs( bgPosition.y ), cameraFov, cameraAspect );
@@ -39,6 +39,36 @@ export default class PausedScreen extends Component {
         onClickRegionEnter: PropTypes.func.isRequired,
     }
 
+    constructor( props ) {
+        super( props );
+        this._onAnimate = this._onAnimate.bind( this );
+    }
+
+    _onAnimate( elapsedTime, delta, keysDown ) {
+
+        const {
+            onUnpause, onRestart, onShowConfirmMenuScreen,
+        } = this.props;
+
+        if( keysDown.isFirstPress( 'P' ) ||
+            keysDown.isFirstPress( 'ESC' ) ||
+            keysDown.isFirstPress( 'SPACE' )
+        ) {
+
+            onUnpause();
+
+        } else if( keysDown.isFirstPress( 'R' ) ) {
+
+            onRestart();
+
+        } else if( keysDown.isFirstPress( 'M' ) ) {
+
+            onShowConfirmMenuScreen();
+
+        }
+
+    }
+
     render() {
 
         const {
@@ -47,6 +77,7 @@ export default class PausedScreen extends Component {
         } = this.props;
 
         return <object3D
+            onUpdate={ this._onAnimate }
             position={ sceneOffset }
         >
 

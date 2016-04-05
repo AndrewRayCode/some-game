@@ -6,7 +6,7 @@ export default function gameKeyPressReducer( actions, props, oldState, currentSt
     const { paused } = props;
     const { keysDown } = currentState;
 
-    if( keysDown.isFirstPress( 'P' ) ) {
+    if( keysDown.isFirstPress( 'P' ) || keysDown.isFirstPress( 'ESC' ) ) {
 
         actions.onPause();
         return currentState;

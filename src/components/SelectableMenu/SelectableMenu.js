@@ -36,6 +36,18 @@ export default class SelectableMenu extends Component {
 
     }
 
+    componentDidMount() {
+
+        this.mounted = true;
+
+    }
+
+    componentWillUnmount() {
+
+        this.mounted = false;
+
+    }
+
     onMouseEnter( selectedIndex ) {
 
         this.props.onClickRegionEnter();
@@ -51,6 +63,10 @@ export default class SelectableMenu extends Component {
 
     _onAnimate( elapsedTime, delta, keysDown ) {
 
+        if( !this.mounted ) {
+            return;
+        }
+
         const { menuOptions } = this.props;
         const { length } = menuOptions;
         const { selectedIndex } = this.state;
@@ -58,12 +74,12 @@ export default class SelectableMenu extends Component {
             time: elapsedTime
         };
 
-        if( keysDown.isFirstPress( 'DOWN' ) ) {
+        if( keysDown.isFirstPress( 'DOWN' ) || keysDown.isFirstPress( 'J' ) || keysDown.isFirstPress( 'S' ) ) {
 
             this.props.onClickRegionLeave();
             newState.selectedIndex = wrapNumber( selectedIndex + 1, length );
 
-        } else if( keysDown.isFirstPress( 'UP' ) ) {
+        } else if( keysDown.isFirstPress( 'UP' ) || keysDown.isFirstPress( 'K' ) || keysDown.isFirstPress( 'W' ) ) {
 
             this.props.onClickRegionLeave();
             newState.selectedIndex = wrapNumber( selectedIndex - 1, length );
@@ -126,7 +142,7 @@ export default class SelectableMenu extends Component {
                     new THREE.Vector3(
                         ( textSpacing * selectedIndex ) - ( textSpacing * length * 0.5 ),
                         0,
-                        menuOptions[ selectedIndex ].text.length * 0.5
+                        menuOptions[ selectedIndex ].text.length * 0.6
                     )
                 }
                 ref="mesh"
