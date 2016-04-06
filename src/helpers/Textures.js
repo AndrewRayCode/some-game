@@ -7,6 +7,7 @@ const Textures = {
     purpleStuccoBorder: require( '../../assets/purple-stucco-border.png' ),
     sfHouse: require( '../../assets/sf-house.png' ),
     earth: require( '../../assets/earth-texture.jpg' ),
+    moon: require( '../../assets/moon-texture.jpg' ),
     greenEye: require( '../../assets/green-eye.png' ),
 };
 

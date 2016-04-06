@@ -1132,7 +1132,7 @@ export default class GameRenderer extends Component {
             playerRadius, playerScale, nextChapters, nextChaptersEntities,
             previousChapterEntities, previousChapterEntity,
             currentLevelRenderableEntitiesArray, previousChapterFinishEntity,
-            assets, shaders, paused,
+            assets, shaders, paused, playerMaterial
         } = this.props;
 
         const { playerBody } = this;
@@ -1171,7 +1171,7 @@ export default class GameRenderer extends Component {
                 radius={ playerRadius }
                 scale={ adjustedPlayerScale }
                 rotation={ playerRotation }
-                materialId="earth"
+                materialId={ playerMaterial }
                 time={ time }
             />
 

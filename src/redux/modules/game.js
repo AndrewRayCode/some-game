@@ -86,6 +86,7 @@ export function game( state = defaultGameState, action = {} ) {
             return {
                 ...state,
                 chapters, books,
+                playerMaterial: 'earth',
 
                 recursionBusterId: recursionBusterId || state.recursionBusterId,
 
@@ -126,6 +127,7 @@ export function game( state = defaultGameState, action = {} ) {
 
             return {
                 ...state,
+                playerMaterial: 'moon',
                 playerRadius: state.playerRadius * action.multiplier,
                 playerScale: state.playerScale * action.multiplier,
                 levels: {
