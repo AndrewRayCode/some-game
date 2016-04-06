@@ -16,6 +16,7 @@ export default class Waterfall extends Component {
         world: PropTypes.object,
         paused: PropTypes.bool,
         time: PropTypes.number,
+        maxLength: PropTypes.number.isRequired,
         playerRadius: PropTypes.number,
         playerBody: PropTypes.object,
         colors: PropTypes.array,
@@ -59,7 +60,7 @@ export default class Waterfall extends Component {
                 opacitySpread={ 0.1 }
                 velocity={ velocity }
                 velocitySpread={ velocitySpread }
-                color={ colors }
+                colors={ colors }
                 angle={ angle }
                 angleSpread={ angleSpread }
                 size={ 0.7 }

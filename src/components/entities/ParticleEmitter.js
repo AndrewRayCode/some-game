@@ -4,7 +4,7 @@ import SPE from 'shader-particle-engine';
 import { str2Hex } from '../../helpers/Utils';
 
 const arrayOrNumber = PropTypes.oneOfType([
-    PropTypes.array, PropTypes.number
+     PropTypes.number
 ]);
 const arrayOrObject = PropTypes.oneOfType([
     PropTypes.object, PropTypes.number
@@ -15,17 +15,18 @@ const emitterOffset = new THREE.Vector3( 0, -1, 0 );
 export default class ParticleEmitter extends Component {
 
     static propTypes = {
+        type: PropTypes.string,
         emitterPosition: PropTypes.object.isRequired,
-        rotation: PropTypes.object,
+        rotation: PropTypes.object.isRequired,
         texture: PropTypes.string.isRequired,
         maxAge: PropTypes.number,
         position: PropTypes.object.isRequired,
-        positionSpread: PropTypes.object,
+        positionSpread: PropTypes.object.isRequired,
         opacity: arrayOrNumber,
         opacitySpread: PropTypes.number,
         velocity: PropTypes.number.isRequired,
-        velocitySpread: PropTypes.object,
-        color: arrayOrObject,
+        velocitySpread: PropTypes.object.isRequired,
+        colors: PropTypes.array.isRequired,
         colorSpread: PropTypes.object,
         angle: arrayOrNumber,
         angleSpread: PropTypes.number,
@@ -59,17 +60,18 @@ export default class ParticleEmitter extends Component {
 
         const {
             rotation, velocity, velocitySpread, opacity, positionSpread,
-            maxAge, angle, angleSpread, color
+            maxAge, angle, angleSpread, colors, size
         } = nextProps;
 
         if( this.emitter ) {
             if(
                 velocity !== this.props.velocity ||
                 rotation !== this.props.rotation ||
-                color !== this.props.color ||
+                colors !== this.props.colors ||
                 velocitySpread !== this.props.velocitySpread ||
                 positionSpread !== this.props.positionSpread ||
                 opacity !== this.props.opacity ||
+                size !== this.props.size ||
                 angle !== this.props.angle ||
                 angleSpread !== this.props.angleSpread ||
                 maxAge !== this.props.maxAge
@@ -88,9 +90,9 @@ export default class ParticleEmitter extends Component {
 
         const {
             positionSpread, rotation, texture, maxAge, opacity,
-            opacitySpread, velocity, velocitySpread, color, colorSpread, angle,
+            opacitySpread, velocity, velocitySpread, colors, colorSpread, angle,
             angleSpread, size, sizeSpread, wiggle, wiggleSpread,
-            particleCount,
+            particleCount, type
         } = props;
 
         const particleGroup = new SPE.Group({
@@ -98,6 +100,7 @@ export default class ParticleEmitter extends Component {
         });
         
         const emitter = new SPE.Emitter({
+            type,
             maxAge: { value: maxAge },
             position: {
                 value: defaultPosition.clone().applyQuaternion( rotation ),
@@ -112,7 +115,7 @@ export default class ParticleEmitter extends Component {
                 spread: velocitySpread.clone().applyQuaternion( rotation )
             },
             color: {
-                value: color.map( c => new THREE.Color(
+                value: colors.map( c => new THREE.Color(
                     typeof c === 'string' ? str2Hex( c ) : c
                 ) ),
                 spread: colorSpread

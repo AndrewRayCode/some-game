@@ -1,6 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import { Eye } from '../';
+import { Eye, ParticleEmitter } from '../';
 
 const defaultScale = new THREE.Vector3( 2, 2, 2 );
 const localPlayerRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
@@ -9,6 +9,14 @@ const eyeScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
 
 const leftEyePosition = new THREE.Vector3( -0.3, 0.2, -0.3 );
 const rightEyePosition = leftEyePosition.clone().setX( -leftEyePosition.x );
+
+const particlePosition = new THREE.Vector3( 0, 0, 0 );
+const particleRotation = new THREE.Quaternion( 0, 0, 0, 1 )
+    .setFromEuler( new THREE.Euler( 0, Math.PI / 2, 0 ) );
+const particlePositionSpread = new THREE.Vector3( 1, 1, 1 );
+const particleVelocitySpread = new THREE.Vector3( 0, 0, 0 );
+const particleColors = [ 0xaaddff, 0xddccff ];
+const particleSize = 0.1;
 
 export default class Player extends Component {
 
@@ -27,7 +35,12 @@ export default class Player extends Component {
 
         super( props, context );
 
-        this.state = this._getStateFromProps( props );
+        this.state = {
+            ...this._getStateFromProps( props ),
+            particleMaterial: __CLIENT__ ? THREE.ImageUtils.loadTexture(
+                require( '../../../assets/twinkle-particle.png' )
+            ) : null,
+        };
 
     }
 
@@ -59,7 +72,7 @@ export default class Player extends Component {
             position, rotation, quaternion, radius, materialId, time, assets,
         } = this.props;
 
-        const { computedScale } = this.state;
+        const { computedScale, particleMaterial } = this.state;
 
         return <group
             ref="mesh"
@@ -68,6 +81,18 @@ export default class Player extends Component {
             rotation={ rotation }
             scale={ computedScale }
         >
+            <ParticleEmitter
+                texture={ particleMaterial }
+                position={ particlePosition }
+                rotation={ particleRotation }
+                positionSpread={ particlePositionSpread }
+                type="disc"
+                maxLength={ 2 }
+                velocity={ 1 }
+                velocitySpread={ particleVelocitySpread }
+                colors={ particleColors }
+                size={ particleSize }
+            />
             <Eye
                 scale={ eyeScale }
                 assets={ assets }

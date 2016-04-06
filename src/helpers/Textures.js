@@ -9,6 +9,7 @@ const Textures = {
     earth: require( '../../assets/earth-texture.jpg' ),
     moon: require( '../../assets/moon-texture.jpg' ),
     greenEye: require( '../../assets/green-eye.png' ),
+    twinkleParticle: require( '../../assets/twinkle-particle.png' ),
 };
 
 export default Textures;

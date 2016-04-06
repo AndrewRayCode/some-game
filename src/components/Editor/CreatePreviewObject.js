@@ -133,6 +133,9 @@ export default class CreatePreviewObject extends Component {
                     scale={ scale }
                     rotation={ createPreviewRotation }
                     position={ createPreviewPosition }
+                    maxLength={ 2 }
+                    velocity={ 2 }
+                    colors={[ 0xff0000 ]}
                     helperMaterial="ghostMaterial"
                     ref="previewPosition"
                     materialId="ghostMaterial"
