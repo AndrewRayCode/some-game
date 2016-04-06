@@ -113,7 +113,7 @@ export default class GameRenderer extends Component {
 
         // Player to wall
         const playerToWallContact = new p2.ContactMaterial( playerMaterial, wallMaterial, {
-            friction: 1.0,
+            friction: 0.0,
             // Bounciness (0-1, higher is bouncier). How much energy is conserved
             // after a collision
             restitution: 0.1,
