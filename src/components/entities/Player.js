@@ -47,6 +47,7 @@ export default class Player extends Component {
             ref="mesh"
             position={ position }
             quaternion={ quaternion }
+            rotation={ rotation }
             scale={ computedScale }
         >
             <geometryResource

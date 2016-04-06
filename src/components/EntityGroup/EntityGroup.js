@@ -249,7 +249,7 @@ export default class EntityGroup extends Component {
                         rotation={ entity.rotation }
                         quaternion={ entity.quaternion }
                         radius={ 0.5 }
-                        materialId="playerMaterial"
+                        materialId="ornateWall2"
                     />;
 
                 } else {

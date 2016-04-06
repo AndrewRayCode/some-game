@@ -7,7 +7,7 @@ import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,
     lookAtVector, findNextTube, snapTo, lerpVectors, v3toP2, p2ToV3,
-    applyMiddleware, deepArrayClone
+    applyMiddleware, deepArrayClone, p2AngleToEuler
 } from '../../helpers/Utils';
 import {
     gameKeyPressReducer, tourReducer, zoomReducer, entityInteractionReducer,
@@ -112,7 +112,7 @@ export default class GameRenderer extends Component {
 
         // Player to wall
         const playerToWallContact = new p2.ContactMaterial( playerMaterial, wallMaterial, {
-            friction: 0.0,
+            friction: 1.0,
             // Bounciness (0-1, higher is bouncier). How much energy is conserved
             // after a collision
             restitution: 0.1,
@@ -965,7 +965,7 @@ export default class GameRenderer extends Component {
                     ...planks, {
                         position: p2ToV3( position, plankBody.depth )
                             .sub( entity.position ),
-                        rotation: new THREE.Euler( 0, -angle, 0 )
+                        rotation: p2AngleToEuler( angle )
                     }
                 ]
             };
@@ -1011,7 +1011,7 @@ export default class GameRenderer extends Component {
 
         const playerBody = new p2.Body({
             mass: getSphereMass( density, radius ),
-            fixedRotation: true,
+            //fixedRotation: true,
             position
         });
 
@@ -1073,6 +1073,7 @@ export default class GameRenderer extends Component {
         const newState = {
             keysDown, cameraFov,
             playerPositionV3: playerPosition,
+            playerRotation: p2AngleToEuler( playerBody.angle ),
             time: elapsedTime
         };
 
@@ -1118,7 +1119,7 @@ export default class GameRenderer extends Component {
             cameraTourTarget, entrance1, entrance2, tubeFlow, tubeIndex,
             currentScalePercent, radiusDiff, currentTransitionPosition,
             currentTransitionTarget, plankEntities, anchorEntities,
-            playerContact, scalingOffsetZ, adjustedPlayerScale
+            playerContact, scalingOffsetZ, adjustedPlayerScale, playerRotation
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1162,7 +1163,8 @@ export default class GameRenderer extends Component {
                 position={ playerPosition }
                 radius={ playerRadius }
                 scale={ adjustedPlayerScale }
-                materialId="playerMaterial"
+                rotation={ playerRotation }
+                materialId="ornateWall2"
             />
 
             <EntityGroup

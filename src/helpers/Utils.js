@@ -394,6 +394,12 @@ export function clampVector3( v3, min, max ) {
 
 }
 
+export function p2AngleToEuler( angle ) {
+
+    return new THREE.Euler( 0, -angle, 0 );
+
+}
+
 export function v3toP2( v3 ) {
 
     return [ v3.x, v3.z ];

@@ -35,6 +35,22 @@ export default class ConfirmMenuScreen extends Component {
         onClickRegionEnter: PropTypes.func.isRequired,
     }
 
+    _onAnimate( elapsedTime, delta, keysDown ) {
+
+        const { onConfirm, onDeny, } = this.props;
+
+        if( keysDown.isFirstPress( 'ESC' ) ) {
+
+            onDeny();
+
+        } else if( keysDown.isFirstPress( 'R' ) ) {
+
+            onConfirm();
+
+        }
+
+    }
+
     render() {
 
         const {
