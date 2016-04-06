@@ -11,7 +11,8 @@ import {
 } from '../../helpers/Utils';
 import {
     gameKeyPressReducer, tourReducer, zoomReducer, entityInteractionReducer,
-    debugReducer, advanceLevelReducer, defaultCameraReducer
+    debugReducer, advanceLevelReducer, defaultCameraReducer,
+    playerRotationReducer
 } from '../../state-reducers';
 
 const radialPoint = ( total, index ) => [
@@ -666,6 +667,11 @@ export default class GameRenderer extends Component {
         const isUp = keysDown.isPressed( 'W' ) || keysDown.isPressed( 'UP' );
         const isDown = keysDown.isPressed( 'S' ) || keysDown.isPressed( 'DOWN' );
 
+        newState.isLeft = isLeft;
+        newState.isRight = isRight;
+        newState.isUp = isUp;
+        newState.isDown = isDown;
+
         const playerPosition = p2ToV3( playerPosition2D, 1 + playerRadius );
 
         const playerSnapped = new THREE.Vector3(
@@ -1011,7 +1017,7 @@ export default class GameRenderer extends Component {
 
         const playerBody = new p2.Body({
             mass: getSphereMass( density, radius ),
-            //fixedRotation: true,
+            fixedRotation: true,
             position
         });
 
@@ -1073,7 +1079,6 @@ export default class GameRenderer extends Component {
         const newState = {
             keysDown, cameraFov,
             playerPositionV3: playerPosition,
-            playerRotation: p2AngleToEuler( playerBody.angle ),
             time: elapsedTime
         };
 
@@ -1097,8 +1102,9 @@ export default class GameRenderer extends Component {
         // Apply the middleware
         const reducedState = applyMiddleware(
             this.reducerActions, this.props, this.state, newState,
-            gameKeyPressReducer, tourReducer, advanceLevelReducer, zoomReducer, debugReducer,
-            entityInteractionReducer, defaultCameraReducer
+            gameKeyPressReducer, tourReducer, advanceLevelReducer, zoomReducer,
+            debugReducer, entityInteractionReducer, defaultCameraReducer,
+            playerRotationReducer
         );
 
         this.setState( reducedState );
@@ -1160,11 +1166,13 @@ export default class GameRenderer extends Component {
 
             <Player
                 ref="player"
+                assets={ assets }
                 position={ playerPosition }
                 radius={ playerRadius }
                 scale={ adjustedPlayerScale }
                 rotation={ playerRotation }
-                materialId="ornateWall2"
+                materialId="earth"
+                time={ time }
             />
 
             <EntityGroup

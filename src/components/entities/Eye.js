@@ -2,19 +2,19 @@ import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import { Mesh } from '../';
 
-export default class TubeBend extends Component {
+export default class Eye extends Component {
 
     render() {
 
         const { position, rotation, scale, materialId, assets } = this.props;
 
         return <Mesh
-            ref="child"
+            ref="mesh"
             position={ position }
-            rotation={ rotation }
+            quaternion={ rotation }
             scale={ scale }
             assets={ assets }
-            mesh="tubeBend"
+            mesh="eye"
             materialId={ materialId }
         />;
 

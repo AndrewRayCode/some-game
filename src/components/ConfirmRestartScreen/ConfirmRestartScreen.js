@@ -35,6 +35,13 @@ export default class ConfirmMenuScreen extends Component {
         onClickRegionEnter: PropTypes.func.isRequired,
     }
 
+    constructor( props ) {
+
+        super( props );
+        this._onAnimate = this._onAnimate.bind( this );
+
+    }
+
     _onAnimate( elapsedTime, delta, keysDown ) {
 
         const { onConfirm, onDeny, } = this.props;
@@ -60,6 +67,7 @@ export default class ConfirmMenuScreen extends Component {
 
         return <object3D
             position={ sceneOffset }
+            onUpdate={ this._onAnimate }
         >
 
             <perspectiveCamera

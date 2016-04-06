@@ -245,11 +245,12 @@ export default class EntityGroup extends Component {
                     return <Player
                         ref={ entity.id }
                         key={ entity.id }
+                        assets={ assets }
                         position={ entity.position }
                         rotation={ entity.rotation }
                         quaternion={ entity.quaternion }
                         radius={ 0.5 }
-                        materialId="ornateWall2"
+                        materialId="earth"
                     />;
 
                 } else {

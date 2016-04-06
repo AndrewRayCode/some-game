@@ -22,6 +22,8 @@ export EntityGroup from './EntityGroup/EntityGroup';
 export ArrayEditor from './ArrayEditor/ArrayEditor';
 
 // Individual entities
+export Mesh from './entities/Mesh';
+export Eye from './entities/Eye';
 export CurvedWall from './entities/CurvedWall';
 export DiamondBox from './entities/DiamondBox';
 export ChamferBox from './entities/ChamferBox';

@@ -6,6 +6,8 @@ const Textures = {
     brownStuccoBorder: require( '../../assets/brown-stucco-border.png' ),
     purpleStuccoBorder: require( '../../assets/purple-stucco-border.png' ),
     sfHouse: require( '../../assets/sf-house.png' ),
+    earth: require( '../../assets/earth-texture.jpg' ),
+    greenEye: require( '../../assets/green-eye.png' ),
 };
 
 export default Textures;

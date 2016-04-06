@@ -100,6 +100,9 @@ export function assetsReducer( assets = {}, action = {} ) {
     switch( action.type ) {
 
         case LOAD_SUCCESS:
+            if( assets[ action.name ] ) {
+                throw new Error( `Error: An asset named "${ action.name }" has already been loaded.` );
+            }
             if( action.model instanceof THREE.Geometry ) {
                 return {
                     ...assets,
@@ -201,6 +204,11 @@ export function loadAllAssets() {
         dispatch( loadAsset(
             require( '../../../assets/models/houseSF.obj' ),
             { name: 'house' }
+        ));
+
+        dispatch( loadAsset(
+            require( '../../../assets/models/eye.json' ),
+            { name: 'eye' }
         ));
 
         dispatch( loadAsset(
