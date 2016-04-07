@@ -20,7 +20,6 @@ export default class ParticleEmitter extends Component {
         rotation: PropTypes.object.isRequired,
         texture: PropTypes.string.isRequired,
         maxAge: PropTypes.number,
-        position: PropTypes.object.isRequired,
         positionSpread: PropTypes.object.isRequired,
         opacity: arrayOrNumber,
         opacitySpread: PropTypes.number,

@@ -16,7 +16,8 @@ const particleRotation = new THREE.Quaternion( 0, 0, 0, 1 )
 const particlePositionSpread = new THREE.Vector3( 1, 1, 1 );
 const particleVelocitySpread = new THREE.Vector3( 0, 0, 0 );
 const particleColors = [ 0xaaddff, 0xddccff ];
-const particleSize = 0.1;
+const particleSize = 0.4;
+const particleCount = 10;
 
 export default class Player extends Component {
 
@@ -74,51 +75,54 @@ export default class Player extends Component {
 
         const { computedScale, particleMaterial } = this.state;
 
-        return <group
-            ref="mesh"
-            position={ position }
-            quaternion={ quaternion }
-            rotation={ rotation }
-            scale={ computedScale }
-        >
+        return <group>
             <ParticleEmitter
                 texture={ particleMaterial }
-                position={ particlePosition }
+                emitterPosition={ position }
                 rotation={ particleRotation }
                 positionSpread={ particlePositionSpread }
                 type="disc"
-                maxLength={ 2 }
+                maxLength={ radius * 2.5 }
                 velocity={ 1 }
                 velocitySpread={ particleVelocitySpread }
                 colors={ particleColors }
                 size={ particleSize }
+                particleCount={ particleCount }
             />
-            <Eye
-                scale={ eyeScale }
-                assets={ assets }
-                rotation={ localEyeRotation }
-                position={ leftEyePosition }
-                mesh="eye"
-                materialId="greenEye"
-            />
-            <Eye
-                scale={ eyeScale }
-                assets={ assets }
-                rotation={ localEyeRotation }
-                position={ rightEyePosition }
-                mesh="eye"
-                materialId="greenEye"
-            />
-            <mesh
-                rotation={ new THREE.Euler( -Math.PI / 2, time * 0.25, 0, ) }
+            <group
+                ref="mesh"
+                position={ position }
+                quaternion={ quaternion }
+                rotation={ rotation }
+                scale={ computedScale }
             >
-                <geometryResource
-                    resourceId="playerGeometry"
+                <Eye
+                    scale={ eyeScale }
+                    assets={ assets }
+                    rotation={ localEyeRotation }
+                    position={ leftEyePosition }
+                    mesh="eye"
+                    materialId="greenEye"
                 />
-                <materialResource
-                    resourceId={ materialId }
+                <Eye
+                    scale={ eyeScale }
+                    assets={ assets }
+                    rotation={ localEyeRotation }
+                    position={ rightEyePosition }
+                    mesh="eye"
+                    materialId="greenEye"
                 />
-            </mesh>
+                <mesh
+                    rotation={ new THREE.Euler( -Math.PI / 2, time * 0.25, 0, ) }
+                >
+                    <geometryResource
+                        resourceId="playerGeometry"
+                    />
+                    <materialResource
+                        resourceId={ materialId }
+                    />
+                </mesh>
+            </group>
         </group>;
 
     }
