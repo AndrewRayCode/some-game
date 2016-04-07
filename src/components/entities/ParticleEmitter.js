@@ -17,13 +17,18 @@ export default class ParticleEmitter extends Component {
     static propTypes = {
         type: PropTypes.string,
         emitterPosition: PropTypes.object.isRequired,
+        emitterRadius: PropTypes.number,
         rotation: PropTypes.object.isRequired,
+        rotationAxis: PropTypes.object,
+        rotationAngle: PropTypes.number,
         texture: PropTypes.string.isRequired,
         maxAge: PropTypes.number,
         positionSpread: PropTypes.object.isRequired,
         opacity: arrayOrNumber,
         opacitySpread: PropTypes.number,
-        velocity: PropTypes.number.isRequired,
+        velocity: PropTypes.number,
+        velocityDistribution: PropTypes.number,
+        velocityV3: PropTypes.object,
         velocitySpread: PropTypes.object.isRequired,
         colors: PropTypes.array.isRequired,
         colorSpread: PropTypes.object,
@@ -59,11 +64,13 @@ export default class ParticleEmitter extends Component {
 
         const {
             rotation, velocity, velocitySpread, opacity, positionSpread,
-            maxAge, angle, angleSpread, colors, size
+            maxAge, angle, angleSpread, colors, size, type, emitterRadius,
+            velocityV3, rotationAxis, rotationAngle, velocityDistribution
         } = nextProps;
 
         if( this.emitter ) {
             if(
+                type !== this.props.type ||
                 velocity !== this.props.velocity ||
                 rotation !== this.props.rotation ||
                 colors !== this.props.colors ||
@@ -73,7 +80,12 @@ export default class ParticleEmitter extends Component {
                 size !== this.props.size ||
                 angle !== this.props.angle ||
                 angleSpread !== this.props.angleSpread ||
-                maxAge !== this.props.maxAge
+                emitterRadius !== this.props.emitterRadius ||
+                rotationAxis !== this.props.rotationAxis ||
+                rotationAngle !== this.props.rotationAngle ||
+                maxAge !== this.props.maxAge ||
+                velocityV3 !== this.props.velocityV3 ||
+                velocityDistribution !== this.props.velocityDistribution
             ) {
 
                 this.tearDownEmitter();
@@ -91,7 +103,8 @@ export default class ParticleEmitter extends Component {
             positionSpread, rotation, texture, maxAge, opacity,
             opacitySpread, velocity, velocitySpread, colors, colorSpread, angle,
             angleSpread, size, sizeSpread, wiggle, wiggleSpread,
-            particleCount, type
+            particleCount, type, emitterRadius, velocityV3, rotationAxis,
+            rotationAngle, velocityDistribution,
         } = props;
 
         const particleGroup = new SPE.Group({
@@ -104,20 +117,26 @@ export default class ParticleEmitter extends Component {
             position: {
                 value: defaultPosition.clone().applyQuaternion( rotation ),
                 spread: positionSpread.clone().applyQuaternion( rotation ),
+                radius: emitterRadius,
             },
             opacity: {
                 value: opacity,
                 spread: opacitySpread
             },
             velocity: {
-                value: new THREE.Vector3( velocity, 0, 0 ).clone().applyQuaternion( rotation ),
-                spread: velocitySpread.clone().applyQuaternion( rotation )
+                value: velocityV3 || new THREE.Vector3( velocity, 0, 0 ).clone().applyQuaternion( rotation ),
+                spread: velocitySpread.clone().applyQuaternion( rotation ),
+                distribution: velocityDistribution,
             },
             color: {
                 value: colors.map( c => new THREE.Color(
                     typeof c === 'string' ? str2Hex( c ) : c
                 ) ),
                 spread: colorSpread
+            },
+            rotation: {
+                axis: rotationAxis,
+                angle: rotationAngle,
             },
             angle: {
                 value: angle,
