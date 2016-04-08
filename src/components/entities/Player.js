@@ -13,17 +13,18 @@ const rightEyePosition = leftEyePosition.clone().setX( -leftEyePosition.x );
 
 const particleVelocityDistribution = SPE.distributions.BOX;
 const particleRotationAxis = new THREE.Vector3( 0, 0, 1 );
-const particleRotationAngle = 5;
-const particleOpacity = [ 0, 1, 1, 1, 1, 0 ];
-const particleVelocity = new THREE.Vector3( 0, 0, -1 );
+const particleRotationAngle = 8;
+const particleOpacity = [ 0.2, 1, 0 ];
+const particleVelocity = new THREE.Vector3( 0, 0, -2 );
 const particleVelocitySpread = new THREE.Vector3( 0, 0, 0 );
 
 const particlePositionSpread = new THREE.Vector3( 0.8, 0, 0.8 );
 
 const particleRotation = new THREE.Quaternion( 0, 0, 0, 1 )
     .setFromEuler( new THREE.Euler( 0, Math.PI / 2, 0 ) );
-const particleColors = [ 0xaaddff, 0xddccff ];
-const particleSize = 0.2;
+const particleColors = [ 0x4433ff, 0x225588 ];
+const particleSize = 0.4;
+const particleSizeSpread = [ 0.4, 2 ];
 const particleCount = 100;
 const emitterRadius = 0.6;
 
@@ -33,6 +34,8 @@ export default class Player extends Component {
         position: PropTypes.object,
         rotation: PropTypes.object,
         quaternion: PropTypes.object,
+        scaleEffectsVisible: PropTypes.bool,
+        scaleEffectsEnabled: PropTypes.bool,
         scale: PropTypes.object,
         materialId: PropTypes.string,
         assets: PropTypes.object,
@@ -45,7 +48,7 @@ export default class Player extends Component {
         super( props, context );
 
         this.state = {
-            ...this._getStateFromProps( props ),
+            ...this._getStateFromProps( props, true ),
             particleMaterial: __CLIENT__ ? THREE.ImageUtils.loadTexture(
                 require( '../../../assets/twinkle-particle.png' )
             ) : null,
@@ -63,18 +66,26 @@ export default class Player extends Component {
 
     }
 
-    _getStateFromProps( props ) {
+    _getStateFromProps( props, forceUpdate ) {
 
         const { scale, radius } = props;
 
-        return {
-            positionSpread: particlePositionSpread
-                .clone()
-                .multiplyScalar( radius ),
+        const newState = {
             computedScale: scale ?
                 defaultScale.clone().multiply( scale ) :
                 defaultScale.clone().multiplyScalar( radius )
         };
+
+        if( forceUpdate || ( props.radius !== this.props.radius ) ) {
+
+            newState.positionSpread = particlePositionSpread
+                .clone()
+                .multiplyScalar( radius );
+            newState.sizeSpread = particleSizeSpread.map( val => val * radius );
+
+        }
+
+        return newState;
 
     }
 
@@ -82,11 +93,11 @@ export default class Player extends Component {
 
         const {
             position, rotation, quaternion, radius, materialId, time, assets,
-            scale
+            scale, scaleEffectsVisible, scaleEffectsEnabled,
         } = this.props;
 
         const {
-            computedScale, particleMaterial, positionSpread
+            computedScale, particleMaterial, positionSpread, sizeSpread
         } = this.state;
 
         const emitterPosition = position
@@ -111,7 +122,8 @@ export default class Player extends Component {
                     resourceId="redDebugMaterial"
                 />
             </mesh>*/}
-            <ParticleEmitter
+            { scaleEffectsVisible ? <ParticleEmitter
+                enabled={ scaleEffectsEnabled }
                 texture={ particleMaterial }
                 emitterPosition={ emitterPosition }
                 rotation={ particleRotation }
@@ -121,15 +133,16 @@ export default class Player extends Component {
                 velocitySpread={ particleVelocitySpread }
                 colors={ particleColors }
                 size={ particleSize - ( radius * 0.1 ) }
+                sizeSpread={ sizeSpread }
                 particleCount={ particleCount }
                 type={ SPE.distributions.DISC }
-                emitterRadius={ emitterRadius }
+                emitterRadius={ radius * 2.2 }
                 velocityDistribution={ particleVelocityDistribution }
                 rotationAxis={ particleRotationAxis }
                 rotationAngle={ particleRotationAngle * radius }
                 opacity={ particleOpacity }
-                maxAge={ radius * 2.5 }
-            />
+                maxAge={ radius * 3.5 }
+            /> : null }
             <group
                 ref="mesh"
                 position={ position }

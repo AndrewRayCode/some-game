@@ -29,7 +29,7 @@ export default function debugReducer( actions, props, oldState, currentState, ne
 
         newState.isShrinking = minusPressed;
         newState.radiusDiff = radiusDiff;
-        newState.scaleStartTime = time;
+        newState.scaleStartTime = time + 0.25; // seconds :(
 
     }
 

@@ -65,7 +65,8 @@ export default class ParticleEmitter extends Component {
         const {
             rotation, velocity, velocitySpread, opacity, positionSpread,
             maxAge, angle, angleSpread, colors, size, type, emitterRadius,
-            velocityV3, rotationAxis, rotationAngle, velocityDistribution
+            velocityV3, rotationAxis, rotationAngle, velocityDistribution,
+            enabled
         } = nextProps;
 
         if( this.emitter ) {
@@ -93,6 +94,12 @@ export default class ParticleEmitter extends Component {
 
             }
 
+            if( enabled === false ) {
+
+                this.emitter.disable();
+
+            }
+
         }
 
     }
@@ -113,6 +120,7 @@ export default class ParticleEmitter extends Component {
         
         const emitter = new SPE.Emitter({
             type,
+            alphaTest: 0.01,
             maxAge: { value: maxAge },
             position: {
                 value: defaultPosition.clone().applyQuaternion( rotation ),

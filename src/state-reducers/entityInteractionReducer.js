@@ -5,7 +5,11 @@ import {
 import THREE from 'three';
 import { easeInElastic, easeInBounce, easeInOutElastic, easeInBack, easeInExpo } from 'easing-utils';
 
+const emitterVisibleDurationMs = 1000;
 const scaleDurationMs = 1000;
+const scaleStartDelayMs = 250;
+
+const totalScaleDurationSeconds = ( emitterVisibleDurationMs + scaleDurationMs + scaleStartDelayMs ) / 1000;
 
 export default function entityInteractionReducer( actions, props, oldState, currentState, next ) {
 
@@ -98,7 +102,7 @@ export default function entityInteractionReducer( actions, props, oldState, curr
             );
 
             newState.isShrinking = isShrinking;
-            newState.scaleStartTime = time;
+            newState.scaleStartTime = time + ( scaleStartDelayMs / 1000 );
             newState.radiusDiff = radiusDiff;
 
             break;
@@ -107,7 +111,9 @@ export default function entityInteractionReducer( actions, props, oldState, curr
 
     }
 
-    if( newState.scaleStartTime || oldState.scaleStartTime || /* from the debugger */currentState.scaleStartTime  ) {
+
+    const scaleStartTime = newState.scaleStartTime || oldState.scaleStartTime || /* from the debugger */currentState.scaleStartTime;
+    if( scaleStartTime ) {
 
         const radiusDiff = oldState.radiusDiff || newState.radiusDiff || currentState.radiusDiff;
 
@@ -117,8 +123,10 @@ export default function entityInteractionReducer( actions, props, oldState, curr
             playerRadius :
             playerRadius * ( ( newState.isShrinking || currentState.isShrinking ) ? 0.5 : 2 );
 
-        const scaleStartTime = newState.scaleStartTime || oldState.scaleStartTime || currentState.scaleStartTime;
-        const currentScalePercent = 1 - ( ( ( time - scaleStartTime ) * 1000 ) / scaleDurationMs );
+        newState.playerScaleEffectsEnabled = true;
+        newState.playerScaleEffectsVisible = true;
+
+        const currentScalePercent = 1 - ( ( Math.max( time - scaleStartTime, 0 ) * 1000 ) / scaleDurationMs );
 
         const scaleValue = currentScalePercent * radiusDiff;
         newState.scaleValue = scaleValue;
@@ -132,7 +140,7 @@ export default function entityInteractionReducer( actions, props, oldState, curr
         );
 
         newState.scalingOffsetZ = newState.adjustedPlayerScale.z - newPlayerRadius;
-        
+
         if( currentScalePercent <= 0 ) {
 
             newState.isShrinking = null;
@@ -141,8 +149,14 @@ export default function entityInteractionReducer( actions, props, oldState, curr
             newState.adjustedPlayerScale = null;
             newState.adjustedPlayerRadius = null;
             newState.currentScalePercent = null;
-            newState.scaleStartTime = null;
             newState.radiusDiff = null;
+            newState.playerScaleEffectsEnabled = false;
+
+            if( time > scaleStartTime + totalScaleDurationSeconds ) {
+                newState.playerScaleEffectsEnabled = null;
+                newState.playerScaleEffectsVisible = null;
+                newState.scaleStartTime = null;
+            }
 
         } else {
 

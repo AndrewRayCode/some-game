@@ -1125,7 +1125,8 @@ export default class GameRenderer extends Component {
             cameraTourTarget, entrance1, entrance2, tubeFlow, tubeIndex,
             currentScalePercent, radiusDiff, currentTransitionPosition,
             currentTransitionTarget, plankEntities, anchorEntities,
-            playerContact, scalingOffsetZ, adjustedPlayerScale, playerRotation
+            playerContact, scalingOffsetZ, adjustedPlayerScale, playerRotation,
+            playerScaleEffectsEnabled, playerScaleEffectsVisible
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1167,6 +1168,8 @@ export default class GameRenderer extends Component {
             <Player
                 ref="player"
                 assets={ assets }
+                scaleEffectsEnabled={ playerScaleEffectsEnabled }
+                scaleEffectsVisible={ playerScaleEffectsVisible }
                 position={ playerPosition }
                 radius={ playerRadius }
                 scale={ adjustedPlayerScale }
