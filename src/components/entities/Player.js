@@ -13,20 +13,20 @@ const rightEyePosition = leftEyePosition.clone().setX( -leftEyePosition.x );
 
 const particleVelocityDistribution = SPE.distributions.BOX;
 const particleRotationAxis = new THREE.Vector3( 0, 0, 1 );
-const particleRotationAngle = 8;
+const particleRotationAngle = 10;
 const particleOpacity = [ 0.2, 1, 0 ];
-const particleVelocity = new THREE.Vector3( 0, 0, -2 );
+const particleVelocity = new THREE.Vector3( 0, 0, -1 );
 const particleVelocitySpread = new THREE.Vector3( 0, 0, 0 );
 
 const particlePositionSpread = new THREE.Vector3( 0.8, 0, 0.8 );
 
 const particleRotation = new THREE.Quaternion( 0, 0, 0, 1 )
     .setFromEuler( new THREE.Euler( 0, Math.PI / 2, 0 ) );
-const particleColors = [ 0x4433ff, 0x225588 ];
+const particleColors = [ 0x4433ff, 0x8855ff ];
 const particleSize = 0.4;
 const particleSizeSpread = [ 0.4, 2 ];
 const particleCount = 100;
-const emitterRadius = 0.6;
+const emitterRadius = 2.1;
 
 export default class Player extends Component {
 
@@ -136,7 +136,7 @@ export default class Player extends Component {
                 sizeSpread={ sizeSpread }
                 particleCount={ particleCount }
                 type={ SPE.distributions.DISC }
-                emitterRadius={ radius * 2.2 }
+                emitterRadius={ radius * emitterRadius }
                 velocityDistribution={ particleVelocityDistribution }
                 rotationAxis={ particleRotationAxis }
                 rotationAngle={ particleRotationAngle * radius }
