@@ -188,8 +188,6 @@ export function uid() {
 
 export function assignUvs( geometry ) {
 
-    console.log('workign with',geometry);
-
     geometry.computeBoundingBox();
 
     const max     = geometry.boundingBox.max;
@@ -465,5 +463,18 @@ export function wrapNumber( newNumber, upper, lower = 0 ) {
     }
 
     return newNumber % ( upper - lower );
+
+}
+
+export function getTextWidth( text, fontName ) {
+
+    // i'm lazy and will make this a passed arg later
+    const font = window.fonts[ fontName ];
+
+    return text.split( '' ).reduce( ( memo, letter ) => {
+        return (
+            ( font[ letter ].props.userData.ha * 0.001 ) || 20
+        ) + memo;
+    }, 0 );
 
 }

@@ -12,47 +12,47 @@ const FONT_LOAD = 'assets/FONT_LOAD';
 const FONT_LOAD_SUCCESS = 'assets/FONT_LOAD_SUCCESS';
 const FONT_LOAD_FAIL = 'assets/FONT_LOAD_FAIL';
 
+const ASSETS_LOADING = 'assets/ASSETS_LOADING';
 const ASSETS_LOADED = 'assets/ASSETS_LOADED';
 
 const ADD_SHADER = 'assets/ADD_SHADER';
 
-export function letterGeometryReducer( letters = {}, action = {} ) {
+export function letterGeometryReducer( fonts = {}, action = {} ) {
 
     switch( action.type ) {
 
         case FONT_LOAD_SUCCESS:
-            const name = action.payload.font.data.original_font_information.full_font_name;
+            const fontName = action.payload.font.data.original_font_information.full_font_name;
             const { font } = action.payload;
             const { glyphs } = font.data;
 
+            // Don't re-create fonts on hot reload on client side
             window.fonts = window.fonts || {};
+            const letterGeometries = window.fonts[ fontName ] || Object.keys( glyphs ).reduce( ( memo, glyph ) => ({
+                ...memo,
+                [ glyph ]: <textGeometry
+                    key={ glyph }
+                    resourceId={ `${ fontName }_${ glyph }` }
+                    userData={ glyphs[ glyph ] }
+                    size={ 1 }
+                    height={ 0.25 }
+                    bevelEnabled
+                    bevelThickness={ 0.1 }
+                    bevelSize={ 0.01 }
+                    font={ font }
+                    text={ glyph }
+                />
+            }), {} );
+
+            window.fonts[ fontName ] = letterGeometries;
 
             return {
-                ...letters,
-                [ name ]: Object.keys( glyphs ).reduce( ( memo, glyph ) => {
-                    const data = glyphs[ glyph ];
-                    const glyphName = `${ name }_${ glyph }`;
-                    window.fonts[ glyphName ] = window.fonts[ glyphName ] || {
-                        ...memo,
-                        [ glyph ]: <textGeometry
-                            key={ glyphName }
-                            resourceId={ glyphName }
-                            userData={ data }
-                            size={ 1 }
-                            height={ 0.25 }
-                            bevelEnabled
-                            bevelThickness={ 0.1 }
-                            bevelSize={ 0.01 }
-                            font={ font }
-                            text={ glyph }
-                        />
-                    };
-                    return window.fonts[ glyphName ];
-                }, {} )
+                ...fonts,
+                [ fontName ]: letterGeometries
             };
 
         default:
-            return letters;
+            return fonts;
             
     }
 
@@ -77,6 +77,20 @@ export function fontsReducer( fonts = {}, action = {} ) {
         default:
             return fonts;
             
+    }
+
+}
+
+export function loadingAssetsReducer( state = false, action = {} ) {
+
+    switch( action.type ) {
+
+        case ASSETS_LOADING:
+            return true;
+
+        default:
+            return state;
+
     }
 
 }
@@ -192,9 +206,17 @@ export function areAssetsLoaded( globalState ) {
 
 }
 
+export function assetsLoading() {
+    return {
+        type: ASSETS_LOADING
+    };
+}
+
 export function loadAllAssets() {
 
     return dispatch => {
+
+        dispatch( assetsLoading() );
 
         dispatch( loadAsset(
             require( '../../../assets/models/multiwall.json' ),

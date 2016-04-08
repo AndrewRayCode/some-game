@@ -29,6 +29,7 @@ export default class ConfirmMenuScreen extends Component {
     static propTypes = {
         letters: PropTypes.object.isRequired,
         fonts: PropTypes.object.isRequired,
+        assets: PropTypes.object.isRequired,
         onConfirm: PropTypes.func.isRequired,
         onDeny: PropTypes.func.isRequired,
         onClickRegionLeave: PropTypes.func.isRequired,
@@ -62,7 +63,7 @@ export default class ConfirmMenuScreen extends Component {
 
         const {
             fonts, letters, onConfirm, onDeny, onClickRegionLeave,
-            onClickRegionEnter,
+            onClickRegionEnter, assets
         } = this.props;
 
         return <object3D
@@ -117,6 +118,7 @@ export default class ConfirmMenuScreen extends Component {
                 position={ menuPosition }
                 scale={ menuScale }
                 fonts={ fonts }
+                assets={ assets }
                 letters={ letters }
                 onClickRegionEnter={ onClickRegionEnter }
                 onClickRegionLeave={ onClickRegionLeave }

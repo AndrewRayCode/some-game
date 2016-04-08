@@ -24,7 +24,9 @@ import GameGUI from './GameGUI';
 @connect(
     state => ({
         assetsLoaded: state.assetsLoaded,
-        fonts: state.fonts
+        assetsLoading: state.assetsLoading,
+        fonts: state.fonts,
+        assets: state.assets,
     }),
     dispatch => bindActionCreators({
         loadAllAssets, deserializeLevels,
@@ -36,41 +38,29 @@ export default class GameContainer extends Component {
         store: PropTypes.object.isRequired
     }
 
-    constructor( props, context ) {
-
-        super( props, context );
-        this.state = {};
-
-    }
-
     componentDidMount() {
 
-        // Hack to to client side *only* actions
-        this.clientSet = setTimeout( () => {
+        const {
+            assetsLoaded, assetsLoading,
+            deserializeLevels: deserialize,
+            loadAllAssets: loadAll,
+        } = this.props;
 
-            window.THREE = THREE;
-            window.p2 = p2;
+        window.THREE = THREE;
+        window.p2 = p2;
 
-            if( !this.props.assetsLoaded ) {
-                this.props.deserializeLevels();
-                this.props.loadAllAssets();
-            }
-
-            this.setState({ isClient: true });
-
-        }, 0 );
-
-    }
-
-    componentWillUnmount() {
-
-        window.clearTimeout( this.clientSet );
+        if( !assetsLoaded && !assetsLoading ) {
+            deserialize();
+            loadAll();
+        }
 
     }
 
     render() {
 
-        if( !this.state.isClient || !( 'Sniglet Regular' in this.props.fonts ) ) {
+        const { fonts, assets } = this.props;
+
+        if( !__CLIENT__ || !( 'Sniglet Regular' in fonts ) || !( 'eye' in assets ) ) {
             return <div>Loading&hellip;</div>;
         }
 

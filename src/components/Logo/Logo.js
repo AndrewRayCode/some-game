@@ -30,7 +30,7 @@ export default class Logo extends Component {
                 fonts={ fonts }
                 letters={ letters }
                 fontName="Sniglet Regular"
-                text="Today"
+                text="Today,"
                 materialId="universeInALetter"
             />
             <Text

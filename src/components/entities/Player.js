@@ -22,10 +22,11 @@ const particlePositionSpread = new THREE.Vector3( 0.8, 0, 0.8 );
 
 const particleRotation = new THREE.Quaternion( 0, 0, 0, 1 )
     .setFromEuler( new THREE.Euler( 0, Math.PI / 2, 0 ) );
-const particleColors = [ 0x4433ff, 0x8855ff ];
+const particleColors = [ 0x4433ff, 0xddbbff ];
+const colorSpread = new THREE.Vector3( 0.4, 0.2, 0.2 );
 const particleSize = 0.4;
 const particleSizeSpread = [ 0.4, 2 ];
-const particleCount = 100;
+const particleCount = 50;
 const emitterRadius = 2.1;
 
 export default class Player extends Component {
@@ -37,9 +38,9 @@ export default class Player extends Component {
         scaleEffectsVisible: PropTypes.bool,
         scaleEffectsEnabled: PropTypes.bool,
         scale: PropTypes.object,
-        materialId: PropTypes.string,
-        assets: PropTypes.object,
-        radius: PropTypes.number,
+        materialId: PropTypes.string.isRequired,
+        assets: PropTypes.object.isRequired,
+        radius: PropTypes.number.isRequired,
         time: PropTypes.number,
     };
 
@@ -109,19 +110,6 @@ export default class Player extends Component {
             );
 
         return <group>
-            {/*<mesh
-                position={ emitterPosition }
-                scale={
-                    new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.4 * radius )
-                }
-            >
-                <geometryResource
-                    resourceId="radius1sphere"
-                />
-                <materialResource
-                    resourceId="redDebugMaterial"
-                />
-            </mesh>*/}
             { scaleEffectsVisible ? <ParticleEmitter
                 enabled={ scaleEffectsEnabled }
                 texture={ particleMaterial }
@@ -132,6 +120,7 @@ export default class Player extends Component {
                 velocityV3={ particleVelocity }
                 velocitySpread={ particleVelocitySpread }
                 colors={ particleColors }
+                colorSpread={ colorSpread }
                 size={ particleSize - ( radius * 0.1 ) }
                 sizeSpread={ sizeSpread }
                 particleCount={ particleCount }

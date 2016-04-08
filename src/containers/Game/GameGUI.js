@@ -67,6 +67,7 @@ const transitionFadeMs = 1000;
                 originalLevels,
                 originalEntities,
                 fonts, letters,
+                assets,
             };
 
         }
@@ -563,6 +564,7 @@ export default class GameGUI extends Component {
 
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
+            assets,
         } = this.props;
 
         // The mainCamera stuff is confusing. I don't fully understand it. All
@@ -656,6 +658,7 @@ export default class GameGUI extends Component {
                         onShowConfirmMenuScreen={ this.onShowConfirmMenuScreen }
                         ref="gameRenderer"
                         fonts={ fonts }
+                        assets={ assets }
                         letters={ letters }
                         mouseInput={ mouseInput }
                     /> : <TitleScreen
@@ -664,6 +667,7 @@ export default class GameGUI extends Component {
                         onClickRegionEnter={ this.onClickRegionEnter }
                         mouseInput={ mouseInput }
                         fonts={ fonts }
+                        assets={ assets }
                         letters={ letters }
                         onSelect={ this.selectBook }
                         books={ Object.values( books ) }
@@ -676,6 +680,7 @@ export default class GameGUI extends Component {
                     onClickRegionLeave={ this.onClickRegionLeave }
                     onClickRegionEnter={ this.onClickRegionEnter }
                     onUnpause={ this.onUnpause }
+                    assets={ assets }
                     onRestart={ this.onShowConfirmRestartScreen }
                     onShowConfirmMenuScreen={ this.onShowConfirmMenuScreen }
                     fonts={ fonts }
@@ -688,6 +693,7 @@ export default class GameGUI extends Component {
                     onClickRegionLeave={ this.onClickRegionLeave }
                     onClickRegionEnter={ this.onClickRegionEnter }
                     onConfirm={ this.onConfirmRestart }
+                    assets={ assets }
                     onDeny={ this.onDenyRestart }
                     fonts={ fonts }
                     letters={ letters }
@@ -699,6 +705,7 @@ export default class GameGUI extends Component {
                     onClickRegionLeave={ this.onClickRegionLeave }
                     onClickRegionEnter={ this.onClickRegionEnter }
                     onConfirm={ this.onExitToMenuConfirm }
+                    assets={ assets }
                     onDeny={ this.onExitToMenuDeny }
                     fonts={ fonts }
                     letters={ letters }

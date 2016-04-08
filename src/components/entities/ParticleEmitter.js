@@ -15,7 +15,7 @@ const emitterOffset = new THREE.Vector3( 0, -1, 0 );
 export default class ParticleEmitter extends Component {
 
     static propTypes = {
-        type: PropTypes.string,
+        type: PropTypes.number,
         emitterPosition: PropTypes.object.isRequired,
         emitterRadius: PropTypes.number,
         rotation: PropTypes.object.isRequired,
@@ -35,7 +35,7 @@ export default class ParticleEmitter extends Component {
         angle: arrayOrNumber,
         angleSpread: PropTypes.number,
         size: arrayOrNumber,
-        sizeSpread: PropTypes.object,
+        sizeSpread: arrayOrNumber,
         wiggle: PropTypes.number,
         wiggleSpread: PropTypes.number,
         particleCount: PropTypes.number
@@ -66,7 +66,7 @@ export default class ParticleEmitter extends Component {
             rotation, velocity, velocitySpread, opacity, positionSpread,
             maxAge, angle, angleSpread, colors, size, type, emitterRadius,
             velocityV3, rotationAxis, rotationAngle, velocityDistribution,
-            enabled
+            enabled, colorSpread
         } = nextProps;
 
         if( this.emitter ) {
@@ -77,6 +77,7 @@ export default class ParticleEmitter extends Component {
                 colors !== this.props.colors ||
                 velocitySpread !== this.props.velocitySpread ||
                 positionSpread !== this.props.positionSpread ||
+                colorSpread !== this.props.colorSpread ||
                 opacity !== this.props.opacity ||
                 size !== this.props.size ||
                 angle !== this.props.angle ||

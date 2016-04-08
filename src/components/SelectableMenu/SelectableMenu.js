@@ -1,10 +1,12 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import { Text } from '../';
-import { wrapNumber } from '../../helpers/Utils';
+import { Text, Player } from '../';
+import { wrapNumber, getTextWidth } from '../../helpers/Utils';
 
 const textScale = new THREE.Vector3( 1, 1, 0.5 );
 const textSpacing = 1.8;
+const fontName = 'Sniglet Regular';
+const characterMenuRotaiton = new THREE.Euler( Math.PI / 2, Math.PI / 2, -Math.PI / 2 );
 
 export default class SelectableMenu extends Component {
     
@@ -13,6 +15,7 @@ export default class SelectableMenu extends Component {
             text: PropTypes.string.isRequired,
             onSelect: PropTypes.func.isRequired,
         })).isRequired,
+        assets: React.PropTypes.object.isRequired,
         scale: React.PropTypes.object,
         position: React.PropTypes.object,
         fonts: React.PropTypes.object.isRequired,
@@ -98,7 +101,7 @@ export default class SelectableMenu extends Component {
     render() {
 
         const {
-            menuOptions, scale, position, fonts, letters,
+            menuOptions, scale, position, fonts, letters, assets,
         } = this.props;
         const { selectedIndex, time } = this.state;
 
@@ -123,7 +126,7 @@ export default class SelectableMenu extends Component {
                     scale={ textScale }
                     fonts={ fonts }
                     letters={ letters }
-                    fontName="Sniglet Regular"
+                    fontName={ fontName }
                     text={ text }
                     materialId={
                         index === selectedIndex ?
@@ -132,28 +135,20 @@ export default class SelectableMenu extends Component {
                 />
             )}
 
-            <mesh
-                rotation={ new THREE.Euler(
-                    THREE.Math.degToRad( time * 50 ),
-                    0,
-                    0
-                ) }
+            <Player
+                materialId="shrinkColors"
+                assets={ assets }
+                rotation={ characterMenuRotaiton }
+                radius={ 0.5 }
+                time={ time }
                 position={
                     new THREE.Vector3(
                         ( textSpacing * selectedIndex ) - ( textSpacing * length * 0.5 ),
                         0,
-                        menuOptions[ selectedIndex ].text.length * 0.6
+                        getTextWidth( menuOptions[ selectedIndex ].text, fontName ) * 0.5 + 1,
                     )
                 }
-                ref="mesh"
-            >
-                <geometryResource
-                    resourceId="radius1sphere"
-                />
-                <materialResource
-                    resourceId="shrinkColors"
-                />
-            </mesh>
+            />
 
         </object3D>;
 

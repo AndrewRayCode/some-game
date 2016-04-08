@@ -18,6 +18,7 @@ export default class TitleScreen extends Component {
     static propTypes = {
         books: React.PropTypes.array.isRequired,
         fonts: React.PropTypes.object.isRequired,
+        assets: React.PropTypes.object.isRequired,
         letters: React.PropTypes.object.isRequired,
         onSelect: React.PropTypes.func.isRequired,
         onClickRegionEnter: PropTypes.func.isRequired,
@@ -28,6 +29,7 @@ export default class TitleScreen extends Component {
 
         const {
             books, fonts, letters, onClickRegionLeave, onClickRegionEnter,
+            assets,
         } = this.props;
 
         return <object3D>
@@ -51,6 +53,7 @@ export default class TitleScreen extends Component {
 
             <SelectableMenu
                 fonts={ fonts }
+                assets={ assets }
                 letters={ letters }
                 position={ menuPosition }
                 scale={ menuScale }
