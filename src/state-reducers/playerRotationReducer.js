@@ -4,7 +4,7 @@ import { lerp } from '../helpers/Utils';
 
 const rotationLimit = 0.7 * ( Math.PI / 2 );
 const turnSpeed = 0.2;
-const resolveSpeed = 0.04;
+const resolveSpeed = 0.08;
 
 export default function playerRotationReducer( actions, props, oldState, currentState, next ) {
 
