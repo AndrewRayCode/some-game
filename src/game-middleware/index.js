@@ -6,3 +6,4 @@ export tourReducer from './tourReducer';
 export defaultCameraReducer from './defaultCameraReducer';
 export gameKeyPressReducer from './gameKeyPressReducer';
 export playerRotationReducer from './playerRotationReducer';
+export playerScaleReducer from './playerScaleReducer';

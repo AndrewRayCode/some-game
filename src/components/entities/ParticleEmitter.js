@@ -6,9 +6,6 @@ import { str2Hex } from '../../helpers/Utils';
 const arrayOrNumber = PropTypes.oneOfType([
      PropTypes.number
 ]);
-const arrayOrObject = PropTypes.oneOfType([
-    PropTypes.object, PropTypes.number
-]);
 const defaultPosition = new THREE.Vector3( -0.4, 0, 0 );
 const emitterOffset = new THREE.Vector3( 0, -1, 0 );
 
@@ -189,7 +186,7 @@ export default class ParticleEmitter extends Component {
 
     render() {
 
-        const { emitterPosition, rotation } = this.props;
+        const { emitterPosition, } = this.props;
 
         return <group
             position={ emitterPosition }

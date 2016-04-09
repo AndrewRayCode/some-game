@@ -18,17 +18,20 @@ const particleRotationAngle = 10;
 const particleOpacity = [ 0.2, 1, 0 ];
 const particleVelocity = new THREE.Vector3( 0, 0, -1 );
 const particleVelocitySpread = new THREE.Vector3( 0, 0, 0 );
+const particleParticleRotation = [ -1, 1 ];
+const particleParticleRotationSpread = [ -1, 1 ];
 
 const particlePositionSpread = new THREE.Vector3( 0.8, 0, 0.8 );
 
 const particleRotation = new THREE.Quaternion( 0, 0, 0, 1 )
     .setFromEuler( new THREE.Euler( 0, Math.PI / 2, 0 ) );
 const particleColors = [ 0x4433ff, 0xddbbff ];
-const colorSpread = new THREE.Vector3( 0.4, 0.2, 0.2 );
+const colorSpread = new THREE.Vector3( 0.6, 0.4, 0.2 );
 const particleSize = 0.4;
 const particleSizeSpread = [ 0.4, 2 ];
 const particleCount = 50;
-const emitterRadius = 2.1;
+const emitterRadius = 2.4;
+const emitterMinimumRadius = 0.07;
 
 export default class Player extends Component {
 
@@ -125,21 +128,22 @@ export default class Player extends Component {
                 emitterPosition={ emitterPosition }
                 rotation={ particleRotation }
                 positionSpread={ positionSpread }
-                maxLength={ radius * 2.5 }
                 velocityV3={ particleVelocity }
                 velocitySpread={ particleVelocitySpread }
                 colors={ particleColors }
                 colorSpread={ colorSpread }
-                size={ particleSize - ( radius * 0.1 ) }
+                size={ particleSize + ( radius * 0.6 ) }
                 sizeSpread={ sizeSpread }
                 particleCount={ particleCount }
                 type={ SPE.distributions.DISC }
-                emitterRadius={ radius * emitterRadius }
+                emitterRadius={ emitterMinimumRadius + ( radius * emitterRadius ) }
                 velocityDistribution={ particleVelocityDistribution }
                 rotationAxis={ particleRotationAxis }
                 rotationAngle={ particleRotationAngle * radius }
+                angle={ particleParticleRotation }
+                angleSpread={ particleParticleRotationSpread }
                 opacity={ particleOpacity }
-                maxAge={ radius * 3.5 }
+                maxAge={ 1 }
             /> : null }
             <group
                 ref="mesh"

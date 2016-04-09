@@ -11,9 +11,9 @@ import {
 } from '../../helpers/Utils';
 import {
     gameKeyPressReducer, tourReducer, zoomReducer, entityInteractionReducer,
-    debugReducer, advanceLevelReducer, defaultCameraReducer,
-    playerRotationReducer
-} from '../../state-reducers';
+    playerScaleReducer, debugReducer, advanceLevelReducer,
+    defaultCameraReducer, playerRotationReducer
+} from '../../game-middleware';
 
 const radialPoint = ( total, index ) => [
     Math.cos( THREE.Math.degToRad( ( 90 / total ) * index ) ) - 0.5,
@@ -1103,8 +1103,8 @@ export default class GameRenderer extends Component {
         const reducedState = applyMiddleware(
             this.reducerActions, this.props, this.state, newState,
             gameKeyPressReducer, tourReducer, advanceLevelReducer, zoomReducer,
-            debugReducer, entityInteractionReducer, defaultCameraReducer,
-            playerRotationReducer
+            debugReducer, entityInteractionReducer, playerScaleReducer,
+            defaultCameraReducer, playerRotationReducer
         );
 
         this.setState( reducedState );
