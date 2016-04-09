@@ -48,7 +48,7 @@ const transitionFadeMs = 1000;
         const {
             entities: allEntities,
             chapters: allChapters,
-            levels, books, chapters, playerMaterial
+            levels, books, chapters, playerMaterialId, playerTexture
         } = state.game;
 
         const {
@@ -215,7 +215,7 @@ const transitionFadeMs = 1000;
             currentLevelBridges,
             currentLevelBridgesArray: Object.values( currentLevelBridges ),
 
-            playerMaterial,
+            playerMaterialId, playerTexture,
             gameStarted: true,
             restartBusterId: state.game.restartBusterId,
             recursionBusterId: state.game.recursionBusterId,

@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import SPE from 'shader-particle-engine';
 import { Eye, ParticleEmitter } from '../';
+import shaderFrog from '../../helpers/shaderFrog';
 
 const defaultScale = new THREE.Vector3( 2, 2, 2 );
 const localPlayerRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
@@ -39,6 +40,7 @@ export default class Player extends Component {
         scaleEffectsEnabled: PropTypes.bool,
         scale: PropTypes.object,
         materialId: PropTypes.string.isRequired,
+        playerTexture: PropTypes.string,
         assets: PropTypes.object.isRequired,
         radius: PropTypes.number.isRequired,
         time: PropTypes.number,
@@ -69,7 +71,7 @@ export default class Player extends Component {
 
     _getStateFromProps( props, forceUpdate ) {
 
-        const { scale, radius } = props;
+        const { scale, radius, materialId, playerTexture } = props;
 
         const newState = {
             computedScale: scale ?
@@ -77,12 +79,19 @@ export default class Player extends Component {
                 defaultScale.clone().multiplyScalar( radius )
         };
 
-        if( forceUpdate || ( props.radius !== this.props.radius ) ) {
+        if( forceUpdate || ( radius !== this.props.radius ) ) {
 
             newState.positionSpread = particlePositionSpread
                 .clone()
                 .multiplyScalar( radius );
             newState.sizeSpread = particleSizeSpread.map( val => val * radius );
+
+        }
+
+        if( ( forceUpdate && playerTexture ) || ( playerTexture !== this.props.playerTexture ) ) {
+
+            const material = shaderFrog.get( materialId );
+            material.uniforms.image.value = this.props.playerTexture;
 
         }
 

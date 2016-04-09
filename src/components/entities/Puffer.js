@@ -31,13 +31,11 @@ export default class Waterfall extends Component {
 
         super( props );
 
-        if( __CLIENT__ ) {
-            this.state = {
-                smokeParticle: THREE.ImageUtils.loadTexture(
-                    require( '../../../assets/smoke-particle.png' )
-                )
-            };
-        }
+        this.state = {
+            smokeParticle: __CLIENT__ ? THREE.ImageUtils.loadTexture(
+                require( '../../../assets/smoke-particle.png' )
+            ) : null
+        };
 
     }
 

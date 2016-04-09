@@ -1,0 +1,50 @@
+{
+  "id": 737,
+  "name": "Simple Glowing Texture",
+  "fragment": "#extension GL_OES_standard_derivatives : enable\n\nprecision highp float;\nprecision highp int;\nuniform vec2 uvScale;\nuniform sampler2D image;\nuniform vec3 color;\nuniform float start;\nuniform float end;\nuniform float alpha;\nvarying vec2 vUv;\nvarying vec3 fPosition;\nvarying vec3 fNormal;\nvec4 Basic_Texture1460095876747_20_main() \n{\n    vec4 Basic_Texture1460095876747_20_gl_FragColor = vec4(0.0);\n    Basic_Texture1460095876747_20_gl_FragColor = texture2D(image, vUv);\n    return Basic_Texture1460095876747_20_gl_FragColor *= 1.0;\n}\nvec4 Glow_Effect1460174007946_359_main() \n{\n    vec4 Glow_Effect1460174007946_359_gl_FragColor = vec4(0.0);\n    vec3 normal = normalize(fNormal);\n    vec3 eye = normalize(-fPosition.xyz);\n    float rim = smoothstep(start, end, 1.0 - dot(normal, eye));\n    Glow_Effect1460174007946_359_gl_FragColor = vec4(clamp(rim, 0.0, 1.0) * alpha * color, 1.0);\n    return Glow_Effect1460174007946_359_gl_FragColor *= 1.0;\n}\nvoid main() \n{\n    gl_FragColor = (Basic_Texture1460095876747_20_main() + Glow_Effect1460174007946_359_main());}\n",
+  "vertex": "precision highp float;\nprecision highp int;\nuniform mat4 modelMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat3 normalMatrix;\nuniform vec2 uvScale;\nattribute vec3 position;\nattribute vec3 normal;\nattribute vec2 uv;\nattribute vec2 uv2;\nvarying vec2 vUv;\nvarying vec3 fNormal;\nvarying vec3 fPosition;\nvec4 Basic_Texture1460095876747_20_main() \n{\n    vec4 Basic_Texture1460095876747_20_gl_Position = vec4(0.0);\n    vUv = uv * uvScale;\n    Basic_Texture1460095876747_20_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Basic_Texture1460095876747_20_gl_Position *= 1.0;\n}\nvec4 Glow_Effect1460174007946_359_main() \n{\n    vec4 Glow_Effect1460174007946_359_gl_Position = vec4(0.0);\n    fNormal = normalize(normalMatrix * normal);\n    vec4 pos = modelViewMatrix * vec4(position, 1.0);\n    fPosition = pos.xyz;\n    Glow_Effect1460174007946_359_gl_Position = projectionMatrix * pos;\n    return Glow_Effect1460174007946_359_gl_Position *= 1.0;\n}\nvoid main() \n{\n    gl_Position = Basic_Texture1460095876747_20_main() + Glow_Effect1460174007946_359_main();}\n",
+  "uniforms": {
+    "uvScale": {
+      "value": {
+        "x": "1",
+        "y": "1"
+      },
+      "type": "v2",
+      "glslType": "vec2"
+    },
+    "image": {
+      "value": null,
+      "type": "t",
+      "glslType": "sampler2D"
+    },
+    "color": {
+      "value": {
+        "r": 1,
+        "g": 1,
+        "b": 1
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "start": {
+      "value": "0",
+      "type": "f",
+      "glslType": "float"
+    },
+    "end": {
+      "value": "1",
+      "type": "f",
+      "glslType": "float"
+    },
+    "alpha": {
+      "value": "1",
+      "type": "f",
+      "glslType": "float"
+    }
+  },
+  "url": "http://shaderfrog.com/app/view/737",
+  "user": {
+    "username": "andrewray",
+    "url": "http://shaderfrog.com/app/profile/andrewray"
+  }
+}

@@ -10,6 +10,8 @@ const CustomShaders = {
     growColors: require( '../../assets/shaders/Grow_Colors.json' ),
     fractalTransition: require( '../../assets/shaders/Fractal_Transition.json' ),
     pauseBackground: require( '../../assets/shaders/Pause_Screen_Background.json' ),
+    playerMenuBody: require( '../../assets/shaders/Menu_Body.json' ),
+    glowTexture: require( '../../assets/shaders/Glow_Texture.json' ),
 };
 
 export default CustomShaders;

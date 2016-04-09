@@ -86,7 +86,10 @@ export function game( state = defaultGameState, action = {} ) {
             return {
                 ...state,
                 chapters, books,
-                playerMaterial: 'earth',
+                playerMaterialId: 'glowTexture',
+                playerTexture: THREE.ImageUtils.loadTexture(
+                    require( '../../../assets/earth-texture.jpg' )
+                ),
 
                 recursionBusterId: recursionBusterId || state.recursionBusterId,
 
@@ -127,7 +130,10 @@ export function game( state = defaultGameState, action = {} ) {
 
             return {
                 ...state,
-                playerMaterial: 'moon',
+                playerMaterialId: 'glowTexture',
+                playerTexture: THREE.ImageUtils.loadTexture(
+                    require( '../../../assets/moon-texture.jpg' )
+                ),
                 playerRadius: state.playerRadius * action.multiplier,
                 playerScale: state.playerScale * action.multiplier,
                 levels: {
