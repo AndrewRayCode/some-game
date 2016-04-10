@@ -1,15 +1,15 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import SPE from 'shader-particle-engine';
-import { Eye, ParticleEmitter } from '../';
+import { Mesh, Eye, ParticleEmitter } from '../';
 import shaderFrog from '../../helpers/shaderFrog';
 
 const defaultScale = new THREE.Vector3( 2, 2, 2 );
 const localPlayerRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
-const localEyeRotation = new THREE.Euler( -Math.PI / 2 - 0.2, -Math.PI / 2, 0 );
-const eyeScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
 
-const leftEyePosition = new THREE.Vector3( -0.3, 0.2, -0.3 );
+const localEyeRotation = new THREE.Euler( -Math.PI / 2 - 0.2, -Math.PI / 2, 0 );
+const eyeScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.355 );
+const leftEyePosition = new THREE.Vector3( -0.2, 0.1, -0.2 );
 const rightEyePosition = leftEyePosition.clone().setX( -leftEyePosition.x );
 
 const particleVelocityDistribution = SPE.distributions.BOX;
@@ -168,16 +168,12 @@ export default class Player extends Component {
                     mesh="eye"
                     materialId="greenEye"
                 />
-                <mesh
-                    rotation={ new THREE.Euler( -Math.PI / 2, time * 0.25, 0, ) }
-                >
-                    <geometryResource
-                        resourceId="playerGeometry"
-                    />
-                    <materialResource
-                        resourceId={ materialId }
-                    />
-                </mesh>
+                <Mesh
+                    materialId="glowTexture"
+                    assets={ assets }
+                    scale={ new THREE.Vector3( 0.5, 0.5, 0.5 ) }
+                    mesh="dunk"
+                />
             </group>
         </group>;
 

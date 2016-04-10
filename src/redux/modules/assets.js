@@ -219,6 +219,11 @@ export function loadAllAssets() {
         dispatch( assetsLoading() );
 
         dispatch( loadAsset(
+            require( '../../../assets/models/dunk.json' ),
+            { name: 'dunk' }
+        ));
+
+        dispatch( loadAsset(
             require( '../../../assets/models/multiwall.json' ),
             { name: 'multiwall' }
         ));

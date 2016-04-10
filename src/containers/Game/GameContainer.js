@@ -60,7 +60,11 @@ export default class GameContainer extends Component {
 
         const { fonts, assets } = this.props;
 
-        if( !__CLIENT__ || !( 'Sniglet Regular' in fonts ) || !( 'eye' in assets ) ) {
+        if( !__CLIENT__ ||
+                !( 'Sniglet Regular' in fonts ) ||
+                !( 'dunk' in assets ) ||
+                !( 'eye' in assets )
+            ) {
             return <div>Loading&hellip;</div>;
         }
 

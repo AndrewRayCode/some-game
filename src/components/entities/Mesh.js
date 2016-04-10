@@ -9,7 +9,7 @@ export default class Mesh extends Component {
         position: PropTypes.object,
         rotation: PropTypes.object,
         scale: PropTypes.object,
-        materialId: PropTypes.string,
+        materialId: PropTypes.string.isRequired,
         assets: PropTypes.object.isRequired,
         mesh: PropTypes.string.isRequired,
     };
