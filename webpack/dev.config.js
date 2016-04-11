@@ -10,6 +10,8 @@ var port = parseInt(process.env.PORT) + 1 || 3001;
 var WebpackIsomorphicToolsPlugin = require('webpack-isomorphic-tools/plugin');
 var webpackIsomorphicToolsPlugin = new WebpackIsomorphicToolsPlugin(require('./webpack-isomorphic-tools'));
 
+var WebpackNotifierPlugin = require('webpack-notifier');
+
 var babelrc = fs.readFileSync('./.babelrc');
 var babelrcObject = {};
 
@@ -114,6 +116,7 @@ module.exports = {
       __DEVELOPMENT__: true,
       __DEVTOOLS__: true  // <-------- DISABLE redux-devtools HERE
     }),
-    webpackIsomorphicToolsPlugin.development()
+    webpackIsomorphicToolsPlugin.development(),
+    new WebpackNotifierPlugin()
   ]
 };

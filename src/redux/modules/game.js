@@ -88,7 +88,7 @@ export function game( state = defaultGameState, action = {} ) {
                 chapters, books,
                 playerMaterialId: 'glowTexture',
                 playerTexture: THREE.ImageUtils.loadTexture(
-                    require( '../../../assets/gecko-test.png' )
+                    require( '../../../assets/charisma-face.jpg' )
                 ),
 
                 recursionBusterId: recursionBusterId || state.recursionBusterId,
@@ -132,7 +132,7 @@ export function game( state = defaultGameState, action = {} ) {
                 ...state,
                 playerMaterialId: 'glowTexture',
                 playerTexture: THREE.ImageUtils.loadTexture(
-                    require( '../../../assets/gecko-test.png' )
+                    require( '../../../assets/charisma-face.jpg' )
                 ),
                 playerRadius: state.playerRadius * action.multiplier,
                 playerScale: state.playerScale * action.multiplier,

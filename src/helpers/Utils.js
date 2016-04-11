@@ -147,16 +147,19 @@ function getLoader( url:string ) {
 
 }
 
-export function loadModel( modelPath, data ) {
+export function loadModel( modelPath ) {
 
     return new Promise( ( resolve, reject ) => {
 
         const loader = getLoader( modelPath );
         loader.load(
             modelPath,
-            model => resolve({ model, ...data }),
+            // success
+            model => resolve( model ),
+            // loading
             () => null,
-            error => reject({ error, ...data })
+            // error
+            error => reject({ error })
         );
 
     });
@@ -476,5 +479,11 @@ export function getTextWidth( text, fontName ) {
             ( font[ letter ].props.userData.ha * 0.001 ) || 20
         ) + memo;
     }, 0 );
+
+}
+
+export function bufferToGeometry( bufferGeometry:THREE.BufferGeometry ) {
+
+    return new THREE.Geometry().fromBufferGeometry( bufferGeometry );
 
 }

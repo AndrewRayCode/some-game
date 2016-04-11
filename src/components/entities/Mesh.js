@@ -23,7 +23,13 @@ export default class Mesh extends Component {
             return <group />;
         }
 
-        const { faces, vertices, colors, faceVertexUvs } = meshData;
+        const { geometry } = meshData;
+        const { faces, vertices, colors, faceVertexUvs } = geometry;
+
+        if( !faces ) {
+            console.error( 'You passed in ',assets,' but it contained no faces for mesh',mesh );
+            throw new Error( 'The mesh data you passed in did not contain any faces! Are you sure you\\re passing in the geometry?' );
+        }
 
         return <group
             position={ position }
@@ -34,6 +40,7 @@ export default class Mesh extends Component {
                 ref="mesh"
             >
                 <geometry
+                    name={ mesh }
                     faces={ faces }
                     vertices={ vertices }
                     colors={ colors }

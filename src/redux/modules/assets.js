@@ -1,14 +1,15 @@
 import React from 'react';
 import THREE from 'three';
-import { loadModel, loadFont as utilLoadFont } from '../../helpers/Utils';
+import {
+    bufferToGeometry, loadModel,
+    loadFont as utilLoadFont,
+} from '../../helpers/Utils';
 import shaderFrog from '../../helpers/shaderFrog';
 import CustomShaders from '../../helpers/CustomShaders';
 
-const LOAD = 'assets/LOAD';
-const LOAD_SUCCESS = 'assets/LOAD_SUCCESS';
-const LOAD_FAIL = 'assets/LOAD_FAIL';
+const MODEL_LOAD_SUCCESS = 'assets/MODEL_LOAD_SUCCESS';
+const MODEL_LOAD_FAIL = 'assets/MODEL_LOAD_FAIL';
 
-const FONT_LOAD = 'assets/FONT_LOAD';
 const FONT_LOAD_SUCCESS = 'assets/FONT_LOAD_SUCCESS';
 const FONT_LOAD_FAIL = 'assets/FONT_LOAD_FAIL';
 
@@ -113,31 +114,29 @@ export function assetsReducer( assets = {}, action = {} ) {
 
     switch( action.type ) {
 
-        case LOAD_SUCCESS:
+        case MODEL_LOAD_SUCCESS:
+
             if( assets[ action.name ] ) {
                 throw new Error( `Error: An asset named "${ action.name }" has already been loaded.` );
             }
-            if( action.model instanceof THREE.Geometry ) {
-                return {
-                    ...assets,
-                    [ action.name ]: action.model,
-                };
-            } else {
-                window.assets = window.assets || {};
-                window.assets[ action.name ] = window.assets[ action.name ] || {
-                    ...action.model,
-                    geometry: action.model.children.map( child =>
-                        new THREE.Geometry().fromBufferGeometry( child.geometry )
-                    )
-                };
-                return {
-                    ...assets,
-                    [ action.name ]: window.assets[ action.name ]
-                };
-            }
-            break;
 
-        case LOAD_FAIL:
+            if( !( action.geometry instanceof THREE.Geometry ) ) {
+                console.error( `${ action.name }.geometry not instance of THREE.Geometry. Action:`, action );
+                throw new Error( 'Attempted to load model but action.geometry was not an instanceof THREE.Geometry' );
+            }
+
+            return {
+                ...assets,
+                [ action.name ]: {
+                    model: action.rawModelData,
+                    geometry: {
+                        name: action.name,
+                        ...action.geometry
+                    }
+                }
+            };
+
+        case MODEL_LOAD_FAIL:
             console.error( action );
             return assets;
 
@@ -179,11 +178,16 @@ export function shadersReducer( shaders = {}, action = {} ) {
 }
 
 // Actions
-export function loadAsset( url, data ) {
+export function loadModelFile( name, url, fetchGeometry ) {
     return dispatch =>
-        loadModel( url, data )
-            .then( result => dispatch({ type: LOAD_SUCCESS, ...result }) )
-            .catch( error => dispatch({ type: LOAD_FAIL, error }) );
+        loadModel( url )
+            .then( result => dispatch({
+                type: MODEL_LOAD_SUCCESS,
+                name,
+                rawModelData: result,
+                geometry: fetchGeometry ? fetchGeometry( result ) : result,
+            }) )
+            .catch( error => dispatch({ type: MODEL_LOAD_FAIL, error }) );
 }
 
 export function loadFont( url ) {
@@ -218,58 +222,63 @@ export function loadAllAssets() {
 
         dispatch( assetsLoading() );
 
-        dispatch( loadAsset(
+        dispatch( loadModelFile(
+            'charisma',
             require( '../../../assets/models/charisma.json' ),
-            { name: 'charisma' }
+            model => {
+                model.computeVertexNormals();
+                return model;
+            }
         ));
 
-        dispatch( loadAsset(
+        dispatch( loadModelFile(
+            'multiwall',
             require( '../../../assets/models/multiwall.json' ),
-            { name: 'multiwall' }
         ));
 
-        dispatch( loadAsset(
+        dispatch( loadModelFile(
+            'house',
             require( '../../../assets/models/houseSF.obj' ),
-            { name: 'house' }
+            model => bufferToGeometry( model.children[ 1 ].geometry )
         ));
 
-        dispatch( loadAsset(
+        dispatch( loadModelFile(
+            'eye',
             require( '../../../assets/models/eye.json' ),
-            { name: 'eye' }
         ));
 
-        dispatch( loadAsset(
+        dispatch( loadModelFile(
+            'tube',
             require( '../../../assets/models/tube.json' ),
-            { name: 'tube' }
         ));
 
-        dispatch( loadAsset(
+        dispatch( loadModelFile(
+            'tubeBend',
             require( '../../../assets/models/tube-bend.json' ),
-            { name: 'tubeBend' }
         ));
 
         dispatch( loadFont(
             require( '../../../assets/sniglet_regular.typeface.js' )
         ));
 
-        dispatch( loadAsset(
+        dispatch( loadModelFile(
+            'diamondBox',
             require( '../../../assets/models/diamond-box.json' ),
-            { name: 'diamondBox' }
         ));
 
-        dispatch( loadAsset(
+        dispatch( loadModelFile(
+            'chamferBox',
             require( '../../../assets/models/chamfer-box.json' ),
-            { name: 'chamferBox' }
         ));
 
-        dispatch( loadAsset(
+        dispatch( loadModelFile(
+            'curvedWall',
             require( '../../../assets/models/curved-wall.json' ),
-            { name: 'curvedWall' }
         ));
 
-        dispatch( loadAsset(
+        dispatch( loadModelFile(
+            'curvedWallTop',
             require( '../../../assets/models/curved-wall-top.json' ),
-            { name: 'curvedWallTop' }
         ));
 
         Object.keys( CustomShaders ).forEach( key => {

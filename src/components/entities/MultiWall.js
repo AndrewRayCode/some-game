@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import THREE from 'three';
+import { Mesh } from '../';
 
 const defaultRotation = new THREE.Quaternion( 0, 0, 0, 1 );
 const topPosition = new THREE.Vector3( 0, 0.50, 0 );
@@ -12,14 +13,6 @@ export default class MultiWall extends Component {
         const {
             position, rotation, scale, materialId, topMaterialId, assets
         } = this.props;
-
-        const { multiwall } = assets;
-
-        if( !multiwall ) {
-            return <group />;
-        }
-
-        const { faces, vertices, colors, faceVertexUvs } = multiwall;
 
         return <group
             position={ position }
@@ -38,19 +31,12 @@ export default class MultiWall extends Component {
                     resourceId={ topMaterialId || 'floorSideMaterial' }
                 />
             </mesh>
-            <mesh
-                ref="mesh2"
-            >
-                <geometry
-                    faces={ faces }
-                    vertices={ vertices }
-                    colors={ colors }
-                    faceVertexUvs={ faceVertexUvs }
-                />
-                <materialResource
-                    resourceId={ materialId }
-                />
-            </mesh>
+            <Mesh
+                ref="child"
+                assets={ assets }
+                mesh="multiwall"
+                materialId={ materialId }
+            />
         </group>;
 
     }
