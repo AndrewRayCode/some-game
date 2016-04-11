@@ -219,8 +219,8 @@ export function loadAllAssets() {
         dispatch( assetsLoading() );
 
         dispatch( loadAsset(
-            require( '../../../assets/models/dunk.json' ),
-            { name: 'dunk' }
+            require( '../../../assets/models/charisma.json' ),
+            { name: 'charisma' }
         ));
 
         dispatch( loadAsset(

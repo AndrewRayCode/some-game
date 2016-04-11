@@ -172,7 +172,7 @@ export default class Player extends Component {
                     materialId="glowTexture"
                     assets={ assets }
                     scale={ new THREE.Vector3( 0.5, 0.5, 0.5 ) }
-                    mesh="dunk"
+                    mesh="charisma"
                 />
             </group>
         </group>;

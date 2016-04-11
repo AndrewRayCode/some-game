@@ -132,7 +132,7 @@ export function game( state = defaultGameState, action = {} ) {
                 ...state,
                 playerMaterialId: 'glowTexture',
                 playerTexture: THREE.ImageUtils.loadTexture(
-                    require( '../../../assets/gecko-test.png.jpg' )
+                    require( '../../../assets/gecko-test.png' )
                 ),
                 playerRadius: state.playerRadius * action.multiplier,
                 playerScale: state.playerScale * action.multiplier,

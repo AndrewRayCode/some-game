@@ -1,9 +1,7 @@
 import KeyCodes from '../helpers/KeyCodes';
-import THREE from 'three';
 
 export default function gameKeyPressReducer( actions, props, oldState, currentState, next ) {
 
-    const { paused } = props;
     const { keysDown } = currentState;
 
     if( keysDown.isFirstPress( 'P' ) || keysDown.isFirstPress( 'ESC' ) ) {

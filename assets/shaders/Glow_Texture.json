@@ -6,8 +6,8 @@
   "uniforms": {
     "uvScale": {
       "value": {
-        "x": "1",
-        "y": "1"
+        "x": "2",
+        "y": "2"
       },
       "type": "v2",
       "glslType": "vec2"

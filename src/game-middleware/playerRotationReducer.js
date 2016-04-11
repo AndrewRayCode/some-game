@@ -1,4 +1,3 @@
-import KeyCodes from '../helpers/KeyCodes';
 import THREE from 'three';
 import { lerp } from '../helpers/Utils';
 
