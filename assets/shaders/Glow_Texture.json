@@ -1,8 +1,8 @@
 {
   "id": 737,
   "name": "Simple Glowing Texture",
-  "fragment": "#extension GL_OES_standard_derivatives : enable\n\nprecision highp float;\nprecision highp int;\nuniform vec2 uvScale;\nuniform sampler2D image;\nuniform vec3 color;\nuniform float start;\nuniform float end;\nuniform float alpha;\nvarying vec2 vUv;\nvarying vec3 fPosition;\nvarying vec3 fNormal;\nvec4 Basic_Texture1460095876747_20_main() \n{\n    vec4 Basic_Texture1460095876747_20_gl_FragColor = vec4(0.0);\n    Basic_Texture1460095876747_20_gl_FragColor = texture2D(image, vUv);\n    return Basic_Texture1460095876747_20_gl_FragColor *= 1.0;\n}\nvec4 Glow_Effect1460174007946_359_main() \n{\n    vec4 Glow_Effect1460174007946_359_gl_FragColor = vec4(0.0);\n    vec3 normal = normalize(fNormal);\n    vec3 eye = normalize(-fPosition.xyz);\n    float rim = smoothstep(start, end, 1.0 - dot(normal, eye));\n    Glow_Effect1460174007946_359_gl_FragColor = vec4(clamp(rim, 0.0, 1.0) * alpha * color, 1.0);\n    return Glow_Effect1460174007946_359_gl_FragColor *= 1.0;\n}\nvoid main() \n{\n    gl_FragColor = (Basic_Texture1460095876747_20_main() + Glow_Effect1460174007946_359_main());}\n",
-  "vertex": "precision highp float;\nprecision highp int;\nuniform mat4 modelMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat3 normalMatrix;\nuniform vec2 uvScale;\nattribute vec3 position;\nattribute vec3 normal;\nattribute vec2 uv;\nattribute vec2 uv2;\nvarying vec2 vUv;\nvarying vec3 fNormal;\nvarying vec3 fPosition;\nvec4 Basic_Texture1460095876747_20_main() \n{\n    vec4 Basic_Texture1460095876747_20_gl_Position = vec4(0.0);\n    vUv = uv * uvScale;\n    Basic_Texture1460095876747_20_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Basic_Texture1460095876747_20_gl_Position *= 1.0;\n}\nvec4 Glow_Effect1460174007946_359_main() \n{\n    vec4 Glow_Effect1460174007946_359_gl_Position = vec4(0.0);\n    fNormal = normalize(normalMatrix * normal);\n    vec4 pos = modelViewMatrix * vec4(position, 1.0);\n    fPosition = pos.xyz;\n    Glow_Effect1460174007946_359_gl_Position = projectionMatrix * pos;\n    return Glow_Effect1460174007946_359_gl_Position *= 1.0;\n}\nvoid main() \n{\n    gl_Position = Basic_Texture1460095876747_20_main() + Glow_Effect1460174007946_359_main();}\n",
+  "fragment": "#extension GL_OES_standard_derivatives : enable\n\nprecision highp float;\nprecision highp int;\nuniform vec2 uvScale;\nuniform sampler2D image;\nuniform vec3 color;\nuniform float start;\nuniform float end;\nuniform float alpha;\nvarying vec2 vUv;\nvarying vec3 fPosition;\nvarying vec3 fNormal;\nvec4 Basic_Texture1460095876747_20_main() \n{\n    vec4 Basic_Texture1460095876747_20_gl_FragColor = vec4(0.0);\n    Basic_Texture1460095876747_20_gl_FragColor = texture2D(image, vUv);\n    return Basic_Texture1460095876747_20_gl_FragColor *= 1.0;\n}\nvec4 Glow_Effect1460174007946_359_main() \n{\n    vec4 Glow_Effect1460174007946_359_gl_FragColor = vec4(0.0);\n    vec3 normal = normalize(fNormal);\n    vec3 eye = normalize(-fPosition.xyz);\n    float rim = smoothstep(start, end, 1.0 - dot(normal, eye));\n    Glow_Effect1460174007946_359_gl_FragColor = vec4(clamp(rim, 0.0, 1.0) * alpha * color, 1.0);\n    return Glow_Effect1460174007946_359_gl_FragColor *= 1.0;\n}\nvec4 Three_Skinning_Test1460489878817_61_main() \n{\n    vec4 Three_Skinning_Test1460489878817_61_gl_FragColor = vec4(0.0);\n    Three_Skinning_Test1460489878817_61_gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n    return Three_Skinning_Test1460489878817_61_gl_FragColor *= 1.0;\n}\nvoid main() \n{\n    gl_FragColor = (Basic_Texture1460095876747_20_main() + Glow_Effect1460174007946_359_main());}\n",
+  "vertex": "precision highp float;\nprecision highp int;\nuniform mat4 modelMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat3 normalMatrix;\nuniform vec2 uvScale;\nuniform mat4 bindMatrix;\nuniform mat4 bindMatrixInverse;\nuniform sampler2D boneTexture;\nuniform int boneTextureWidth;\nuniform int boneTextureHeight;\nattribute vec3 position;\nattribute vec3 normal;\nattribute vec2 uv;\nattribute vec2 uv2;\nvarying vec2 vUv;\nvarying vec3 fNormal;\nvarying vec3 fPosition;\nattribute vec4 skinIndex;\nattribute vec4 skinWeight;\nmat4 getBoneMatrix(const float i) \n{\n    float j = i * 4.0;\n    float x = mod(j, float(boneTextureWidth));\n    float y = floor(j / float(boneTextureWidth));\n    float dx = 1.0 / float(boneTextureWidth);\n    float dy = 1.0 / float(boneTextureHeight);\n    y = dy * (y + 0.5);\n    vec4 v1 = texture2D(boneTexture, vec2(dx * (x + 0.5), y));\n    vec4 v2 = texture2D(boneTexture, vec2(dx * (x + 1.5), y));\n    vec4 v3 = texture2D(boneTexture, vec2(dx * (x + 2.5), y));\n    vec4 v4 = texture2D(boneTexture, vec2(dx * (x + 3.5), y));\n    mat4 bone = mat4(v1, v2, v3, v4);\n    return bone;\n}\nvec4 Basic_Texture1460095876747_20_main() \n{\n    vec4 Basic_Texture1460095876747_20_gl_Position = vec4(0.0);\n    vUv = uv * uvScale;\n    Basic_Texture1460095876747_20_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Basic_Texture1460095876747_20_gl_Position *= 1.0;\n}\nvec4 Glow_Effect1460174007946_359_main() \n{\n    vec4 Glow_Effect1460174007946_359_gl_Position = vec4(0.0);\n    fNormal = normalize(normalMatrix * normal);\n    vec4 pos = modelViewMatrix * vec4(position, 1.0);\n    fPosition = pos.xyz;\n    Glow_Effect1460174007946_359_gl_Position = projectionMatrix * pos;\n    return Glow_Effect1460174007946_359_gl_Position *= 1.0;\n}\nvec4 Three_Skinning_Test1460489878817_61_main() \n{\n    vec4 Three_Skinning_Test1460489878817_61_gl_Position = vec4(0.0);\n    vec3 transformed = vec3(position);\n    vec3 objectNormal = vec3(normal);\n    mat4 boneMatX = getBoneMatrix(skinIndex.x);\n    mat4 boneMatY = getBoneMatrix(skinIndex.y);\n    mat4 boneMatZ = getBoneMatrix(skinIndex.z);\n    mat4 boneMatW = getBoneMatrix(skinIndex.w);\n    vec4 skinVertex = bindMatrix * vec4(transformed, 1.0);\n    vec4 skinned = vec4(0.0);\n    skinned += boneMatX * skinVertex * skinWeight.x;\n    skinned += boneMatY * skinVertex * skinWeight.y;\n    skinned += boneMatZ * skinVertex * skinWeight.z;\n    skinned += boneMatW * skinVertex * skinWeight.w;\n    skinned = bindMatrixInverse * skinned;\n    mat4 skinMatrix = mat4(0.0);\n    skinMatrix += skinWeight.x * boneMatX;\n    skinMatrix += skinWeight.y * boneMatY;\n    skinMatrix += skinWeight.z * boneMatZ;\n    skinMatrix += skinWeight.w * boneMatW;\n    skinMatrix = bindMatrixInverse * skinMatrix * bindMatrix;\n    objectNormal = vec4(skinMatrix * vec4(objectNormal, 0.0)).xyz;\n    vec3 transformedNormal = normalMatrix * objectNormal;\n    vec4 mvPosition = modelViewMatrix * skinned;\n    Three_Skinning_Test1460489878817_61_gl_Position = projectionMatrix * mvPosition;\n    return Three_Skinning_Test1460489878817_61_gl_Position *= 1.0;\n}\nvoid main() \n{\n    gl_Position = Basic_Texture1460095876747_20_main() + Three_Skinning_Test1460489878817_61_main() + Glow_Effect1460174007946_359_main();}\n",
   "uniforms": {
     "uvScale": {
       "value": {
@@ -19,15 +19,15 @@
     },
     "color": {
       "value": {
-        "r": 0.4,
-        "g": 0.5,
-        "b": 0.4
+        "r": 0.8,
+        "g": 1,
+        "b": 0.8
       },
       "type": "c",
       "glslType": "vec3"
     },
     "start": {
-      "value": 0.3,
+      "value": 0.1,
       "type": "f",
       "glslType": "float"
     },
@@ -37,7 +37,7 @@
       "glslType": "float"
     },
     "alpha": {
-      "value": 0.7,
+      "value": 0.25,
       "type": "f",
       "glslType": "float"
     }

@@ -74,8 +74,10 @@ export default class Player extends Component {
         console.log( 'charisma:', charisma );
         const mesh = new THREE.SkinnedMesh(
             charisma.geometry,
-            new THREE.MeshPhongMaterial()
+            shaderFrog.get( 'glowTexture' )
         );
+        //console.log(shaderFrog.get( 'glowTexture' ),'setting frog to ',this.props.playerTexture);
+        shaderFrog.get( 'glowTexture' ).uniforms.image.value = this.props.playerTexture;
         
         mesh.material.skinning = true;
 
@@ -85,7 +87,8 @@ export default class Player extends Component {
         //AnimationHandler.add( mesh.geometry.animation );
 
         const mixer = new THREE.AnimationMixer( mesh );
-        mixer.clipAction( mesh.geometry.animations[ 0 ] ).play();
+        console.log('find animations?;',mesh.geometry);
+        mixer.clipAction( mesh.geometry.animations[ 3 ] ).play();
         this.mixer = mixer;
 
         //const animation = new Animation(
@@ -149,6 +152,8 @@ export default class Player extends Component {
             material.uniforms.image.value = this.props.playerTexture;
 
         }
+
+        shaderFrog.get( 'glowTexture' ).uniforms.image.value = this.props.playerTexture;
 
         return newState;
 
