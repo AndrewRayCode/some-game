@@ -19,7 +19,7 @@ import styles from './Editor.scss';
 import {
     EntityGroup, Grid, EditorResources, TexturePicker, CreatePreviewObject,
     Kbd, ArrayEditor
-} from '../../components';
+} from 'components';
 
 import Textures from '../../helpers/Textures';
 import CustomShaders from '../../helpers/CustomShaders';

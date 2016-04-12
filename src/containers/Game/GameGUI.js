@@ -19,7 +19,7 @@ import GameRenderer from './GameRenderer';
 import {
     TitleScreen, GameResources, PausedScreen, ConfirmRestartScreen, Kbd,
     TransitionScreen, ConfirmMenuScreen
-} from '../../components';
+} from 'components';
 
 import styles from './Game.scss';
 import classNames from 'classnames/bind';

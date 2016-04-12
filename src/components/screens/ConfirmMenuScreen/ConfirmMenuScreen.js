@@ -1,7 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import { Text, Logo, SelectableMenu } from '../';
-import { getFrustrumAt } from '../../helpers/Utils';
+import { Text, SelectableMenu } from 'components';
 
 const gameWidth = 400;
 const gameHeight = 400;
@@ -14,77 +13,43 @@ const sceneOffset = new THREE.Vector3( 100, 100, 100 );
 
 const bgRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
 const bgPosition = new THREE.Vector3( 0, -2, 0 );
+const bgScale = new THREE.Vector3( 18, 18, 18 );
 
-const logoPosition = new THREE.Vector3( -5, 0, 0 );
-const logoScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 );
+const topTextPosition = new THREE.Vector3( -4.5, 0, 0 );
+const topTextScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.9 );
 
-const titlePosition = new THREE.Vector3( -1.9, 0, 0 );
-const titleScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 1.5 );
+const bottomTextPosition =  new THREE.Vector3( -3, 0, 0 );
+const bottomTextScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.9 );
 
-const menuPosition = new THREE.Vector3( 2.6, 0, 0 );
+const menuPosition = new THREE.Vector3( 2, 0, 0 );
 const menuScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
 
-const frustum = getFrustrumAt( cameraPosition.y + Math.abs( bgPosition.y ), cameraFov, cameraAspect );
-const bgScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( frustum.size().x );
-
-export default class PausedScreen extends Component {
+export default class ConfirmRestartScreen extends Component {
     
     static propTypes = {
         letters: PropTypes.object.isRequired,
         fonts: PropTypes.object.isRequired,
         assets: PropTypes.object.isRequired,
         playerTexture: PropTypes.string.isRequired,
-        onUnpause: PropTypes.func.isRequired,
-        onRestart: PropTypes.func.isRequired,
-        onShowConfirmMenuScreen: PropTypes.func.isRequired,
+        onConfirm: PropTypes.func.isRequired,
+        onDeny: PropTypes.func.isRequired,
         onClickRegionLeave: PropTypes.func.isRequired,
         onClickRegionEnter: PropTypes.func.isRequired,
-    }
-
-    constructor( props ) {
-        super( props );
-        this._onAnimate = this._onAnimate.bind( this );
-    }
-
-    _onAnimate( elapsedTime, delta, keysDown ) {
-
-        const {
-            onUnpause, onRestart, onShowConfirmMenuScreen,
-        } = this.props;
-
-        if( keysDown.isFirstPress( 'P' ) ||
-            keysDown.isFirstPress( 'ESC' ) ||
-            keysDown.isFirstPress( 'SPACE' )
-        ) {
-
-            onUnpause();
-
-        } else if( keysDown.isFirstPress( 'R' ) ) {
-
-            onRestart();
-
-        } else if( keysDown.isFirstPress( 'M' ) ) {
-
-            onShowConfirmMenuScreen();
-
-        }
-
     }
 
     render() {
 
         const {
-            fonts, letters, onUnpause, onRestart, onShowConfirmMenuScreen,
-            onClickRegionEnter, onClickRegionLeave, assets, playerTexture
+            fonts, letters, onConfirm, onDeny, onClickRegionLeave,
+            onClickRegionEnter, assets, playerTexture
         } = this.props;
 
         return <object3D
-            onUpdate={ this._onAnimate }
             position={ sceneOffset }
         >
 
             <perspectiveCamera
-                name="pausedCamera"
+                name="confirmMenuCamera"
                 ref="camera"
                 fov={ cameraFov }
                 aspect={ cameraAspect }
@@ -103,48 +68,46 @@ export default class PausedScreen extends Component {
                     resourceId="1x1plane"
                 />
                 <materialResource
-                    resourceId="pauseBackground"
+                    resourceId="sceneOverlay"
                 />
             </mesh>
 
-            <Logo
-                position={ logoPosition }
-                scale={ logoScale }
-                fonts={ fonts }
-                letters={ letters }
-            />
-
             <Text
-                position={ titlePosition }
-                scale={ titleScale }
-                text="Paused"
+                position={ topTextPosition }
+                scale={ topTextScale }
+                text="Return to"
                 materialId="universeInALetter"
                 fontName="Sniglet Regular"
                 fonts={ fonts }
                 letters={ letters }
             />
-
+            <Text
+                position={ bottomTextPosition }
+                scale={ bottomTextScale }
+                text="Menu?"
+                materialId="universeInALetter"
+                fontName="Sniglet Regular"
+                fonts={ fonts }
+                letters={ letters }
+            />
+            
             <SelectableMenu
                 position={ menuPosition }
                 scale={ menuScale }
                 fonts={ fonts }
                 assets={ assets }
                 letters={ letters }
+                playerTexture={ playerTexture }
                 onClickRegionEnter={ onClickRegionEnter }
                 onClickRegionLeave={ onClickRegionLeave }
-                playerTexture={ playerTexture }
                 menuOptions={[
                     {
-                        text: 'Unpause (p)',
-                        onSelect: onUnpause
+                        text: 'Yup',
+                        onSelect: onConfirm
                     },
                     {
-                        text: 'Restart this level (r)',
-                        onSelect: onRestart
-                    },
-                    {
-                        text: 'Return to menu (m)',
-                        onSelect: onShowConfirmMenuScreen
+                        text: 'Nope',
+                        onSelect: onDeny
                     },
                 ]}
             />

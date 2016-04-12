@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import THREE from 'three';
-import { getFrustrumAt } from '../../helpers/Utils';
+import { getFrustrumAt } from '../../../helpers/Utils';
 
 const gameWidth = 400;
 const gameHeight = 400;

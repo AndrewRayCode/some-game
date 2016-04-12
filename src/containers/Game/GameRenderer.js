@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import KeyCodes from '../../helpers/KeyCodes';
 import p2 from 'p2';
-import { Player, EntityGroup } from '../../components';
+import { Player, EntityGroup } from 'components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,

@@ -9,19 +9,21 @@ export CreatePreviewObject from './Editor/CreatePreviewObject';
 export TexturePicker from './Editor/TexturePicker';
 export Kbd from './Kbd/Kbd';
 export EditorResources from './EditorResources/EditorResources';
-export TransitionScreen from './TransitionScreen/TransitionScreen';
 export GameResources from './GameResources/GameResources';
 export Text from './Text/Text';
 export Logo from './Logo/Logo';
-export ConfirmRestartScreen from './ConfirmRestartScreen/ConfirmRestartScreen';
-export ConfirmMenuScreen from './ConfirmMenuScreen/ConfirmMenuScreen';
-export SelectableMenu from './SelectableMenu/SelectableMenu';
-export PausedScreen from './PausedScreen/PausedScreen';
-export TitleScreen from './TitleScreen/TitleScreen';
-export EntityGroup from './EntityGroup/EntityGroup';
 export ArrayEditor from './ArrayEditor/ArrayEditor';
+export SelectableMenu from './SelectableMenu/SelectableMenu';
 
-// Individual entities
+// Screens
+export TransitionScreen from './screens/TransitionScreen/TransitionScreen';
+export ConfirmRestartScreen from './screens/ConfirmRestartScreen/ConfirmRestartScreen';
+export ConfirmMenuScreen from './screens/ConfirmMenuScreen/ConfirmMenuScreen';
+export PausedScreen from './screens/PausedScreen/PausedScreen';
+export TitleScreen from './screens/TitleScreen/TitleScreen';
+
+// Entities
+export EntityGroup from './EntityGroup/EntityGroup';
 export Mesh from './entities/Mesh';
 export Eye from './entities/Eye';
 export CurvedWall from './entities/CurvedWall';

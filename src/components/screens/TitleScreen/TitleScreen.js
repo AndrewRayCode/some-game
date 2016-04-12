@@ -1,6 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import { SelectableMenu, Logo } from '../';
+import { SelectableMenu, Logo } from 'components';
 
 const gameWidth = 400;
 const gameHeight = 400;

@@ -102,7 +102,6 @@ export default class Player extends Component {
 
         if( this.mixer ) {
 
-            //this.mixer.update( 0  );
             this.mixer.time = 0;
             const action = this.mixer._actions[ 0 ];
             const { duration } = action._clip;
