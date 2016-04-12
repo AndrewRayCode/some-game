@@ -5,5 +5,5 @@ export zoomReducer from './zoomReducer';
 export tourReducer from './tourReducer';
 export defaultCameraReducer from './defaultCameraReducer';
 export gameKeyPressReducer from './gameKeyPressReducer';
-export playerRotationReducer from './playerRotationReducer';
+export playerAnimationReducer from './playerAnimationReducer';
 export playerScaleReducer from './playerScaleReducer';

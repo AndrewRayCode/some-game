@@ -12,7 +12,7 @@ import {
 import {
     gameKeyPressReducer, tourReducer, zoomReducer, entityInteractionReducer,
     playerScaleReducer, debugReducer, advanceLevelReducer,
-    defaultCameraReducer, playerRotationReducer
+    defaultCameraReducer, playerAnimationReducer
 } from '../../game-middleware';
 
 const radialPoint = ( total, index ) => [
@@ -1104,7 +1104,7 @@ export default class GameRenderer extends Component {
             this.reducerActions, this.props, this.state, newState,
             gameKeyPressReducer, tourReducer, advanceLevelReducer, zoomReducer,
             debugReducer, entityInteractionReducer, playerScaleReducer,
-            defaultCameraReducer, playerRotationReducer
+            defaultCameraReducer, playerAnimationReducer
         );
 
         this.setState( reducedState );
@@ -1127,7 +1127,7 @@ export default class GameRenderer extends Component {
             currentTransitionTarget, plankEntities, anchorEntities,
             playerContact, scalingOffsetZ, adjustedPlayerScale, playerRotation,
             playerScaleEffectsEnabled, playerScaleEffectsVisible,
-            percentMouthOpen
+            percentMouthOpen, rightEyeRotation, leftEyeRotation,
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1177,6 +1177,8 @@ export default class GameRenderer extends Component {
                 rotation={ playerRotation }
                 materialId={ playerMaterialId }
                 playerTexture={ playerTexture }
+                leftEyeRotation={ leftEyeRotation }
+                rightEyeRotation={ rightEyeRotation }
                 percentMouthOpen={ percentMouthOpen }
                 time={ time }
             />

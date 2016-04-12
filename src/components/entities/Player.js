@@ -7,6 +7,7 @@ import { Animation, AnimationHandler } from 'three-animation-handler';
 
 const defaultScale = new THREE.Vector3( 2, 2, 2 );
 const localPlayerRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
+const localPlayerScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
 
 const localEyeRotation = new THREE.Euler( -Math.PI / 2 - 0.2, -Math.PI / 2, 0 );
 const eyeScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.36 );
@@ -43,6 +44,8 @@ export default class Player extends Component {
         scaleEffectsVisible: PropTypes.bool,
         scaleEffectsEnabled: PropTypes.bool,
         scale: PropTypes.object,
+        leftEyeRotation: PropTypes.object,
+        rightEyeRotation: PropTypes.object,
         percentMouthOpen: PropTypes.number,
         materialId: PropTypes.string.isRequired,
         playerTexture: PropTypes.string,
@@ -161,7 +164,8 @@ export default class Player extends Component {
 
         const {
             position, rotation, quaternion, radius, materialId, time, assets,
-            scale, scaleEffectsVisible, scaleEffectsEnabled,
+            scale, scaleEffectsVisible, scaleEffectsEnabled, leftEyeRotation,
+            rightEyeRotation
         } = this.props;
 
         const {
@@ -209,25 +213,33 @@ export default class Player extends Component {
                 rotation={ rotation }
                 scale={ computedScale }
             >
-                <Eye
-                    scale={ eyeScale }
-                    assets={ assets }
-                    rotation={ localEyeRotation }
+                <group
                     position={ leftEyePosition }
-                    mesh="eye"
-                    materialId="greenEye"
-                />
-                <Eye
-                    scale={ eyeScale }
-                    assets={ assets }
-                    rotation={ localEyeRotation }
+                    rotation={ leftEyeRotation }
+                >
+                    <Eye
+                        scale={ eyeScale }
+                        assets={ assets }
+                        rotation={ localEyeRotation }
+                        mesh="eye"
+                        materialId="greenEye"
+                    />
+                </group>
+                <group
                     position={ rightEyePosition }
-                    mesh="eye"
-                    materialId="greenEye"
-                />
+                    rotation={ rightEyeRotation }
+                >
+                    <Eye
+                        scale={ eyeScale }
+                        assets={ assets }
+                        rotation={ localEyeRotation }
+                        mesh="eye"
+                        materialId="greenEye"
+                    />
+                </group>
                 <group
                     ref="playerGroup"
-                    scale={ new THREE.Vector3( 0.5, 0.5, 0.5 ) }
+                    scale={ localPlayerScale }
                 />
             </group>
         </group>;

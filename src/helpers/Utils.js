@@ -368,6 +368,14 @@ export function lerpVectors( vectorA, vectorB, percent, easingFn ) {
 
 }
 
+export function lerpEulers( eulerA, eulerB, percent, easingFn ) {
+
+    return new THREE.Euler().setFromVector3(
+        lerpVectors( eulerA, eulerB, percent, easingFn )
+    );
+
+}
+
 export function getFrustrumAt( distanceFromCamera:number, fov:number, aspect:number ) {
 
     const frustumHeight = 2.0 * distanceFromCamera * Math.tan( fov * 0.5 * ( Math.PI / 180 ) );
