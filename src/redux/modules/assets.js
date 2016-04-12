@@ -129,10 +129,8 @@ export function assetsReducer( assets = {}, action = {} ) {
                 ...assets,
                 [ action.name ]: {
                     model: action.rawModelData,
-                    geometry: {
-                        name: action.name,
-                        ...action.geometry
-                    }
+                    materials: action.materials,
+                    geometry: action.geometry
                 }
             };
 
@@ -184,8 +182,9 @@ export function loadModelFile( name, url, fetchGeometry ) {
             .then( result => dispatch({
                 type: MODEL_LOAD_SUCCESS,
                 name,
-                rawModelData: result,
-                geometry: fetchGeometry ? fetchGeometry( result ) : result,
+                rawModelData: result.model,
+                materials: result.materials,
+                geometry: fetchGeometry ? fetchGeometry( result.model ) : result.model,
             }) )
             .catch( error => dispatch({ type: MODEL_LOAD_FAIL, error }) );
 }

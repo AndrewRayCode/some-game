@@ -6,8 +6,8 @@
   "uniforms": {
     "uvScale": {
       "value": {
-        "x": "1",
-        "y": "1"
+        "x": 1,
+        "y": 1
       },
       "type": "v2",
       "glslType": "vec2"
@@ -19,15 +19,15 @@
     },
     "color": {
       "value": {
-        "r": 0.2,
-        "g": 0.8,
-        "b": 0.2
+        "r": 0.4,
+        "g": 0.5,
+        "b": 0.4
       },
       "type": "c",
       "glslType": "vec3"
     },
     "start": {
-      "value": 0.2,
+      "value": 0.3,
       "type": "f",
       "glslType": "float"
     },
@@ -37,7 +37,7 @@
       "glslType": "float"
     },
     "alpha": {
-      "value": 0.8,
+      "value": 0.7,
       "type": "f",
       "glslType": "float"
     }

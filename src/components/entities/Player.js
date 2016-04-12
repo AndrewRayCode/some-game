@@ -3,6 +3,7 @@ import THREE from 'three';
 import SPE from 'shader-particle-engine';
 import { Mesh, Eye, ParticleEmitter } from '../';
 import shaderFrog from '../../helpers/shaderFrog';
+import { Animation, AnimationHandler } from 'three-animation-handler';
 
 const defaultScale = new THREE.Vector3( 2, 2, 2 );
 const localPlayerRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
@@ -53,12 +54,63 @@ export default class Player extends Component {
 
         super( props, context );
 
+        this._onUpdate = this._onUpdate.bind( this );
+
         this.state = {
             ...this._getStateFromProps( props, true ),
             particleMaterial: __CLIENT__ ? THREE.ImageUtils.loadTexture(
                 require( '../../../assets/twinkle-particle.png' )
             ) : null,
         };
+
+    }
+
+    componentDidMount() {
+
+        const { assets } = this.props;
+        const { charisma } = assets;
+        const { playerGroup } = this.refs;
+
+        console.log( 'charisma:', charisma );
+        const mesh = new THREE.SkinnedMesh(
+            charisma.geometry,
+            new THREE.MeshPhongMaterial()
+        );
+        
+        mesh.material.skinning = true;
+
+        playerGroup.add( mesh );
+        this.playerMesh = mesh;
+        
+        //AnimationHandler.add( mesh.geometry.animation );
+
+        const mixer = new THREE.AnimationMixer( mesh );
+        mixer.clipAction( mesh.geometry.animations[ 0 ] ).play();
+        this.mixer = mixer;
+
+        //const animation = new Animation(
+            //mesh,
+            //'ArmatureAction',
+            //AnimationHandler.CATMULLROM
+        //);
+        //animation.play();
+        //this.animation = animation;
+            
+    }
+
+    componentWillUnmount() {
+
+        this.refs.playerGroup.remove( this.playerMesh );
+
+    }
+
+    _onUpdate( delta, ealpsedTime ) {
+
+        if( this.mixer ) {
+
+            this.mixer.update( delta * 0.0005 );
+
+        }
 
     }
 
@@ -121,7 +173,9 @@ export default class Player extends Component {
                 )
             );
 
-        return <group>
+        return <group
+            onUpdate={ this._onUpdate }
+        >
             { scaleEffectsVisible ? <ParticleEmitter
                 enabled={ scaleEffectsEnabled }
                 texture={ particleMaterial }
@@ -168,11 +222,9 @@ export default class Player extends Component {
                     mesh="eye"
                     materialId="greenEye"
                 />
-                <Mesh
-                    materialId="glowTexture"
-                    assets={ assets }
+                <group
+                    ref="playerGroup"
                     scale={ new THREE.Vector3( 0.5, 0.5, 0.5 ) }
-                    mesh="charisma"
                 />
             </group>
         </group>;

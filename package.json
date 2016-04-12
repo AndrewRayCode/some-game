@@ -143,6 +143,7 @@
     "socket.io-client": "^1.3.7",
     "superagent": "^1.4.0",
     "three": ">=0.74.0",
+    "three-animation-handler": "0.0.1",
     "three-obj-loader": "git://github.com/DelvarWorld/three-object-loader.git#cross",
     "three-orbit-controls": "^72.0.0",
     "three-subdivision-modifier": "^1.0.4",

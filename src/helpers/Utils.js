@@ -155,7 +155,7 @@ export function loadModel( modelPath ) {
         loader.load(
             modelPath,
             // success
-            model => resolve( model ),
+            ( model, materials ) => resolve({ model, materials }),
             // loading
             () => null,
             // error
