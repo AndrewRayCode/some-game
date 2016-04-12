@@ -43,6 +43,7 @@ export default class Player extends Component {
         scaleEffectsVisible: PropTypes.bool,
         scaleEffectsEnabled: PropTypes.bool,
         scale: PropTypes.object,
+        percentMouthOpen: PropTypes.number,
         materialId: PropTypes.string.isRequired,
         playerTexture: PropTypes.string,
         assets: PropTypes.object.isRequired,
@@ -71,34 +72,21 @@ export default class Player extends Component {
         const { charisma } = assets;
         const { playerGroup } = this.refs;
 
-        console.log( 'charisma:', charisma );
         const mesh = new THREE.SkinnedMesh(
             charisma.geometry,
             shaderFrog.get( 'glowTexture' )
         );
-        //console.log(shaderFrog.get( 'glowTexture' ),'setting frog to ',this.props.playerTexture);
         shaderFrog.get( 'glowTexture' ).uniforms.image.value = this.props.playerTexture;
         
         mesh.material.skinning = true;
 
         playerGroup.add( mesh );
         this.playerMesh = mesh;
-        
-        //AnimationHandler.add( mesh.geometry.animation );
 
         const mixer = new THREE.AnimationMixer( mesh );
-        console.log('find animations?;',mesh.geometry);
         mixer.clipAction( mesh.geometry.animations[ 3 ] ).play();
         this.mixer = mixer;
 
-        //const animation = new Animation(
-            //mesh,
-            //'ArmatureAction',
-            //AnimationHandler.CATMULLROM
-        //);
-        //animation.play();
-        //this.animation = animation;
-            
     }
 
     componentWillUnmount() {
@@ -111,7 +99,16 @@ export default class Player extends Component {
 
         if( this.mixer ) {
 
-            this.mixer.update( delta * 0.0005 );
+            //this.mixer.update( 0  );
+            this.mixer.time = 0;
+            const action = this.mixer._actions[ 0 ];
+            const { duration } = action._clip;
+            action._loopCount = -1;
+            action.time = 0;
+            action.startTime = 0;
+            this.mixer.update(
+                Math.min( duration * 0.999, duration * ( this.props.percentMouthOpen || 0 ) )
+            );
 
         }
 
@@ -149,11 +146,12 @@ export default class Player extends Component {
         if( ( forceUpdate && playerTexture ) || ( playerTexture !== this.props.playerTexture ) ) {
 
             const material = shaderFrog.get( materialId );
-            material.uniforms.image.value = this.props.playerTexture;
+
+            if( material ) {
+                material.uniforms.image.value = this.props.playerTexture;
+            }
 
         }
-
-        shaderFrog.get( 'glowTexture' ).uniforms.image.value = this.props.playerTexture;
 
         return newState;
 

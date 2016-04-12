@@ -45,10 +45,14 @@ const transitionFadeMs = 1000;
 @connect(
     state => {
 
+        const playerTexture = __CLIENT__ ? THREE.ImageUtils.loadTexture(
+            require( '../../../assets/charisma-face.jpg' )
+        ) : null;
+
         const {
             entities: allEntities,
             chapters: allChapters,
-            levels, books, chapters, playerMaterialId, playerTexture
+            levels, books, chapters, playerMaterialId,
         } = state.game;
 
         const {
@@ -62,6 +66,7 @@ const transitionFadeMs = 1000;
         if( !gameChapterData.currentChapterId ) {
 
             return {
+                playerTexture,
                 books: state.books,
                 chapters: state.chapters,
                 originalLevels,
@@ -564,7 +569,7 @@ export default class GameGUI extends Component {
 
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
-            assets,
+            assets, playerTexture
         } = this.props;
 
         // The mainCamera stuff is confusing. I don't fully understand it. All
@@ -670,6 +675,7 @@ export default class GameGUI extends Component {
                         assets={ assets }
                         letters={ letters }
                         onSelect={ this.selectBook }
+                        playerTexture={ playerTexture }
                         books={ Object.values( books ) }
                     />
                 }
@@ -679,11 +685,12 @@ export default class GameGUI extends Component {
                     mouseInput={ mouseInput }
                     onClickRegionLeave={ this.onClickRegionLeave }
                     onClickRegionEnter={ this.onClickRegionEnter }
-                    onUnpause={ this.onUnpause }
+                    onUnpause={ this.onUnpause }object
                     assets={ assets }
                     onRestart={ this.onShowConfirmRestartScreen }
                     onShowConfirmMenuScreen={ this.onShowConfirmMenuScreen }
                     fonts={ fonts }
+                        playerTexture={ playerTexture }
                     letters={ letters }
                 /> : null }
 
@@ -696,6 +703,7 @@ export default class GameGUI extends Component {
                     assets={ assets }
                     onDeny={ this.onDenyRestart }
                     fonts={ fonts }
+                    playerTexture={ playerTexture }
                     letters={ letters }
                 /> : null }
 
@@ -708,6 +716,7 @@ export default class GameGUI extends Component {
                     assets={ assets }
                     onDeny={ this.onExitToMenuDeny }
                     fonts={ fonts }
+                    playerTexture={ playerTexture }
                     letters={ letters }
                 /> : null }
 

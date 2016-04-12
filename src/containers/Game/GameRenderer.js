@@ -1126,7 +1126,8 @@ export default class GameRenderer extends Component {
             currentScalePercent, radiusDiff, currentTransitionPosition,
             currentTransitionTarget, plankEntities, anchorEntities,
             playerContact, scalingOffsetZ, adjustedPlayerScale, playerRotation,
-            playerScaleEffectsEnabled, playerScaleEffectsVisible
+            playerScaleEffectsEnabled, playerScaleEffectsVisible,
+            percentMouthOpen
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1176,6 +1177,7 @@ export default class GameRenderer extends Component {
                 rotation={ playerRotation }
                 materialId={ playerMaterialId }
                 playerTexture={ playerTexture }
+                percentMouthOpen={ percentMouthOpen }
                 time={ time }
             />
 

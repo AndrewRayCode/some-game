@@ -18,6 +18,7 @@ export default class SelectableMenu extends Component {
         })).isRequired,
         assets: React.PropTypes.object.isRequired,
         scale: React.PropTypes.object,
+        playerTexture: PropTypes.string.isRequired,
         position: React.PropTypes.object,
         fonts: React.PropTypes.object.isRequired,
         letters: React.PropTypes.object.isRequired,
@@ -106,7 +107,7 @@ export default class SelectableMenu extends Component {
     render() {
 
         const {
-            menuOptions, scale, position, fonts, letters, assets,
+            menuOptions, scale, position, fonts, letters, assets, playerTexture
         } = this.props;
         const { selectedIndex, time } = this.state;
 
@@ -141,11 +142,12 @@ export default class SelectableMenu extends Component {
             )}
 
             <Player
-                materialId="universeInALetter"
+                materialId="glowTexture"
                 assets={ assets }
                 rotation={ characterMenuRotaiton }
                 radius={ 0.5 }
                 time={ time }
+                playerTexture={ playerTexture }
                 position={
                     new THREE.Vector3(
                         ( textSpacing * selectedIndex ) - ( textSpacing * length * 0.5 ),

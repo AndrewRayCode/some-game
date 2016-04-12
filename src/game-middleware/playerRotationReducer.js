@@ -12,6 +12,7 @@ export default function playerRotationReducer( actions, props, oldState, current
     const turnAngle = playerRotation ? playerRotation.z : 0;
 
     const newState = {
+        percentMouthOpen: THREE.Math.clamp( Math.abs( turnAngle ), 0, 1 ),
         playerRotation: new THREE.Euler(
             0,
             0,
