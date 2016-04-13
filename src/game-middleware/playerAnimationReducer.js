@@ -1,16 +1,30 @@
 import THREE from 'three';
 import { lerp, lerpEulers } from '../helpers/Utils';
 
-const rotationLimit = 0.7 * ( Math.PI / 2 );
+const { randFloat } = THREE.Math;
+
+const playerRotationLimit = 0.7 * ( Math.PI / 2 );
 const turnSpeed = 0.2;
 const resolveSpeed = 0.08;
 
+const eyeRotationLimit = {
+    x: {
+        min: -Math.PI / 2,
+        max: Math.PI / 4
+    },
+    y: {
+        min: 0,
+        max: 0,
+    },
+    z: {
+        min: -Math.PI / 3,
+        max: Math.PI / 5
+    }
+};
 const eyeTweenTimeMinMs = 100;
-const eyeTweenTimeMaxMs = 500;
+const eyeTweenTimeMaxMs = 1000;
 const eyeWaitTimeMinMs = 500;
 const eyeWaitTimeMaxMs = 4000;
-const newRotationMin = -Math.PI / 5;
-const newRotationMax = Math.PI / 5;
 
 export default function playerAnimationReducer( actions, props, oldState, currentState, next ) {
 
@@ -31,9 +45,9 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         playerRotation: new THREE.Euler(
             0,
             0,
-            isLeft ? lerp( turnAngle, rotationLimit, turnSpeed )
+            isLeft ? lerp( turnAngle, playerRotationLimit, turnSpeed )
                 : ( isRight ?
-                   lerp( turnAngle, -rotationLimit, turnSpeed ) :
+                   lerp( turnAngle, -playerRotationLimit, turnSpeed ) :
                    lerp( turnAngle, 0, resolveSpeed )
                 ),
         )
@@ -45,15 +59,15 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     if( !leftEyeTweenStart || timeMs > leftEyeFinish ) {
 
         newState.leftEyeTweenTarget = new THREE.Euler(
-            THREE.Math.randFloat( newRotationMin, newRotationMax ),
-            THREE.Math.randFloat( newRotationMin, newRotationMax ),
-            THREE.Math.randFloat( newRotationMin, newRotationMax ),
+            randFloat( eyeRotationLimit.x.min, eyeRotationLimit.x.max ),
+            randFloat( eyeRotationLimit.y.min, eyeRotationLimit.y.max ),
+            randFloat( -eyeRotationLimit.z.min, -eyeRotationLimit.z.max ),
         );
         newState.leftEyeTweenStart = timeMs;
-        newState.leftEyeTweenDuraiton = THREE.Math.randFloat(
+        newState.leftEyeTweenDuraiton = randFloat(
             eyeTweenTimeMinMs, eyeTweenTimeMaxMs,
         );
-        newState.leftEyeTweenRest =  THREE.Math.randFloat(
+        newState.leftEyeTweenRest = randFloat(
             eyeWaitTimeMinMs, eyeWaitTimeMaxMs,
         );
 
@@ -78,15 +92,15 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     if( !rightEyeTweenStart || timeMs > rightEyeFinish ) {
 
         newState.rightEyeTweenTarget = new THREE.Euler(
-            THREE.Math.randFloat( newRotationMin, newRotationMax ),
-            THREE.Math.randFloat( newRotationMin, newRotationMax ),
-            THREE.Math.randFloat( newRotationMin, newRotationMax ),
+            randFloat( eyeRotationLimit.x.min, eyeRotationLimit.x.max ),
+            randFloat( eyeRotationLimit.y.min, eyeRotationLimit.y.max ),
+            randFloat( eyeRotationLimit.z.min, eyeRotationLimit.z.max ),
         );
         newState.rightEyeTweenStart = timeMs;
-        newState.rightEyeTweenDuraiton = THREE.Math.randFloat(
+        newState.rightEyeTweenDuraiton = randFloat(
             eyeTweenTimeMinMs, eyeTweenTimeMaxMs,
         );
-        newState.rightEyeTweenRest =  THREE.Math.randFloat(
+        newState.rightEyeTweenRest = randFloat(
             eyeWaitTimeMinMs, eyeWaitTimeMaxMs,
         );
 

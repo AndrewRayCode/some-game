@@ -10,6 +10,7 @@ const Textures = {
     moon: require( '../../assets/moon-texture.jpg' ),
     greenEye: require( '../../assets/green-eye.png' ),
     twinkleParticle: require( '../../assets/twinkle-particle.png' ),
+    denk: require( '../../assets/foot-texture.jpg' ),
 };
 
 export default Textures;

@@ -247,6 +247,11 @@ export function loadAllAssets() {
         ));
 
         dispatch( loadModelFile(
+            'denk',
+            require( '../../../assets/models/denk.json' ),
+        ));
+
+        dispatch( loadModelFile(
             'tube',
             require( '../../../assets/models/tube.json' ),
         ));

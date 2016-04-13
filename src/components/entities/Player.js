@@ -8,10 +8,17 @@ import { Animation, AnimationHandler } from 'three-animation-handler';
 const defaultScale = new THREE.Vector3( 2, 2, 2 );
 const localPlayerRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
 const localPlayerScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
+const localPlayerPosition = new THREE.Vector3( 0, 0, -0.2 );
+
+const legPosition = new THREE.Vector3( 0, 0, 0.2 );
 
 const localEyeRotation = new THREE.Euler( -Math.PI / 2 - 0.2, -Math.PI / 2, 0 );
 const eyeScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.36 );
-const leftEyePosition = new THREE.Vector3( -0.25, 0.13, -0.19 );
+const leftEyePosition = new THREE.Vector3(
+    -0.25,
+    0.13,
+    -0.19 + localPlayerPosition.z,
+);
 const rightEyePosition = leftEyePosition.clone().setX( -leftEyePosition.x );
 
 const particleVelocityDistribution = SPE.distributions.BOX;
@@ -102,15 +109,13 @@ export default class Player extends Component {
 
         if( this.mixer ) {
 
-            this.mixer.time = 0;
             const action = this.mixer._actions[ 0 ];
             const { duration } = action._clip;
-            action._loopCount = -1;
-            action.time = 0;
-            action.startTime = 0;
-            this.mixer.update(
-                Math.min( duration * 0.999, duration * ( this.props.percentMouthOpen || 0 ) )
-            );
+            const time = Math.min( duration * 0.999, duration * ( this.props.percentMouthOpen || 0 ) );
+
+            //this.mixer.time = 0;
+            action.time = time;
+            this.mixer.update( 0 );
 
         }
 
@@ -239,6 +244,14 @@ export default class Player extends Component {
                 <group
                     ref="playerGroup"
                     scale={ localPlayerScale }
+                    position={ localPlayerPosition }
+                />
+                <Mesh
+                    position={ legPosition }
+                    ref="legs"
+                    assets={ assets }
+                    mesh="denk"
+                    materialId="glowTexture"
                 />
             </group>
         </group>;
