@@ -12,6 +12,7 @@ const CustomShaders = {
     pauseBackground: require( '../../assets/shaders/Pause_Screen_Background.json' ),
     playerMenuBody: require( '../../assets/shaders/Menu_Body.json' ),
     glowTexture: require( '../../assets/shaders/Glow_Texture.json' ),
+    glowTextureDenk: require( '../../assets/shaders/Glow_Texture.json' ),
 };
 
 export default CustomShaders;

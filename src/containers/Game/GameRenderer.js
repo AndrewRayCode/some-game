@@ -1134,7 +1134,8 @@ export default class GameRenderer extends Component {
             playerRadius, playerScale, nextChapters, nextChaptersEntities,
             previousChapterEntities, previousChapterEntity,
             currentLevelRenderableEntitiesArray, previousChapterFinishEntity,
-            assets, shaders, paused, playerMaterialId, playerTexture
+            assets, shaders, paused, playerMaterialId, playerTexture,
+            playerTextureLegs,
         } = this.props;
 
         const { playerBody } = this;
@@ -1177,6 +1178,7 @@ export default class GameRenderer extends Component {
                 rotation={ playerRotation }
                 materialId={ playerMaterialId }
                 playerTexture={ playerTexture }
+                playerTextureLegs={ playerTextureLegs }
                 leftEyeRotation={ leftEyeRotation }
                 rightEyeRotation={ rightEyeRotation }
                 percentMouthOpen={ percentMouthOpen }

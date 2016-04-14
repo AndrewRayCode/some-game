@@ -48,6 +48,9 @@ const transitionFadeMs = 1000;
         const playerTexture = __CLIENT__ ? THREE.ImageUtils.loadTexture(
             require( '../../../assets/charisma-face.jpg' )
         ) : null;
+        const playerTextureLegs = __CLIENT__ ? THREE.ImageUtils.loadTexture(
+            require( '../../../assets/foot-texture.jpg' )
+        ) : null;
 
         const {
             entities: allEntities,
@@ -66,7 +69,7 @@ const transitionFadeMs = 1000;
         if( !gameChapterData.currentChapterId ) {
 
             return {
-                playerTexture,
+                playerTexture, playerTextureLegs,
                 books: state.books,
                 chapters: state.chapters,
                 originalLevels,
@@ -220,7 +223,7 @@ const transitionFadeMs = 1000;
             currentLevelBridges,
             currentLevelBridgesArray: Object.values( currentLevelBridges ),
 
-            playerMaterialId, playerTexture,
+            playerMaterialId, playerTexture, playerTextureLegs,
             gameStarted: true,
             restartBusterId: state.game.restartBusterId,
             recursionBusterId: state.game.recursionBusterId,

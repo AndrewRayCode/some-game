@@ -287,7 +287,9 @@ export function loadAllAssets() {
 
         Object.keys( CustomShaders ).forEach( key => {
 
-            const json = CustomShaders[ key ];
+            const json = JSON.parse(
+                JSON.stringify( CustomShaders[ key ] )
+            );
             shaderFrog.add( key, json );
 
             dispatch( loadShader(

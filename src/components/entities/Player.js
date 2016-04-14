@@ -56,6 +56,7 @@ export default class Player extends Component {
         percentMouthOpen: PropTypes.number,
         materialId: PropTypes.string.isRequired,
         playerTexture: PropTypes.string,
+        playerTextureLegs: PropTypes.string,
         assets: PropTypes.object.isRequired,
         radius: PropTypes.number.isRequired,
         time: PropTypes.number,
@@ -90,6 +91,7 @@ export default class Player extends Component {
         mesh.material.skinning = true;
         playerGroup.add( mesh );
         this.playerMesh = mesh;
+        console.log('playerMesh',mesh);
 
         const mixer = new THREE.AnimationMixer( mesh );
         mixer.clipAction( mesh.geometry.animations[ 3 ] ).play();
@@ -98,13 +100,15 @@ export default class Player extends Component {
 
         const denkMesh = new THREE.SkinnedMesh(
             denk.geometry,
-            shaderFrog.get( 'glowTexture' )
+            shaderFrog.get( 'glowTextureDenk' )
         );
+        console.log('lol',this.props);
+        shaderFrog.get( 'glowTextureDenk' ).uniforms.image.value = this.props.playerTextureLegs || this.props.playerTexture;
         denkMesh.material.skinning = true;
         playerLegs.add( denkMesh );
         this.playerLegs = denkMesh;
 
-        console.log('animations',denkMesh.geometry.animations);
+        console.log('denkMesh',denkMesh);
         const denkMixer = new THREE.AnimationMixer( denkMesh );
         denkMixer.clipAction( denkMesh.geometry.animations[ 2 ] ).play();
         this.denkMixer = denkMixer;
@@ -125,18 +129,21 @@ export default class Player extends Component {
 
             const action = this.mixer._actions[ 0 ];
             const { duration } = action._clip;
-            const time = Math.min( duration * 0.999, duration * ( this.props.percentMouthOpen || 0 ) );
-
-            action.time = time;
-            this.mixer.update( 0 );
-
+            action._loopCount = -1;
+            action.time = 0;
+            action.startTime = 0;
+            this.mixer.update(
+                Math.min( duration * 0.999, duration * ( this.props.percentMouthOpen || 0 ) )
+            );
 
             const denkAction = this.denkMixer._actions[ 0 ];
             const { duration: denkDuration } = denkAction._clip;
-            const denkTime = Date.now() * 100;
-
-            denkAction.time = denkTime;
-            this.denkMixer.update( 0 );
+            denkAction._loopCount = -1;
+            denkAction.time = 0;
+            denkAction.startTime = 0;
+            this.denkMixer.update(
+                Date.now() * 0.001 || Math.min( denkDuration * 0.999, duration * ( Date.now() * 0.001 || 0 ) )
+            );
 
         }
 
