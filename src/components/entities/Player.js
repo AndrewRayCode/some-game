@@ -8,9 +8,9 @@ import { Animation, AnimationHandler } from 'three-animation-handler';
 const defaultScale = new THREE.Vector3( 2, 2, 2 );
 const localPlayerRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
 const localPlayerScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
-const localPlayerPosition = new THREE.Vector3( 0, 0, -0.2 );
+const localPlayerPosition = new THREE.Vector3( 0, 0, -0.1 );
 
-const legPosition = new THREE.Vector3( 0, 0, 0.2 );
+const legPosition = new THREE.Vector3( 0, 0, 0.31 );
 
 const localEyeRotation = new THREE.Euler( -Math.PI / 2 - 0.2, -Math.PI / 2, 0 );
 const eyeScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.36 );
