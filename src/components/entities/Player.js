@@ -79,17 +79,15 @@ export default class Player extends Component {
     componentDidMount() {
 
         const { assets } = this.props;
-        const { charisma } = assets;
-        const { playerGroup } = this.refs;
+        const { charisma, denk } = assets;
+        const { playerLegs, playerGroup } = this.refs;
 
         const mesh = new THREE.SkinnedMesh(
             charisma.geometry,
             shaderFrog.get( 'glowTexture' )
         );
         shaderFrog.get( 'glowTexture' ).uniforms.image.value = this.props.playerTexture;
-        
         mesh.material.skinning = true;
-
         playerGroup.add( mesh );
         this.playerMesh = mesh;
 
@@ -97,11 +95,27 @@ export default class Player extends Component {
         mixer.clipAction( mesh.geometry.animations[ 3 ] ).play();
         this.mixer = mixer;
 
+
+        const denkMesh = new THREE.SkinnedMesh(
+            denk.geometry,
+            shaderFrog.get( 'glowTexture' )
+        );
+        denkMesh.material.skinning = true;
+        playerLegs.add( denkMesh );
+        this.playerLegs = denkMesh;
+
+        console.log('animations',denkMesh.geometry.animations);
+        const denkMixer = new THREE.AnimationMixer( denkMesh );
+        denkMixer.clipAction( denkMesh.geometry.animations[ 2 ] ).play();
+        this.denkMixer = denkMixer;
+
+
     }
 
     componentWillUnmount() {
 
         this.refs.playerGroup.remove( this.playerMesh );
+        this.refs.playerLegs.remove( this.denkMesh );
 
     }
 
@@ -113,9 +127,16 @@ export default class Player extends Component {
             const { duration } = action._clip;
             const time = Math.min( duration * 0.999, duration * ( this.props.percentMouthOpen || 0 ) );
 
-            //this.mixer.time = 0;
             action.time = time;
             this.mixer.update( 0 );
+
+
+            const denkAction = this.denkMixer._actions[ 0 ];
+            const { duration: denkDuration } = denkAction._clip;
+            const denkTime = Date.now() * 100;
+
+            denkAction.time = denkTime;
+            this.denkMixer.update( 0 );
 
         }
 
@@ -246,12 +267,9 @@ export default class Player extends Component {
                     scale={ localPlayerScale }
                     position={ localPlayerPosition }
                 />
-                <Mesh
+                <group
+                    ref="playerLegs"
                     position={ legPosition }
-                    ref="legs"
-                    assets={ assets }
-                    mesh="denk"
-                    materialId="glowTexture"
                 />
             </group>
         </group>;
