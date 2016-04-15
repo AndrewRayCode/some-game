@@ -248,7 +248,11 @@ export function loadAllAssets() {
 
         dispatch( loadModelFile(
             'denk',
-            require( '../../../assets/models/denk.json' ),
+            require( '../../../assets/models/denk-test-export.dae' ),
+            result => {
+                console.log('loaded',result);
+                return result;
+            }
         ));
 
         dispatch( loadModelFile(

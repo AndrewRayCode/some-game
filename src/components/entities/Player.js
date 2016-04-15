@@ -10,7 +10,8 @@ const localPlayerRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
 const localPlayerScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
 const localPlayerPosition = new THREE.Vector3( 0, 0, -0.1 );
 
-const legPosition = new THREE.Vector3( 0, 0, 0.31 );
+const legPosition = new THREE.Vector3( 0, 0, 0.31 - 1 );
+const legScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 2.5 );
 
 const localEyeRotation = new THREE.Euler( -Math.PI / 2 - 0.2, -Math.PI / 2, 0 );
 const eyeScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.36 );
@@ -89,7 +90,7 @@ export default class Player extends Component {
         );
         shaderFrog.get( 'glowTexture' ).uniforms.image.value = this.props.playerTexture;
         mesh.material.skinning = true;
-        playerGroup.add( mesh );
+        //playerGroup.add( mesh );
         this.playerMesh = mesh;
         console.log('playerMesh',mesh);
 
@@ -98,20 +99,30 @@ export default class Player extends Component {
         this.mixer = mixer;
 
 
-        const denkMesh = new THREE.SkinnedMesh(
-            denk.geometry,
-            shaderFrog.get( 'glowTextureDenk' )
-        );
-        console.log('lol',this.props);
-        shaderFrog.get( 'glowTextureDenk' ).uniforms.image.value = this.props.playerTextureLegs || this.props.playerTexture;
-        denkMesh.material.skinning = true;
-        playerLegs.add( denkMesh );
-        this.playerLegs = denkMesh;
+        const geometry = denk.geometry;
+        console.log('denk geo',geometry);
+        //for (let i = 0; i < geometry.vertices.length; i++) {
+            //const vector = geometry.vertices[i];
+            //const axis = new THREE.Vector3(0, 1, 0);
+            //const angle = Math.PI / 2;
+            //geometry.vertices[i].applyAxisAngle(axis, angle);
+        //}
 
-        console.log('denkMesh',denkMesh);
-        const denkMixer = new THREE.AnimationMixer( denkMesh );
-        denkMixer.clipAction( denkMesh.geometry.animations[ 2 ] ).play();
-        this.denkMixer = denkMixer;
+
+        //const denkMesh = new THREE.SkinnedMesh(
+            //denk.geometry,
+            //new THREE.MeshPhongMaterial()//shaderFrog.get( 'glowTextureDenk' )
+        //);
+        //console.log('lol',this.props);
+        //shaderFrog.get( 'glowTextureDenk' ).uniforms.image.value = this.props.playerTextureLegs || this.props.playerTexture;
+        //denkMesh.material.skinning = true;
+        //playerLegs.add( denkMesh );
+        //this.playerLegs = denkMesh;
+
+        //console.log('denkMesh',denkMesh);
+        //const denkMixer = new THREE.AnimationMixer( denkMesh );
+        //denkMixer.clipAction( denkMesh.geometry.animations[ 1 ] ).play();
+        //this.denkMixer = denkMixer;
 
 
     }
@@ -277,6 +288,7 @@ export default class Player extends Component {
                 <group
                     ref="playerLegs"
                     position={ legPosition }
+                    scale={ legScale }
                 />
             </group>
         </group>;

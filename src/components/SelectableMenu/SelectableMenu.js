@@ -147,8 +147,10 @@ export default class SelectableMenu extends Component {
                 rotation={ characterMenuRotaiton }
                 radius={ 0.5 }
                 time={ time }
+                scale={ new THREE.Vector3( 2, 2, 2 ) }
                 playerTexture={ playerTexture }
                 position={
+                    new THREE.Vector3( 0, 0, 0 ) ||
                     new THREE.Vector3(
                         ( textSpacing * selectedIndex ) - ( textSpacing * length * 0.5 ),
                         0,

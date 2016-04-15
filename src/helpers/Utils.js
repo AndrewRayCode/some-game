@@ -1,6 +1,9 @@
 import THREE from 'three';
 import Cardinality from '../helpers/Cardinality';
 
+// Garbage library https://www.npmjs.com/package/three-loaders-collada
+import ColladaLoader from 'three-collada-loader';
+
 // Garbage library https://github.com/sohamkamani/three-object-loader/issues/1
 import mutateThreeWithObjLoader from 'three-obj-loader';
 mutateThreeWithObjLoader( THREE );
@@ -137,6 +140,7 @@ export function lerp( start, target, percent ) {
 const loaders = {
     json: new THREE.JSONLoader(),
     obj: new THREE.OBJLoader(),
+    dae: new ColladaLoader(),
     font: new THREE.FontLoader(),
 };
 
