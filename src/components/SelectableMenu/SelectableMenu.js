@@ -19,6 +19,7 @@ export default class SelectableMenu extends Component {
         assets: React.PropTypes.object.isRequired,
         scale: React.PropTypes.object,
         playerTexture: PropTypes.string.isRequired,
+        playerTextureLegs: PropTypes.string.isRequired,
         position: React.PropTypes.object,
         fonts: React.PropTypes.object.isRequired,
         letters: React.PropTypes.object.isRequired,
@@ -107,7 +108,8 @@ export default class SelectableMenu extends Component {
     render() {
 
         const {
-            menuOptions, scale, position, fonts, letters, assets, playerTexture
+            menuOptions, scale, position, fonts, letters, assets,
+            playerTexture, playerTextureLegs,
         } = this.props;
         const { selectedIndex, time } = this.state;
 
@@ -147,10 +149,9 @@ export default class SelectableMenu extends Component {
                 rotation={ characterMenuRotaiton }
                 radius={ 0.5 }
                 time={ time }
-                scale={ new THREE.Vector3( 2, 2, 2 ) }
                 playerTexture={ playerTexture }
+                playerTextureLegs={ playerTextureLegs }
                 position={
-                    new THREE.Vector3( 0, 0, 0 ) ||
                     new THREE.Vector3(
                         ( textSpacing * selectedIndex ) - ( textSpacing * length * 0.5 ),
                         0,

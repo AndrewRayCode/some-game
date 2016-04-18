@@ -1,24 +1,24 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import SPE from 'shader-particle-engine';
-import { Mesh, Eye, ParticleEmitter } from '../';
+import { AnimatedMesh, Eye, ParticleEmitter } from '../';
 import shaderFrog from '../../helpers/shaderFrog';
 import { Animation, AnimationHandler } from 'three-animation-handler';
 
 const defaultScale = new THREE.Vector3( 2, 2, 2 );
-const localPlayerRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
 const localPlayerScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
-const localPlayerPosition = new THREE.Vector3( 0, 0, -0.1 );
+const localHeadPosition = new THREE.Vector3( 0, 0, -0.15 );
 
-const legPosition = new THREE.Vector3( 0, 0, 0.31 - 1 );
-const legScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 2.5 );
+const legRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
+const legPosition = new THREE.Vector3( 0, 0, 0.33 );
+const legScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.85 );
 
 const localEyeRotation = new THREE.Euler( -Math.PI / 2 - 0.2, -Math.PI / 2, 0 );
 const eyeScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.36 );
 const leftEyePosition = new THREE.Vector3(
     -0.25,
     0.13,
-    -0.19 + localPlayerPosition.z,
+    -0.19 + localHeadPosition.z,
 );
 const rightEyePosition = leftEyePosition.clone().setX( -leftEyePosition.x );
 
@@ -67,96 +67,12 @@ export default class Player extends Component {
 
         super( props, context );
 
-        this._onUpdate = this._onUpdate.bind( this );
-
         this.state = {
             ...this._getStateFromProps( props, true ),
             particleMaterial: __CLIENT__ ? THREE.ImageUtils.loadTexture(
                 require( '../../../assets/twinkle-particle.png' )
             ) : null,
         };
-
-    }
-
-    componentDidMount() {
-
-        const { assets } = this.props;
-        const { charisma, denk } = assets;
-        const { playerLegs, playerGroup } = this.refs;
-
-        const mesh = new THREE.SkinnedMesh(
-            charisma.geometry,
-            shaderFrog.get( 'glowTexture' )
-        );
-        shaderFrog.get( 'glowTexture' ).uniforms.image.value = this.props.playerTexture;
-        mesh.material.skinning = true;
-        //playerGroup.add( mesh );
-        this.playerMesh = mesh;
-        console.log('playerMesh',mesh);
-
-        const mixer = new THREE.AnimationMixer( mesh );
-        mixer.clipAction( mesh.geometry.animations[ 3 ] ).play();
-        this.mixer = mixer;
-
-
-        const geometry = denk.geometry;
-        console.log('denk geo',geometry);
-        //for (let i = 0; i < geometry.vertices.length; i++) {
-            //const vector = geometry.vertices[i];
-            //const axis = new THREE.Vector3(0, 1, 0);
-            //const angle = Math.PI / 2;
-            //geometry.vertices[i].applyAxisAngle(axis, angle);
-        //}
-
-
-        //const denkMesh = new THREE.SkinnedMesh(
-            //denk.geometry,
-            //new THREE.MeshPhongMaterial()//shaderFrog.get( 'glowTextureDenk' )
-        //);
-        //console.log('lol',this.props);
-        //shaderFrog.get( 'glowTextureDenk' ).uniforms.image.value = this.props.playerTextureLegs || this.props.playerTexture;
-        //denkMesh.material.skinning = true;
-        //playerLegs.add( denkMesh );
-        //this.playerLegs = denkMesh;
-
-        //console.log('denkMesh',denkMesh);
-        //const denkMixer = new THREE.AnimationMixer( denkMesh );
-        //denkMixer.clipAction( denkMesh.geometry.animations[ 1 ] ).play();
-        //this.denkMixer = denkMixer;
-
-
-    }
-
-    componentWillUnmount() {
-
-        this.refs.playerGroup.remove( this.playerMesh );
-        this.refs.playerLegs.remove( this.denkMesh );
-
-    }
-
-    _onUpdate( delta, ealpsedTime ) {
-
-        if( this.mixer ) {
-
-            const action = this.mixer._actions[ 0 ];
-            const { duration } = action._clip;
-            action._loopCount = -1;
-            action.time = 0;
-            action.startTime = 0;
-            this.mixer.update(
-                Math.min( duration * 0.999, duration * ( this.props.percentMouthOpen || 0 ) )
-            );
-
-            const denkAction = this.denkMixer._actions[ 0 ];
-            const { duration: denkDuration } = denkAction._clip;
-            denkAction._loopCount = -1;
-            denkAction.time = 0;
-            denkAction.startTime = 0;
-            this.denkMixer.update(
-                Date.now() * 0.001 || Math.min( denkDuration * 0.999, duration * ( Date.now() * 0.001 || 0 ) )
-            );
-
-        }
 
     }
 
@@ -208,7 +124,7 @@ export default class Player extends Component {
         const {
             position, rotation, quaternion, radius, materialId, time, assets,
             scale, scaleEffectsVisible, scaleEffectsEnabled, leftEyeRotation,
-            rightEyeRotation
+            rightEyeRotation, playerTexture, playerTextureLegs
         } = this.props;
 
         const {
@@ -223,9 +139,7 @@ export default class Player extends Component {
                 )
             );
 
-        return <group
-            onUpdate={ this._onUpdate }
-        >
+        return <group>
             { scaleEffectsVisible ? <ParticleEmitter
                 enabled={ scaleEffectsEnabled }
                 texture={ particleMaterial }
@@ -280,15 +194,23 @@ export default class Player extends Component {
                         materialId="greenEye"
                     />
                 </group>
-                <group
-                    ref="playerGroup"
+                <AnimatedMesh
                     scale={ localPlayerScale }
-                    position={ localPlayerPosition }
+                    position={ localHeadPosition }
+                    assets={ assets }
+                    texture={ shaderFrog.get( 'glowTexture' ) }
+                    imageValue={ playerTexture }
+                    mesh="charisma"
                 />
-                <group
-                    ref="playerLegs"
+                <AnimatedMesh
+                    rotation={ legRotation }
                     position={ legPosition }
                     scale={ legScale }
+                    assets={ assets }
+                    texture={ shaderFrog.get( 'glowTextureDenk' ) }
+                    imageValue={ playerTextureLegs }
+                    mesh="charismaLegs"
+                    animationWeights={ { Walk: 0.5, Idle: 0.5 } }
                 />
             </group>
         </group>;

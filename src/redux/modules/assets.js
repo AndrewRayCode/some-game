@@ -3,6 +3,7 @@ import THREE from 'three';
 import {
     bufferToGeometry, loadModel,
     loadFont as utilLoadFont,
+    loaders
 } from '../../helpers/Utils';
 import shaderFrog from '../../helpers/shaderFrog';
 import CustomShaders from '../../helpers/CustomShaders';
@@ -175,10 +176,9 @@ export function shadersReducer( shaders = {}, action = {} ) {
 
 }
 
-// Actions
-export function loadModelFile( name, url, fetchGeometry ) {
+export function loadWithDefaultLoader( name:string, url:string, fetchGeometry:any, loader:any ) {
     return dispatch =>
-        loadModel( url )
+        loadModel( url, loader )
             .then( result => dispatch({
                 type: MODEL_LOAD_SUCCESS,
                 name,
@@ -187,6 +187,12 @@ export function loadModelFile( name, url, fetchGeometry ) {
                 geometry: fetchGeometry ? fetchGeometry( result.model ) : result.model,
             }) )
             .catch( error => dispatch({ type: MODEL_LOAD_FAIL, error }) );
+}
+
+export function loadWithLoader( name:string, url:string, loader:Object, fetchGeometry:any ) {
+
+    return loadWithDefaultLoader( name, url, fetchGeometry, loader );
+
 }
 
 export function loadFont( url ) {
@@ -221,72 +227,78 @@ export function loadAllAssets() {
 
         dispatch( assetsLoading() );
 
-        dispatch( loadModelFile(
+        dispatch( loadWithLoader(
             'charisma',
             require( '../../../assets/models/charisma.json' ),
+            loaders.js,
             model => {
                 model.computeVertexNormals();
                 return model;
             }
         ));
 
-        dispatch( loadModelFile(
+        dispatch( loadWithLoader(
             'multiwall',
             require( '../../../assets/models/multiwall.json' ),
+            loaders.js
         ));
 
-        dispatch( loadModelFile(
+        dispatch( loadWithDefaultLoader(
             'house',
             require( '../../../assets/models/houseSF.obj' ),
-            model => bufferToGeometry( model.children[ 1 ].geometry )
+            model => bufferToGeometry( model.children[ 1 ].geometry ),
         ));
 
-        dispatch( loadModelFile(
+        dispatch( loadWithLoader(
             'eye',
             require( '../../../assets/models/eye.json' ),
+            loaders.js
         ));
 
-        dispatch( loadModelFile(
-            'denk',
-            require( '../../../assets/models/denk-test-export.dae' ),
-            result => {
-                console.log('loaded',result);
-                return result;
-            }
+        dispatch( loadWithDefaultLoader(
+            'charismaLegs',
+            require( '../../../assets/models/charisma-legs.json' ),
+            result => result.children[ 0 ].geometry,
         ));
 
-        dispatch( loadModelFile(
+        dispatch( loadWithLoader(
             'tube',
             require( '../../../assets/models/tube.json' ),
+            loaders.js
         ));
 
-        dispatch( loadModelFile(
+        dispatch( loadWithLoader(
             'tubeBend',
             require( '../../../assets/models/tube-bend.json' ),
+            loaders.js,
         ));
 
         dispatch( loadFont(
             require( '../../../assets/sniglet_regular.typeface.js' )
         ));
 
-        dispatch( loadModelFile(
+        dispatch( loadWithLoader(
             'diamondBox',
             require( '../../../assets/models/diamond-box.json' ),
+            loaders.js,
         ));
 
-        dispatch( loadModelFile(
+        dispatch( loadWithLoader(
             'chamferBox',
             require( '../../../assets/models/chamfer-box.json' ),
+            loaders.js,
         ));
 
-        dispatch( loadModelFile(
+        dispatch( loadWithLoader(
             'curvedWall',
             require( '../../../assets/models/curved-wall.json' ),
+            loaders.js,
         ));
 
-        dispatch( loadModelFile(
+        dispatch( loadWithLoader(
             'curvedWallTop',
             require( '../../../assets/models/curved-wall-top.json' ),
+            loaders.js,
         ));
 
         Object.keys( CustomShaders ).forEach( key => {

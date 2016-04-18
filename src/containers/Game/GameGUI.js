@@ -572,7 +572,7 @@ export default class GameGUI extends Component {
 
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
-            assets, playerTexture
+            assets, playerTexture, playerTextureLegs
         } = this.props;
 
         // The mainCamera stuff is confusing. I don't fully understand it. All
@@ -679,6 +679,7 @@ export default class GameGUI extends Component {
                         letters={ letters }
                         onSelect={ this.selectBook }
                         playerTexture={ playerTexture }
+                        playerTextureLegs={ playerTextureLegs }
                         books={ Object.values( books ) }
                     />
                 }
@@ -693,7 +694,8 @@ export default class GameGUI extends Component {
                     onRestart={ this.onShowConfirmRestartScreen }
                     onShowConfirmMenuScreen={ this.onShowConfirmMenuScreen }
                     fonts={ fonts }
-                        playerTexture={ playerTexture }
+                    playerTexture={ playerTexture }
+                    playerTextureLegs={ playerTextureLegs }
                     letters={ letters }
                 /> : null }
 
@@ -707,6 +709,7 @@ export default class GameGUI extends Component {
                     onDeny={ this.onDenyRestart }
                     fonts={ fonts }
                     playerTexture={ playerTexture }
+                    playerTextureLegs={ playerTextureLegs }
                     letters={ letters }
                 /> : null }
 
@@ -720,6 +723,7 @@ export default class GameGUI extends Component {
                     onDeny={ this.onExitToMenuDeny }
                     fonts={ fonts }
                     playerTexture={ playerTexture }
+                    playerTextureLegs={ playerTextureLegs }
                     letters={ letters }
                 /> : null }
 

@@ -31,6 +31,7 @@ export default class ConfirmRestartScreen extends Component {
         fonts: PropTypes.object.isRequired,
         assets: PropTypes.object.isRequired,
         playerTexture: PropTypes.string.isRequired,
+        playerTextureLegs: PropTypes.string.isRequired,
         onConfirm: PropTypes.func.isRequired,
         onDeny: PropTypes.func.isRequired,
         onClickRegionLeave: PropTypes.func.isRequired,
@@ -41,7 +42,7 @@ export default class ConfirmRestartScreen extends Component {
 
         const {
             fonts, letters, onConfirm, onDeny, onClickRegionLeave,
-            onClickRegionEnter, assets, playerTexture
+            onClickRegionEnter, assets, playerTexture, playerTextureLegs
         } = this.props;
 
         return <object3D
@@ -98,6 +99,7 @@ export default class ConfirmRestartScreen extends Component {
                 assets={ assets }
                 letters={ letters }
                 playerTexture={ playerTexture }
+                playerTextureLegs={ playerTextureLegs }
                 onClickRegionEnter={ onClickRegionEnter }
                 onClickRegionLeave={ onClickRegionLeave }
                 menuOptions={[

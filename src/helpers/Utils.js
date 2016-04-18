@@ -138,11 +138,13 @@ export function lerp( start, target, percent ) {
 }
 
 const loaders = {
-    json: new THREE.JSONLoader(),
+    js: new THREE.JSONLoader(),
+    json: new THREE.ObjectLoader(),
     obj: new THREE.OBJLoader(),
     dae: new ColladaLoader(),
     font: new THREE.FontLoader(),
 };
+export { loaders };
 
 function getLoader( url:string ) {
 
@@ -151,12 +153,12 @@ function getLoader( url:string ) {
 
 }
 
-export function loadModel( modelPath ) {
+export function loadModel( modelPath, loader ) {
 
     return new Promise( ( resolve, reject ) => {
 
-        const loader = getLoader( modelPath );
-        loader.load(
+        const fileLoader = loader || getLoader( modelPath );
+        fileLoader.load(
             modelPath,
             // success
             ( model, materials ) => resolve({ model, materials }),

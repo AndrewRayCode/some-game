@@ -34,6 +34,7 @@ export default class PausedScreen extends Component {
         fonts: PropTypes.object.isRequired,
         assets: PropTypes.object.isRequired,
         playerTexture: PropTypes.string.isRequired,
+        playerTextureLegs: PropTypes.string.isRequired,
         onUnpause: PropTypes.func.isRequired,
         onRestart: PropTypes.func.isRequired,
         onShowConfirmMenuScreen: PropTypes.func.isRequired,
@@ -75,7 +76,8 @@ export default class PausedScreen extends Component {
 
         const {
             fonts, letters, onUnpause, onRestart, onShowConfirmMenuScreen,
-            onClickRegionEnter, onClickRegionLeave, assets, playerTexture
+            onClickRegionEnter, onClickRegionLeave, assets, playerTexture,
+            playerTextureLegs
         } = this.props;
 
         return <object3D
@@ -133,6 +135,7 @@ export default class PausedScreen extends Component {
                 onClickRegionEnter={ onClickRegionEnter }
                 onClickRegionLeave={ onClickRegionLeave }
                 playerTexture={ playerTexture }
+                playerTextureLegs={ playerTextureLegs }
                 menuOptions={[
                     {
                         text: 'Unpause (p)',

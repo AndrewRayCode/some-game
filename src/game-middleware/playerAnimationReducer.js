@@ -21,6 +21,7 @@ const eyeRotationLimit = {
         max: Math.PI / 5
     }
 };
+const eyeTweenStartDelayMs = 2000;
 const eyeTweenTimeMinMs = 100;
 const eyeTweenTimeMaxMs = 1000;
 const eyeWaitTimeMinMs = 500;
@@ -32,7 +33,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         leftEyeTweenTarget, leftEyeTweenStart, leftEyeTweenDuraiton,
         leftEyeTweenRest, rightEyeTweenTarget, rightEyeTweenStart,
         rightEyeTweenDuraiton, rightEyeTweenRest, playerRotation, isLeft,
-        isRight
+        isRight, actionStartTime
     } = oldState;
 
     const { time, } = currentState;
@@ -41,7 +42,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     const turnAngle = playerRotation ? playerRotation.z : 0;
 
     const newState = {
-        percentMouthOpen: THREE.Math.clamp( Math.abs( turnAngle ), 0, 1 ),
+        percentMouthOpen: THREE.Math.clamp( Math.abs( turnAngle ), 0, 0.6 ),
         playerRotation: new THREE.Euler(
             0,
             0,
@@ -53,7 +54,19 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         )
     };
 
-    const leftEyeTweenFinish = leftEyeTweenStart + leftEyeTweenDuraiton;
+    if( !actionStartTime ) {
+
+        newState.actionStartTime = timeMs;
+
+    }
+
+    if( !actionStartTime || ( timeMs - actionStartTime ) < eyeTweenStartDelayMs ) {
+        return next({
+            ...currentState,
+            ...newState
+        });
+    }
+
     const leftEyeFinish = leftEyeTweenStart + leftEyeTweenDuraiton + leftEyeTweenRest;
 
     if( !leftEyeTweenStart || timeMs > leftEyeFinish ) {
@@ -86,7 +99,6 @@ export default function playerAnimationReducer( actions, props, oldState, curren
 
     }
 
-    const rightEyeTweenFinish = rightEyeTweenStart + rightEyeTweenDuraiton;
     const rightEyeFinish = rightEyeTweenStart + rightEyeTweenDuraiton + rightEyeTweenRest;
 
     if( !rightEyeTweenStart || timeMs > rightEyeFinish ) {
