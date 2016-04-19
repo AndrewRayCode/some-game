@@ -61,9 +61,8 @@ export default class Player extends Component {
         scale: PropTypes.object,
         leftEyeRotation: PropTypes.object,
         rightEyeRotation: PropTypes.object,
-        walkWeights: PropTypes.number,
-        percentMouthOpen: PropTypes.number,
-        percentAlongWalk: PropTypes.number,
+        legAnimations: PropTypes.object,
+        headAnimations: PropTypes.object,
         materialId: PropTypes.string.isRequired,
         playerTexture: PropTypes.string,
         playerTextureLegs: PropTypes.string,
@@ -134,7 +133,7 @@ export default class Player extends Component {
             position, rotation, quaternion, radius, materialId, time, assets,
             scale, scaleEffectsVisible, scaleEffectsEnabled, leftEyeRotation,
             rightEyeRotation, playerTexture, playerTextureLegs,
-            percentMouthOpen, percentAlongWalk, walkWeights
+            legAnimations, headAnimations,
         } = this.props;
 
         const {
@@ -211,7 +210,7 @@ export default class Player extends Component {
                     assets={ assets }
                     texture={ shaderFrog.get( 'glowTexture' ) }
                     imageValue={ playerTexture }
-                    animationPercent={ percentMouthOpen }
+                    animations={ headAnimations }
                     meshName="charisma"
                 />
                 <AnimatedMesh
@@ -222,8 +221,7 @@ export default class Player extends Component {
                     texture={ shaderFrog.get( 'glowTextureLegs' ) }
                     imageValue={ playerTextureLegs }
                     meshName="charismaLegs"
-                    animationPercent={ percentAlongWalk }
-                    animationWeights={ walkWeights }
+                    animations={ legAnimations }
                 />
                 <Mesh
                     rotation={ tailRotation }
@@ -234,8 +232,6 @@ export default class Player extends Component {
                     imageValue={ playerTextureLegs }
                     meshName="charismaTail"
                     materialId="ornateWall1"
-                    animationPercent={ percentAlongWalk }
-                    animationWeights={ walkWeights }
                 />
             </group>
         </group>;

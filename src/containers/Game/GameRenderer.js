@@ -1134,7 +1134,7 @@ export default class GameRenderer extends Component {
             playerContact, scalingOffsetZ, adjustedPlayerScale, playerRotation,
             playerScaleEffectsEnabled, playerScaleEffectsVisible,
             percentMouthOpen, rightEyeRotation, leftEyeRotation,
-            percentAlongWalk, walkWeights
+            headAnimations, legAnimations,
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1188,9 +1188,8 @@ export default class GameRenderer extends Component {
                 playerTextureLegs={ playerTextureLegs }
                 leftEyeRotation={ leftEyeRotation }
                 rightEyeRotation={ rightEyeRotation }
-                percentMouthOpen={ percentMouthOpen }
-                percentAlongWalk={ percentAlongWalk }
-                walkWeights={ walkWeights }
+                headAnimations={ headAnimations }
+                legAnimations={ legAnimations }
                 time={ time }
             />
 

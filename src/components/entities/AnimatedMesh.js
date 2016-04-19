@@ -13,7 +13,7 @@ export default class AnimatedMesh extends Component {
         texture: PropTypes.object.isRequired,
         imageValue: PropTypes.string,
         meshName: PropTypes.string.isRequired,
-        animationWeights: PropTypes.object.isRequired,
+        animations: PropTypes.object.isRequired,
         animationPercent: PropTypes.number,
     };
 
@@ -21,8 +21,8 @@ export default class AnimatedMesh extends Component {
 
         super();
 
-        this._onUpdate = this._onUpdate.bind( this );
-        this.updateWeights = this.updateWeights.bind( this );
+        //this._onUpdate = this._onUpdate.bind( this );
+        this.updateAnimations = this.updateAnimations.bind( this );
 
     }
 
@@ -42,6 +42,7 @@ export default class AnimatedMesh extends Component {
             texture.uniforms.image.value = imageValue;
         }
 
+        // See https://github.com/mrdoob/three.js/issues/8673
         texture.side = THREE.DoubleSide;
 
         skinnedMesh.material.skinning = true;
@@ -59,26 +60,41 @@ export default class AnimatedMesh extends Component {
         meshGroup.add( skinnedMesh );
         this.mixer = mixer;
 
-        this.updateWeights( this.props );
+        this.updateAnimations( this.props );
 
     }
 
-    updateWeights( props ) {
+    updateAnimations( props ) {
 
-        const { animationWeights, } = props;
+        const { animations, } = props;
         const { mixer, } = this;
 
-        if( mixer && animationWeights ) {
+        if( mixer && animations ) {
 
-            for( const key in animationWeights ) {
+            for( const key in animations ) {
 
-                const animation = mixer.clipAction( key );
+                const data = animations[ key ];
+                const { weight, percent, } = data;
+                const action = mixer.clipAction( key );
 
-                if( animation ) {
-                    animation.setEffectiveWeight( animationWeights[ key ] );
+                if( action ) {
+
+                    action.setEffectiveWeight( weight );
+
+                    const { duration } = action._clip;
+                    //action._loopCount = -1;
+                    //action.startTime = 0;
+                    action.time = Math.min(
+                        duration * 0.999,
+                        duration * percent
+                    );
+
+
                 }
 
             }
+
+            mixer.update( 0 );
 
         }
 
@@ -86,11 +102,11 @@ export default class AnimatedMesh extends Component {
 
     componentWillReceiveProps( nextProps ) {
 
-        const{ animationWeights } = nextProps;
+        const{ animations } = nextProps;
 
-        if( animationWeights !== this.props.animationWeights  ) {
+        if( animations !== this.props.animations  ) {
 
-            this.updateWeights( nextProps );
+            this.updateAnimations( nextProps );
 
         }
 
@@ -102,32 +118,32 @@ export default class AnimatedMesh extends Component {
 
     }
 
-    _onUpdate( delta, ealpsedTime ) {
+    //_onUpdate( delta, ealpsedTime ) {
 
-        const { mixer } = this;
-        const { animationPercent } = this.props;
+        //const { mixer } = this;
+        //const { animationPercent } = this.props;
 
-        if( mixer ) {
+        //if( mixer ) {
 
-            for( let i = 0; i < mixer._actions.length; i++ ) {
+            //for( let i = 0; i < mixer._actions.length; i++ ) {
 
-                const action = mixer._actions[ i ];
-                const { duration } = action._clip;
-                action._loopCount = -1;
-                action.time = 0;
-                action.startTime = 0;
-                mixer.update(
-                    Math.min(
-                        duration * 0.999,
-                        duration * ( animationPercent || 0 )
-                    )
-                );
+                //const action = mixer._actions[ i ];
+                //const { duration } = action._clip;
+                //action._loopCount = -1;
+                //action.time = 0;
+                //action.startTime = 0;
+                //mixer.update(
+                    //Math.min(
+                        //duration * 0.999,
+                        //duration * ( animationPercent || 0 )
+                    //)
+                //);
 
-            }
+            //}
 
-        }
+        //}
 
-    }
+    //}
 
     render() {
 
@@ -138,7 +154,6 @@ export default class AnimatedMesh extends Component {
         }
 
         return <group
-            onUpdate={ this._onUpdate }
             position={ position }
             rotation={ rotation }
             ref="meshGroup"

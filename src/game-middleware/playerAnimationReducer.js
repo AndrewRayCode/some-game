@@ -48,47 +48,68 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     const turnAngle = playerRotation ? playerRotation.z : 0;
     const turnPercent = Math.abs( turnAngle ) / playerRotationLimit;
 
-    let jumpWeight = 0;
-    let jumpAnimationPercent = 0;
-    let newJumpStartTime;
+    const headAnimations = {
+        'Open Mouth': {
+            weight: 1,
+            percent: turnPercent * percentOpenMouth,
+        },
+    };
+    const legAnimations = {
+        Idle: {
+            weight: 1,
+            percent: Math.max( 1 - turnPercent, 0 ),
+        },
+        Walk: {
+            weight: 1,
+            percent: ( timeMs % walkLoopMs ) / walkLoopMs,
+        },
+        Jump: {
+            weight: 1,
+            percent: 0,
+        },
 
-    if( currentState.jumpedOnThisFrame ) {
+    };
 
-        newJumpStartTime = timeMs;
+    //let jumpWeight = 0;
+    //let jumpAnimationPercent = 0;
+    //let newJumpStartTime;
 
-    }
+    //if( currentState.jumpedOnThisFrame ) {
 
-    const eitherJumpStartTime = jumpStartTime || newJumpStartTime;
-    if( eitherJumpStartTime ) {
+        //newJumpStartTime = timeMs;
 
-        const timeSinceJumpStartMs = timeMs - eitherJumpStartTime;
+    //}
 
-        // Initial jump animation
-        if( timeSinceJumpStartMs <= jumpTweenTime ) {
+    //const eitherJumpStartTime = jumpStartTime || newJumpStartTime;
+    //if( eitherJumpStartTime ) {
 
-            jumpWeight = 1;
-            jumpAnimationPercent = timeSinceJumpStartMs / jumpTweenTime;
+        //const timeSinceJumpStartMs = timeMs - eitherJumpStartTime;
 
-        // Return to whatever it was before
-        } else {
+        //// Initial jump animation
+        //if( timeSinceJumpStartMs <= jumpTweenTime ) {
 
-            jumpWeight = ( timeMs - ( eitherJumpStartTime + jumpTweenTime ) ) / jumpReturnTweenTime;
-            jumpAnimationPercent = 1;
+            //jumpWeight = 1;
+            //jumpAnimationPercent = timeSinceJumpStartMs / jumpTweenTime;
 
-        }
+        //// Return to whatever it was before
+        //} else {
 
-    }
+            //jumpWeight = ( timeMs - ( eitherJumpStartTime + jumpTweenTime ) ) / jumpReturnTweenTime;
+            //jumpAnimationPercent = 1;
+
+        //}
+
+    //}
 
     const newState = {
-        percentMouthOpen: turnPercent * percentOpenMouth,
-        percentAlongWalk: ( timeMs % walkLoopMs ) / walkLoopMs,
+        headAnimations, legAnimations,
         // todo you were here and the problem is jump animation runs differently than the others but only one time loop for each mesh. probably need different time tracks?
-        percentAlongJump: jumpAnimationPercent,
-        walkWeights: {
-            Idle: Math.max( 1 - turnPercent - jumpWeight, 0 ),
-            Walk: Math.max( turnPercent - jumpWeight, 0 ),
-            Jump: jumpWeight,
-        },
+        //percentAlongJump: jumpAnimationPercent,
+        //walkWeights: {
+            //Idle: Math.max( 1 - turnPercent - jumpWeight, 0 ),
+            //Walk: Math.max( turnPercent - jumpWeight, 0 ),
+            //Jump: jumpWeight,
+        //},
         playerRotation: new THREE.Euler(
             0,
             0,
