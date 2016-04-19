@@ -12,7 +12,7 @@ export default class AnimatedMesh extends Component {
         assets: PropTypes.object.isRequired,
         texture: PropTypes.object.isRequired,
         imageValue: PropTypes.string,
-        mesh: PropTypes.string.isRequired,
+        meshName: PropTypes.string.isRequired,
         animationWeights: PropTypes.object.isRequired,
         animationPercent: PropTypes.number,
     };
@@ -22,13 +22,14 @@ export default class AnimatedMesh extends Component {
         super();
 
         this._onUpdate = this._onUpdate.bind( this );
+        this.updateWeights = this.updateWeights.bind( this );
 
     }
 
     componentDidMount() {
 
-        const { assets, texture, imageValue, mesh, } = this.props;
-        const meshData = assets[ mesh ];
+        const { assets, texture, imageValue, meshName, } = this.props;
+        const meshData = assets[ meshName ];
         const { geometry } = meshData;
         const { meshGroup } = this.refs;
 
@@ -44,7 +45,7 @@ export default class AnimatedMesh extends Component {
         skinnedMesh.material.skinning = true;
         this.skinnedMesh = skinnedMesh;
 
-        const mixer = new THREE.AnimationMixer( mesh );
+        const mixer = new THREE.AnimationMixer( skinnedMesh );
 
         // Create the animations
         for( let i = 0; i < geometry.animations.length; ++i ) {
@@ -62,13 +63,14 @@ export default class AnimatedMesh extends Component {
 
     updateWeights( props ) {
 
-        const { animationWeights, } = this.props;
+        const { animationWeights, } = props;
+        const { mixer, } = this;
 
-        if( animationWeights ) {
+        if( mixer && animationWeights ) {
 
             for( const key in animationWeights ) {
 
-                const animation = this.mixer.clipAction( key );
+                const animation = mixer.clipAction( key );
 
                 if( animation ) {
                     animation.setEffectiveWeight( animationWeights[ key ] );
@@ -94,7 +96,7 @@ export default class AnimatedMesh extends Component {
 
     componentWillUnmount() {
 
-        this.refs.mesh.remove( this.skinnedMesh );
+        this.refs.meshGroup.remove( this.skinnedMesh );
 
     }
 
@@ -127,9 +129,9 @@ export default class AnimatedMesh extends Component {
 
     render() {
 
-        const { position, rotation, scale, meshData, } = this.props;
+        const { position, rotation, scale, assets, meshName, } = this.props;
 
-        if( !meshData ) {
+        if( !assets[ meshName ] ) {
             return <group />;
         }
 
@@ -137,7 +139,7 @@ export default class AnimatedMesh extends Component {
             onUpdate={ this._onUpdate }
             position={ position }
             rotation={ rotation }
-            ref="mesh"
+            ref="meshGroup"
             scale={ scale }
         />;
 

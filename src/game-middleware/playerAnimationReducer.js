@@ -7,6 +7,8 @@ const playerRotationLimit = 0.7 * ( Math.PI / 2 );
 const turnSpeed = 0.2;
 const resolveSpeed = 0.08;
 
+const walkLoopMs = 500;
+
 const eyeRotationLimit = {
     x: {
         min: -Math.PI / 2,
@@ -40,9 +42,15 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     const timeMs = time * 1000;
 
     const turnAngle = playerRotation ? playerRotation.z : 0;
+    const turnPercent = Math.abs( turnAngle ) / playerRotationLimit;
 
     const newState = {
-        percentMouthOpen: THREE.Math.clamp( Math.abs( turnAngle ), 0, 0.6 ),
+        percentMouthOpen: turnPercent * 0.6,
+        percentAlongWalk: ( timeMs % walkLoopMs ) / walkLoopMs,
+        walkWeights: {
+            Idle: 1 - turnPercent,
+            Walk: turnPercent,
+        },
         playerRotation: new THREE.Euler(
             0,
             0,

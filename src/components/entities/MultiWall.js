@@ -34,7 +34,7 @@ export default class MultiWall extends Component {
             <Mesh
                 ref="child"
                 assets={ assets }
-                mesh="multiwall"
+                meshName="multiwall"
                 materialId={ materialId }
             />
         </group>;

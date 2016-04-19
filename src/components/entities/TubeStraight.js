@@ -19,7 +19,7 @@ export default class TubeStraight extends Component {
             <Mesh
                 ref="child"
                 rotation={ tubeRotation }
-                mesh="tube"
+                meshName="tube"
                 assets={ assets }
                 materialId={ materialId }
             />

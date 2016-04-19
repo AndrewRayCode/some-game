@@ -14,7 +14,7 @@ export default class TubeBend extends Component {
             rotation={ rotation }
             scale={ scale }
             assets={ assets }
-            mesh="tubeBend"
+            meshName="tubeBend"
             materialId={ materialId }
         />;
 

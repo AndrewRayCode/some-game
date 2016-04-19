@@ -20,13 +20,13 @@ export default class CurvedWall extends Component {
             <Mesh
                 ref="child"
                 assets={ assets }
-                mesh="curvedWallTop"
+                meshName="curvedWallTop"
                 materialId={ topMaterialId }
             />
             <Mesh
                 ref="child2"
                 assets={ assets }
-                mesh="curvedWall"
+                meshName="curvedWall"
                 materialId={ materialId }
             />
         </group>;

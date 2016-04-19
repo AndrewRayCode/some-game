@@ -18,7 +18,7 @@ export default class DiamondBox extends Component {
             <Mesh
                 ref="child"
                 assets={ assets }
-                mesh="diamondBox"
+                meshName="diamondBox"
                 materialId={ materialId }
             />
         </group>;

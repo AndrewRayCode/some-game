@@ -11,13 +11,15 @@ export default class Mesh extends Component {
         scale: PropTypes.object,
         materialId: PropTypes.string.isRequired,
         assets: PropTypes.object.isRequired,
-        mesh: PropTypes.string.isRequired,
+        meshName: PropTypes.string.isRequired,
     };
 
     render() {
 
-        const { position, rotation, scale, materialId, assets, mesh } = this.props;
-        const meshData = assets[ mesh ];
+        const {
+            position, rotation, scale, materialId, assets, meshName
+        } = this.props;
+        const meshData = assets[ meshName ];
 
         if( !meshData ) {
             return <group />;
@@ -27,7 +29,7 @@ export default class Mesh extends Component {
         const { faces, vertices, colors, faceVertexUvs } = geometry;
 
         if( !faces ) {
-            console.error( 'You passed in ',assets,' but it contained no faces for mesh',mesh );
+            console.error( 'You passed in ',assets,' but it contained no faces for mesh',meshName );
             throw new Error( 'The mesh data you passed in did not contain any faces! Are you sure you\\re passing in the geometry?' );
         }
 
@@ -40,7 +42,7 @@ export default class Mesh extends Component {
                 ref="mesh"
             >
                 <geometry
-                    name={ mesh }
+                    name={ meshName }
                     faces={ faces }
                     vertices={ vertices }
                     colors={ colors }

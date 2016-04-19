@@ -186,6 +186,7 @@ export function loadWithDefaultLoader( name:string, url:string, fetchGeometry:an
                 materials: result.materials,
                 geometry: fetchGeometry ? fetchGeometry( result.model ) : result.model,
             }) )
+            // Without this errors are eaten
             .catch( error => dispatch({ type: MODEL_LOAD_FAIL, error }) );
 }
 
@@ -227,14 +228,10 @@ export function loadAllAssets() {
 
         dispatch( assetsLoading() );
 
-        dispatch( loadWithLoader(
+        dispatch( loadWithDefaultLoader(
             'charisma',
             require( '../../../assets/models/charisma.json' ),
-            loaders.js,
-            model => {
-                model.computeVertexNormals();
-                return model;
-            }
+            model => model.children[ 0 ].geometry,
         ));
 
         dispatch( loadWithLoader(
@@ -258,7 +255,7 @@ export function loadAllAssets() {
         dispatch( loadWithDefaultLoader(
             'charismaLegs',
             require( '../../../assets/models/charisma-legs.json' ),
-            result => result.children[ 0 ].geometry,
+            model => model.children[ 0 ].geometry,
         ));
 
         dispatch( loadWithLoader(

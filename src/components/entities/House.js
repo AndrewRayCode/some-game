@@ -22,7 +22,7 @@ export default class House extends Component {
                 scale={ houseScale }
                 position={ housePosition }
                 assets={ assets }
-                mesh="house"
+                meshName="house"
                 materialId={ materialId }
             />
         </group>;

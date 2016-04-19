@@ -14,7 +14,7 @@ export default class Eye extends Component {
             quaternion={ rotation }
             scale={ scale }
             assets={ assets }
-            mesh="eye"
+            meshName="eye"
             materialId={ materialId }
         />;
 

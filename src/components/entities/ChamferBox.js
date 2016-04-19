@@ -18,7 +18,7 @@ export default class ChamferBox extends Component {
             <Mesh
                 ref="child"
                 assets={ assets }
-                mesh="chamferBox"
+                meshName="chamferBox"
                 materialId={ materialId }
             />
         </group>;

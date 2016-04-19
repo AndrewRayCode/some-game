@@ -6,11 +6,12 @@ import shaderFrog from '../../helpers/shaderFrog';
 import { Animation, AnimationHandler } from 'three-animation-handler';
 
 const defaultScale = new THREE.Vector3( 2, 2, 2 );
-const localPlayerScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
-const localHeadPosition = new THREE.Vector3( 0, 0, -0.15 );
+const headScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
+const headPosition = new THREE.Vector3( 0, 0, -0.15 );
+const headRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
 
 const legRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
-const legPosition = new THREE.Vector3( 0, 0, 0.33 );
+const legPosition = new THREE.Vector3( 0, 0, 0.3 );
 const legScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.85 );
 
 const localEyeRotation = new THREE.Euler( -Math.PI / 2 - 0.2, -Math.PI / 2, 0 );
@@ -18,7 +19,7 @@ const eyeScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.36 );
 const leftEyePosition = new THREE.Vector3(
     -0.25,
     0.13,
-    -0.19 + localHeadPosition.z,
+    -0.19 + headPosition.z,
 );
 const rightEyePosition = leftEyePosition.clone().setX( -leftEyePosition.x );
 
@@ -54,7 +55,9 @@ export default class Player extends Component {
         scale: PropTypes.object,
         leftEyeRotation: PropTypes.object,
         rightEyeRotation: PropTypes.object,
+        walkWeights: PropTypes.number,
         percentMouthOpen: PropTypes.number,
+        percentAlongWalk: PropTypes.number,
         materialId: PropTypes.string.isRequired,
         playerTexture: PropTypes.string,
         playerTextureLegs: PropTypes.string,
@@ -124,7 +127,8 @@ export default class Player extends Component {
         const {
             position, rotation, quaternion, radius, materialId, time, assets,
             scale, scaleEffectsVisible, scaleEffectsEnabled, leftEyeRotation,
-            rightEyeRotation, playerTexture, playerTextureLegs
+            rightEyeRotation, playerTexture, playerTextureLegs,
+            percentMouthOpen, percentAlongWalk, walkWeights
         } = this.props;
 
         const {
@@ -195,12 +199,14 @@ export default class Player extends Component {
                     />
                 </group>
                 <AnimatedMesh
-                    scale={ localPlayerScale }
-                    position={ localHeadPosition }
+                    rotation={ headRotation }
+                    scale={ headScale }
+                    position={ headPosition }
                     assets={ assets }
                     texture={ shaderFrog.get( 'glowTexture' ) }
                     imageValue={ playerTexture }
-                    mesh="charisma"
+                    animationPercent={ percentMouthOpen }
+                    meshName="charisma"
                 />
                 <AnimatedMesh
                     rotation={ legRotation }
@@ -209,8 +215,9 @@ export default class Player extends Component {
                     assets={ assets }
                     texture={ shaderFrog.get( 'glowTextureDenk' ) }
                     imageValue={ playerTextureLegs }
-                    mesh="charismaLegs"
-                    animationWeights={ { Walk: 0.5, Idle: 0.5 } }
+                    meshName="charismaLegs"
+                    animationPercent={ percentAlongWalk }
+                    animationWeights={ walkWeights }
                 />
             </group>
         </group>;
