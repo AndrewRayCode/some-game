@@ -64,6 +64,7 @@ export default class GameContainer extends Component {
                 !( 'Sniglet Regular' in fonts ) ||
                 !( 'charisma' in assets ) ||
                 !( 'charismaLegs' in assets ) ||
+                !( 'charismaTail' in assets ) ||
                 !( 'eye' in assets )
             ) {
             return <div>Loading&hellip;</div>;

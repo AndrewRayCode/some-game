@@ -639,7 +639,7 @@ export default class GameRenderer extends Component {
     _updatePhysics( elapsedTime, delta, keysDown ) {
 
         if( this.state.touring || this.state.isAdvancing ) {
-            return;
+            return {};
         }
 
         let newState = {
@@ -915,6 +915,7 @@ export default class GameRenderer extends Component {
 
             if( keysDown.isPressed( 'SPACE' ) && this._canJump( world, playerBody ) ) {
 
+                newState.jumpedOnThisFrame = true;
                 playerVelocity[ 1 ] = -Math.sqrt( 1.5 * 4 * 9.8 * playerRadius );
 
             }
@@ -930,10 +931,10 @@ export default class GameRenderer extends Component {
 
         }
 
-        this.setState( newState );
-
         // Step the physics world
         world.step( 1 / 60, delta, 3 );
+
+        return newState;
 
     }
 
@@ -1076,19 +1077,24 @@ export default class GameRenderer extends Component {
             p2ToV3( playerBody.position, 1 + playerRadius );
 
         // In any state, (paused, etc), child components need the updaed time
-        const newState = {
+        const baseState = {
             keysDown, cameraFov,
             playerPositionV3: playerPosition,
             time: elapsedTime
         };
 
         if( paused ) {
-            this.setState( newState );
+            this.setState( baseState );
             return;
         }
 
         // needs to be called before _getMeshStates
-        this._updatePhysics( elapsedTime, delta, keysDown );
+        const newPhysicsState = this._updatePhysics( elapsedTime, delta, keysDown );
+
+        const newState = {
+            ...baseState,
+            ...newPhysicsState
+        };
 
         newState.movableEntities = this._getMeshStates( this.physicsBodies );
         newState.plankEntities = this._getPlankStates( this.plankData );

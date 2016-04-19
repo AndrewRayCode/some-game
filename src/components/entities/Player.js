@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import SPE from 'shader-particle-engine';
-import { AnimatedMesh, Eye, ParticleEmitter } from '../';
+import { Mesh, AnimatedMesh, Eye, ParticleEmitter } from '../';
 import shaderFrog from '../../helpers/shaderFrog';
 import { Animation, AnimationHandler } from 'three-animation-handler';
 
@@ -13,6 +13,12 @@ const headRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
 const legRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
 const legPosition = new THREE.Vector3( 0, 0, 0.3 );
 const legScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.85 );
+
+const tailRotation = new THREE.Quaternion().setFromEuler(
+    new THREE.Euler( 0, 0, THREE.Math.degToRad( 50 ) )
+);
+const tailPosition = new THREE.Vector3( 0.3, -0.42, -0.5 );
+const tailScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.8 );
 
 const localEyeRotation = new THREE.Euler( -Math.PI / 2 - 0.2, -Math.PI / 2, 0 );
 const eyeScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.36 );
@@ -213,9 +219,21 @@ export default class Player extends Component {
                     position={ legPosition }
                     scale={ legScale }
                     assets={ assets }
-                    texture={ shaderFrog.get( 'glowTextureDenk' ) }
+                    texture={ shaderFrog.get( 'glowTextureLegs' ) }
                     imageValue={ playerTextureLegs }
                     meshName="charismaLegs"
+                    animationPercent={ percentAlongWalk }
+                    animationWeights={ walkWeights }
+                />
+                <Mesh
+                    rotation={ tailRotation }
+                    position={ tailPosition }
+                    scale={ tailScale }
+                    assets={ assets }
+                    texture={ shaderFrog.get( 'glowTextureLegs' ) }
+                    imageValue={ playerTextureLegs }
+                    meshName="charismaTail"
+                    materialId="ornateWall1"
                     animationPercent={ percentAlongWalk }
                     animationWeights={ walkWeights }
                 />

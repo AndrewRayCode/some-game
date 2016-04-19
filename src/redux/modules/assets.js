@@ -234,6 +234,12 @@ export function loadAllAssets() {
             model => model.children[ 0 ].geometry,
         ));
 
+        dispatch( loadWithDefaultLoader(
+            'charismaTail',
+            require( '../../../assets/models/charisma-tail.json' ),
+            model => model.children[ 0 ].geometry
+        ));
+
         dispatch( loadWithLoader(
             'multiwall',
             require( '../../../assets/models/multiwall.json' ),
