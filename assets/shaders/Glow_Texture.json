@@ -37,7 +37,7 @@
       "glslType": "float"
     },
     "alpha": {
-      "value": 0.25,
+      "value": 0.35,
       "type": "f",
       "glslType": "float"
     }

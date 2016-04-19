@@ -7,7 +7,7 @@ const playerRotationLimit = 0.7 * ( Math.PI / 2 );
 const turnSpeed = 0.2;
 const resolveSpeed = 0.08;
 
-const walkLoopMs = 500;
+const walkLoopMs = 300;
 
 const eyeRotationLimit = {
     x: {

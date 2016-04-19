@@ -42,6 +42,8 @@ export default class AnimatedMesh extends Component {
             texture.uniforms.image.value = imageValue;
         }
 
+        texture.side = THREE.DoubleSide;
+
         skinnedMesh.material.skinning = true;
         this.skinnedMesh = skinnedMesh;
 
