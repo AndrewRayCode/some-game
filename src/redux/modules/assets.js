@@ -6,7 +6,7 @@ import {
     loaders
 } from '../../helpers/Utils';
 import shaderFrog from '../../helpers/shaderFrog';
-import CustomShaders from '../../helpers/CustomShaders';
+import CustomShaders from 'CustomShaders';
 
 const MODEL_LOAD_SUCCESS = 'assets/MODEL_LOAD_SUCCESS';
 const MODEL_LOAD_FAIL = 'assets/MODEL_LOAD_FAIL';
@@ -230,77 +230,77 @@ export function loadAllAssets() {
 
         dispatch( loadWithDefaultLoader(
             'charisma',
-            require( '../../../assets/models/charisma.json' ),
+            require( 'models/charisma.json' ),
             model => model.children[ 0 ].geometry,
         ));
 
         dispatch( loadWithDefaultLoader(
             'charismaTail',
-            require( '../../../assets/models/charisma-tail.json' ),
+            require( 'models/charisma-tail.json' ),
             model => model.children[ 0 ].geometry
         ));
 
         dispatch( loadWithLoader(
             'multiwall',
-            require( '../../../assets/models/multiwall.json' ),
+            require( 'models/multiwall.json' ),
             loaders.js
         ));
 
         dispatch( loadWithDefaultLoader(
             'house',
-            require( '../../../assets/models/houseSF.obj' ),
+            require( 'models/houseSF.obj' ),
             model => bufferToGeometry( model.children[ 1 ].geometry ),
         ));
 
         dispatch( loadWithLoader(
             'eye',
-            require( '../../../assets/models/eye.json' ),
+            require( 'models/eye.json' ),
             loaders.js
         ));
 
         dispatch( loadWithDefaultLoader(
             'charismaLegs',
-            require( '../../../assets/models/charisma-legs.json' ),
+            require( 'models/charisma-legs.json' ),
             model => model.children[ 0 ].geometry,
         ));
 
         dispatch( loadWithLoader(
             'tube',
-            require( '../../../assets/models/tube.json' ),
+            require( 'models/tube.json' ),
             loaders.js
         ));
 
         dispatch( loadWithLoader(
             'tubeBend',
-            require( '../../../assets/models/tube-bend.json' ),
+            require( 'models/tube-bend.json' ),
             loaders.js,
         ));
 
         dispatch( loadFont(
-            require( '../../../assets/sniglet_regular.typeface.js' )
+            require( 'fonts/sniglet_regular.typeface.js' )
         ));
 
         dispatch( loadWithLoader(
             'diamondBox',
-            require( '../../../assets/models/diamond-box.json' ),
+            require( 'models/diamond-box.json' ),
             loaders.js,
         ));
 
         dispatch( loadWithLoader(
             'chamferBox',
-            require( '../../../assets/models/chamfer-box.json' ),
+            require( 'models/chamfer-box.json' ),
             loaders.js,
         ));
 
         dispatch( loadWithLoader(
             'curvedWall',
-            require( '../../../assets/models/curved-wall.json' ),
+            require( 'models/curved-wall.json' ),
             loaders.js,
         ));
 
         dispatch( loadWithLoader(
             'curvedWallTop',
-            require( '../../../assets/models/curved-wall-top.json' ),
+            require( 'models/curved-wall-top.json' ),
             loaders.js,
         ));
 

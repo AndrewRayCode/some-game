@@ -29,6 +29,10 @@ import shaderFrog from '../../helpers/shaderFrog';
 import MouseInput from '../../helpers/MouseInput';
 import UpdateAllObjects from '../../helpers/UpdateAllObjects';
 
+import {
+    playerTextureTail, playerTextureLegs, playerTexture,
+} from 'ThreeMaterials';
+
 const gameWidth = 400;
 const gameHeight = 400;
 const transitionFadeMs = 1000;
@@ -44,13 +48,6 @@ const transitionFadeMs = 1000;
 }])
 @connect(
     state => {
-
-        const playerTexture = __CLIENT__ ? THREE.ImageUtils.loadTexture(
-            require( '../../../assets/charisma-face.jpg' )
-        ) : null;
-        const playerTextureLegs = __CLIENT__ ? THREE.ImageUtils.loadTexture(
-            require( '../../../assets/foot-texture.jpg' )
-        ) : null;
 
         const {
             entities: allEntities,
@@ -69,7 +66,6 @@ const transitionFadeMs = 1000;
         if( !gameChapterData.currentChapterId ) {
 
             return {
-                playerTexture, playerTextureLegs,
                 books: state.books,
                 chapters: state.chapters,
                 originalLevels,
@@ -223,7 +219,7 @@ const transitionFadeMs = 1000;
             currentLevelBridges,
             currentLevelBridgesArray: Object.values( currentLevelBridges ),
 
-            playerMaterialId, playerTexture, playerTextureLegs,
+            playerMaterialId,
             gameStarted: true,
             restartBusterId: state.game.restartBusterId,
             recursionBusterId: state.game.recursionBusterId,
@@ -572,7 +568,7 @@ export default class GameGUI extends Component {
 
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
-            assets, playerTexture, playerTextureLegs
+            assets,
         } = this.props;
 
         // The mainCamera stuff is confusing. I don't fully understand it. All
@@ -668,6 +664,9 @@ export default class GameGUI extends Component {
                         fonts={ fonts }
                         assets={ assets }
                         letters={ letters }
+                        playerTexture={ playerTexture }
+                        playerTextureLegs={ playerTextureLegs }
+                        playerTextureTail={ playerTextureTail }
                         mouseInput={ mouseInput }
                     /> : <TitleScreen
                         ref="titleScreen"
@@ -680,6 +679,7 @@ export default class GameGUI extends Component {
                         onSelect={ this.selectBook }
                         playerTexture={ playerTexture }
                         playerTextureLegs={ playerTextureLegs }
+                        playerTextureTail={ playerTextureTail }
                         books={ Object.values( books ) }
                     />
                 }
@@ -696,6 +696,7 @@ export default class GameGUI extends Component {
                     fonts={ fonts }
                     playerTexture={ playerTexture }
                     playerTextureLegs={ playerTextureLegs }
+                    playerTextureTail={ playerTextureTail }
                     letters={ letters }
                 /> : null }
 
@@ -710,6 +711,7 @@ export default class GameGUI extends Component {
                     fonts={ fonts }
                     playerTexture={ playerTexture }
                     playerTextureLegs={ playerTextureLegs }
+                    playerTextureTail={ playerTextureTail }
                     letters={ letters }
                 /> : null }
 
@@ -724,6 +726,7 @@ export default class GameGUI extends Component {
                     fonts={ fonts }
                     playerTexture={ playerTexture }
                     playerTextureLegs={ playerTextureLegs }
+                    playerTextureTail={ playerTextureTail }
                     letters={ letters }
                 /> : null }
 

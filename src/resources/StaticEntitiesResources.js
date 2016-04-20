@@ -1,5 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
+import { tubePattern1, tubeBendPattern1 } from 'Textures';
 
 export default [
     <meshPhongMaterial
@@ -16,7 +17,7 @@ export default [
         transparent
     >
         <texture
-            url={ require( '../../assets/tube-pattern-1.png' ) }
+            url={ tubePattern1 }
             anisotropy={ 16 }
         />
     </meshPhongMaterial>,
@@ -27,7 +28,7 @@ export default [
         transparent
     >
         <texture
-            url={ require( '../../assets/tube-bend-pattern-1.png' ) }
+            url={ tubeBendPattern1 }
             anisotropy={ 16 }
         />
     </meshPhongMaterial>,

@@ -1,9 +1,6 @@
 [ignore]
 .*/static/*
 
-[include]
-./src/containers/Dung/*
-
 [libs]
 
 [options]

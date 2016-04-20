@@ -1,4 +1,6 @@
 webpack/*
 karma.conf.js
 tests.webpack.js
-assets/*
+assets/models/*
+assets/shaders/*
+assets/fonts/*

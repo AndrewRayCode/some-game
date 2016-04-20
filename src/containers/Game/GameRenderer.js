@@ -36,12 +36,6 @@ const curvedWallVertices = [
 
 let debuggingReplay = [];
 
-// see http://stackoverflow.com/questions/24087757/three-js-and-loading-a-cross-domain-image
-THREE.ImageUtils.crossOrigin = '';
-THREE.TextureLoader.crossOrigin = '';
-
-THREE.TextureLoader.prototype.crossOrigin = '';
-
 const lightRotationSpeed = 0.5;
 
 const gameWidth = 400;

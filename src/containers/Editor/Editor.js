@@ -21,16 +21,16 @@ import {
     Kbd, ArrayEditor
 } from 'components';
 
-import Textures from '../../helpers/Textures';
-import CustomShaders from '../../helpers/CustomShaders';
-import shaderFrog from '../../helpers/shaderFrog';
-import KeyCodes from '../../helpers/KeyCodes';
+import Textures from 'Textures';
+import CustomShaders from 'CustomShaders';
+import shaderFrog from 'helpers/shaderFrog';
+import KeyCodes from 'helpers/KeyCodes';
 
-import { areBooksLoaded, loadAllBooks } from '../../redux/modules/editor';
-import { areAssetsLoaded, loadAllAssets } from '../../redux/modules/assets';
-import { without } from '../../helpers/Utils';
+import { areBooksLoaded, loadAllBooks } from 'redux/modules/editor';
+import { areAssetsLoaded, loadAllAssets } from 'redux/modules/assets';
+import { without } from 'helpers/Utils';
 
-import UpdateAllObjects from '../../helpers/UpdateAllObjects';
+import UpdateAllObjects from 'helpers/UpdateAllObjects';
 
 const cx = classNames.bind( styles );
 

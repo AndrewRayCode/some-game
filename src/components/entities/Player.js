@@ -4,6 +4,7 @@ import SPE from 'shader-particle-engine';
 import { Mesh, AnimatedMesh, Eye, ParticleEmitter } from '../';
 import shaderFrog from '../../helpers/shaderFrog';
 import { Animation, AnimationHandler } from 'three-animation-handler';
+import { twinkleMaterial } from 'ThreeMaterials';
 
 const defaultScale = new THREE.Vector3( 2, 2, 2 );
 const headScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
@@ -12,11 +13,9 @@ const headRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
 
 const legRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
 const legPosition = new THREE.Vector3( 0, 0, 0.3 );
-const legScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.85 );
+const legScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 1.05 );
 
-const tailRotation = new THREE.Quaternion().setFromEuler(
-    new THREE.Euler( 0, 0, THREE.Math.degToRad( 50 ) )
-);
+const tailRotation = new THREE.Euler( 0, 0, THREE.Math.degToRad( 60 ) );
 const tailPosition = new THREE.Vector3( 0.3, -0.42, -0.5 );
 const tailScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.8 );
 
@@ -66,6 +65,7 @@ export default class Player extends Component {
         materialId: PropTypes.string.isRequired,
         playerTexture: PropTypes.string,
         playerTextureLegs: PropTypes.string,
+        playerTextureTail: PropTypes.string,
         assets: PropTypes.object.isRequired,
         radius: PropTypes.number.isRequired,
         time: PropTypes.number,
@@ -75,12 +75,7 @@ export default class Player extends Component {
 
         super( props, context );
 
-        this.state = {
-            ...this._getStateFromProps( props, true ),
-            particleMaterial: __CLIENT__ ? THREE.ImageUtils.loadTexture(
-                require( '../../../assets/twinkle-particle.png' )
-            ) : null,
-        };
+        this.state = this._getStateFromProps( props, true );
 
     }
 
@@ -113,16 +108,6 @@ export default class Player extends Component {
 
         }
 
-        if( ( forceUpdate && playerTexture ) || ( playerTexture !== this.props.playerTexture ) ) {
-
-            const material = shaderFrog.get( materialId );
-
-            if( material ) {
-                material.uniforms.image.value = this.props.playerTexture;
-            }
-
-        }
-
         return newState;
 
     }
@@ -133,11 +118,11 @@ export default class Player extends Component {
             position, rotation, quaternion, radius, materialId, time, assets,
             scale, scaleEffectsVisible, scaleEffectsEnabled, leftEyeRotation,
             rightEyeRotation, playerTexture, playerTextureLegs,
-            legAnimations, headAnimations,
+            playerTextureTail, legAnimations, headAnimations,
         } = this.props;
 
         const {
-            computedScale, particleMaterial, positionSpread, sizeSpread
+            computedScale, positionSpread, sizeSpread
         } = this.state;
 
         const emitterPosition = position
@@ -151,7 +136,7 @@ export default class Player extends Component {
         return <group>
             { scaleEffectsVisible ? <ParticleEmitter
                 enabled={ scaleEffectsEnabled }
-                texture={ particleMaterial }
+                texture={ twinkleMaterial }
                 emitterPosition={ emitterPosition }
                 rotation={ particleRotation }
                 positionSpread={ positionSpread }
@@ -223,15 +208,14 @@ export default class Player extends Component {
                     meshName="charismaLegs"
                     animations={ legAnimations }
                 />
-                <Mesh
+                <AnimatedMesh
                     rotation={ tailRotation }
                     position={ tailPosition }
                     scale={ tailScale }
                     assets={ assets }
-                    texture={ shaderFrog.get( 'glowTextureLegs' ) }
-                    imageValue={ playerTextureLegs }
+                    texture={ shaderFrog.get( 'glowTextureTail' ) }
+                    imageValue={ playerTextureTail }
                     meshName="charismaTail"
-                    materialId="ornateWall1"
                 />
             </group>
         </group>;

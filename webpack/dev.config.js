@@ -100,6 +100,7 @@ module.exports = {
   resolve: {
     modulesDirectories: [
       'src',
+      'assets',
       'node_modules'
     ],
     extensions: ['', '.json', '.js', '.jsx']

@@ -19,6 +19,7 @@ export default class TitleScreen extends Component {
         books: React.PropTypes.array.isRequired,
         playerTexture: React.PropTypes.string.isRequired,
         playerTextureLegs: React.PropTypes.string.isRequired,
+        playerTextureTail: React.PropTypes.string.isRequired,
         fonts: React.PropTypes.object.isRequired,
         assets: React.PropTypes.object.isRequired,
         letters: React.PropTypes.object.isRequired,
@@ -31,7 +32,7 @@ export default class TitleScreen extends Component {
 
         const {
             books, fonts, letters, onClickRegionLeave, onClickRegionEnter,
-            assets, playerTexture, playerTextureLegs
+            assets, playerTexture, playerTextureLegs, playerTextureTail,
         } = this.props;
 
         return <object3D>
@@ -63,6 +64,7 @@ export default class TitleScreen extends Component {
                 onClickRegionLeave={ onClickRegionLeave }
                 playerTexture={ playerTexture }
                 playerTextureLegs={ playerTextureLegs }
+                playerTextureTail={ playerTextureTail }
                 menuOptions={ books.map( book => ({
                     text: book.name,
                     onSelect: this.props.onSelect.bind( null, book ),

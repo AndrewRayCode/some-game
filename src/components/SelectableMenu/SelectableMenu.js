@@ -3,6 +3,7 @@ import THREE from 'three';
 import { Text, Player } from '../';
 import { wrapNumber, getTextWidth } from '../../helpers/Utils';
 import shaderFrog from '../../helpers/shaderFrog';
+import { glowTextureMaterial } from 'Textures';
 
 const textScale = new THREE.Vector3( 1, 1, 0.5 );
 const textSpacing = 1.8;
@@ -34,9 +35,6 @@ export default class SelectableMenu extends Component {
         this.state = {
             selectedIndex: 0,
             time: 0,
-            glowTextureMaterial: __CLIENT__ ? THREE.ImageUtils.loadTexture(
-                require( '../../../assets/brick-pattern-1.png' )
-            ) : null
         };
 
         this.onMouseEnter = this.onMouseEnter.bind( this );
@@ -48,7 +46,7 @@ export default class SelectableMenu extends Component {
     componentDidMount() {
 
         this.mounted = true;
-        shaderFrog.get( 'playerMenuBody' ).uniforms.image.value = this.state.glowTextureMaterial;
+        shaderFrog.get( 'playerMenuBody' ).uniforms.image.value = glowTextureMaterial;
 
     }
 

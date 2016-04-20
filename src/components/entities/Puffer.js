@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import SegmentedEmitter from './SegmentedEmitter';
 import ParticleEmitter from './ParticleEmitter';
+import { smokeParticle } from 'Textures';
 
 const positionSpread = new THREE.Vector3( 0.0, 0, 0.6 );
 const velocitySpread = new THREE.Vector3( 0.1, 0.0, 0.1 );
@@ -27,18 +28,6 @@ export default class Waterfall extends Component {
         helperMaterial: PropTypes.string,
     }
 
-    constructor( props ) {
-
-        super( props );
-
-        this.state = {
-            smokeParticle: __CLIENT__ ? THREE.ImageUtils.loadTexture(
-                require( '../../../assets/smoke-particle.png' )
-            ) : null
-        };
-
-    }
-
     render() {
 
         const {
@@ -51,7 +40,7 @@ export default class Waterfall extends Component {
             <ParticleEmitter
                 rotation={ rotation }
                 emitterPosition={ position }
-                texture={ this.state.smokeParticle }
+                texture={ smokeParticle }
                 maxAge={ maxLength / velocity }
                 positionSpread={ positionSpread }
                 opacity={ opacity }

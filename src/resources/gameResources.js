@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import Textures from '../helpers/Textures';
-import CustomShaders from '../helpers/CustomShaders';
+import { spiralTexture, growTexture } from 'Textures';
+import CustomShaders from 'CustomShaders';
 
 export default [
     <meshPhongMaterial
@@ -56,7 +56,7 @@ export default [
         transparent
     >
         <texture
-            url={ require( '../../assets/spiral-texture.png' ) }
+            url={ spiralTexture }
             wrapS={ THREE.RepeatWrapping }
             wrapT={ THREE.RepeatWrapping }
             anisotropy={ 16 }
@@ -77,7 +77,7 @@ export default [
         transparent
     >
         <texture
-            url={ require( '../../assets/grow-texture.png' ) }
+            url={ growTexture }
             wrapS={ THREE.RepeatWrapping }
             wrapT={ THREE.RepeatWrapping }
             anisotropy={ 16 }

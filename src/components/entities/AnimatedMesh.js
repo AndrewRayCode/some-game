@@ -28,7 +28,9 @@ export default class AnimatedMesh extends Component {
 
     componentDidMount() {
 
-        const { assets, texture, imageValue, meshName, } = this.props;
+        const {
+            assets, texture, imageValue, meshName, animations
+        } = this.props;
         const meshData = assets[ meshName ];
         const { geometry } = meshData;
         const { meshGroup } = this.refs;
@@ -60,13 +62,12 @@ export default class AnimatedMesh extends Component {
         meshGroup.add( skinnedMesh );
         this.mixer = mixer;
 
-        this.updateAnimations( this.props );
+        this.updateAnimations( animations );
 
     }
 
-    updateAnimations( props ) {
+    updateAnimations( animations ) {
 
-        const { animations, } = props;
         const { mixer, } = this;
 
         if( mixer && animations ) {
@@ -75,25 +76,46 @@ export default class AnimatedMesh extends Component {
 
                 const data = animations[ key ];
                 const { weight, percent, } = data;
+                //let { percent, weight } = data;
                 const action = mixer.clipAction( key );
 
                 if( action ) {
 
+                    //if( key === 'Idle' ) {
+                        //weight = 0;
+                        //percent = 0;
+                    //} else if( key === 'Jump' ) {
+                        //weight = 1;
+                        //percent = 1;
+                    //} else if( key === 'Walk' ) {
+                        //weight = 0;
+                        //percent = 0;
+                    //}
+
                     action.setEffectiveWeight( weight );
+                    //action.weight = weight;
+                    //action._effectiveWeight = weight;
 
                     const { duration } = action._clip;
-                    //action._loopCount = -1;
-                    //action.startTime = 0;
+                    action._loopCount = -1;
+                    action.startTime = 0;
                     action.time = Math.min(
-                        duration * 0.999,
+                        duration * 0.99999,
                         duration * percent
                     );
+                    //action._update( action.time * 3.3, 0 );
 
+                    //0.791667
+                    //action.time = 0.891667 * 1000;
+                    //action.time = Date.now() * 0.00000001;
 
+                } else {
+                    console.warn( `No action "${key}" found in mesh ${this.props.meshName}` );
                 }
 
             }
 
+            //mixer.update( Date.now() * 0.0001 );
             mixer.update( 0 );
 
         }
@@ -106,7 +128,7 @@ export default class AnimatedMesh extends Component {
 
         if( animations !== this.props.animations  ) {
 
-            this.updateAnimations( nextProps );
+            this.updateAnimations( animations );
 
         }
 

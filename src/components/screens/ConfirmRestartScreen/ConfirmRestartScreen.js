@@ -32,6 +32,7 @@ export default class ConfirmMenuScreen extends Component {
         assets: PropTypes.object.isRequired,
         playerTexture: PropTypes.string.isRequired,
         playerTextureLegs: PropTypes.string.isRequired,
+        playerTextureTail: PropTypes.string.isRequired,
         onConfirm: PropTypes.func.isRequired,
         onDeny: PropTypes.func.isRequired,
         onClickRegionLeave: PropTypes.func.isRequired,
@@ -65,7 +66,8 @@ export default class ConfirmMenuScreen extends Component {
 
         const {
             fonts, letters, onConfirm, onDeny, onClickRegionLeave,
-            onClickRegionEnter, assets, playerTexture, playerTextureLegs
+            onClickRegionEnter, assets, playerTexture, playerTextureLegs,
+            playerTextureTail,
         } = this.props;
 
         return <object3D
@@ -124,6 +126,7 @@ export default class ConfirmMenuScreen extends Component {
                 letters={ letters }
                 playerTexture={ playerTexture }
                 playerTextureLegs={ playerTextureLegs }
+                playerTextureTail={ playerTextureTail }
                 onClickRegionEnter={ onClickRegionEnter }
                 onClickRegionLeave={ onClickRegionLeave }
                 menuOptions={[

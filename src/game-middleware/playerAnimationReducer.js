@@ -6,21 +6,21 @@ const { randFloat } = THREE.Math;
 const playerRotationLimit = 0.7 * ( Math.PI / 2 );
 const turnSpeed = 0.2;
 const resolveSpeed = 0.08;
-const percentOpenMouth = 2.0;
+const percentOpenMouth = 1.0;
 
 const walkLoopMs = 300;
 
 const eyeRotationLimit = {
     x: {
-        min: -Math.PI / 2,
-        max: Math.PI / 4
+        min: -Math.PI / 3,
+        max: Math.PI / 5
     },
     y: {
         min: 0,
         max: 0,
     },
     z: {
-        min: -Math.PI / 3,
+        min: -Math.PI / 4,
         max: Math.PI / 5
     }
 };
@@ -30,8 +30,8 @@ const eyeTweenTimeMaxMs = 1000;
 const eyeWaitTimeMinMs = 500;
 const eyeWaitTimeMaxMs = 4000;
 
-const jumpTweenTime = 50;
-const jumpReturnTweenTime = 200;
+const jumpTweenTimeMs = 30;
+const jumpReturnTweenTimeMs = 500;
 
 export default function playerAnimationReducer( actions, props, oldState, currentState, next ) {
 
@@ -39,7 +39,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         leftEyeTweenTarget, leftEyeTweenStart, leftEyeTweenDuraiton,
         leftEyeTweenRest, rightEyeTweenTarget, rightEyeTweenStart,
         rightEyeTweenDuraiton, rightEyeTweenRest, playerRotation, isLeft,
-        isRight, actionStartTime, jumpStartTime
+        isRight, actionStartTime, jumpStartTime: oldJumpStartTime
     } = oldState;
 
     const { time, } = currentState;
@@ -56,65 +56,72 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     };
     const legAnimations = {
         Idle: {
-            weight: 1,
-            percent: Math.max( 1 - turnPercent, 0 ),
+            weight: 0,
+            percent: 0,
         },
         Walk: {
-            weight: 1,
+            weight: 0,
             percent: ( timeMs % walkLoopMs ) / walkLoopMs,
         },
         Jump: {
-            weight: 1,
+            weight: 0,
             percent: 0,
         },
-
     };
 
-    //let jumpWeight = 0;
-    //let jumpAnimationPercent = 0;
-    //let newJumpStartTime;
+    let jumpWeight = 0;
+    let jumpAnimationPercent = 0;
+    let jumpStartTime = oldJumpStartTime;
+    let jumpedOnThisFrame;
 
-    //if( currentState.jumpedOnThisFrame ) {
+    // Did we jump on this frame?
+    if( currentState.jumpedOnThisFrame ) {
 
-        //newJumpStartTime = timeMs;
+        jumpStartTime = timeMs;
 
-    //}
+    }
 
-    //const eitherJumpStartTime = jumpStartTime || newJumpStartTime;
-    //if( eitherJumpStartTime ) {
+    if( jumpStartTime ) {
 
-        //const timeSinceJumpStartMs = timeMs - eitherJumpStartTime;
+        // Calculate how much time has passed since the first jump frame
+        const timeSinceJumpStartMs = timeMs - jumpStartTime;
 
-        //// Initial jump animation
-        //if( timeSinceJumpStartMs <= jumpTweenTime ) {
+        // Initial jump animation
+        if( timeSinceJumpStartMs <= jumpTweenTimeMs ) {
 
-            //jumpWeight = 1;
-            //jumpAnimationPercent = timeSinceJumpStartMs / jumpTweenTime;
+            jumpWeight = 1;
+            jumpAnimationPercent = timeSinceJumpStartMs / jumpTweenTimeMs;
 
-        //// Return to whatever it was before
-        //} else {
+        // Slowly return to whatever it was before
+        } else {
 
-            //jumpWeight = ( timeMs - ( eitherJumpStartTime + jumpTweenTime ) ) / jumpReturnTweenTime;
-            //jumpAnimationPercent = 1;
+            jumpWeight = 1 - ( timeMs - ( jumpStartTime + jumpTweenTimeMs ) ) / jumpReturnTweenTimeMs;
+            jumpAnimationPercent = 1;
 
-        //}
+            if( jumpWeight < 0 ) {
+                jumpWeight = 0;
+                jumpStartTime = null;
+                jumpedOnThisFrame = null;
+            }
 
-    //}
+        }
+        console.log( 'jumpAnimationPercent:', jumpAnimationPercent );
+
+    }
+
+    legAnimations.Idle.weight = Math.max( 1 - turnPercent - jumpWeight, 0 );
+    legAnimations.Walk.weight = Math.max( turnPercent - jumpWeight, 0 );
+    legAnimations.Jump.weight = jumpWeight;
+    legAnimations.Jump.percent = jumpAnimationPercent;
 
     const newState = {
-        headAnimations, legAnimations,
-        // todo you were here and the problem is jump animation runs differently than the others but only one time loop for each mesh. probably need different time tracks?
-        //percentAlongJump: jumpAnimationPercent,
-        //walkWeights: {
-            //Idle: Math.max( 1 - turnPercent - jumpWeight, 0 ),
-            //Walk: Math.max( turnPercent - jumpWeight, 0 ),
-            //Jump: jumpWeight,
-        //},
+        headAnimations, legAnimations, jumpStartTime,
         playerRotation: new THREE.Euler(
             0,
             0,
-            isLeft ? lerp( turnAngle, playerRotationLimit, turnSpeed )
-                : ( isRight ?
+            isLeft ?
+                lerp( turnAngle, playerRotationLimit, turnSpeed ) :
+                ( isRight ?
                    lerp( turnAngle, -playerRotationLimit, turnSpeed ) :
                    lerp( turnAngle, 0, resolveSpeed )
                 ),

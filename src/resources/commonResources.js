@@ -1,6 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import Textures from '../helpers/Textures';
+import Textures from 'Textures';
 
 export default [
     ...Object.keys( Textures ).map( key =>
