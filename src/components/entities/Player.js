@@ -12,7 +12,7 @@ const headPosition = new THREE.Vector3( 0, 0, -0.15 );
 const headRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
 
 const legRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
-const legPosition = new THREE.Vector3( 0, 0, 0.3 );
+const legPosition = new THREE.Vector3( 0, -0.1, 0.31 );
 const legScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 1.05 );
 
 const tailRotation = new THREE.Euler( 0, 0, THREE.Math.degToRad( 60 ) );
@@ -198,6 +198,14 @@ export default class Player extends Component {
                     imageValue={ playerTexture }
                     animations={ headAnimations }
                     meshName="charisma"
+                />
+                <Mesh
+                    rotation={ legRotation }
+                    position={ legPosition }
+                    scale={ legScale }
+                    assets={ assets }
+                    materialId="charismaSkin"
+                    meshName="charismaJoints"
                 />
                 <AnimatedMesh
                     rotation={ legRotation }

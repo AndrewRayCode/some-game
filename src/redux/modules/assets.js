@@ -228,6 +228,10 @@ export function loadAllAssets() {
 
         dispatch( assetsLoading() );
 
+        // It turns out the JSON loader can only load individual meshes. If
+        // the JSON contains a scene / heirarchy, it needs to be loaded with
+        // the object loader. Since we can't determine this by file type,
+        // specificy the correcty loader for each job
         dispatch( loadWithDefaultLoader(
             'charisma',
             require( 'models/charisma.json' ),
@@ -262,6 +266,12 @@ export function loadAllAssets() {
             'charismaLegs',
             require( 'models/charisma-legs.json' ),
             model => model.children[ 0 ].geometry,
+        ));
+
+        dispatch( loadWithLoader(
+            'charismaJoints',
+            require( 'models/charisma-joints.json' ),
+            loaders.js
         ));
 
         dispatch( loadWithLoader(

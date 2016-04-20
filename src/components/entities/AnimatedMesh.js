@@ -20,8 +20,6 @@ export default class AnimatedMesh extends Component {
     constructor() {
 
         super();
-
-        this._onUpdate = this._onUpdate.bind( this );
         this.updateAnimations = this.updateAnimations.bind( this );
 
     }

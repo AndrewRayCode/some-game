@@ -16,6 +16,7 @@ const Textures = {
     smokeParticle: require( '../images/smoke-particle.png' ),
     spiralTexture: require( '../images/spiral-texture.png' ),
     growTexture: require( '../images/grow-texture.png' ),
+    charismaSkin: require( '../images/charisma-skin.jpg' ),
 };
 
 export default Textures;

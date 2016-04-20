@@ -6,9 +6,9 @@ const { randFloat } = THREE.Math;
 const playerRotationLimit = 0.7 * ( Math.PI / 2 );
 const turnSpeed = 0.2;
 const resolveSpeed = 0.08;
-const percentOpenMouth = 1.0;
+const maxPercentMouthOpen = 0.6;
 
-const walkLoopMs = 300;
+const walkLoopMs = 3000;
 
 const eyeRotationLimit = {
     x: {
@@ -53,7 +53,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     const headAnimations = {
         'Open Mouth': {
             weight: 1,
-            percent: 1 || ( turnPercent * percentOpenMouth ),
+            percent: turnPercent * maxPercentMouthOpen,
         },
     };
     const legAnimations = {
@@ -113,7 +113,6 @@ export default function playerAnimationReducer( actions, props, oldState, curren
             }
 
         }
-        console.log( 'jumpAnimationPercent:', jumpAnimationPercent );
 
     }
 
