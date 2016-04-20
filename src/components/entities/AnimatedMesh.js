@@ -51,11 +51,12 @@ export default class AnimatedMesh extends Component {
         this.skinnedMesh = skinnedMesh;
 
         const mixer = new THREE.AnimationMixer( skinnedMesh );
+        console.log('creating mixer',mixer);
 
         // Create the animations
         for( let i = 0; i < geometry.animations.length; ++i ) {
 
-            mixer.clipAction( geometry.animations[ i ] ).play();
+            mixer.clipAction( geometry.animations[ i ] ).setEffectiveWeight(1).play();
 
         }
 
@@ -72,37 +73,38 @@ export default class AnimatedMesh extends Component {
 
         if( mixer && animations ) {
 
-            for( const key in animations ) {
+            for( const animationName in animations ) {
 
-                const data = animations[ key ];
+                const data = animations[ animationName ];
                 const { weight, percent, } = data;
                 //let { percent, weight } = data;
-                const action = mixer.clipAction( key );
+                const action = mixer.clipAction( animationName );
 
                 if( action ) {
 
-                    //if( key === 'Idle' ) {
+                    //if( animationName === 'Idle' ) {
                         //weight = 0;
                         //percent = 0;
-                    //} else if( key === 'Jump' ) {
+                    //} else if( animationName === 'Jump' ) {
                         //weight = 1;
                         //percent = 1;
-                    //} else if( key === 'Walk' ) {
+                    //} else if( animationName === 'Walk' ) {
                         //weight = 0;
                         //percent = 0;
                     //}
 
-                    action.setEffectiveWeight( weight );
+                    //action.setEffectiveWeight( weight );
                     //action.weight = weight;
                     //action._effectiveWeight = weight;
 
-                    const { duration } = action._clip;
-                    action._loopCount = -1;
-                    action.startTime = 0;
-                    action.time = Math.min(
-                        duration * 0.99999,
-                        duration * percent
-                    );
+                    //const { duration } = action._clip;
+                    //action._loopCount = -1;
+                    //action._startTime = null;
+                    //action.time = Math.min(
+                        //duration * 0.99999,
+                        //duration * percent
+                    //);
+
                     //action._update( action.time * 3.3, 0 );
 
                     //0.791667
@@ -110,13 +112,13 @@ export default class AnimatedMesh extends Component {
                     //action.time = Date.now() * 0.00000001;
 
                 } else {
-                    console.warn( `No action "${key}" found in mesh ${this.props.meshName}` );
+                    console.warn( `No action "${animationName}" found in mesh ${this.props.meshName}` );
                 }
 
             }
 
-            //mixer.update( Date.now() * 0.0001 );
-            mixer.update( 0 );
+            mixer.update( Date.now() * 0.00000000000001 );
+            //mixer.update( 1e-20 );
 
         }
 
@@ -136,7 +138,27 @@ export default class AnimatedMesh extends Component {
 
     componentWillUnmount() {
 
-        this.refs.meshGroup.remove( this.skinnedMesh );
+        const { mixer, skinnedMesh } = this;
+        const { meshGroup } = this.refs;
+        const { assets, meshName, animations, } = this.props;
+        const meshData = assets[ meshName ];
+        const { geometry } = meshData;
+
+        console.log('teardown');
+
+        // Create the animations
+        for( const animationName in animations ) {
+
+            console.log( 'uncaching',animationName );
+            const action = mixer.clipAction( animationName );
+            mixer.uncacheClip( action._clip );
+            mixer.uncacheAction( action, skinnedMesh );
+
+        }
+
+        mixer.uncacheRoot( skinnedMesh );
+
+        meshGroup.remove( skinnedMesh );
 
     }
 

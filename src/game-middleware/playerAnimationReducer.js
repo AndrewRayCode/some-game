@@ -26,14 +26,14 @@ const eyeRotationLimit = {
 };
 const eyeTweenStartDelayMs = 2000;
 const eyeTweenTimeMinMs = 100;
-const eyeTweenTimeMaxMs = 1000;
+const eyeTweenTimeMaxMs = 2000;
 const eyeWaitTimeMinMs = 500;
 const eyeWaitTimeMaxMs = 4000;
 
 const jumpTweenTimeMs = 30;
 const jumpReturnTweenTimeMs = 500;
 
-const tailIdleTimeMs = 1000;
+const tailIdleTimeMs = 2000;
 
 export default function playerAnimationReducer( actions, props, oldState, currentState, next ) {
 
@@ -53,7 +53,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     const headAnimations = {
         'Open Mouth': {
             weight: 1,
-            percent: turnPercent * percentOpenMouth,
+            percent: 1 || ( turnPercent * percentOpenMouth ),
         },
     };
     const legAnimations = {
