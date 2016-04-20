@@ -1128,7 +1128,7 @@ export default class GameRenderer extends Component {
             playerContact, scalingOffsetZ, adjustedPlayerScale, playerRotation,
             playerScaleEffectsEnabled, playerScaleEffectsVisible,
             percentMouthOpen, rightEyeRotation, leftEyeRotation,
-            headAnimations, legAnimations,
+            headAnimations, legAnimations, tailAnimations
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1136,7 +1136,7 @@ export default class GameRenderer extends Component {
             previousChapterEntities, previousChapterEntity,
             currentLevelRenderableEntitiesArray, previousChapterFinishEntity,
             assets, shaders, paused, playerMaterialId, playerTexture,
-            playerTextureLegs,
+            playerTextureLegs, playerTextureTail,
         } = this.props;
 
         const { playerBody } = this;
@@ -1180,10 +1180,12 @@ export default class GameRenderer extends Component {
                 materialId={ playerMaterialId }
                 playerTexture={ playerTexture }
                 playerTextureLegs={ playerTextureLegs }
+                playerTextureTail={ playerTextureTail }
                 leftEyeRotation={ leftEyeRotation }
                 rightEyeRotation={ rightEyeRotation }
                 headAnimations={ headAnimations }
                 legAnimations={ legAnimations }
+                tailAnimations={ tailAnimations }
                 time={ time }
             />
 

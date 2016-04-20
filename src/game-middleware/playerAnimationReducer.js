@@ -33,6 +33,8 @@ const eyeWaitTimeMaxMs = 4000;
 const jumpTweenTimeMs = 30;
 const jumpReturnTweenTimeMs = 500;
 
+const tailIdleTimeMs = 1000;
+
 export default function playerAnimationReducer( actions, props, oldState, currentState, next ) {
 
     const {
@@ -67,6 +69,12 @@ export default function playerAnimationReducer( actions, props, oldState, curren
             weight: 0,
             percent: 0,
         },
+    };
+    const tailAnimations = {
+        Idle: {
+            weight: 1,
+            percent: ( timeMs % tailIdleTimeMs ) / tailIdleTimeMs
+        }
     };
 
     let jumpWeight = 0;
@@ -115,7 +123,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     legAnimations.Jump.percent = jumpAnimationPercent;
 
     const newState = {
-        headAnimations, legAnimations, jumpStartTime,
+        tailAnimations, headAnimations, legAnimations, jumpStartTime,
         playerRotation: new THREE.Euler(
             0,
             0,

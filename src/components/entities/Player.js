@@ -61,6 +61,7 @@ export default class Player extends Component {
         leftEyeRotation: PropTypes.object,
         rightEyeRotation: PropTypes.object,
         legAnimations: PropTypes.object,
+        tailAnimations: PropTypes.object,
         headAnimations: PropTypes.object,
         materialId: PropTypes.string.isRequired,
         playerTexture: PropTypes.string,
@@ -118,7 +119,7 @@ export default class Player extends Component {
             position, rotation, quaternion, radius, materialId, time, assets,
             scale, scaleEffectsVisible, scaleEffectsEnabled, leftEyeRotation,
             rightEyeRotation, playerTexture, playerTextureLegs,
-            playerTextureTail, legAnimations, headAnimations,
+            playerTextureTail, legAnimations, headAnimations, tailAnimations,
         } = this.props;
 
         const {
@@ -216,6 +217,7 @@ export default class Player extends Component {
                     texture={ shaderFrog.get( 'glowTextureTail' ) }
                     imageValue={ playerTextureTail }
                     meshName="charismaTail"
+                    animations={ tailAnimations }
                 />
             </group>
         </group>;
