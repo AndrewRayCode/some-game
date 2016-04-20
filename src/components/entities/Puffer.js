@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import SegmentedEmitter from './SegmentedEmitter';
 import ParticleEmitter from './ParticleEmitter';
-import { smokeParticle } from 'Textures';
+import { smokeParticle } from 'ThreeMaterials';
 
 const positionSpread = new THREE.Vector3( 0.0, 0, 0.6 );
 const velocitySpread = new THREE.Vector3( 0.1, 0.0, 0.1 );

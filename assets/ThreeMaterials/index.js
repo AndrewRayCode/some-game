@@ -22,6 +22,9 @@ const ThreeMaterials = __CLIENT__ ? {
     glowTextureMaterial: THREE.ImageUtils.loadTexture(
         require( '../images/brick-pattern-1.png' )
     ),
+    smokeParticle: THREE.ImageUtils.loadTexture(
+        require( '../images/smoke-particle.png' )
+    ),
 } : {};
 
 export default ThreeMaterials;
