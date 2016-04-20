@@ -21,7 +21,7 @@ export default class AnimatedMesh extends Component {
 
         super();
 
-        //this._onUpdate = this._onUpdate.bind( this );
+        this._onUpdate = this._onUpdate.bind( this );
         this.updateAnimations = this.updateAnimations.bind( this );
 
     }
@@ -51,16 +51,19 @@ export default class AnimatedMesh extends Component {
         this.skinnedMesh = skinnedMesh;
 
         const mixer = new THREE.AnimationMixer( skinnedMesh );
-        console.log('creating mixer',mixer);
+        mixer.stopAllAction();
+
+        console.log('created mixer',mixer);
+        meshGroup.add( skinnedMesh );
 
         // Create the animations
-        for( let i = 0; i < geometry.animations.length; ++i ) {
+        for( let i = 0; i < geometry.animations.length; i++ ) {
 
-            mixer.clipAction( geometry.animations[ i ] ).setEffectiveWeight(1).play();
+            mixer.clipAction( geometry.animations[ i ] ).setEffectiveWeight( 1 ).play();
+            console.log('starting animation', mixer.clipAction( geometry.animations[ i ] ));
 
         }
 
-        meshGroup.add( skinnedMesh );
         this.mixer = mixer;
 
         this.updateAnimations( animations );
@@ -117,7 +120,15 @@ export default class AnimatedMesh extends Component {
 
             }
 
-            mixer.update( Date.now() * 0.00000000000001 );
+            if( global.xxx ) {
+                console.log('RESETTIG WEIGHT ON IDLE');
+                mixer.clipAction( 'Open Mouth' ).setEffectiveWeight( 1 ).play();
+            
+            //.setEffectiveWeight(1).play();
+                window.xxx = false;
+                global.xxx = false;
+            }
+            //mixer.update( Date.now() * 0.00000000000001 );
             //mixer.update( 1e-20 );
 
         }
@@ -146,6 +157,8 @@ export default class AnimatedMesh extends Component {
 
         console.log('teardown');
 
+        mixer.stopAllAction();
+
         // Create the animations
         for( const animationName in animations ) {
 
@@ -162,32 +175,12 @@ export default class AnimatedMesh extends Component {
 
     }
 
-    //_onUpdate( delta, ealpsedTime ) {
+    _onUpdate( delta, ealpsedTime ) {
 
-        //const { mixer } = this;
-        //const { animationPercent } = this.props;
+        const { mixer } = this;
+        mixer.update( delta * 0.00000001 );
 
-        //if( mixer ) {
-
-            //for( let i = 0; i < mixer._actions.length; i++ ) {
-
-                //const action = mixer._actions[ i ];
-                //const { duration } = action._clip;
-                //action._loopCount = -1;
-                //action.time = 0;
-                //action.startTime = 0;
-                //mixer.update(
-                    //Math.min(
-                        //duration * 0.999,
-                        //duration * ( animationPercent || 0 )
-                    //)
-                //);
-
-            //}
-
-        //}
-
-    //}
+    }
 
     render() {
 
@@ -198,6 +191,7 @@ export default class AnimatedMesh extends Component {
         }
 
         return <group
+            onUpdate={ this._onUpdate }
             position={ position }
             rotation={ rotation }
             ref="meshGroup"
