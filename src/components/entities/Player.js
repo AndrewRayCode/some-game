@@ -199,7 +199,7 @@ export default class Player extends Component {
                     animations={ headAnimations }
                     meshName="charisma"
                 />
-                {/*<AnimatedMesh
+                <AnimatedMesh
                     rotation={ legRotation }
                     position={ legPosition }
                     scale={ legScale }
@@ -218,7 +218,7 @@ export default class Player extends Component {
                     imageValue={ playerTextureTail }
                     meshName="charismaTail"
                     animations={ tailAnimations }
-                />*/}
+                />
             </group>
         </group>;
 
