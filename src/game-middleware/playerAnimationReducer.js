@@ -6,9 +6,9 @@ const { randFloat } = THREE.Math;
 const playerRotationLimit = 0.7 * ( Math.PI / 2 );
 const turnSpeed = 0.2;
 const resolveSpeed = 0.08;
-const maxPercentMouthOpen = 0.6;
+const maxPercentMouthOpen = 0.5;
 
-const walkLoopMs = 3000;
+const walkLoopMs = 400;
 
 const eyeRotationLimit = {
     x: {
@@ -30,7 +30,8 @@ const eyeTweenTimeMaxMs = 2000;
 const eyeWaitTimeMinMs = 500;
 const eyeWaitTimeMaxMs = 4000;
 
-const jumpTweenTimeMs = 30;
+const maxJumpPercent = 0.6;
+const jumpTweenTimeMs = 40;
 const jumpReturnTweenTimeMs = 500;
 
 const tailIdleTimeMs = 2000;
@@ -98,13 +99,13 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         if( timeSinceJumpStartMs <= jumpTweenTimeMs ) {
 
             jumpWeight = 1;
-            jumpAnimationPercent = timeSinceJumpStartMs / jumpTweenTimeMs;
+            jumpAnimationPercent = maxJumpPercent * ( timeSinceJumpStartMs / jumpTweenTimeMs );
 
         // Slowly return to whatever it was before
         } else {
 
             jumpWeight = 1 - ( timeMs - ( jumpStartTime + jumpTweenTimeMs ) ) / jumpReturnTweenTimeMs;
-            jumpAnimationPercent = 1;
+            jumpAnimationPercent = maxJumpPercent;
 
             if( jumpWeight < 0 ) {
                 jumpWeight = 0;
