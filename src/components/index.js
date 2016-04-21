@@ -25,6 +25,7 @@ export TitleScreen from './screens/TitleScreen/TitleScreen';
 // Entities
 export EntityGroup from './EntityGroup/EntityGroup';
 export AnimatedMesh from './entities/AnimatedMesh';
+export MorphTargetMesh from './entities/MorphTargetMesh';
 export Mesh from './entities/Mesh';
 export Eye from './entities/Eye';
 export CurvedWall from './entities/CurvedWall';

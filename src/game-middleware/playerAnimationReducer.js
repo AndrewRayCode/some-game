@@ -30,6 +30,8 @@ const eyeTweenTimeMaxMs = 2000;
 const eyeWaitTimeMinMs = 500;
 const eyeWaitTimeMaxMs = 4000;
 
+const lidFollowPercent = 0.3;
+
 const maxJumpPercent = 0.6;
 const jumpTweenTimeMs = 40;
 const jumpReturnTweenTimeMs = 500;
@@ -184,7 +186,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         newState.leftLidRotation = lerpEulers(
             oldState.leftLidRotation || new THREE.Euler( 0, 0, 0 ),
             new THREE.Euler().setFromVector3(
-                leftEyeTweenTarget.toVector3().multiplyScalar( 0.1 )
+                leftEyeTweenTarget.toVector3().multiplyScalar( lidFollowPercent )
             ),
             eyeTweenPercent,
         );
@@ -226,7 +228,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         newState.rightLidRotation = lerpEulers(
             oldState.rightLidRotation || new THREE.Euler( 0, 0, 0 ),
             new THREE.Euler().setFromVector3(
-                rightEyeTweenTarget.toVector3().multiplyScalar( 0.1 )
+                rightEyeTweenTarget.toVector3().multiplyScalar( lidFollowPercent )
             ),
             eyeTweenPercent,
         );
