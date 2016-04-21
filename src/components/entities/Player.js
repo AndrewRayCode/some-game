@@ -12,8 +12,13 @@ const headPosition = new THREE.Vector3( 0, 0, -0.15 );
 const headRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
 
 const legRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
+
+const jointRotation = new THREE.Quaternion().setFromEuler(
+    new THREE.Euler( 0, 0, 0 )
+);
 const legPosition = new THREE.Vector3( 0, -0.1, 0.31 );
 const legScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 1.05 );
+const tScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 3.05 );
 
 const tailRotation = new THREE.Euler( 0, 0, THREE.Math.degToRad( 60 ) );
 const tailPosition = new THREE.Vector3( 0.3, -0.42, -0.5 );
@@ -200,7 +205,7 @@ export default class Player extends Component {
                     meshName="charisma"
                 />
                 <Mesh
-                    rotation={ legRotation }
+                    rotation={ jointRotation }
                     position={ legPosition }
                     scale={ legScale }
                     assets={ assets }
