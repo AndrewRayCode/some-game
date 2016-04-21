@@ -65,7 +65,8 @@ export default class GameContainer extends Component {
                 !( 'charisma' in assets ) ||
                 !( 'charismaLegs' in assets ) ||
                 !( 'charismaTail' in assets ) ||
-                !( 'eye' in assets )
+                !( 'eye' in assets ) ||
+                !( 'eyeLid' in assets )
             ) {
             return <div>Loading&hellip;</div>;
         }

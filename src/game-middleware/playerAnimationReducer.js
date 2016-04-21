@@ -170,13 +170,23 @@ export default function playerAnimationReducer( actions, props, oldState, curren
 
     if( leftEyeTweenStart ) {
 
+        const eyeTweenPercent = Math.min(
+            ( timeMs - leftEyeTweenStart ) / leftEyeTweenDuraiton,
+            1
+        );
+
         newState.leftEyeRotation = lerpEulers(
             oldState.leftEyeRotation || new THREE.Euler( 0, 0, 0 ),
             leftEyeTweenTarget,
-            Math.min(
-                ( timeMs - leftEyeTweenStart ) / leftEyeTweenDuraiton,
-                1
-            )
+            eyeTweenPercent,
+        );
+
+        newState.leftLidRotation = lerpEulers(
+            oldState.leftLidRotation || new THREE.Euler( 0, 0, 0 ),
+            new THREE.Euler().setFromVector3(
+                leftEyeTweenTarget.toVector3().multiplyScalar( 0.1 )
+            ),
+            eyeTweenPercent,
         );
 
     }
@@ -202,13 +212,23 @@ export default function playerAnimationReducer( actions, props, oldState, curren
 
     if( rightEyeTweenStart ) {
 
+        const eyeTweenPercent = Math.min(
+            ( timeMs - rightEyeTweenStart ) / rightEyeTweenDuraiton,
+            1
+        );
+
         newState.rightEyeRotation = lerpEulers(
             oldState.rightEyeRotation || new THREE.Euler( 0, 0, 0 ),
             rightEyeTweenTarget,
-            Math.min(
-                ( timeMs - rightEyeTweenStart ) / rightEyeTweenDuraiton,
-                1
-            )
+            eyeTweenPercent,
+        );
+
+        newState.rightLidRotation = lerpEulers(
+            oldState.rightLidRotation || new THREE.Euler( 0, 0, 0 ),
+            new THREE.Euler().setFromVector3(
+                rightEyeTweenTarget.toVector3().multiplyScalar( 0.1 )
+            ),
+            eyeTweenPercent,
         );
 
     }

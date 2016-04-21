@@ -86,7 +86,7 @@ export function game( state = defaultGameState, action = {} ) {
             return {
                 ...state,
                 chapters, books,
-                playerMaterialId: 'glowTexture',
+                playerMaterialId: 'glowTextureFace',
 
                 recursionBusterId: recursionBusterId || state.recursionBusterId,
 
@@ -127,7 +127,7 @@ export function game( state = defaultGameState, action = {} ) {
 
             return {
                 ...state,
-                playerMaterialId: 'glowTexture',
+                playerMaterialId: 'glowTextureFace',
                 playerRadius: state.playerRadius * action.multiplier,
                 playerScale: state.playerScale * action.multiplier,
                 levels: {

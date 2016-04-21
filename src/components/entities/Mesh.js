@@ -1,13 +1,12 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 
-const defaultRotation = new THREE.Quaternion( 0, 0, 0, 1 );
-
 export default class Mesh extends Component {
 
     static propTypes = {
         position: PropTypes.object,
         rotation: PropTypes.object,
+        quaternion: PropTypes.object,
         scale: PropTypes.object,
         materialId: PropTypes.string.isRequired,
         assets: PropTypes.object.isRequired,
@@ -17,7 +16,7 @@ export default class Mesh extends Component {
     render() {
 
         const {
-            position, rotation, scale, materialId, assets, meshName
+            position, quaternion, rotation, scale, materialId, assets, meshName
         } = this.props;
         const meshData = assets[ meshName ];
 
@@ -35,7 +34,8 @@ export default class Mesh extends Component {
 
         return <group
             position={ position }
-            quaternion={ rotation || defaultRotation }
+            quaternion={ quaternion }
+            rotation={ rotation }
             scale={ scale }
         >
             <mesh

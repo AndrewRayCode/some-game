@@ -142,7 +142,7 @@ export default class SelectableMenu extends Component {
             )}
 
             <Player
-                materialId="glowTexture"
+                materialId="glowTextureFace"
                 assets={ assets }
                 rotation={ characterMenuRotaiton }
                 radius={ 0.5 }

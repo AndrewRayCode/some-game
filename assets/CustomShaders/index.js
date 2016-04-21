@@ -11,9 +11,10 @@ const CustomShaders = {
     fractalTransition: require( '../shaders/Fractal_Transition.json' ),
     pauseBackground: require( '../shaders/Pause_Screen_Background.json' ),
     playerMenuBody: require( '../shaders/Menu_Body.json' ),
-    glowTexture: require( '../shaders/Glow_Texture.json' ),
-    glowTextureLegs: require( '../shaders/Glow_Texture.json' ),
-    glowTextureTail: require( '../shaders/Glow_Texture.json' ),
+    glowTextureFace: require( '../shaders/Rimlit_Rigged_UVs.json' ),
+    glowTextureLegs: require( '../shaders/Rimlit_Rigged_UVs.json' ),
+    glowTextureTail: require( '../shaders/Rimlit_Rigged_UVs.json' ),
+    glowTextureSkin: require( '../shaders/Rimlit_UVs.json' ),
 };
 
 export default CustomShaders;

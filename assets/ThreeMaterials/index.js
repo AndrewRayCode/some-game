@@ -16,6 +16,9 @@ const ThreeMaterials = __CLIENT__ ? {
     playerTextureTail: THREE.ImageUtils.loadTexture(
         require( '../images/charisma-tail.jpg' )
     ),
+    playerTextureSkin: THREE.ImageUtils.loadTexture(
+        require( '../images/charisma-skin.jpg' )
+    ),
     twinkleMaterial: THREE.ImageUtils.loadTexture(
         require( '../images/twinkle-particle.png' )
     ),

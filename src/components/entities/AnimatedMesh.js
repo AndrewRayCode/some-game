@@ -11,7 +11,6 @@ export default class AnimatedMesh extends Component {
         scale: PropTypes.object,
         assets: PropTypes.object.isRequired,
         texture: PropTypes.object.isRequired,
-        imageValue: PropTypes.string,
         meshName: PropTypes.string.isRequired,
         animations: PropTypes.object.isRequired,
         animationPercent: PropTypes.number,
@@ -27,7 +26,7 @@ export default class AnimatedMesh extends Component {
     componentDidMount() {
 
         const {
-            assets, texture, imageValue, meshName, animations
+            assets, texture, meshName, animations
         } = this.props;
         const meshData = assets[ meshName ];
         const { geometry } = meshData;
@@ -39,15 +38,10 @@ export default class AnimatedMesh extends Component {
         );
         meshGroup.add( skinnedMesh );
 
-        if( imageValue ) {
-            texture.uniforms.image.value = imageValue;
-        }
-
-        // See https://github.com/mrdoob/three.js/issues/8673
-        texture.side = THREE.DoubleSide;
-
         skinnedMesh.material.skinning = true;
         this.skinnedMesh = skinnedMesh;
+
+        texture.side = THREE.DoubleSide;
 
         const mixer = new THREE.AnimationMixer( skinnedMesh );
 

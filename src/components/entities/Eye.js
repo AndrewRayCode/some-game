@@ -6,12 +6,15 @@ export default class Eye extends Component {
 
     render() {
 
-        const { position, rotation, scale, materialId, assets } = this.props;
+        const {
+            position, quaternion, rotation, scale, materialId, assets
+        } = this.props;
 
         return <Mesh
             ref="mesh"
             position={ position }
             quaternion={ rotation }
+            quaternion={ quaternion }
             scale={ scale }
             assets={ assets }
             meshName="eye"

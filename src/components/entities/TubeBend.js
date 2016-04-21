@@ -6,12 +6,15 @@ export default class TubeBend extends Component {
 
     render() {
 
-        const { position, rotation, scale, materialId, assets } = this.props;
+        const {
+            quaternion, position, rotation, scale, materialId, assets
+        } = this.props;
 
         return <Mesh
             ref="child"
             position={ position }
             rotation={ rotation }
+            quaternion={ quaternion }
             scale={ scale }
             assets={ assets }
             meshName="tubeBend"

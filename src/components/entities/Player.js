@@ -1,32 +1,31 @@
 import React, { Component, PropTypes } from 'react';
-import THREE from 'three';
+import THREE, { Euler, Vector3, Quaternion } from 'three';
 import SPE from 'shader-particle-engine';
 import { Mesh, AnimatedMesh, Eye, ParticleEmitter } from '../';
 import shaderFrog from '../../helpers/shaderFrog';
 import { Animation, AnimationHandler } from 'three-animation-handler';
 import { twinkleMaterial } from 'ThreeMaterials';
 
-const defaultScale = new THREE.Vector3( 2, 2, 2 );
-const headScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
-const headPosition = new THREE.Vector3( 0, 0, -0.15 );
-const headRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
+const lidLocalScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.73 );
 
-const legRotation = new THREE.Euler( -Math.PI / 2, 0, 0 );
+const defaultScale = new Vector3( 2, 2, 2 );
+const headScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
+const headPosition = new Vector3( 0, 0, -0.15 );
+const headRotation = new Euler( -Math.PI / 2, 0, 0 );
 
-const jointRotation = new THREE.Quaternion().setFromEuler(
-    new THREE.Euler( 0, 0, 0 )
-);
-const legPosition = new THREE.Vector3( 0, -0.1, 0.31 );
-const legScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 1.05 );
-const tScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 3.05 );
+const legRotation = new Euler( -Math.PI / 2, 0, 0 );
 
-const tailRotation = new THREE.Euler( 0, 0, THREE.Math.degToRad( 60 ) );
-const tailPosition = new THREE.Vector3( 0.3, -0.42, -0.5 );
-const tailScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.8 );
+const jointRotation = new Euler( 0, 0, 0 );
+const legPosition = new Vector3( 0, -0.1, 0.31 );
+const legScale = new Vector3( 1, 1, 1 ).multiplyScalar( 1.05 );
 
-const localEyeRotation = new THREE.Euler( -Math.PI / 2 - 0.2, -Math.PI / 2, 0 );
-const eyeScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.36 );
-const leftEyePosition = new THREE.Vector3(
+const tailRotation = new Euler( 0, 0, THREE.Math.degToRad( 60 ) );
+const tailPosition = new Vector3( 0.3, -0.42, -0.5 );
+const tailScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.8 );
+
+const localEyeRotation = new Euler( -Math.PI / 2 - 0.2, -Math.PI / 2, 0 );
+const eyeScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.36 );
+const leftEyePosition = new Vector3(
     -0.25,
     0.13,
     -0.19 + headPosition.z,
@@ -34,20 +33,20 @@ const leftEyePosition = new THREE.Vector3(
 const rightEyePosition = leftEyePosition.clone().setX( -leftEyePosition.x );
 
 const particleVelocityDistribution = SPE.distributions.BOX;
-const particleRotationAxis = new THREE.Vector3( 0, 0, 1 );
+const particleRotationAxis = new Vector3( 0, 0, 1 );
 const particleRotationAngle = 10;
 const particleOpacity = [ 0.2, 1, 0 ];
-const particleVelocity = new THREE.Vector3( 0, 0, -1 );
-const particleVelocitySpread = new THREE.Vector3( 0, 0, 0 );
+const particleVelocity = new Vector3( 0, 0, -1 );
+const particleVelocitySpread = new Vector3( 0, 0, 0 );
 const particleParticleRotation = [ -1, 1 ];
 const particleParticleRotationSpread = [ -1, 1 ];
 
-const particlePositionSpread = new THREE.Vector3( 0.8, 0, 0.8 );
+const particlePositionSpread = new Vector3( 0.8, 0, 0.8 );
 
-const particleRotation = new THREE.Quaternion( 0, 0, 0, 1 )
-    .setFromEuler( new THREE.Euler( 0, Math.PI / 2, 0 ) );
+const particleRotation = new Quaternion( 0, 0, 0, 1 )
+    .setFromEuler( new Euler( 0, Math.PI / 2, 0 ) );
 const particleColors = [ 0x4433ff, 0xddbbff ];
-const colorSpread = new THREE.Vector3( 0.6, 0.4, 0.2 );
+const colorSpread = new Vector3( 0.6, 0.4, 0.2 );
 const particleSize = 0.4;
 const particleSizeSpread = [ 0.4, 2 ];
 const particleCount = 50;
@@ -65,6 +64,8 @@ export default class Player extends Component {
         scale: PropTypes.object,
         leftEyeRotation: PropTypes.object,
         rightEyeRotation: PropTypes.object,
+        leftLidRotation: PropTypes.object,
+        rightLidRotation: PropTypes.object,
         legAnimations: PropTypes.object,
         tailAnimations: PropTypes.object,
         headAnimations: PropTypes.object,
@@ -125,6 +126,7 @@ export default class Player extends Component {
             scale, scaleEffectsVisible, scaleEffectsEnabled, leftEyeRotation,
             rightEyeRotation, playerTexture, playerTextureLegs,
             playerTextureTail, legAnimations, headAnimations, tailAnimations,
+            leftLidRotation, rightLidRotation
         } = this.props;
 
         const {
@@ -134,7 +136,7 @@ export default class Player extends Component {
         const emitterPosition = position
             .clone()
             .add(
-                new THREE.Vector3(
+                new Vector3(
                     0, 3 * radius, 0
                 )
             );
@@ -170,6 +172,14 @@ export default class Player extends Component {
                 rotation={ rotation }
                 scale={ computedScale }
             >
+                <Mesh
+                    position={ leftEyePosition }
+                    rotation={ leftLidRotation }
+                    scale={ lidLocalScale }
+                    assets={ assets }
+                    materialId="glowTextureSkin"
+                    meshName="eyeLid"
+                />
                 <group
                     position={ leftEyePosition }
                     rotation={ leftEyeRotation }
@@ -182,6 +192,14 @@ export default class Player extends Component {
                         materialId="greenEye"
                     />
                 </group>
+                <Mesh
+                    position={ rightEyePosition }
+                    rotation={ rightLidRotation }
+                    scale={ lidLocalScale }
+                    assets={ assets }
+                    materialId="glowTextureSkin"
+                    meshName="eyeLid"
+                />
                 <group
                     position={ rightEyePosition }
                     rotation={ rightEyeRotation }
@@ -199,8 +217,7 @@ export default class Player extends Component {
                     scale={ headScale }
                     position={ headPosition }
                     assets={ assets }
-                    texture={ shaderFrog.get( 'glowTexture' ) }
-                    imageValue={ playerTexture }
+                    texture={ shaderFrog.get( 'glowTextureFace' ) }
                     animations={ headAnimations }
                     meshName="charisma"
                 />
@@ -209,7 +226,7 @@ export default class Player extends Component {
                     position={ legPosition }
                     scale={ legScale }
                     assets={ assets }
-                    materialId="charismaSkin"
+                    materialId="glowTextureSkin"
                     meshName="charismaJoints"
                 />
                 <AnimatedMesh
@@ -218,7 +235,6 @@ export default class Player extends Component {
                     scale={ legScale }
                     assets={ assets }
                     texture={ shaderFrog.get( 'glowTextureLegs' ) }
-                    imageValue={ playerTextureLegs }
                     meshName="charismaLegs"
                     animations={ legAnimations }
                 />
@@ -228,7 +244,6 @@ export default class Player extends Component {
                     scale={ tailScale }
                     assets={ assets }
                     texture={ shaderFrog.get( 'glowTextureTail' ) }
-                    imageValue={ playerTextureTail }
                     meshName="charismaTail"
                     animations={ tailAnimations }
                 />

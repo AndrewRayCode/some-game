@@ -7,6 +7,9 @@ import {
 } from '../../helpers/Utils';
 import shaderFrog from '../../helpers/shaderFrog';
 import CustomShaders from 'CustomShaders';
+import {
+    playerTexture, playerTextureLegs, playerTextureTail, playerTextureSkin
+} from 'ThreeMaterials';
 
 const MODEL_LOAD_SUCCESS = 'assets/MODEL_LOAD_SUCCESS';
 const MODEL_LOAD_FAIL = 'assets/MODEL_LOAD_FAIL';
@@ -274,6 +277,12 @@ export function loadAllAssets() {
             loaders.js
         ));
 
+        dispatch( loadWithDefaultLoader(
+            'eyeLid',
+            require( 'models/charisma-lid.json' ),
+            model => model.children[ 0 ].geometry,
+        ));
+
         dispatch( loadWithLoader(
             'tube',
             require( 'models/tube.json' ),
@@ -326,6 +335,24 @@ export function loadAllAssets() {
             ));
 
         });
+
+        // Blender exporter flips faces. See
+        // https://github.com/mrdoob/three.js/issues/8673
+        const shaderFace = shaderFrog.get( 'glowTextureFace' );
+        shaderFace.uniforms.image.value = playerTexture;
+        shaderFace.side = THREE.DoubleSide;
+
+        const shaderLegs = shaderFrog.get( 'glowTextureLegs' );
+        shaderLegs.uniforms.image.value = playerTextureLegs;
+        shaderLegs.side = THREE.DoubleSide;
+
+        const shaderTail = shaderFrog.get( 'glowTextureTail' );
+        shaderTail.uniforms.image.value = playerTextureTail;
+        shaderTail.side = THREE.DoubleSide;
+
+        const shaderSkin = shaderFrog.get( 'glowTextureSkin' );
+        shaderSkin.uniforms.image.value = playerTextureSkin;
+        shaderSkin.side = THREE.DoubleSide;
 
         dispatch({ type: ASSETS_LOADED });
 
