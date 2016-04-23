@@ -637,7 +637,7 @@ export default class GameRenderer extends Component {
         }
 
         let newState = {
-            entrances: []
+            entrances: [],
         };
 
         const {
@@ -655,6 +655,9 @@ export default class GameRenderer extends Component {
 
         const velocityMoveMax = 5 * playerScale;
         const velocityMax = 10.0 * velocityMoveMax;
+
+        newState.playerBody = playerBody;
+        newState.playerVelocity = playerVelocity;
 
         const isLeft = keysDown.isPressed( 'A' ) || keysDown.isPressed( 'LEFT' );
         const isRight = keysDown.isPressed( 'D' ) || keysDown.isPressed( 'RIGHT' );

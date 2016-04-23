@@ -36,11 +36,17 @@ const maxJumpPercent = 0.6;
 const jumpTweenTimeMs = 40;
 const jumpReturnTweenTimeMs = 500;
 
-const minBlinkInterval = 1000;
+const minBlinkIntervalMs = 1000;
 const blinkDurationMs = 300;
 const timeAfterBlinkToResetMs = 1500;
 
 const tailIdleTimeMs = 2000;
+
+function canBlink( time, lastBlinkTime, minBlinkInterval ) {
+
+    return !lastBlinkTime || ( ( time - lastBlinkTime ) > minBlinkInterval );
+
+}
 
 export default function playerAnimationReducer( actions, props, oldState, currentState, next ) {
 
@@ -49,7 +55,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         leftEyeTweenRest, rightEyeTweenTarget, rightEyeTweenStart,
         rightEyeTweenDuraiton, rightEyeTweenRest, playerRotation, isLeft,
         isRight, actionStartTime, jumpStartTime: oldJumpStartTime,
-        blinkStartTime: oldBlinkStartTime
+        blinkStartTime: oldBlinkStartTime, lastBlinkTime, eyeMorphTargets
     } = oldState;
 
     const { time, } = currentState;
@@ -94,13 +100,14 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     // Did we jump on this frame?
     if( currentState.jumpedOnThisFrame ) {
 
+        //if( canBlink( timeMs, lastBlinkTime, minBlinkIntervalMs ) ) {
+            //blinkStartTime = timeMs;
+        //}
         jumpStartTime = timeMs;
 
     }
 
     if( jumpStartTime ) {
-
-        blinkStartTime = timeMs;
 
         // Calculate how much time has passed since the first jump frame
         const timeSinceJumpStartMs = timeMs - jumpStartTime;
@@ -243,7 +250,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
 
     }
 
-    if( !blinkStartTime && (
+    if( canBlink( timeMs, lastBlinkTime, minBlinkIntervalMs ) && (
             ( !oldState.isLeft && currentState.isLeft ) ||
             ( !oldState.isRight && currentState.isRight )
         ) ) {
@@ -252,7 +259,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
 
     }
 
-    if( blinkStartTime && ( ( timeMs - oldState.lastBlinkTime || 0 ) > minBlinkInterval ) ) {
+    if( blinkStartTime ) {
 
         if( !oldBlinkStartTime ) {
 
@@ -281,31 +288,40 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         );
 
         if( blinkPercent >= 0.5 ) {
-            newState.leftEyeRotation = lerpEulers(
-                oldState.leftEyeRotation,
-                new THREE.Euler( 0, 0, 0 ),
-                blinkPercent,
-            );
+
+            newState.leftEyeRotation = new THREE.Euler( 0, 0, 0 );
             newState.leftEyeTweenStart = timeMs;
             newState.leftEyeTweenDuration = 0;
             newState.leftEyeTweenTarget = new THREE.Euler( 0, 0, 0 );
             newState.leftEyeTweenRest = timeAfterBlinkToResetMs;
 
-            newState.rightEyeRotation = lerpEulers(
-                oldState.leftEyeRotation,
-                new THREE.Euler( 0, 0, 0 ),
-                blinkPercent,
-            );
+            newState.rightEyeRotation = new THREE.Euler( 0, 0, 0 );
             newState.rightEyeTweenTarget = new THREE.Euler( 0, 0, 0 );
             newState.rightEyeTweenStart = timeMs;
             newState.rightEyeTweenDuration = 0;
             newState.rightEyeTweenRest = timeAfterBlinkToResetMs;
+
         }
 
         if( blinkPercent >= 1 ) {
             newState.eyeMorphTargets = [ 0, 0, 0, 0 ];
             newState.blinkStartTime = null;
         }
+
+    } else {
+
+        const { playerVelocity } = currentState;
+        const percentFromVelocity = THREE.Math.clamp(
+            playerVelocity[ 1 ] * 2,
+            0,
+            0.7
+        );
+        const lowerMorph = lerp(
+            eyeMorphTargets ? eyeMorphTargets[ 2 ] || 0 : 0,
+            percentFromVelocity,
+            0.2
+        );
+        newState.eyeMorphTargets = [ 0, 0, lowerMorph, lowerMorph * 0.5 ];
 
     }
 
