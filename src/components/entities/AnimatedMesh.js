@@ -94,7 +94,7 @@ export default class AnimatedMesh extends Component {
 
     componentWillReceiveProps( nextProps ) {
 
-        const{ animations } = nextProps;
+        const { animations } = nextProps;
 
         if( animations !== this.props.animations  ) {
 

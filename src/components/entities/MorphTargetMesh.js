@@ -32,19 +32,25 @@ export default class MorphTargetMesh extends Component {
         const { geometry } = meshData;
         const { meshGroup } = this.refs;
 
-        const skinnedMesh = new THREE.SkinnedMesh(
+        const mesh = new THREE.Mesh(
             geometry,
             texture
         );
-        meshGroup.add( skinnedMesh );
+        meshGroup.add( mesh );
         console.log('meshData in MorphTargetMesh',meshData);
 
-        skinnedMesh.material.skinning = true;
-        this.skinnedMesh = skinnedMesh;
+        //mesh.material.skinning = true;
+        this.mesh = mesh;
 
         texture.side = THREE.DoubleSide;
 
-        const mixer = new THREE.AnimationMixer( skinnedMesh );
+        const mixer = new THREE.AnimationMixer( mesh );
+
+        const clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'gallop', geometry.morphTargets, 30 );
+        mixer.clipAction( clip ).setDuration( 1 ).play();
+
+        this.clip = clip;
+        
 
         // Create the animations
         //for( let i = 0; i < geometry.animations.length; i++ ) {
@@ -65,29 +71,29 @@ export default class MorphTargetMesh extends Component {
 
         if( mixer && animations ) {
 
-            for( const animationName in animations ) {
+            //for( const animationName in animations ) {
 
-                const data = animations[ animationName ];
-                const { weight, percent, } = data;
-                const action = mixer.clipAction( animationName );
+                //const data = animations[ animationName ];
+                //const { weight, percent, } = data;
+                //const action = mixer.clipAction( animationName );
 
-                if( action ) {
+                //if( action ) {
 
-                    action.setEffectiveWeight( weight );
+                    //action.setEffectiveWeight( weight );
 
-                    const { duration } = action._clip;
-                    action.time = Math.min(
-                        duration * 0.99999,
-                        duration * percent
-                    );
+                    //const { duration } = action._clip;
+                    //action.time = Math.min(
+                        //duration * 0.99999,
+                        //duration * percent
+                    //);
 
-                } else {
-                    console.warn( `No action "${animationName}" found in mesh ${this.props.meshName}` );
-                }
+                //} else {
+                    //console.warn( `No action "${animationName}" found in mesh ${this.props.meshName}` );
+                //}
 
-            }
+            //}
 
-            mixer.update( 0 );
+            mixer.update( 0.1 );
 
         }
 
@@ -95,7 +101,7 @@ export default class MorphTargetMesh extends Component {
 
     componentWillReceiveProps( nextProps ) {
 
-        const{ animations } = nextProps;
+        const { animations } = nextProps;
 
         if( animations !== this.props.animations  ) {
 
@@ -107,7 +113,7 @@ export default class MorphTargetMesh extends Component {
 
     componentWillUnmount() {
 
-        const { mixer, skinnedMesh } = this;
+        const { mixer, mesh } = this;
         const { meshGroup } = this.refs;
         const { assets, meshName, animations, } = this.props;
         const meshData = assets[ meshName ];
@@ -121,17 +127,17 @@ export default class MorphTargetMesh extends Component {
 
                 const action = mixer.clipAction( animationName );
                 mixer.uncacheClip( action._clip );
-                mixer.uncacheAction( action, skinnedMesh );
+                mixer.uncacheAction( action, mesh );
 
             }
 
-            mixer.uncacheRoot( skinnedMesh );
+            mixer.uncacheRoot( mesh );
 
                }
 
-        if( skinnedMesh ) {
+        if( mesh ) {
 
-             meshGroup.remove( skinnedMesh );
+             meshGroup.remove( mesh );
 
         }
 
