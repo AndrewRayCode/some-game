@@ -1,5 +1,5 @@
 import THREE from 'three';
-import { lerp, lerpEulers } from '../helpers/Utils';
+import { lerp, lerpEulers, frac } from '../helpers/Utils';
 
 const { randFloat } = THREE.Math;
 
@@ -234,6 +234,11 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         );
 
     }
+
+    // upper half, upper full
+    const upperCloseHalfMorph = 2 * Math.abs( 0.5 - frac( 2 * ( timeMs * 0.005 ) + 0.5 ) );
+    const upperCloseFullMorph = 2 * Math.abs( 0.5 - frac( timeMs * 0.005 + 0.5 ) );
+    newState.eyeMorphTargets = [ upperCloseHalfMorph, upperCloseFullMorph, 0, 0 ];
 
     return next({
         ...currentState,

@@ -501,3 +501,9 @@ export function bufferToGeometry( bufferGeometry:THREE.BufferGeometry ) {
     return new THREE.Geometry().fromBufferGeometry( bufferGeometry );
 
 }
+
+export function frac( f:number ) {
+
+    return f % 1;
+
+}

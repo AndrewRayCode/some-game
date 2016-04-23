@@ -354,6 +354,10 @@ export function loadAllAssets() {
         shaderSkin.uniforms.image.value = playerTextureSkin;
         shaderSkin.side = THREE.DoubleSide;
 
+        const shaderLid = shaderFrog.get( 'glowTextureLid' );
+        shaderLid.uniforms.image.value = playerTextureSkin;
+        shaderLid.side = THREE.DoubleSide;
+
         dispatch({ type: ASSETS_LOADED });
 
     };

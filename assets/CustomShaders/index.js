@@ -15,6 +15,7 @@ const CustomShaders = {
     glowTextureLegs: require( '../shaders/Rimlit_Rigged_UVs.json' ),
     glowTextureTail: require( '../shaders/Rimlit_Rigged_UVs.json' ),
     glowTextureSkin: require( '../shaders/Rimlit_UVs.json' ),
+    glowTextureLid: require( '../shaders/Rimlit_Morphs.json' ),
 };
 
 export default CustomShaders;

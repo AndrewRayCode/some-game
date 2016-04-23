@@ -7,6 +7,7 @@ import { Animation, AnimationHandler } from 'three-animation-handler';
 import { twinkleMaterial } from 'ThreeMaterials';
 
 const lidLocalScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.73 );
+const lidLocalRotation = new THREE.Euler( 0, Math.PI / 2, 0 );
 
 const defaultScale = new Vector3( 2, 2, 2 );
 const headScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
@@ -66,6 +67,7 @@ export default class Player extends Component {
         rightEyeRotation: PropTypes.object,
         leftLidRotation: PropTypes.object,
         rightLidRotation: PropTypes.object,
+        eyeMorphTargets: PropTypes.array,
         legAnimations: PropTypes.object,
         tailAnimations: PropTypes.object,
         headAnimations: PropTypes.object,
@@ -172,15 +174,19 @@ export default class Player extends Component {
                 rotation={ rotation }
                 scale={ computedScale }
             >
-                <AnimatedMesh
+                <group
                     position={ leftEyePosition }
                     rotation={ leftLidRotation }
                     scale={ lidLocalScale }
-                    assets={ assets }
-                    texture={ shaderFrog.get( 'glowTextureSkin' ) }
-                    morphTargets={ eyeMorphTargets }
-                    meshName="eyeLid"
-                />
+                >
+                    <AnimatedMesh
+                        rotation={ lidLocalRotation }
+                        assets={ assets }
+                        texture={ shaderFrog.get( 'glowTextureLid' ) }
+                        morphTargets={ eyeMorphTargets }
+                        meshName="eyeLid"
+                    />
+                </group>
                 <group
                     position={ leftEyePosition }
                     rotation={ leftEyeRotation }

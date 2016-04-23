@@ -35,29 +35,27 @@ export default class AnimatedMesh extends Component {
 
         const skinnedMesh = new THREE.SkinnedMesh(
             geometry,
-            texture
+            texture,
         );
         meshGroup.add( skinnedMesh );
 
         skinnedMesh.material.skinning = true;
+        skinnedMesh.material.morphTargets = true;
+        skinnedMesh.material.side = THREE.DoubleSide;
+
         this.skinnedMesh = skinnedMesh;
 
-        texture.side = THREE.DoubleSide;
+        const mixer = new THREE.AnimationMixer( skinnedMesh );
+        const bakedAnimations = geometry.animations || [];
 
-        if( animations ) {
+        // Create the animations
+        for( let i = 0; i < bakedAnimations.length; i++ ) {
 
-            const mixer = new THREE.AnimationMixer( skinnedMesh );
-
-            // Create the animations
-            for( let i = 0; i < geometry.animations.length; i++ ) {
-
-                mixer.clipAction( geometry.animations[ i ] ).play();
-
-            }
-
-            this.mixer = mixer;
+            mixer.clipAction( bakedAnimations[ i ] ).play();
 
         }
+
+        this.mixer = mixer;
 
         this.updateAnimations( animations, morphTargets );
 
@@ -95,9 +93,9 @@ export default class AnimatedMesh extends Component {
 
         }
 
-        if( morphTargets ) {
+        if( morphTargets && skinnedMesh ) {
 
-            skinnedMesh.mesh.morphTargetInfluences = morphTargets;
+            skinnedMesh.morphTargetInfluences = morphTargets;
 
         }
 
@@ -107,8 +105,8 @@ export default class AnimatedMesh extends Component {
 
         const { animations, morphTargets } = nextProps;
 
-        if( animations !== this.props.animations ||
-                morphTargets !== this.props.morphTargets
+        if( ( animations !== this.props.animations ) ||
+                ( morphTargets !== this.props.morphTargets )
             ) {
 
             this.updateAnimations( animations, morphTargets );
