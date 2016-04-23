@@ -34,7 +34,10 @@ export default class MorphTargetMesh extends Component {
 
         const mesh = new THREE.Mesh(
             geometry,
-            texture
+            new THREE.MeshPhongMaterial({
+                morphTargets: true,
+                color: new THREE.Color( 0, 1, 0.1 )
+            }) || texture
         );
         meshGroup.add( mesh );
         console.log('meshData in MorphTargetMesh',meshData);
@@ -50,6 +53,7 @@ export default class MorphTargetMesh extends Component {
         mixer.clipAction( clip ).setDuration( 1 ).play();
 
         this.clip = clip;
+        this.mixer = mixer;
         
 
         // Create the animations

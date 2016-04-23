@@ -14,6 +14,7 @@ export default class AnimatedMesh extends Component {
         meshName: PropTypes.string.isRequired,
         animations: PropTypes.object.isRequired,
         animationPercent: PropTypes.number,
+        morphTargets: PropTypes.array,
     };
 
     constructor() {
@@ -26,7 +27,7 @@ export default class AnimatedMesh extends Component {
     componentDidMount() {
 
         const {
-            assets, texture, meshName, animations
+            assets, texture, meshName, animations, morphTargets
         } = this.props;
         const meshData = assets[ meshName ];
         const { geometry } = meshData;
@@ -43,24 +44,28 @@ export default class AnimatedMesh extends Component {
 
         texture.side = THREE.DoubleSide;
 
-        const mixer = new THREE.AnimationMixer( skinnedMesh );
+        if( animations ) {
 
-        // Create the animations
-        for( let i = 0; i < geometry.animations.length; i++ ) {
+            const mixer = new THREE.AnimationMixer( skinnedMesh );
 
-            mixer.clipAction( geometry.animations[ i ] ).play();
+            // Create the animations
+            for( let i = 0; i < geometry.animations.length; i++ ) {
+
+                mixer.clipAction( geometry.animations[ i ] ).play();
+
+            }
+
+            this.mixer = mixer;
 
         }
 
-        this.mixer = mixer;
-
-        this.updateAnimations( animations );
+        this.updateAnimations( animations, morphTargets );
 
     }
 
-    updateAnimations( animations ) {
+    updateAnimations( animations, morphTargets ) {
 
-        const { mixer, } = this;
+        const { mixer, skinnedMesh } = this;
 
         if( mixer && animations ) {
 
@@ -90,15 +95,23 @@ export default class AnimatedMesh extends Component {
 
         }
 
+        if( morphTargets ) {
+
+            skinnedMesh.mesh.morphTargetInfluences = morphTargets;
+
+        }
+
     }
 
     componentWillReceiveProps( nextProps ) {
 
-        const { animations } = nextProps;
+        const { animations, morphTargets } = nextProps;
 
-        if( animations !== this.props.animations  ) {
+        if( animations !== this.props.animations ||
+                morphTargets !== this.props.morphTargets
+            ) {
 
-            this.updateAnimations( animations );
+            this.updateAnimations( animations, morphTargets );
 
         }
 
@@ -112,17 +125,21 @@ export default class AnimatedMesh extends Component {
         const meshData = assets[ meshName ];
         const { geometry } = meshData;
 
-        mixer.stopAllAction();
+        if( mixer && animations ) {
 
-        for( const animationName in animations ) {
+            mixer.stopAllAction();
 
-            const action = mixer.clipAction( animationName );
-            mixer.uncacheClip( action._clip );
-            mixer.uncacheAction( action, skinnedMesh );
+            for( const animationName in animations ) {
+
+                const action = mixer.clipAction( animationName );
+                mixer.uncacheClip( action._clip );
+                mixer.uncacheAction( action, skinnedMesh );
+
+            }
+
+            mixer.uncacheRoot( skinnedMesh );
 
         }
-
-        mixer.uncacheRoot( skinnedMesh );
 
         meshGroup.remove( skinnedMesh );
 

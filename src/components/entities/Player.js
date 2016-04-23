@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import THREE, { Euler, Vector3, Quaternion } from 'three';
 import SPE from 'shader-particle-engine';
-import { Mesh, MorphTargetMesh, AnimatedMesh, Eye, ParticleEmitter } from '../';
+import { Mesh, AnimatedMesh, Eye, ParticleEmitter } from '../';
 import shaderFrog from '../../helpers/shaderFrog';
 import { Animation, AnimationHandler } from 'three-animation-handler';
 import { twinkleMaterial } from 'ThreeMaterials';
@@ -126,7 +126,7 @@ export default class Player extends Component {
             scale, scaleEffectsVisible, scaleEffectsEnabled, leftEyeRotation,
             rightEyeRotation, playerTexture, playerTextureLegs,
             playerTextureTail, legAnimations, headAnimations, tailAnimations,
-            leftLidRotation, rightLidRotation
+            leftLidRotation, rightLidRotation, eyeMorphTargets
         } = this.props;
 
         const {
@@ -172,13 +172,13 @@ export default class Player extends Component {
                 rotation={ rotation }
                 scale={ computedScale }
             >
-                <MorphTargetMesh
+                <AnimatedMesh
                     position={ leftEyePosition }
                     rotation={ leftLidRotation }
                     scale={ lidLocalScale }
                     assets={ assets }
                     texture={ shaderFrog.get( 'glowTextureSkin' ) }
-                    animations={ headAnimations }
+                    morphTargets={ eyeMorphTargets }
                     meshName="eyeLid"
                 />
                 <group
