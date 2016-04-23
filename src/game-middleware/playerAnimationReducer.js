@@ -30,11 +30,15 @@ const eyeTweenTimeMaxMs = 2000;
 const eyeWaitTimeMinMs = 500;
 const eyeWaitTimeMaxMs = 4000;
 
-const lidFollowPercent = 0.3;
+const lidFollowPercent = 0.5;
 
 const maxJumpPercent = 0.6;
 const jumpTweenTimeMs = 40;
 const jumpReturnTweenTimeMs = 500;
+
+const minBlinkInterval = 1000;
+const blinkDurationMs = 300;
+const timeAfterBlinkToResetMs = 1500;
 
 const tailIdleTimeMs = 2000;
 
@@ -44,7 +48,8 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         leftEyeTweenTarget, leftEyeTweenStart, leftEyeTweenDuraiton,
         leftEyeTweenRest, rightEyeTweenTarget, rightEyeTweenStart,
         rightEyeTweenDuraiton, rightEyeTweenRest, playerRotation, isLeft,
-        isRight, actionStartTime, jumpStartTime: oldJumpStartTime
+        isRight, actionStartTime, jumpStartTime: oldJumpStartTime,
+        blinkStartTime: oldBlinkStartTime
     } = oldState;
 
     const { time, } = currentState;
@@ -80,6 +85,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         }
     };
 
+    let blinkStartTime = oldBlinkStartTime;
     let jumpWeight = 0;
     let jumpAnimationPercent = 0;
     let jumpStartTime = oldJumpStartTime;
@@ -93,6 +99,8 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     }
 
     if( jumpStartTime ) {
+
+        blinkStartTime = timeMs;
 
         // Calculate how much time has passed since the first jump frame
         const timeSinceJumpStartMs = timeMs - jumpStartTime;
@@ -235,10 +243,71 @@ export default function playerAnimationReducer( actions, props, oldState, curren
 
     }
 
-    // upper half, upper full
-    const upperCloseHalfMorph = 2 * Math.abs( 0.5 - frac( 2 * ( timeMs * 0.005 ) + 0.5 ) );
-    const upperCloseFullMorph = 2 * Math.abs( 0.5 - frac( timeMs * 0.005 + 0.5 ) );
-    newState.eyeMorphTargets = [ upperCloseHalfMorph, upperCloseFullMorph, 0, 0 ];
+    if( !blinkStartTime && (
+            ( !oldState.isLeft && currentState.isLeft ) ||
+            ( !oldState.isRight && currentState.isRight )
+        ) ) {
+
+        blinkStartTime = timeMs;
+
+    }
+
+    if( blinkStartTime && ( ( timeMs - oldState.lastBlinkTime || 0 ) > minBlinkInterval ) ) {
+
+        if( !oldBlinkStartTime ) {
+
+            newState.lastBlinkTime = timeMs;
+
+        }
+
+        newState.blinkStartTime = blinkStartTime;
+
+        const blinkPercent = ( timeMs - blinkStartTime ) / blinkDurationMs;
+
+        const upperCloseHalfMorph = 2 * Math.abs( 0.5 - frac( 2 * blinkPercent + 0.5 ) );
+        const upperCloseFullMorph = 2 * Math.abs( 0.5 - frac( blinkPercent + 0.5 ) );
+        newState.eyeMorphTargets = [ upperCloseHalfMorph, upperCloseFullMorph, upperCloseHalfMorph, upperCloseFullMorph ];
+
+        newState.rightLidRotation = lerpEulers(
+            oldState.rightLidRotation,
+            new THREE.Euler( 0, 0, 0 ),
+            blinkPercent,
+        );
+
+        newState.leftLidRotation = lerpEulers(
+            oldState.leftLidRotation,
+            new THREE.Euler( 0, 0, 0 ),
+            blinkPercent,
+        );
+
+        if( blinkPercent >= 0.5 ) {
+            newState.leftEyeRotation = lerpEulers(
+                oldState.leftEyeRotation,
+                new THREE.Euler( 0, 0, 0 ),
+                blinkPercent,
+            );
+            newState.leftEyeTweenStart = timeMs;
+            newState.leftEyeTweenDuration = 0;
+            newState.leftEyeTweenTarget = new THREE.Euler( 0, 0, 0 );
+            newState.leftEyeTweenRest = timeAfterBlinkToResetMs;
+
+            newState.rightEyeRotation = lerpEulers(
+                oldState.leftEyeRotation,
+                new THREE.Euler( 0, 0, 0 ),
+                blinkPercent,
+            );
+            newState.rightEyeTweenTarget = new THREE.Euler( 0, 0, 0 );
+            newState.rightEyeTweenStart = timeMs;
+            newState.rightEyeTweenDuration = 0;
+            newState.rightEyeTweenRest = timeAfterBlinkToResetMs;
+        }
+
+        if( blinkPercent >= 1 ) {
+            newState.eyeMorphTargets = [ 0, 0, 0, 0 ];
+            newState.blinkStartTime = null;
+        }
+
+    }
 
     return next({
         ...currentState,

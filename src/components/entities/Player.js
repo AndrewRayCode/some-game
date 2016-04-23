@@ -199,14 +199,19 @@ export default class Player extends Component {
                         materialId="greenEye"
                     />
                 </group>
-                <Mesh
+                <group
                     position={ rightEyePosition }
                     rotation={ rightLidRotation }
                     scale={ lidLocalScale }
-                    assets={ assets }
-                    materialId="glowTextureSkin"
-                    meshName="eyeLid"
-                />
+                >
+                    <AnimatedMesh
+                        rotation={ lidLocalRotation }
+                        assets={ assets }
+                        texture={ shaderFrog.get( 'glowTextureLid' ) }
+                        morphTargets={ eyeMorphTargets }
+                        meshName="eyeLid"
+                    />
+                </group>
                 <group
                     position={ rightEyePosition }
                     rotation={ rightEyeRotation }
