@@ -190,6 +190,7 @@ export default class CreatePreviewObject extends Component {
             case 'player':
 
                 return <Player
+                    assets={ assets }
                     position={ createPreviewPosition }
                     rotation={ createPreviewRotation }
                     materialId="ghostMaterial"

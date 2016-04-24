@@ -10,7 +10,7 @@ import {
     addNextChapter, removeNextChapter, insetChapter, changeEntityType,
     createBook, selectBook, renameChapter, renameBook, createChapterFromLevel,
     saveAll, changeEntityWrapMaterial, changeEntityFoamMaterial,
-    changeEntityTopMaterial, changeEntityProperty
+    changeEntityTopMaterial, changeEntityProperty, areBooksLoaded, loadAllBooks,
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -26,7 +26,6 @@ import CustomShaders from 'CustomShaders';
 import shaderFrog from 'helpers/shaderFrog';
 import KeyCodes from 'helpers/KeyCodes';
 
-import { areBooksLoaded, loadAllBooks } from 'redux/modules/editor';
 import { areAssetsLoaded, loadAllAssets } from 'redux/modules/assets';
 import { without } from 'helpers/Utils';
 
@@ -64,18 +63,6 @@ function snapTo( number, interval ) {
             promises.push( dispatch( loadAllBooks() ) );
         }
         return Promise.all( promises );
-    }
-}, {
-    promise: ({ store: { dispatch, getState } }) => {
-        if( !__SERVER__ && !areAssetsLoaded( getState() ) ) {
-            return dispatch( loadAllAssets() );
-        }
-    }
-}, {
-    promise: ({ store: { dispatch } }) => {
-        if( !__SERVER__ ) {
-            return dispatch( deserializeLevels() );
-        }
     }
 }])
 @connect(
@@ -223,19 +210,21 @@ function snapTo( number, interval ) {
         return {
             ...bookState,
             ...levelState,
+            assetsLoaded: state.assetsLoaded,
+            assetsLoading: state.assetsLoading,
             shaders, assets,
-            books, allChapters, allLevels, currentChapterId
+            books, allChapters, allLevels, currentChapterId,
         };
 
     },
     dispatch => bindActionCreators({
         addEntity, removeEntity, moveEntity, rotateEntity,
-        changeEntityMaterial, addNextChapter, renameLevel,
-        createLevel, renameChapter, renameBook, removeNextChapter,
-        insetChapter, changeEntityType, createBook, selectBook,
-        selectLevelAndChapter, createChapterFromLevel, saveAll,
-        changeEntityFoamMaterial, changeEntityWrapMaterial,
-        changeEntityTopMaterial, changeEntityProperty
+        changeEntityMaterial, addNextChapter, renameLevel, createLevel,
+        renameChapter, renameBook, removeNextChapter, insetChapter,
+        changeEntityType, createBook, selectBook, selectLevelAndChapter,
+        createChapterFromLevel, saveAll, changeEntityFoamMaterial,
+        changeEntityWrapMaterial, changeEntityTopMaterial,
+        changeEntityProperty, loadAllAssets, deserializeLevels,
     }, dispatch )
 )
 export default class Editor extends Component {
@@ -304,20 +293,29 @@ export default class Editor extends Component {
 
     componentDidMount() {
 
-        if( !__SERVER__ ) {
+        const {
+            assetsLoaded, assetsLoading,
+            deserializeLevels: deserialize,
+            loadAllAssets: loadAll,
+        } = this.props;
 
-            window.THREE = THREE;
-
-            window.addEventListener( 'keydown', this.onKeyDown );
-            window.addEventListener( 'keyup', this.onKeyUp );
-
-            this._setUpOrbitControls();
-
-            window.addEventListener( 'blur', this.onWindowBlur );
-            window.addEventListener( 'focusin', this.onInputFocus );
-            window.addEventListener( 'focusout', this.onInputBlur );
-
+        if( !assetsLoaded && !assetsLoading ) {
+            console.log('loading assets');
+            deserialize();
+            loadAll();
         }
+
+        window.THREE = THREE;
+
+        window.addEventListener( 'keydown', this.onKeyDown );
+        window.addEventListener( 'keyup', this.onKeyUp );
+
+        this._setUpOrbitControls();
+
+        window.addEventListener( 'blur', this.onWindowBlur );
+        window.addEventListener( 'focusin', this.onInputFocus );
+        window.addEventListener( 'focusout', this.onInputBlur );
+
 
     }
 
