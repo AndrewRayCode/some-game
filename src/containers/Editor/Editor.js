@@ -1226,7 +1226,7 @@ export default class Editor extends Component {
                 time={ time }
                 shaders={ shaders }
                 assets={ assets }
-                entities={ insertChapterId ?
+                chapterEntities={ insertChapterId ?
                     currentLevels[ currentChapters[ insertChapterId ].levelId ].entityIds
                         .map( id => allEntities[ id ] ) :
                     null
