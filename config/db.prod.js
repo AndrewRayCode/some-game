@@ -1,7 +1,7 @@
 module.exports = {
     host: '127.0.0.1',
-    user: 'psql',
-    password: '',
-    database: 'dung',
+    user: 'postgres',
+    password: 'postgres',
+    database: 'charisma',
     charset: 'utf8'
 };

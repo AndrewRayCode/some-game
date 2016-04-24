@@ -236,7 +236,6 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         } else {
             tailPositionTarget = swishTarget2.position;
             tailRotationTarget = swishTarget2.rotation;
-
         }
 
         newState.tailRotation = lerpEulers(
