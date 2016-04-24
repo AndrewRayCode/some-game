@@ -6,7 +6,6 @@ const ropeSeparation = 0.45;
 const defaultRopeRotation = new THREE.Euler( 0, 0, Math.PI / 2 );
 const defaultRopePosition1 = new THREE.Vector3( 0.5, -ropeSeparation / ropeWidth, 0 );
 const defaultRopePosition2 = new THREE.Vector3( 0.5, ropeSeparation / ropeWidth, 0 );
-const defaultRotation = new THREE.Quaternion( 0, 0, 0, 1 );
 const anchorInsetPercent = 0.1;
 const ropeVector = new THREE.Vector3( 1, 0, 0 );
 
@@ -63,8 +62,9 @@ export default class PlankBridge extends Component {
     render() {
 
         const {
-            position, rotation, scale, materialId, segments, paddingPercent,
-            plankEntities, anchorEntities, entityId, ropeMaterialId
+            position, rotation, quaternion, scale, materialId, segments,
+            paddingPercent, plankEntities, anchorEntities, entityId,
+            ropeMaterialId
         } = this.props;
 
         const { segmentArray, segmentArrayWithAnchors } = this.state;
@@ -189,7 +189,8 @@ export default class PlankBridge extends Component {
 
         return <group
             position={ position }
-            quaternion={ rotation || defaultRotation }
+            quaternion={ quaternion }
+            rotation={ rotation }
             scale={ new THREE.Vector3( size, size, size ) }
         >
             {/* for selectability */}

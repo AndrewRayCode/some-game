@@ -110,15 +110,9 @@ function entityPropertyReducer( entity, action ) {
         case ROTATE_ENTITY:
 
             const { rotation } = entity;
+            console.warn('Does not work for now');
 
-            return {
-                ...entity,
-                rotation: new THREE.Vector3(
-                    field === 'x' ? value : rotation.x,
-                    field === 'y' ? value : rotation.y,
-                    field === 'z' ? value : rotation.z
-                )
-            };
+            return entity;
 
         case DESERIALIZE:
             return {

@@ -11,7 +11,7 @@ export default class CreatePreviewObject extends Component {
     static propTypes = {
         createType: PropTypes.string.isRequired,
         createPreviewPosition: PropTypes.object.isRequired,
-        createPreviewRotation: PropTypes.object.isRequired,
+        createPreviewQuaternion: PropTypes.object.isRequired,
         time: PropTypes.number.isRequired,
         scale: PropTypes.object.isRequired,
         shaders: PropTypes.object.isRequired,
@@ -28,7 +28,7 @@ export default class CreatePreviewObject extends Component {
     render() {
 
         const {
-            createType, createPreviewPosition, createPreviewRotation, time,
+            createType, createPreviewPosition, createPreviewQuaternion, time,
             scale, shaders, assets, chapterEntities
         } = this.props;
 
@@ -39,7 +39,7 @@ export default class CreatePreviewObject extends Component {
                 return <DiamondBox
                     assets={ assets }
                     scale={ scale }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     ref="previewPosition"
                     materialId="ghostMaterial"
@@ -49,7 +49,7 @@ export default class CreatePreviewObject extends Component {
 
                 return <Grow
                     scale={ scale }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     time={ time }
                     wrapMaterialId="ghostMaterial"
@@ -61,7 +61,7 @@ export default class CreatePreviewObject extends Component {
 
                 return <Shrink
                     scale={ scale }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     time={ time }
                     wrapMaterialId="ghostMaterial"
@@ -73,7 +73,7 @@ export default class CreatePreviewObject extends Component {
 
                 return <FinishLine
                     scale={ scale }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     ref="previewPosition"
                     materialId="ghostMaterial"
@@ -85,7 +85,7 @@ export default class CreatePreviewObject extends Component {
 
                 return <Wall
                     scale={ scale }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     ref="previewPosition"
                     materialId="ghostMaterial"
@@ -96,7 +96,7 @@ export default class CreatePreviewObject extends Component {
                 return <CurvedWall
                     scale={ scale }
                     assets={ assets }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     ref="previewPosition"
                     materialId="ghostMaterial"
@@ -108,7 +108,7 @@ export default class CreatePreviewObject extends Component {
                 return <ChamferBox
                     scale={ scale }
                     assets={ assets }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     ref="previewPosition"
                     materialId="ghostMaterial"
@@ -119,7 +119,7 @@ export default class CreatePreviewObject extends Component {
                 return <Waterfall
                     time={ time }
                     scale={ scale }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     helperMaterial="ghostMaterial"
                     ref="previewPosition"
@@ -131,7 +131,7 @@ export default class CreatePreviewObject extends Component {
                 return <Puffer
                     time={ time }
                     scale={ scale }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     maxLength={ 2 }
                     velocity={ 2 }
@@ -146,7 +146,7 @@ export default class CreatePreviewObject extends Component {
                 return <House
                     assets={ assets }
                     scale={ scale }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     ref="previewPosition"
                     materialId="ghostMaterial"
@@ -158,7 +158,7 @@ export default class CreatePreviewObject extends Component {
                 return <MultiWall
                     assets={ assets }
                     scale={ scale }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     ref="previewPosition"
                     materialId="ghostMaterial"
@@ -170,7 +170,7 @@ export default class CreatePreviewObject extends Component {
                 return <TubeStraight
                     scale={ scale }
                     assets={ assets }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     ref="previewPosition"
                     materialId="ghostMaterial"
@@ -181,7 +181,7 @@ export default class CreatePreviewObject extends Component {
                 return <TubeBend
                     scale={ scale }
                     assets={ assets }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     ref="previewPosition"
                     materialId="ghostMaterial"
@@ -192,7 +192,7 @@ export default class CreatePreviewObject extends Component {
                 return <Player
                     assets={ assets }
                     position={ createPreviewPosition }
-                    rotation={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     materialId="ghostMaterial"
                     ref="previewPosition"
                     radius={ 0.5 }
@@ -202,7 +202,7 @@ export default class CreatePreviewObject extends Component {
 
                 return <group
                     position={ createPreviewPosition }
-                    quaternion={ createPreviewRotation }
+                    quaternion={ createPreviewQuaternion }
                     scale={ scale }
                     ref="previewGroup"
                 >

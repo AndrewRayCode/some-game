@@ -40,7 +40,7 @@ export default class EntityGroup extends Component {
                         key={ entity.id }
                         assets={ assets }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         materialId={ entity.materialId }
                         topMaterialId={ entity.topMaterialId }
@@ -53,7 +53,7 @@ export default class EntityGroup extends Component {
                         key={ entity.id }
                         assets={ assets }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         materialId={ entity.materialId }
                     />;
@@ -65,7 +65,7 @@ export default class EntityGroup extends Component {
                         ref={ entity.id }
                         key={ entity.id }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         materialId={ entity.materialId }
                     />;
@@ -80,7 +80,7 @@ export default class EntityGroup extends Component {
                         plankEntities={ plankEntities }
                         anchorEntities={ anchorEntities }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         segments={ entity.segments }
                         paddingPercent={ entity.paddingPercent }
@@ -99,7 +99,7 @@ export default class EntityGroup extends Component {
                         impulse={ entity.impulse }
                         maxLength={ entity.maxLength }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         colors={ entity.colors }
                         world={ world }
@@ -124,7 +124,7 @@ export default class EntityGroup extends Component {
                         impulse={ entity.impulse }
                         maxLength={ entity.maxLength }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         world={ world }
                         paused={ paused }
@@ -145,7 +145,7 @@ export default class EntityGroup extends Component {
                         ref={ entity.id }
                         key={ entity.id }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         assets={ assets }
                         materialId={ entity.materialId }
@@ -158,7 +158,7 @@ export default class EntityGroup extends Component {
                         key={ entity.id }
                         assets={ assets }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         materialId={ entity.materialId }
                         topMaterialId={ entity.topMaterialId }
@@ -171,7 +171,7 @@ export default class EntityGroup extends Component {
                         key={ entity.id }
                         assets={ assets }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         materialId="tubeMaterial"
                     />;
@@ -183,7 +183,7 @@ export default class EntityGroup extends Component {
                         key={ entity.id }
                         assets={ assets }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         materialId="tubeBendMaterial"
                     />;
@@ -195,7 +195,7 @@ export default class EntityGroup extends Component {
                         key={ entity.id }
                         assets={ assets }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         materialId="sfHouse"
                     />;
@@ -206,7 +206,7 @@ export default class EntityGroup extends Component {
                         ref={ entity.id }
                         key={ entity.id }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         materialId="finishFlag"
                         floorMaterialId="ornateWall1"
@@ -219,7 +219,7 @@ export default class EntityGroup extends Component {
                         ref={ entity.id }
                         key={ entity.id }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         wrapMaterialId={ entity.wrapMaterialId }
                         materialId={ entity.materialId }
@@ -233,7 +233,7 @@ export default class EntityGroup extends Component {
                         ref={ entity.id }
                         key={ entity.id }
                         position={ entity.position }
-                        rotation={ entity.rotation }
+                        quaternion={ entity.rotation }
                         scale={ entity.scale }
                         wrapMaterialId={ entity.wrapMaterialId }
                         materialId={ entity.materialId }
@@ -247,8 +247,7 @@ export default class EntityGroup extends Component {
                         key={ entity.id }
                         assets={ assets }
                         position={ entity.position }
-                        rotation={ entity.rotation }
-                        quaternion={ entity.quaternion }
+                        quaternion={ entity.rotation }
                         radius={ 0.5 }
                         materialId="earth"
                     />;

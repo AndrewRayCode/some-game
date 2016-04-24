@@ -8,11 +8,14 @@ export default class ChamferBox extends Component {
 
     render() {
 
-        const { position, rotation, scale, materialId, assets, } = this.props;
+        const {
+            position, rotation, quaternion, scale, materialId, assets,
+        } = this.props;
 
         return <group
             position={ position }
-            quaternion={ rotation || defaultRotation }
+            rotation={ rotation }
+            quaternion={ quaternion }
             scale={ scale }
         >
             <Mesh

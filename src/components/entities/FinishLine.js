@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import THREE from 'three';
 
-const defaultRotation = new THREE.Quaternion( 0, 0, 0, 1 );
 const planeRotation = new THREE.Euler( 0, -THREE.Math.degToRad( 90 ), 0 );
 const floorRotation = new THREE.Euler( -THREE.Math.degToRad( 90 ), 0, 0 );
 const floorPosition = new THREE.Vector3( 0, -0.48, 0 );
@@ -14,11 +13,13 @@ export default class FinishLine extends Component {
 
     render() {
 
-        const { position, rotation, scale, materialId, floorMaterialId } = this.props;
+        const {
+            position, rotation, quaternion, scale, materialId, floorMaterialId,
+        } = this.props;
 
         return <group
             position={ position }
-            quaternion={ rotation || defaultRotation }
+            quaternion={ quaternion }
             scale={ scale }
         >
             <mesh

@@ -1,8 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 
-const defaultRotation = new THREE.Quaternion( 0, 0, 0, 1 );
-
 export default class AnimatedMesh extends Component {
 
     static propTypes = {

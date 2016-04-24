@@ -249,7 +249,7 @@ export default class Editor extends Component {
             createFoamMaterialId: 'waterFoam',
             createType: 'wall',
             selecting: true,
-            createPreviewRotation: new THREE.Quaternion( 0, 0, 0, 1 ),
+            createPreviewQuaternion: new THREE.Quaternion( 0, 0, 0, 1 ),
             cameraPosition: new THREE.Vector3(0, 7, 0),
             cameraRotation: new THREE.Euler(0, 0, 0),
             lightPosition: new THREE.Vector3(),
@@ -558,7 +558,7 @@ export default class Editor extends Component {
             const update = { [ stateKey ]: true };
             copy = {
                 ...copy,
-                createPreviewRotation: new THREE.Quaternion( 0, 0, 0, 1 ),
+                createPreviewQuaternion: new THREE.Quaternion( 0, 0, 0, 1 ),
                 creating: false,
                 selecting: false,
                 ...update
@@ -660,8 +660,8 @@ export default class Editor extends Component {
         }
 
         if( rotationChange ) {
-            const { createPreviewRotation } = this.state;
-            state.createPreviewRotation = createPreviewRotation
+            const { createPreviewQuaternion } = this.state;
+            state.createPreviewQuaternion = createPreviewQuaternion
                 .clone()
                 .multiply( new THREE.Quaternion()
                     .setFromEuler( new THREE.Euler(
@@ -929,7 +929,7 @@ export default class Editor extends Component {
 
         const {
             rotateable, dragCreating, createType, createPreviewPosition,
-            createPreviewScale, createPreviewRotation, createMaterialId,
+            createPreviewScale, createPreviewQuaternion, createMaterialId,
         } = this.state;
 
         const { currentLevelId, currentChapterId, } = this.props;
@@ -1012,7 +1012,7 @@ export default class Editor extends Component {
 
                 this.props.addEntity(
                     currentLevelId, createType, createPreviewPosition,
-                    createPreviewScale, createPreviewRotation, createMaterialId,
+                    createPreviewScale, createPreviewQuaternion, createMaterialId,
                     entityData
                 );
 
@@ -1148,7 +1148,7 @@ export default class Editor extends Component {
 
         const {
             createType, selecting, selectedObjectId, creating, rotateable,
-            createPreviewPosition, gridScale, createPreviewRotation, gridSnap,
+            createPreviewPosition, gridScale, createPreviewQuaternion, gridSnap,
             rotating, time, lightPosition, selectedNextChapter,
             createMaterialId, insertChapterId, dragCreating,
         } = this.state;
@@ -1221,7 +1221,7 @@ export default class Editor extends Component {
                 ref="previewComponent"
                 createType={ createType }
                 scale={ gridScale }
-                createPreviewRotation={ createPreviewRotation }
+                createPreviewQuaternion={ createPreviewQuaternion }
                 createPreviewPosition={ createPreviewPosition }
                 time={ time }
                 shaders={ shaders }
