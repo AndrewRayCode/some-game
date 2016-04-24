@@ -1,5 +1,5 @@
-import THREE from 'three';
-import { lerp, lerpEulers, frac } from '../helpers/Utils';
+import THREE, { Euler, Vector3, Quaternion } from 'three';
+import { lerp, lerpVectors, lerpEulers, frac } from '../helpers/Utils';
 
 const { randFloat } = THREE.Math;
 
@@ -42,6 +42,21 @@ const timeAfterBlinkToResetMs = 1500;
 
 const tailIdleTimeMs = 2000;
 
+const idleTailSwishLerpSpeed = 0.1;
+const tailSwishLerpSpeed = 0.08;
+const tailSwishTime = 500;
+const minIdleToSwishWaitMs = 2000;
+const maxIdleToSwishWaitMs = 4000;
+
+const defaultTailRotationLeft = new Euler( 0, 0, THREE.Math.degToRad( 60 ) );
+const defaultTailPositionLeft = new Vector3( 0.3, -0.42, -0.5 );
+
+const defaultTailRotationRight = defaultTailRotationLeft.clone();
+defaultTailRotationRight.z = -defaultTailRotationLeft.z;
+
+const defaultTailPositionRight = defaultTailPositionLeft.clone();
+defaultTailPositionRight.x = -defaultTailPositionRight.x;
+
 function canBlink( time, lastBlinkTime, minBlinkInterval ) {
 
     return !lastBlinkTime || ( ( time - lastBlinkTime ) > minBlinkInterval );
@@ -53,12 +68,18 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     const {
         leftEyeTweenTarget, leftEyeTweenStart, leftEyeTweenDuraiton,
         leftEyeTweenRest, rightEyeTweenTarget, rightEyeTweenStart,
-        rightEyeTweenDuraiton, rightEyeTweenRest, playerRotation, isLeft,
-        isRight, actionStartTime, jumpStartTime: oldJumpStartTime,
-        blinkStartTime: oldBlinkStartTime, lastBlinkTime, eyeMorphTargets
+        rightEyeTweenDuraiton, rightEyeTweenRest, playerRotation,
+        actionStartTime, lastBlinkTime, eyeMorphTargets,
+        swishTarget1: oldSwishTarget1,
+        swishTarget2: oldSwishTarget2,
+        jumpStartTime: oldJumpStartTime,
+        blinkStartTime: oldBlinkStartTime,
+        tailPositionTarget: oldTailPositionTarget,
+        tailRotationTarget: oldTailRotationTarget,
+        nextSwishStartTime: oldNextSwishStartTime,
     } = oldState;
 
-    const { time, } = currentState;
+    const { time, isLeft, isRight } = currentState;
     const timeMs = time * 1000;
 
     const turnAngle = playerRotation ? playerRotation.z : 0;
@@ -91,18 +112,44 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         }
     };
 
+    let nextSwishStartTime = oldNextSwishStartTime;
     let blinkStartTime = oldBlinkStartTime;
+
+    let swishTarget1 = oldSwishTarget1;
+    let swishTarget2 = oldSwishTarget2;
+
+    let tailPositionTarget = oldTailPositionTarget;
+    let tailRotationTarget = oldTailRotationTarget;
+
     let jumpWeight = 0;
     let jumpAnimationPercent = 0;
     let jumpStartTime = oldJumpStartTime;
     let jumpedOnThisFrame;
 
+    if( isLeft ) {
+        nextSwishStartTime = null;
+        tailPositionTarget = defaultTailPositionLeft;
+        tailRotationTarget = defaultTailRotationLeft;
+    } else if( isRight ) {
+        nextSwishStartTime = null;
+        tailPositionTarget = defaultTailPositionRight;
+        tailRotationTarget = defaultTailRotationRight;
+    } else {
+
+        if( oldState.isLeft || oldState.isRight ) {
+
+            nextSwishStartTime = timeMs + randFloat(
+                minIdleToSwishWaitMs,
+                maxIdleToSwishWaitMs,
+            );
+
+        }
+
+    }
+
     // Did we jump on this frame?
     if( currentState.jumpedOnThisFrame ) {
 
-        //if( canBlink( timeMs, lastBlinkTime, minBlinkIntervalMs ) ) {
-            //blinkStartTime = timeMs;
-        //}
         jumpStartTime = timeMs;
 
     }
@@ -141,7 +188,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
 
     const newState = {
         tailAnimations, headAnimations, legAnimations, jumpStartTime,
-        playerRotation: new THREE.Euler(
+        playerRotation: new Euler(
             0,
             0,
             isLeft ?
@@ -152,6 +199,91 @@ export default function playerAnimationReducer( actions, props, oldState, curren
                 ),
         )
     };
+
+    // Figure out how much time has elapsed since the swish. Will be <0 until
+    // start time
+    const timeSinceSwishStart = timeMs - nextSwishStartTime;
+
+    // Have we never swished before, and it's time? figure out where to swish
+    if( !swishTarget1 && nextSwishStartTime && ( timeSinceSwishStart > 0 ) ) {
+
+        swishTarget1 = {
+            position: tailPositionTarget === defaultTailPositionLeft ?
+                defaultTailPositionRight : defaultTailPositionLeft,
+            rotation: newState.tailRotationTarget = tailRotationTarget === defaultTailRotationLeft ?
+                defaultTailRotationRight : defaultTailRotationLeft,
+        };
+        swishTarget2 = {
+            position: tailPositionTarget === defaultTailPositionLeft ?
+                defaultTailPositionLeft : defaultTailPositionRight,
+            rotation: newState.tailRotationTarget = tailRotationTarget === defaultTailRotationLeft ?
+                defaultTailRotationLeft : defaultTailRotationRight,
+        };
+
+        newState.swishTarget1 = swishTarget1;
+        newState.swishTarget2 = swishTarget2;
+
+    }
+
+    // Perform the actual tweens
+    if( swishTarget1 ) {
+
+        // Swish to
+        if( timeSinceSwishStart <= tailSwishTime ) {
+            tailPositionTarget = swishTarget1.position;
+            tailRotationTarget = swishTarget1.rotation;
+        // Swish fro
+        } else {
+            tailPositionTarget = swishTarget2.position;
+            tailRotationTarget = swishTarget2.rotation;
+
+        }
+
+        newState.tailRotation = lerpEulers(
+            oldState.tailRotation,
+            tailRotationTarget,
+            idleTailSwishLerpSpeed,
+        );
+
+        newState.tailPosition = lerpVectors(
+            oldState.tailPosition,
+            tailPositionTarget,
+            idleTailSwishLerpSpeed,
+        );
+
+        // Done! unset all the things
+        if( timeSinceSwishStart >= tailSwishTime * 2 ) {
+
+            nextSwishStartTime = timeMs + randFloat(
+                minIdleToSwishWaitMs,
+                maxIdleToSwishWaitMs,
+            );
+
+            newState.swishTarget1 = null;
+            newState.swishTarget2 = null;
+
+        }
+
+    } else {
+
+        newState.tailRotation = lerpEulers(
+            oldState.tailRotation || defaultTailRotationLeft,
+            tailRotationTarget || defaultTailRotationLeft,
+            tailSwishLerpSpeed,
+        );
+
+        newState.tailPosition = lerpVectors(
+            oldState.tailPosition || defaultTailPositionLeft,
+            tailPositionTarget || defaultTailPositionLeft,
+            tailSwishLerpSpeed,
+        );
+
+    }
+
+    newState.nextSwishStartTime = nextSwishStartTime;
+
+    newState.tailPositionTarget = tailPositionTarget;
+    newState.tailRotationTarget = tailRotationTarget;
 
     if( !actionStartTime ) {
 
@@ -170,7 +302,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
 
     if( !leftEyeTweenStart || timeMs > leftEyeFinish ) {
 
-        newState.leftEyeTweenTarget = new THREE.Euler(
+        newState.leftEyeTweenTarget = new Euler(
             randFloat( eyeRotationLimit.x.min, eyeRotationLimit.x.max ),
             randFloat( eyeRotationLimit.y.min, eyeRotationLimit.y.max ),
             randFloat( -eyeRotationLimit.z.min, -eyeRotationLimit.z.max ),
@@ -193,14 +325,14 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         );
 
         newState.leftEyeRotation = lerpEulers(
-            oldState.leftEyeRotation || new THREE.Euler( 0, 0, 0 ),
+            oldState.leftEyeRotation || new Euler( 0, 0, 0 ),
             leftEyeTweenTarget,
             eyeTweenPercent,
         );
 
         newState.leftLidRotation = lerpEulers(
-            oldState.leftLidRotation || new THREE.Euler( 0, 0, 0 ),
-            new THREE.Euler().setFromVector3(
+            oldState.leftLidRotation || new Euler( 0, 0, 0 ),
+            new Euler().setFromVector3(
                 leftEyeTweenTarget.toVector3().multiplyScalar( lidFollowPercent )
             ),
             eyeTweenPercent,
@@ -212,7 +344,7 @@ export default function playerAnimationReducer( actions, props, oldState, curren
 
     if( !rightEyeTweenStart || timeMs > rightEyeFinish ) {
 
-        newState.rightEyeTweenTarget = new THREE.Euler(
+        newState.rightEyeTweenTarget = new Euler(
             randFloat( eyeRotationLimit.x.min, eyeRotationLimit.x.max ),
             randFloat( eyeRotationLimit.y.min, eyeRotationLimit.y.max ),
             randFloat( eyeRotationLimit.z.min, eyeRotationLimit.z.max ),
@@ -235,14 +367,14 @@ export default function playerAnimationReducer( actions, props, oldState, curren
         );
 
         newState.rightEyeRotation = lerpEulers(
-            oldState.rightEyeRotation || new THREE.Euler( 0, 0, 0 ),
+            oldState.rightEyeRotation || new Euler( 0, 0, 0 ),
             rightEyeTweenTarget,
             eyeTweenPercent,
         );
 
         newState.rightLidRotation = lerpEulers(
-            oldState.rightLidRotation || new THREE.Euler( 0, 0, 0 ),
-            new THREE.Euler().setFromVector3(
+            oldState.rightLidRotation || new Euler( 0, 0, 0 ),
+            new Euler().setFromVector3(
                 rightEyeTweenTarget.toVector3().multiplyScalar( lidFollowPercent )
             ),
             eyeTweenPercent,
@@ -277,26 +409,26 @@ export default function playerAnimationReducer( actions, props, oldState, curren
 
         newState.rightLidRotation = lerpEulers(
             oldState.rightLidRotation,
-            new THREE.Euler( 0, 0, 0 ),
+            new Euler( 0, 0, 0 ),
             blinkPercent,
         );
 
         newState.leftLidRotation = lerpEulers(
             oldState.leftLidRotation,
-            new THREE.Euler( 0, 0, 0 ),
+            new Euler( 0, 0, 0 ),
             blinkPercent,
         );
 
         if( blinkPercent >= 0.5 ) {
 
-            newState.leftEyeRotation = new THREE.Euler( 0, 0, 0 );
+            newState.leftEyeRotation = new Euler( 0, 0, 0 );
             newState.leftEyeTweenStart = timeMs;
             newState.leftEyeTweenDuration = 0;
-            newState.leftEyeTweenTarget = new THREE.Euler( 0, 0, 0 );
+            newState.leftEyeTweenTarget = new Euler( 0, 0, 0 );
             newState.leftEyeTweenRest = timeAfterBlinkToResetMs;
 
-            newState.rightEyeRotation = new THREE.Euler( 0, 0, 0 );
-            newState.rightEyeTweenTarget = new THREE.Euler( 0, 0, 0 );
+            newState.rightEyeRotation = new Euler( 0, 0, 0 );
+            newState.rightEyeTweenTarget = new Euler( 0, 0, 0 );
             newState.rightEyeTweenStart = timeMs;
             newState.rightEyeTweenDuration = 0;
             newState.rightEyeTweenRest = timeAfterBlinkToResetMs;

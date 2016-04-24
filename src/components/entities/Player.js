@@ -20,9 +20,9 @@ const jointRotation = new Euler( 0, 0, 0 );
 const legPosition = new Vector3( 0, -0.1, 0.31 );
 const legScale = new Vector3( 1, 1, 1 ).multiplyScalar( 1.05 );
 
-const tailRotation = new Euler( 0, 0, THREE.Math.degToRad( 60 ) );
-const tailPosition = new Vector3( 0.3, -0.42, -0.5 );
-const tailScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.8 );
+const defaultTailRotation = new Euler( 0, 0, THREE.Math.degToRad( 60 ) );
+const defaultTailPosition = new Vector3( 0.3, -0.42, -0.5 );
+const tailScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.9 );
 
 const localEyeRotation = new Euler( -Math.PI / 2 - 0.2, -Math.PI / 2, 0 );
 const eyeScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.36 );
@@ -70,6 +70,8 @@ export default class Player extends Component {
         eyeMorphTargets: PropTypes.array,
         legAnimations: PropTypes.object,
         tailAnimations: PropTypes.object,
+        tailRotation: PropTypes.object,
+        tailPosition: PropTypes.object,
         headAnimations: PropTypes.object,
         materialId: PropTypes.string.isRequired,
         playerTexture: PropTypes.string,
@@ -128,7 +130,8 @@ export default class Player extends Component {
             scale, scaleEffectsVisible, scaleEffectsEnabled, leftEyeRotation,
             rightEyeRotation, playerTexture, playerTextureLegs,
             playerTextureTail, legAnimations, headAnimations, tailAnimations,
-            leftLidRotation, rightLidRotation, eyeMorphTargets
+            leftLidRotation, rightLidRotation, eyeMorphTargets, tailRotation,
+            tailPosition
         } = this.props;
 
         const {
@@ -251,8 +254,8 @@ export default class Player extends Component {
                     animations={ legAnimations }
                 />
                 <AnimatedMesh
-                    rotation={ tailRotation }
-                    position={ tailPosition }
+                    rotation={ tailRotation || defaultTailRotation }
+                    position={ tailPosition || defaultTailPosition }
                     scale={ tailScale }
                     assets={ assets }
                     texture={ shaderFrog.get( 'glowTextureTail' ) }

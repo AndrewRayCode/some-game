@@ -1132,7 +1132,7 @@ export default class GameRenderer extends Component {
             playerScaleEffectsEnabled, playerScaleEffectsVisible,
             percentMouthOpen, rightEyeRotation, leftEyeRotation,
             rightLidRotation, leftLidRotation, headAnimations, legAnimations,
-            tailAnimations, eyeMorphTargets
+            tailAnimations, eyeMorphTargets, tailRotation, tailPosition
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -1193,6 +1193,8 @@ export default class GameRenderer extends Component {
                 headAnimations={ headAnimations }
                 legAnimations={ legAnimations }
                 tailAnimations={ tailAnimations }
+                tailRotation={ tailRotation }
+                tailPosition={ tailPosition }
                 time={ time }
             />
 

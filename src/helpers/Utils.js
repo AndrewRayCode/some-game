@@ -366,7 +366,7 @@ export function snapTo( number, interval ) {
 
 }
 
-export function lerpVectors( vectorA, vectorB, percent, easingFn ) {
+export function lerpVectors( vectorA:THREE.Vector3, vectorB:THREE.Vector3, percent:number, easingFn:any ) {
 
     return new THREE.Vector3().lerpVectors(
         vectorA, vectorB, easingFn ? easingFn( percent ) : percent
@@ -374,10 +374,10 @@ export function lerpVectors( vectorA, vectorB, percent, easingFn ) {
 
 }
 
-export function lerpEulers( eulerA, eulerB, percent, easingFn ) {
+export function lerpEulers( eulerA:THREE.Euler, eulerB:THREE.Euler, percent:number, easingFn:any ) {
 
     return new THREE.Euler().setFromVector3(
-        lerpVectors( eulerA, eulerB, percent, easingFn )
+        lerpVectors( eulerA.toVector3(), eulerB.toVector3(), percent, easingFn )
     );
 
 }
