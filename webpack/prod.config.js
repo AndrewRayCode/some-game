@@ -20,7 +20,8 @@ module.exports = {
       'bootstrap-sass!./src/theme/bootstrap.config.prod.js',
       'font-awesome-webpack!./src/theme/font-awesome.config.prod.js',
       './src/client.js'
-    ]
+    ],
+    assets: './src/assets.js'
   },
   output: {
     path: assetsPath,
@@ -32,7 +33,8 @@ module.exports = {
     loaders: [
       { test: /\.typeface\.js$/, loader: "file" },
       { test: /\.jsx?$/, exclude: /node_modules|\.typeface\.js$/, loaders: [strip.loader('debug'), 'babel']},
-      { test: /\.json$/, loader: 'json-loader' },
+      { test: /models.+\.json$/, loader: "file" },
+      { test: /\.json$/, exclude: /models.+\.json$/, loader: "json-loader" },
       { test: /\.less$/, loader: ExtractTextPlugin.extract('style', 'css?modules&importLoaders=2&sourceMap!autoprefixer?browsers=last 2 version!less?outputStyle=expanded&sourceMap=true&sourceMapContents=true') },
       { test: /\.scss$/, loader: ExtractTextPlugin.extract('style', 'css?modules&importLoaders=2&sourceMap!autoprefixer?browsers=last 2 version!sass?outputStyle=expanded&sourceMap=true&sourceMapContents=true') },
       { test: /\.woff(\?v=\d+\.\d+\.\d+)?$/, loader: "url?limit=10000&mimetype=application/font-woff" },
@@ -40,8 +42,8 @@ module.exports = {
       { test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/, loader: "url?limit=10000&mimetype=application/octet-stream" },
       { test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, loader: "file" },
       { test: /\.svg(\?v=\d+\.\d+\.\d+)?$/, loader: "url?limit=10000&mimetype=image/svg+xml" },
-      { test: /\.obj$/, loader: "file" },
-      { test: webpackIsomorphicToolsPlugin.regular_expression('images'), loader: 'url-loader?limit=10240' }
+      { test: /\.(obj|dae)$/, loader: "file" },
+      { test: webpackIsomorphicToolsPlugin.regular_expression('images'), loader: 'url-loader?limit=200' }
     ]
   },
   progress: true,
