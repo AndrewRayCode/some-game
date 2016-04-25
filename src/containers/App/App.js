@@ -63,8 +63,7 @@ export default class App extends Component {
           <Navbar.Header>
             <Navbar.Brand>
               <IndexLink to="/" activeStyle={{color: '#33e0ff'}}>
-                <div className={styles.brand}/>
-                <span>{config.app.title}</span>
+                <span>Today, I'm A Galaxy</span>
               </IndexLink>
             </Navbar.Brand>
             <Navbar.Toggle/>
@@ -72,10 +71,6 @@ export default class App extends Component {
 
           <Navbar.Collapse eventKey={0}>
             <Nav navbar>
-              {!user &&
-              <LinkContainer to="/login">
-                <NavItem eventKey={5}>Login</NavItem>
-              </LinkContainer>}
               {user &&
               <LinkContainer to="/logout">
                 <NavItem eventKey={6} className="logout-link" onClick={this.handleLogout}>
@@ -85,11 +80,6 @@ export default class App extends Component {
             </Nav>
             {user &&
             <p className={styles.loggedInMessage + ' navbar-text'}>Logged in as <strong>{user.name}</strong>.</p>}
-            <Nav navbar pullRight>
-              <NavItem eventKey={1} target="_blank" title="View on Github" href="https://github.com/erikras/react-redux-universal-hot-example">
-                <i className="fa fa-github"/>
-              </NavItem>
-            </Nav>
           </Navbar.Collapse>
         </Navbar>
 
