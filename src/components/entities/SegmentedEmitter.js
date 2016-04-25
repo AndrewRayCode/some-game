@@ -26,6 +26,7 @@ export default class SegmentedEmitter extends Component {
     static propTypes = {
         position: PropTypes.object.isRequired,
         rotation: PropTypes.object,
+        quaternion: PropTypes.object,
         scale: PropTypes.object,
         world: PropTypes.object,
         paused: PropTypes.bool,
@@ -53,6 +54,7 @@ export default class SegmentedEmitter extends Component {
     componentWillReceiveProps( nextProps ) {
 
         if( ( nextProps.playerRadius !== this.props.playerRadius ) ||
+           ( nextProps.quaternion !== this.props.quaternion ) ||
            ( nextProps.rotation !== this.props.rotation ) ||
            ( nextProps.position !== this.props.position )
         ) {
@@ -66,15 +68,18 @@ export default class SegmentedEmitter extends Component {
     getStateFromProps( props, state ) {
 
         const {
-            position, rotation, playerRadius, scale, maxLength, rayCount
+            position, quaternion, rotation, playerRadius, scale, maxLength,
+            rayCount
         } = props;
+
+        const rotationQuaternion = quaternion || new THREE.Quaternion().setFromEuler( rotation );
 
         // dam son see http://stackoverflow.com/questions/5501581/javascript-new-arrayn-and-array-prototype-map-weirdness
         const rayArray = new Array( rayCount ).fill( 0 );
-        const angle = new THREE.Euler().setFromQuaternion( rotation ).y;
+        const angle = new THREE.Euler().setFromQuaternion( rotationQuaternion ).y;
         const impulse = ( props.impulse / rayCount );
         const playerImpulse = ( props.impulse / rayCount ) * ( playerRadius || 0.45 );
-        const flowDirection = forwardDirection.clone().applyQuaternion( rotation );
+        const flowDirection = forwardDirection.clone().applyQuaternion( rotationQuaternion );
 
         return {
             rayArray,
@@ -113,13 +118,13 @@ export default class SegmentedEmitter extends Component {
                 const a = fromVectorInitial
                     .clone()
                     .sub( new THREE.Vector3( 0, 0, streamHalfWidth ) )
-                    .applyQuaternion( rotation )
+                    .applyQuaternion( rotationQuaternion )
                     .add( position );
 
                 const b = fromVectorInitial
                     .clone()
                     .add( new THREE.Vector3( 0, 0, streamHalfWidth ) )
-                    .applyQuaternion( rotation )
+                    .applyQuaternion( rotationQuaternion )
                     .add( position );
 
                 const startingPoints = {
@@ -130,16 +135,16 @@ export default class SegmentedEmitter extends Component {
                 // Note, these are all in world space except for the impulse
                 return {
                     fromVector2D: v3toP2(
-                        fromVectorInitial.applyQuaternion( rotation ).add( position )
+                        fromVectorInitial.applyQuaternion( rotationQuaternion ).add( position )
                     ),
                     toVector2D: v3toP2(
-                        toVectorInitial.applyQuaternion( rotation ).add( position )
+                        toVectorInitial.applyQuaternion( rotationQuaternion ).add( position )
                     ),
                     impulseVector2D: v3toP2(
-                        new THREE.Vector3( impulse, 0, 0 ).applyQuaternion( rotation )
+                        new THREE.Vector3( impulse, 0, 0 ).applyQuaternion( rotationQuaternion )
                     ),
                     playerImpulseVector2D: v3toP2(
-                        new THREE.Vector3( playerImpulse, 0, 0 ).applyQuaternion( rotation )
+                        new THREE.Vector3( playerImpulse, 0, 0 ).applyQuaternion( rotationQuaternion )
                     ),
                     startingPoints,
                 };
@@ -256,8 +261,8 @@ export default class SegmentedEmitter extends Component {
     render() {
 
         const {
-            position, rotation, scale, time, materialId, playerRadius,
-            foamMaterialId, rayCount, foam, helperMaterial, debug
+            position, rotation, quaternion, scale, time, materialId,
+            playerRadius, foamMaterialId, rayCount, foam, helperMaterial, debug
         } = this.props;
         const { lengths, lengthTargets, rayArray, } = this.state;
         const waterfallHeight = -0.5 + ( playerRadius || 0.45 );
@@ -265,7 +270,8 @@ export default class SegmentedEmitter extends Component {
         return <group>
             <group
                 position={ position }
-                quaternion={ rotation || new THREE.Quaternion( 0, 0, 0, 1 ) }
+                quaternion={ quaternion }
+                rotation={ rotation }
                 scale={ scale }
                 onUpdate={ this._onUpdate }
             >
