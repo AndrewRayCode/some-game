@@ -50,6 +50,34 @@ const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
 const yAxis = p2.vec2.fromValues( 0, -1 );
 
+const playerMaterial = new p2.Material();
+const pushyMaterial = new p2.Material();
+const wallMaterial = new p2.Material();
+
+// Player to wall
+const playerToWallContact = new p2.ContactMaterial( playerMaterial, wallMaterial, {
+    friction: 0.0,
+    // Bounciness (0-1, higher is bouncier). How much energy is conserved
+    // after a collision
+    restitution: 0.1,
+});
+
+// Player to pushy
+const playerToPushyContact = new p2.ContactMaterial( playerMaterial, pushyMaterial, {
+    friction: 0,
+    // Bounciness (0-1, higher is bouncier). How much energy is conserved
+    // after a collision
+    restitution: 0,
+});
+
+// Pushy to wall
+const pushyToWallContact = new p2.ContactMaterial( pushyMaterial, wallMaterial, {
+    friction: 0.5,
+    // Bounciness (0-1, higher is bouncier). How much energy is conserved
+    // after a collision
+    restitution: 0,
+});
+
 export default class GameRenderer extends Component {
 
     static propTypes = {
@@ -101,34 +129,6 @@ export default class GameRenderer extends Component {
 
     _setupWorld() {
 
-        const playerMaterial = new p2.Material();
-        const pushyMaterial = new p2.Material();
-        const wallMaterial = new p2.Material();
-
-        // Player to wall
-        const playerToWallContact = new p2.ContactMaterial( playerMaterial, wallMaterial, {
-            friction: 0.0,
-            // Bounciness (0-1, higher is bouncier). How much energy is conserved
-            // after a collision
-            restitution: 0.1,
-        });
-
-        // Player to pushy
-        const playerToPushyContact = new p2.ContactMaterial( playerMaterial, pushyMaterial, {
-            friction: 0,
-            // Bounciness (0-1, higher is bouncier). How much energy is conserved
-            // after a collision
-            restitution: 0,
-        });
-
-        // Pushy to wall
-        const pushyToWallContact = new p2.ContactMaterial( pushyMaterial, wallMaterial, {
-            friction: 0.5,
-            // Bounciness (0-1, higher is bouncier). How much energy is conserved
-            // after a collision
-            restitution: 0,
-        });
-
         const world = new p2.World({
             gravity: [ 0, 9.82 ]
         });
@@ -165,13 +165,13 @@ export default class GameRenderer extends Component {
     _emptyWorld( world ) {
 
         world.clear();
-        world.gravity = [ 0, 9.82 ];
 
-        // p2 is a buncha junk apparently
-        //const { bodies } = world;
-        //for( let i = bodies.length - 1; i >= 0; i-- ) {
-            //world.removeBody( bodies[ i ] );
-        //}
+        // Re-add stuff. World.clear() resets contacts and gravity
+        world.addContactMaterial( playerToPushyContact );
+        world.addContactMaterial( playerToWallContact );
+        world.addContactMaterial( pushyToWallContact );
+
+        world.gravity = [ 0, 9.82 ];
 
     }
 
@@ -1011,7 +1011,7 @@ export default class GameRenderer extends Component {
 
     }
 
-    _createPlayerBody( position, radius, density ) {
+    _createPlayerBody( position:Array, radius:number, density:number ) {
 
         const playerBody = new p2.Body({
             mass: getSphereMass( density, radius ),
