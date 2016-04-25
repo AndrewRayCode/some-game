@@ -751,8 +751,35 @@ export default class GameGUI extends Component {
             <br />
             <b>Keys:</b>
             <br />
-            <Kbd>p</Kbd> or <Kbd>Esc</Kbd> Pause game
-
+            <ul>
+                <li>
+                    <b>Select</b> <Kbd>Enter</Kbd>
+                </li>
+                <li>
+                    <b>Move</b>
+                    <Kbd>←</Kbd>
+                    <Kbd>↑</Kbd>
+                    <Kbd>→</Kbd>
+                    <Kbd>↓</Kbd>
+                    &nbsp;or&nbsp;
+                    <Kbd>W</Kbd>
+                    <Kbd>A</Kbd>
+                    <Kbd>S</Kbd>
+                    <Kbd>D</Kbd>
+                </li>
+                <li>
+                    <b>Jump</b> <Kbd>Space</Kbd>
+                </li>
+                <li>
+                    <b>Pause Game</b> <Kbd>P</Kbd> or <Kbd>Esc</Kbd>
+                </li>
+                <li>
+                    <b>Zoom in on Charisma</b> <Kbd>K</Kbd>
+                </li>
+                <li>
+                    <b>See Whole Level</b> <Kbd>L</Kbd>
+                </li>
+            </ul>
             <br />
             <br />
             <b>Shaders</b> by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
