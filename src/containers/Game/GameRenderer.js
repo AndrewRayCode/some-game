@@ -43,8 +43,8 @@ const gameHeight = 400;
 const cameraAspect = gameWidth / gameHeight;
 const cameraFov = 75;
 
-const tubeTravelDurationMs = 120;
-const tubeStartTravelDurationMs = 40;
+const tubeTravelDurationMs = 200;
+const tubeStartTravelDurationMs = 80;
 
 const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
