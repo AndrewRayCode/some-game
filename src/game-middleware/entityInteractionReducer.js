@@ -89,7 +89,7 @@ export default function entityInteractionReducer( actions, props, oldState, curr
 
         } else if( ( entity.scale.x === playerScale ) &&
                 ( distance < playerRadius * 1.8 ) &&
-                !oldState.playerScaleEffectsEnabled
+                !oldState.scaleStartTime
             ) {
 
             const isShrinking = entity.type === 'shrink';
