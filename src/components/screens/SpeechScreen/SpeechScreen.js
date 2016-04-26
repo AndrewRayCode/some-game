@@ -6,7 +6,7 @@ import { frac } from 'helpers/Utils';
 const tubeRotation = new THREE.Euler( THREE.Math.degToRad( 80 ), 0, 0 );
 const tubeScale = new THREE.Vector3( 0.9, 0.9, 0.1 );
 const rotationAngle = 0.09;
-const rotationSpeed = 0.5;
+const rotationSpeed = 1.5;
 
 const avatarRotation = new THREE.Euler( 0, Math.PI / 2, -1.0 );
 
@@ -18,7 +18,7 @@ const avatarDistance = 12;
 const ringDistance = 11;
 const avatarOffset = {
     x: 70,
-    y: 40,
+    y: 38,
 };
 
 const mouthOpenCloseSpeedMs = 2000;
