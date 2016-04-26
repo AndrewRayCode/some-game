@@ -22,6 +22,7 @@ export ConfirmRestartScreen from './screens/ConfirmRestartScreen/ConfirmRestartS
 export ConfirmMenuScreen from './screens/ConfirmMenuScreen/ConfirmMenuScreen';
 export PausedScreen from './screens/PausedScreen/PausedScreen';
 export TitleScreen from './screens/TitleScreen/TitleScreen';
+export SpeechScreen from './screens/SpeechScreen/SpeechScreen';
 
 // Entities
 export EntityGroup from './EntityGroup/EntityGroup';

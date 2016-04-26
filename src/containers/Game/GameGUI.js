@@ -19,7 +19,7 @@ import KeyCodes from 'helpers/KeyCodes';
 import GameRenderer from './GameRenderer';
 import {
     TitleScreen, GameResources, PausedScreen, ConfirmRestartScreen, Kbd,
-    TransitionScreen, ConfirmMenuScreen, SpeechBubble
+    TransitionScreen, ConfirmMenuScreen, SpeechBubble, SpeechScreen,
 } from 'components';
 
 import styles from './Game.scss';
@@ -34,6 +34,8 @@ import UpdateAllObjects from 'helpers/UpdateAllObjects';
 import {
     playerTextureTail, playerTextureLegs, playerTexture,
 } from 'ThreeMaterials';
+
+const isSpeech = 1;
 
 const gameWidth = 400;
 const gameHeight = 400;
@@ -398,10 +400,12 @@ export default class GameGUI extends Component {
 
         const {
             gameRenderer, titleScreen, pausedScreen, confirmMenuScreen,
-            confirmRestartScreen
+            confirmRestartScreen, speechScreen,
         } = refs;
 
-        if( titleScreen ) {
+        if( isSpeech && speechScreen ) {
+            return speechScreen.refs.camera;
+        } else if( titleScreen ) {
             return titleScreen.refs.camera;
         } else if( pausedScreen ) {
             return pausedScreen.refs.camera;
@@ -574,10 +578,13 @@ export default class GameGUI extends Component {
             assets,
         } = this.props;
 
+        const { gameRenderer, } = this.refs;
+
         const { playerMatrix } = Mediator;
-        const bubblePosition = playerMatrix ?
-            toScreenPosition( gameWidth, gameHeight, playerMatrix, this._getActiveCameraFromRefs( this.refs ) )
-            : null;
+        const bubblePosition = isSpeech && gameRenderer && playerMatrix ?
+            toScreenPosition(
+                gameWidth, gameHeight, playerMatrix, gameRenderer.refs.camera
+            ) : null;
 
         // The mainCamera stuff is confusing. I don't fully understand it. All
         // screens have a *ref* named camera. That's what this points to I
@@ -625,6 +632,15 @@ export default class GameGUI extends Component {
                 width={ gameWidth }
                 height={ gameHeight }
                 cameraName="confirmMenuCamera"
+                onBeforeRender={ this.onBeforeRender }
+            /> : null }
+
+            { isSpeech ? <viewport
+                x={ 0 }
+                y={ 0 }
+                width={ gameWidth }
+                height={ gameHeight }
+                cameraName="speechCamera"
                 onBeforeRender={ this.onBeforeRender }
             /> : null }
 
@@ -692,6 +708,20 @@ export default class GameGUI extends Component {
                     />
                 }
 
+                { gameStarted && isSpeech && <SpeechScreen
+                    ref="speechScreen"
+                    assets={ assets }
+                    fonts={ fonts }
+                    time={ this.state.elapsedTime }
+                    avatarPosition={ bubblePosition }
+                    gameWidth={ gameWidth }
+                    gameHeight={ gameHeight }
+                    playerTexture={ playerTexture }
+                    playerTextureLegs={ playerTextureLegs }
+                    playerTextureTail={ playerTextureTail }
+                    letters={ letters }
+                /> }
+
                 { gameStarted && !confirmRestart && !confirmMenu && paused ? <PausedScreen
                     ref="pausedScreen"
                     mouseInput={ mouseInput }
@@ -753,12 +783,12 @@ export default class GameGUI extends Component {
                     height: gameHeight,
                 }}
             >
-                { bubblePosition ? <SpeechBubble
+                { isSpeech && bubblePosition ? <SpeechBubble
                     position={ bubblePosition }
                     offset={ bubbleOffset }
                     gameWidth={ gameWidth }
                     gameHeight={ gameHeight }
-                    text="Hello"
+                    text="Hello! Let's explore."
                 /> : null }
                 { react3 }
             </div>

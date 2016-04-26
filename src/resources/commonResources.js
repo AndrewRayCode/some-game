@@ -75,4 +75,14 @@ export default [
         opacity={ 0.1 }
         color={ 0xff0000 }
     />,
+    <meshPhongMaterial
+        key={ 11955 }
+        resourceId="white"
+        color={ 0xffffff }
+    />,
+    <meshPhongMaterial
+        key={ 11956 }
+        resourceId="lightGray"
+        color={ 0x666666 }
+    />,
 ];

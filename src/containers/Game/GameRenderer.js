@@ -1,18 +1,18 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import KeyCodes from '../../helpers/KeyCodes';
+import KeyCodes from 'helpers/KeyCodes';
 import p2 from 'p2';
 import { Player, EntityGroup } from 'components';
 import {
     getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
     getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,
     lookAtVector, findNextTube, snapTo, lerpVectors, v3toP2, p2ToV3,
-    applyMiddleware, deepArrayClone, p2AngleToEuler
-} from '../../helpers/Utils';
+    applyMiddleware, deepArrayClone, p2AngleToEuler, vec3Equals,
+} from 'helpers/Utils';
 import {
     gameKeyPressReducer, tourReducer, zoomReducer, entityInteractionReducer,
     playerScaleReducer, debugReducer, advanceLevelReducer,
-    defaultCameraReducer, playerAnimationReducer
+    defaultCameraReducer, playerAnimationReducer,
 } from '../../game-middleware';
 
 const radialPoint = ( total, index ) => [
@@ -45,8 +45,6 @@ const cameraFov = 75;
 
 const tubeTravelDurationMs = 200;
 const tubeStartTravelDurationMs = 80;
-
-const vec3Equals = ( a, b ) => a.clone().sub( b ).length() < 0.0001;
 
 const yAxis = p2.vec2.fromValues( 0, -1 );
 

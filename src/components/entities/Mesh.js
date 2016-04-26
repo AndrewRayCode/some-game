@@ -16,7 +16,8 @@ export default class Mesh extends Component {
     render() {
 
         const {
-            position, quaternion, rotation, scale, materialId, assets, meshName
+            position, quaternion, rotation, scale, materialId, assets,
+            meshName,
         } = this.props;
         const meshData = assets[ meshName ];
 

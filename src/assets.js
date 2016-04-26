@@ -9,3 +9,4 @@ require( '../assets/models/diamond-box.json' );
 require( '../assets/models/chamfer-box.json' );
 require( '../assets/models/curved-wall.json' );
 require( '../assets/models/curved-wall-top.json' );
+require( '../assets/models/generic-tube.json' );

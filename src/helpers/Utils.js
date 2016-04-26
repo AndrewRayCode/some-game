@@ -330,7 +330,7 @@ export function lookAtVector( sourcePoint, destPoint ) {
 
 }
 
-export function vec3Equals( a, b ) {
+export function vec3Equals( a:THREE.Vector3, b:THREE.Vector3 ) {
     return a.clone().sub( b ).length() < 0.0001;
 }
 

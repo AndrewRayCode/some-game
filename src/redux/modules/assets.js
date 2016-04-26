@@ -323,6 +323,12 @@ export function loadAllAssets() {
             loaders.js,
         ));
 
+        dispatch( loadWithLoader(
+            'genericTube',
+            require( 'models/generic-tube.json' ),
+            loaders.js,
+        ));
+
         Object.keys( CustomShaders ).forEach( key => {
 
             const json = JSON.parse(
