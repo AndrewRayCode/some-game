@@ -756,6 +756,9 @@ export default class GameGUI extends Component {
                 { bubblePosition ? <SpeechBubble
                     position={ bubblePosition }
                     offset={ bubbleOffset }
+                    gameWidth={ gameWidth }
+                    gameHeight={ gameHeight }
+                    text="Hello"
                 /> : null }
                 { react3 }
             </div>

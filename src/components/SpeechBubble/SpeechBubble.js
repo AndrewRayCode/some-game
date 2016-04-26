@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import styles from './SpeechBubble.scss';
 
-const SpeechBubble = ({ position, offset }) => <div
+const SpeechBubble = ({ gameWidth, gameHeight, text, position, offset }) => <div
     className={ styles.bubble }
     style={{
         top: `${ Math.round( position.y ) + offset }px`,
@@ -15,7 +15,7 @@ const SpeechBubble = ({ position, offset }) => <div
     />
     <div className={ styles.bubbleBackground } />
     <div className={ styles.bubbleContents }>
-        I am some text
+        { text }
     </div>
 </div>;
 
