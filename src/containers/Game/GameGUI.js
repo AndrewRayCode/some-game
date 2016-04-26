@@ -19,7 +19,7 @@ import KeyCodes from 'helpers/KeyCodes';
 import GameRenderer from './GameRenderer';
 import {
     TitleScreen, GameResources, PausedScreen, ConfirmRestartScreen, Kbd,
-    TransitionScreen, ConfirmMenuScreen
+    TransitionScreen, ConfirmMenuScreen, SpeechBubble
 } from 'components';
 
 import styles from './Game.scss';
@@ -745,25 +745,18 @@ export default class GameGUI extends Component {
         </React3>;
 
         return <div>
-            { bubblePosition ? <div
-                className={ styles.bubble }
-                style={{
-                    top: `${ Math.round( bubblePosition.y ) + bubbleOffset }px`,
-                }}
-            >
-                <div className={ styles.bubbleBackground } />
-                <div className={ styles.bubbleContents }>
-                    I am some text
-                </div>
-            </div> : null }
             <div
                 ref="container"
-                className={ cx({ clickable }) }
+                className={ cx({ clickable, gameContainer: true }) }
                 style={{
                     width: gameWidth,
                     height: gameHeight,
                 }}
             >
+                { bubblePosition ? <SpeechBubble
+                    position={ bubblePosition }
+                    offset={ bubbleOffset }
+                /> : null }
                 { react3 }
             </div>
 

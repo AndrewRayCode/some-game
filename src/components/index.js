@@ -14,6 +14,7 @@ export Text from './Text/Text';
 export Logo from './Logo/Logo';
 export ArrayEditor from './ArrayEditor/ArrayEditor';
 export SelectableMenu from './SelectableMenu/SelectableMenu';
+export SpeechBubble from './SpeechBubble/SpeechBubble';
 
 // Screens
 export TransitionScreen from './screens/TransitionScreen/TransitionScreen';
