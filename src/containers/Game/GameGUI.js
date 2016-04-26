@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+
 import React3 from 'react-three-renderer';
 import THREE from 'three';
 import { connect } from 'react-redux';
@@ -12,8 +13,8 @@ import {
     scalePlayer, advanceChapter, startGame, stopGame, restartChapter
 } from '../../redux/modules/game';
 
-import { getSphereMass, without } from '../../helpers/Utils';
-import KeyCodes from '../../helpers/KeyCodes';
+import { getSphereMass, without, toScreenPosition } from 'helpers/Utils';
+import KeyCodes from 'helpers/KeyCodes';
 
 import GameRenderer from './GameRenderer';
 import {
@@ -25,9 +26,10 @@ import styles from './Game.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind( styles );
 
-import shaderFrog from '../../helpers/shaderFrog';
-import MouseInput from '../../helpers/MouseInput';
-import UpdateAllObjects from '../../helpers/UpdateAllObjects';
+import Mediator from 'helpers/Mediator';
+import shaderFrog from 'helpers/shaderFrog';
+import MouseInput from 'helpers/MouseInput';
+import UpdateAllObjects from 'helpers/UpdateAllObjects';
 
 import {
     playerTextureTail, playerTextureLegs, playerTexture,
@@ -36,6 +38,7 @@ import {
 const gameWidth = 400;
 const gameHeight = 400;
 const transitionFadeMs = 1000;
+const bubbleOffset = 40;
 
 @asyncConnect([{
     promise: ({ store: { dispatch, getState } }) => {
@@ -571,6 +574,11 @@ export default class GameGUI extends Component {
             assets,
         } = this.props;
 
+        const { playerMatrix } = Mediator;
+        const bubblePosition = playerMatrix ?
+            toScreenPosition( gameWidth, gameHeight, playerMatrix, this._getActiveCameraFromRefs( this.refs ) )
+            : null;
+
         // The mainCamera stuff is confusing. I don't fully understand it. All
         // screens have a *ref* named camera. That's what this points to I
         // suspect. For all of the viewports below, cameraName points to the
@@ -737,6 +745,17 @@ export default class GameGUI extends Component {
         </React3>;
 
         return <div>
+            { bubblePosition ? <div
+                className={ styles.bubble }
+                style={{
+                    top: `${ Math.round( bubblePosition.y ) + bubbleOffset }px`,
+                }}
+            >
+                <div className={ styles.bubbleBackground } />
+                <div className={ styles.bubbleContents }>
+                    I am some text
+                </div>
+            </div> : null }
             <div
                 ref="container"
                 className={ cx({ clickable }) }

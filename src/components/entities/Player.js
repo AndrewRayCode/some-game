@@ -2,9 +2,10 @@ import React, { Component, PropTypes } from 'react';
 import THREE, { Euler, Vector3, Quaternion } from 'three';
 import SPE from 'shader-particle-engine';
 import { Mesh, AnimatedMesh, Eye, ParticleEmitter } from '../';
-import shaderFrog from '../../helpers/shaderFrog';
+import shaderFrog from 'helpers/shaderFrog';
 import { Animation, AnimationHandler } from 'three-animation-handler';
 import { twinkleMaterial } from 'ThreeMaterials';
+import Mediator from 'helpers/Mediator';
 
 const lidLocalScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.73 );
 const lidLocalRotation = new THREE.Euler( 0, Math.PI / 2, 0 );
@@ -123,6 +124,12 @@ export default class Player extends Component {
 
     }
 
+    componentDidUpdate() {
+
+        Mediator.playerMatrix = this.refs.body.refs.meshGroup.matrixWorld;
+
+    }
+
     render() {
 
         const {
@@ -228,6 +235,7 @@ export default class Player extends Component {
                     />
                 </group>
                 <AnimatedMesh
+                    ref="body"
                     rotation={ headRotation }
                     scale={ headScale }
                     position={ headPosition }

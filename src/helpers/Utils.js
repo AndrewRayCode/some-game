@@ -507,3 +507,20 @@ export function frac( f:number ) {
     return f % 1;
 
 }
+
+export function toScreenPosition( width:number, height:number, matrix:Object, camera:Object ) {
+
+    const vector = new THREE.Vector3();
+
+    const widthHalf = 0.5 * width;
+    const heightHalf = 0.5 * height;
+
+    vector.setFromMatrixPosition( matrix );
+    vector.project( camera );
+
+    vector.x = ( vector.x * widthHalf ) + widthHalf;
+    vector.y = - ( vector.y * heightHalf ) + heightHalf;
+
+    return new THREE.Vector2( vector.x, vector.y );
+
+}
