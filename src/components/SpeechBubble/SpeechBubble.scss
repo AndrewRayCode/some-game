@@ -1,5 +1,5 @@
-$bubbleBg:#333;
-$bubbleBg2:#000;
+$bubbleBg:#225500;
+$bubbleBg2:#112200;
 $bubbleOpacity:0.8;
 
 .bubble {
@@ -29,6 +29,7 @@ $bubbleOpacity:0.8;
     z-index:2;
     color:#fff;
     padding:20px 25px 20px 80px;
+    text-shadow:1px 1px 1px #000;
 }
 
 .arrowUp {

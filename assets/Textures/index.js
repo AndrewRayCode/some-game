@@ -17,6 +17,7 @@ const Textures = {
     spiralTexture: require( '../images/spiral-texture.png' ),
     growTexture: require( '../images/grow-texture.png' ),
     charismaSkin: require( '../images/charisma-skin.jpg' ),
+    vineWreath: require( '../images/vine-wreath.png' ),
 };
 
 export default Textures;

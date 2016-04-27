@@ -1276,7 +1276,7 @@ export default class Editor extends Component {
                             />
 
                             <ambientLight
-                                color={ 0x777777 }
+                                color={ 0xdddddd }
                             />
 
                             <directionalLight

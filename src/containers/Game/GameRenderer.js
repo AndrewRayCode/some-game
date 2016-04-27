@@ -36,8 +36,6 @@ const curvedWallVertices = [
 
 let debuggingReplay = [];
 
-const lightRotationSpeed = 0.5;
-
 const gameWidth = 400;
 const gameHeight = 400;
 const cameraAspect = gameWidth / gameHeight;
@@ -102,7 +100,6 @@ export default class GameRenderer extends Component {
                 getCameraDistanceToPlayer( 1 + playerRadius, cameraFov, playerScale ),
                 playerPosition.z
             ),
-            lightPosition: new THREE.Vector3(),
             movableEntities: []
         };
 
@@ -1094,11 +1091,6 @@ export default class GameRenderer extends Component {
         newState.movableEntities = this._getMeshStates( this.physicsBodies );
         newState.plankEntities = this._getPlankStates( this.plankData );
         newState.anchorEntities = this._getAnchorStates( this.plankConstraints );
-        newState.lightPosition = new THREE.Vector3(
-            10 * Math.sin( elapsedTime * 0.001 * lightRotationSpeed ),
-            10,
-            10 * Math.cos( elapsedTime * 0.001 * lightRotationSpeed )
-        );
 
         // Apply the middleware
         const reducedState = applyMiddleware(

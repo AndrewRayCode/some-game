@@ -667,7 +667,7 @@ export default class GameGUI extends Component {
             >
 
                 <ambientLight
-                    color={ 0x777777 }
+                    color={ 0x999999 }
                 />
 
                 <directionalLight

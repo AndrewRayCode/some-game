@@ -85,4 +85,16 @@ export default [
         resourceId="lightGray"
         color={ 0x666666 }
     />,
+    <meshPhongMaterial
+        key={ 11957 }
+        resourceId="wreathMaterial"
+        side={ THREE.DoubleSide }
+        transparent
+    >
+        <texture
+            url={ Textures.vineWreath }
+            anisotropy={ 16 }
+            transparent
+        />
+    </meshPhongMaterial>,
 ];
