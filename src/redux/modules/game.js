@@ -6,6 +6,7 @@ const pushyDensity = 750; // kg / m^3
 
 // So the impulse you needs drops to 1/(8 * sqrt(2)) of the original.
 
+const QUEUE_TEXT = 'game/QUEUE_TEXT';
 const GAME_SELECT_CHAPTER = 'game/GAME_SELECT_CHAPTER';
 const START_GAME = 'game/START_GAME';
 const RESTART_CHAPTER = 'game/RESTART_CHAPTER';

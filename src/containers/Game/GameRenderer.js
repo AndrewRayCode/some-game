@@ -12,7 +12,7 @@ import {
 import {
     gameKeyPressReducer, tourReducer, zoomReducer, entityInteractionReducer,
     playerScaleReducer, debugReducer, advanceLevelReducer,
-    defaultCameraReducer, playerAnimationReducer,
+    defaultCameraReducer, playerAnimationReducer, speechReducer,
 } from '../../game-middleware';
 
 const radialPoint = ( total, index ) => [
@@ -1097,7 +1097,7 @@ export default class GameRenderer extends Component {
             this.reducerActions, this.props, this.state, newState,
             gameKeyPressReducer, tourReducer, advanceLevelReducer, zoomReducer,
             debugReducer, entityInteractionReducer, playerScaleReducer,
-            defaultCameraReducer, playerAnimationReducer
+            defaultCameraReducer, playerAnimationReducer, speechReducer,
         );
 
         this.setState( reducedState );
@@ -1122,7 +1122,10 @@ export default class GameRenderer extends Component {
             playerScaleEffectsEnabled, playerScaleEffectsVisible,
             percentMouthOpen, rightEyeRotation, leftEyeRotation,
             rightLidRotation, leftLidRotation, headAnimations, legAnimations,
-            tailAnimations, eyeMorphTargets, tailRotation, tailPosition
+            tailAnimations, eyeMorphTargets, tailRotation, tailPosition,
+            // TODO: you realize that upper level gamegui which shows
+            // text bubbles needs to read this shit :X
+            textIsVisible, visibleText, textOpenPercent,
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
