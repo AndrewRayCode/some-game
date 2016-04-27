@@ -1,7 +1,14 @@
 import THREE from 'three';
 import { lerp, getCameraDistanceToPlayer } from '../helpers/Utils';
 
-export default function defaultCameraReducer( actions, props, oldState, currentState, next ) {
+export default function defaultCameraReducer(
+    keysDown:Object,
+    actions:Object,
+    props:Object,
+    oldState:Object,
+    currentState:Object,
+    next:Function
+) {
 
     const { cameraPosition, } = oldState;
     const { playerScale, } = props;

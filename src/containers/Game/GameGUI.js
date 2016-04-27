@@ -55,6 +55,7 @@ const bubbleOffset = 40;
     state => {
 
         const {
+            gameState,
             entities: allEntities,
             chapters: allChapters,
             levels, books, chapters, playerMaterialId,
@@ -77,6 +78,7 @@ const bubbleOffset = 40;
                 originalEntities,
                 fonts, letters,
                 assets,
+                gameState,
             };
 
         }
@@ -209,7 +211,7 @@ const bubbleOffset = 40;
         }
 
         return {
-            levels, currentLevel, currentLevelId, currentChapterId,
+            gameState, levels, currentLevel, currentLevelId, currentChapterId,
             currentLevelAllEntities, currentLevelStaticEntities, allEntities,
             nextChaptersEntities, assets, fonts, letters, originalLevels,
             originalEntities, books, chapters,
@@ -486,9 +488,11 @@ export default class GameGUI extends Component {
 
     _onRenderUpdate( renderer ) {
 
-        if( !this.state.renderer ) {
+        const { gameState, } = this.props;
 
-            this.setState({ renderer });
+        if( !gameState.renderer ) {
+
+            gameState.renderer = renderer;
 
         }
 
@@ -560,7 +564,7 @@ export default class GameGUI extends Component {
 
     onBeforeRender() {
 
-        const { renderer } = this.state;
+        const { renderer } = this.props.gameState;
         if( renderer ) {
             renderer.clearDepth();
         }
@@ -727,7 +731,7 @@ export default class GameGUI extends Component {
                     mouseInput={ mouseInput }
                     onClickRegionLeave={ this.onClickRegionLeave }
                     onClickRegionEnter={ this.onClickRegionEnter }
-                    onUnpause={ this.onUnpause }object
+                    onUnpause={ this.onUnpause }
                     assets={ assets }
                     onRestart={ this.onShowConfirmRestartScreen }
                     onShowConfirmMenuScreen={ this.onShowConfirmMenuScreen }

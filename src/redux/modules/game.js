@@ -94,7 +94,10 @@ export function game( state = defaultGameState, action = {} ) {
                 levels: convertOriginalLevelsToGameLevels( originalLevels, originalEntities ),
                 entities: convertOriginalEntitiesToGameEntities( originalEntities ),
 
-                playerPosition: findPlayerPosition( originalLevels, chapters, originalEntities, chapterId )
+                playerPosition: findPlayerPosition( originalLevels, chapters, originalEntities, chapterId ),
+
+                // TODO: Special?
+                gameState: {}
             };
 
         case RESTART_CHAPTER:

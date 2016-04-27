@@ -1,6 +1,13 @@
 import THREE from 'three';
 
-export default function tourReducer( actions, props, oldState, currentState, next ) {
+export default function tourReducer(
+    keysDown:Object,
+    actions:Object,
+    props:Object,
+    oldState:Object,
+    currentState:Object,
+    next:Function
+) {
 
     const {
         touringSwitch, touring, cameraPosition,
@@ -11,7 +18,7 @@ export default function tourReducer( actions, props, oldState, currentState, nex
 
     const { nextChapters } = props;
 
-    const { keysDown, playerPositionV3, } = currentState;
+    const { playerPositionV3, } = currentState;
 
     const newState = {};
 

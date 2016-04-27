@@ -1,4 +1,7 @@
-import THREE from 'three';
+import THREE, {
+    Quaternion, Vector3, Euler, Geometry, Vector2, Box2, Matrix4,
+    BufferGeometry, JSONLoader, ObjectLoader, OBJLoader, FontLoader,
+} from 'three';
 import Cardinality from '../helpers/Cardinality';
 
 // Garbage library https://www.npmjs.com/package/three-loaders-collada
@@ -35,14 +38,14 @@ export function getEntrancesForTube( tube, scaleFactor ) {
     if( type === 'tube' ) {
 
         const rotatedQuaternion = rotation.clone().multiply(
-            new THREE.Quaternion().setFromEuler( new THREE.Euler(
+            new Quaternion().setFromEuler( new Euler(
                 THREE.Math.degToRad( 0 ),
                 THREE.Math.degToRad( 90 ),
                 0
             ))
         );
 
-        const directionVector = new THREE.Vector3( 1, 0, 0 )
+        const directionVector = new Vector3( 1, 0, 0 )
             .multiplyScalar( scaleFactor )
             .applyQuaternion( rotatedQuaternion );
 
@@ -61,26 +64,26 @@ export function getEntrancesForTube( tube, scaleFactor ) {
     } else if( type === 'tubebend' ) {
 
         const rotatedQuaternion = rotation.clone().multiply(
-            new THREE.Quaternion().setFromEuler( new THREE.Euler(
+            new Quaternion().setFromEuler( new Euler(
                 THREE.Math.degToRad( 0 ),
                 THREE.Math.degToRad( 90 ),
                 0
             ))
         );
 
-        const directionVector = new THREE.Vector3( 1, 0, 0 )
+        const directionVector = new Vector3( 1, 0, 0 )
             .applyQuaternion( rotatedQuaternion )
             .multiplyScalar( scaleFactor );
 
         const bentQuaternion = rotation.clone().multiply(
-            new THREE.Quaternion().setFromEuler( new THREE.Euler(
+            new Quaternion().setFromEuler( new Euler(
                 THREE.Math.degToRad( -90 ),
                 THREE.Math.degToRad( 90 ),
                 0
             ))
         );
 
-        const directionVectorBent = new THREE.Vector3( 1, 0, 0 )
+        const directionVectorBent = new Vector3( 1, 0, 0 )
             .applyQuaternion( bentQuaternion )
             .multiplyScalar( scaleFactor );
 
@@ -138,11 +141,11 @@ export function lerp( start, target, percent ) {
 }
 
 const loaders = {
-    js: new THREE.JSONLoader(),
-    json: new THREE.ObjectLoader(),
-    obj: new THREE.OBJLoader(),
+    js: new JSONLoader(),
+    json: new ObjectLoader(),
+    obj: new OBJLoader(),
     dae: new ColladaLoader(),
-    font: new THREE.FontLoader(),
+    font: new FontLoader(),
 };
 export { loaders };
 
@@ -202,8 +205,8 @@ export function assignUvs( geometry ) {
     const max     = geometry.boundingBox.max;
     const min     = geometry.boundingBox.min;
 
-    const offset  = new THREE.Vector2(0 - min.x, 0 - min.y);
-    const range   = new THREE.Vector2(max.x - min.x, max.y - min.y);
+    const offset  = new Vector2(0 - min.x, 0 - min.y);
+    const range   = new Vector2(max.x - min.x, max.y - min.y);
 
     geometry.faceVertexUvs = [[]];
     const faces = geometry.faces;
@@ -215,9 +218,9 @@ export function assignUvs( geometry ) {
         const v3 = geometry.vertices[faces[i].c];
 
         geometry.faceVertexUvs[0].push([
-            new THREE.Vector2( ( v1.x + offset.x ) / range.x , ( v1.y + offset.y ) / range.y ),
-            new THREE.Vector2( ( v2.x + offset.x ) / range.x , ( v2.y + offset.y ) / range.y ),
-            new THREE.Vector2( ( v3.x + offset.x ) / range.x , ( v3.y + offset.y ) / range.y )
+            new Vector2( ( v1.x + offset.x ) / range.x , ( v1.y + offset.y ) / range.y ),
+            new Vector2( ( v2.x + offset.x ) / range.x , ( v2.y + offset.y ) / range.y ),
+            new Vector2( ( v3.x + offset.x ) / range.x , ( v3.y + offset.y ) / range.y )
         ]);
 
     }
@@ -293,44 +296,22 @@ export function snapVectorAngleTo( v3, snapAngle ) {
     const t = Math.round( angle / snapAngle );
     const deltaAngle = ( t * snapAngle ) - angle;
 
-    const axis = new THREE.Vector3().crossVectors( Cardinality.UP, v3 );
-    const q = new THREE.Quaternion().setFromAxisAngle( axis, deltaAngle );
+    const axis = new Vector3().crossVectors( Cardinality.UP, v3 );
+    const q = new Quaternion().setFromAxisAngle( axis, deltaAngle );
 
     return v3.clone().applyQuaternion( q );
 
 }
 
-export function resetBodyPhysics( body, position ) {
-
-    // Position
-    body.position = position;
-    body.previousPosition = position;
-    body.interpolatedPosition = position;
-
-
-    // Velocity
-    body.velocity = [ 0, 0 ];
-    body.angularVelocity = 0;
-
-    // Force
-    body.force = [ 0, 0 ];
-
-    // Sleep state reset
-    body.sleepState = 0;
-    body.timeLastSleepy = 0;
-    body._wakeUpAfterNarrowphase = false;
-
-}
-
 export function lookAtVector( sourcePoint, destPoint ) {
 
-    return new THREE.Quaternion().setFromRotationMatrix(
-        new THREE.Matrix4().lookAt( sourcePoint, destPoint, Cardinality.UP )
+    return new Quaternion().setFromRotationMatrix(
+        new Matrix4().lookAt( sourcePoint, destPoint, Cardinality.UP )
     );
 
 }
 
-export function vec3Equals( a:THREE.Vector3, b:THREE.Vector3 ) {
+export function vec3Equals( a:Vector3, b:Vector3 ) {
     return a.clone().sub( b ).length() < 0.0001;
 }
 
@@ -366,17 +347,17 @@ export function snapTo( number, interval ) {
 
 }
 
-export function lerpVectors( vectorA:THREE.Vector3, vectorB:THREE.Vector3, percent:number, easingFn:any ) {
+export function lerpVectors( vectorA:Vector3, vectorB:Vector3, percent:number, easingFn:any ) {
 
-    return new THREE.Vector3().lerpVectors(
+    return new Vector3().lerpVectors(
         vectorA, vectorB, easingFn ? easingFn( percent ) : percent
     );
 
 }
 
-export function lerpEulers( eulerA:THREE.Euler, eulerB:THREE.Euler, percent:number, easingFn:any ) {
+export function lerpEulers( eulerA:Euler, eulerB:Euler, percent:number, easingFn:any ) {
 
-    return new THREE.Euler().setFromVector3(
+    return new Euler().setFromVector3(
         lerpVectors( eulerA.toVector3(), eulerB.toVector3(), percent, easingFn )
     );
 
@@ -386,15 +367,15 @@ export function getFrustrumAt( distanceFromCamera:number, fov:number, aspect:num
 
     const frustumHeight = 2.0 * distanceFromCamera * Math.tan( fov * 0.5 * ( Math.PI / 180 ) );
 
-    const box = new THREE.Box2();
-    const size = new THREE.Vector2( frustumHeight * aspect, frustumHeight );
+    const box = new Box2();
+    const size = new Vector2( frustumHeight * aspect, frustumHeight );
 
     box.width = size.x;
     box.height = size.y;
 
     return box.setFromCenterAndSize(
-        new THREE.Vector2( 0, 0 ),
-        new THREE.Vector2(
+        new Vector2( 0, 0 ),
+        new Vector2(
             frustumHeight * aspect,
             frustumHeight
         )
@@ -411,7 +392,7 @@ export function clampVector3( v3, min, max ) {
 
 export function p2AngleToEuler( angle ) {
 
-    return new THREE.Euler( 0, -angle, 0 );
+    return new Euler( 0, -angle, 0 );
 
 }
 
@@ -423,7 +404,7 @@ export function v3toP2( v3 ) {
 
 export function p2ToV3( p2, y ) {
 
-    return new THREE.Vector3( p2[ 0 ], y || 0, p2[ 1 ] );
+    return new Vector3( p2[ 0 ], y || 0, p2[ 1 ] );
 
 }
 
@@ -435,19 +416,26 @@ export function str2Hex( str ) {
 
 // Apply a series of reducers, continuation passing style, to the state object,
 // and return the transformed state
-export function applyMiddleware( actions, props, oldState, initialState, ...reducers ) {
+export function applyMiddleware(
+    keysDown:Object,
+    actions:Object,
+    props:Object,
+    oldState:Object,
+    initialState:Object,
+    ...reducers
+) {
 
     // Keep track of what reducer we're on, because when a reducer calls next()
     // it needs to call the next reducer in the array
     let index = -1;
 
-    const next = ( newState ) => {
+    const next = newState => {
 
         index = index + 1;
 
         return reducers[ index ] ?
             // Either call the next reducer...
-            reducers[ index ]( actions, props, oldState, newState, next ) :
+            reducers[ index ]( keysDown, actions, props, oldState, newState, next ) :
             // Or we're at the end
             newState;
 
@@ -496,9 +484,9 @@ export function getTextWidth( text, fontName ) {
 
 }
 
-export function bufferToGeometry( bufferGeometry:THREE.BufferGeometry ) {
+export function bufferToGeometry( bufferGeometry:BufferGeometry ) {
 
-    return new THREE.Geometry().fromBufferGeometry( bufferGeometry );
+    return new Geometry().fromBufferGeometry( bufferGeometry );
 
 }
 
@@ -510,7 +498,7 @@ export function frac( f:number ) {
 
 export function toScreenPosition( width:number, height:number, matrix:Object, camera:Object ) {
 
-    const vector = new THREE.Vector3();
+    const vector = new Vector3();
 
     const widthHalf = 0.5 * width;
     const heightHalf = 0.5 * height;
@@ -521,6 +509,6 @@ export function toScreenPosition( width:number, height:number, matrix:Object, ca
     vector.x = ( vector.x * widthHalf ) + widthHalf;
     vector.y = - ( vector.y * heightHalf ) + heightHalf;
 
-    return new THREE.Vector2( vector.x, vector.y );
+    return new Vector2( vector.x, vector.y );
 
 }

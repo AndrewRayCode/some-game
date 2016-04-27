@@ -115,7 +115,6 @@ function snapTo( number, interval ) {
 
             }, {} );
 
-
             bookState = {
                 currentBookId, currentChapters, currentBook,
                 currentLevels, firstChapterIdsContainingLevel,
@@ -315,7 +314,6 @@ export default class Editor extends Component {
         window.addEventListener( 'blur', this.onWindowBlur );
         window.addEventListener( 'focusin', this.onInputFocus );
         window.addEventListener( 'focusout', this.onInputBlur );
-
 
     }
 
@@ -1270,8 +1268,8 @@ export default class Editor extends Component {
                                 aspect={ gameWidth / gameHeight }
                                 near={0.1}
                                 far={1000}
-                                position={this.state.cameraPosition}
-                                rotation={this.state.cameraRotation}
+                                position={ this.state.cameraPosition }
+                                rotation={ this.state.cameraRotation }
                                 ref="camera"
                             />
 

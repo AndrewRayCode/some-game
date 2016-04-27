@@ -1,10 +1,14 @@
-import { lerpVectors } from '../helpers/Utils';
-import { easeOutQuint, } from 'easing-utils';
-
 const textExpandTime = 1000;
 const msPerLetter = 500;
 
-export default function speechReducer( actions, props, oldState, currentState, next ) {
+export default function speechReducer(
+    keysDown:Object,
+    actions:Object,
+    props:Object,
+    oldState:Object,
+    currentState:Object,
+    next:Function
+) {
 
     const {
         textQueue: oldTextQueue,
@@ -14,7 +18,7 @@ export default function speechReducer( actions, props, oldState, currentState, n
         textCloseStartTime: oldTextCloseStartTime,
     } = oldState;
 
-    const { keysDown, time, } = currentState;
+    const { time, } = currentState;
     const timeMs = time * 1000;
 
     let newState = {};
@@ -106,9 +110,9 @@ export default function speechReducer( actions, props, oldState, currentState, n
         textCloseStartTime,
     };
 
-    return {
+    return next({
         ...currentState,
         ...newState
-    };
+    });
 
 }

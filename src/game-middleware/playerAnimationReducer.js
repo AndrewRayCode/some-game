@@ -1,4 +1,4 @@
-import THREE, { Euler, Vector3, Quaternion } from 'three';
+import THREE, { Euler, Vector3, } from 'three';
 import { lerp, lerpVectors, lerpEulers, frac } from '../helpers/Utils';
 
 const { randFloat } = THREE.Math;
@@ -63,7 +63,14 @@ function canBlink( time, lastBlinkTime, minBlinkInterval ) {
 
 }
 
-export default function playerAnimationReducer( actions, props, oldState, currentState, next ) {
+export default function playerAnimationReducer(
+    keysDown:Object,
+    actions:Object,
+    props:Object,
+    oldState:Object,
+    currentState:Object,
+    next:Function
+) {
 
     const {
         leftEyeTweenTarget, leftEyeTweenStart, leftEyeTweenDuraiton,
@@ -124,7 +131,6 @@ export default function playerAnimationReducer( actions, props, oldState, curren
     let jumpWeight = 0;
     let jumpAnimationPercent = 0;
     let jumpStartTime = oldJumpStartTime;
-    let jumpedOnThisFrame;
 
     if( isLeft ) {
         nextSwishStartTime = null;
@@ -174,7 +180,6 @@ export default function playerAnimationReducer( actions, props, oldState, curren
             if( jumpWeight < 0 ) {
                 jumpWeight = 0;
                 jumpStartTime = null;
-                jumpedOnThisFrame = null;
             }
 
         }

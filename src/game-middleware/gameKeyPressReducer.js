@@ -1,8 +1,11 @@
-import KeyCodes from '../helpers/KeyCodes';
-
-export default function gameKeyPressReducer( actions, props, oldState, currentState, next ) {
-
-    const { keysDown } = currentState;
+export default function gameKeyPressReducer(
+    keysDown:Object,
+    actions:Object,
+    props:Object,
+    oldState:Object,
+    currentState:Object,
+    next:Function
+) {
 
     if( keysDown.isFirstPress( 'P' ) || keysDown.isFirstPress( 'ESC' ) ) {
 

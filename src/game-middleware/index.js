@@ -1,3 +1,4 @@
+export physicsReducer from './physicsReducer';
 export advanceLevelReducer from './advanceLevelReducer';
 export debugReducer from './debugReducer';
 export entityInteractionReducer from './entityInteractionReducer';

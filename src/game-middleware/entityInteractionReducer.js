@@ -7,7 +7,14 @@ import THREE from 'three';
 // Warning: duplicated in playerScaleReducer
 const scaleStartDelayMs = 250;
 
-export default function entityInteractionReducer( actions, props, oldState, currentState, next ) {
+export default function entityInteractionReducer(
+    keysDown:Object,
+    actions:Object,
+    props:Object,
+    oldState:Object,
+    currentState:Object,
+    next:Function
+) {
 
     const {
         currentLevelTouchyArray, playerRadius, playerDensity, playerScale,

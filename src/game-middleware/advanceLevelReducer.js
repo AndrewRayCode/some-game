@@ -3,7 +3,14 @@ import { easeOutQuint, } from 'easing-utils';
 
 const levelTransitionDuration = 500;
 
-export default function advanceLevelReducer( actions, props, oldState, currentState, next ) {
+export default function advanceLevelReducer(
+    keysDown:Object,
+    actions:Object,
+    props:Object,
+    oldState:Object,
+    currentState:Object,
+    next:Function
+) {
 
     const {
         currentTransitionStartTime, startTransitionPosition,

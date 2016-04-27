@@ -15,14 +15,20 @@ function zoomedOutPosition( cameraFov ) {
 
 }
 
-export default function zoomOutReducer( actions, props, oldState, currentState ) {
+export default function zoomOutReducer(
+    keysDown:Object,
+    actions:Object,
+    props:Object,
+    oldState:Object,
+    currentState:Object,
+) {
 
     const {
         zoomBackInDuration, zoomOutStartTime, cameraPositionZoomOut,
         startZoomBackInTime, cameraPosition,
     } = oldState;
 
-    const { keysDown, time, cameraFov, } = currentState;
+    const { time, cameraFov, } = currentState;
 
     const newState = {};
 

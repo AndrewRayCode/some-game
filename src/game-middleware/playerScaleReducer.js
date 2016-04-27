@@ -8,7 +8,14 @@ const scaleStartDelayMs = 250;
 
 const totalScaleDurationSeconds = ( emitterVisibleDurationMs + scaleDurationMs + scaleStartDelayMs ) / 1000;
 
-export default function playerScaleReducer( actions, props, oldState, currentState, next ) {
+export default function playerScaleReducer(
+    keysDown:Object,
+    actions:Object,
+    props:Object,
+    oldState:Object,
+    currentState:Object,
+    next:Function
+) {
 
     const { playerRadius, } = props;
     const { time, } = currentState;

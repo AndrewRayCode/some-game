@@ -1,78 +1,26 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
-import KeyCodes from 'helpers/KeyCodes';
 import p2 from 'p2';
 import { Player, EntityGroup } from 'components';
 import {
-    getEntrancesForTube, without, lerp, getSphereMass, getCubeMass,
-    getCameraDistanceToPlayer, getCardinalityOfVector, resetBodyPhysics,
-    lookAtVector, findNextTube, snapTo, lerpVectors, v3toP2, p2ToV3,
-    applyMiddleware, deepArrayClone, p2AngleToEuler, vec3Equals,
+    getCameraDistanceToPlayer, lookAtVector, p2ToV3, applyMiddleware,
+    p2AngleToEuler,
 } from 'helpers/Utils';
 import {
     gameKeyPressReducer, tourReducer, zoomReducer, entityInteractionReducer,
     playerScaleReducer, debugReducer, advanceLevelReducer,
     defaultCameraReducer, playerAnimationReducer, speechReducer,
-} from '../../game-middleware';
+    physicsReducer,
+} from 'game-middleware';
 
-const radialPoint = ( total, index ) => [
-    Math.cos( THREE.Math.degToRad( ( 90 / total ) * index ) ) - 0.5,
-    -( Math.sin( THREE.Math.degToRad( ( 90 / total ) * index ) ) - 0.5 )
-];
-
-// Generate points along a curve between 0 and 90 degrees along a circle
-const radialPoints = total =>
-    new Array( total ).fill( 0 ).map( ( zero, index ) =>
-        radialPoint( total + 2, index + 1 )
-    );
-
-// Counter clockwise. Note that my y axis is swapped relative to p2 :(
-const curvedWallVertices = [
-    [ -0.5, 0.5 ], // bottom left
-    [ 0.5, 0.5 ], // bottom right
-    ...radialPoints( 3 ), // Curve
-    [ -0.5, -0.5 ] // top left
-];
-
-let debuggingReplay = [];
+import {
+    setUpPhysics, setUpWorld, emptyWorld, tearDownWorld
+} from 'physics-utils';
 
 const gameWidth = 400;
 const gameHeight = 400;
 const cameraAspect = gameWidth / gameHeight;
 const cameraFov = 75;
-
-const tubeTravelDurationMs = 200;
-const tubeStartTravelDurationMs = 80;
-
-const yAxis = p2.vec2.fromValues( 0, -1 );
-
-const playerMaterial = new p2.Material();
-const pushyMaterial = new p2.Material();
-const wallMaterial = new p2.Material();
-
-// Player to wall
-const playerToWallContact = new p2.ContactMaterial( playerMaterial, wallMaterial, {
-    friction: 0.0,
-    // Bounciness (0-1, higher is bouncier). How much energy is conserved
-    // after a collision
-    restitution: 0.1,
-});
-
-// Player to pushy
-const playerToPushyContact = new p2.ContactMaterial( playerMaterial, pushyMaterial, {
-    friction: 0,
-    // Bounciness (0-1, higher is bouncier). How much energy is conserved
-    // after a collision
-    restitution: 0,
-});
-
-// Pushy to wall
-const pushyToWallContact = new p2.ContactMaterial( pushyMaterial, wallMaterial, {
-    friction: 0.5,
-    // Bounciness (0-1, higher is bouncier). How much energy is conserved
-    // after a collision
-    restitution: 0,
-});
 
 export default class GameRenderer extends Component {
 
@@ -90,7 +38,8 @@ export default class GameRenderer extends Component {
         
         const {
             playerPosition, playerScale, playerRadius, onPause, advanceChapter,
-            onShowConfirmMenuScreen, onShowConfirmRestartScreen
+            onShowConfirmMenuScreen, onShowConfirmRestartScreen, gameState,
+            scalePlayer,
         } = props;
 
         this.state = {
@@ -104,346 +53,39 @@ export default class GameRenderer extends Component {
         };
 
         this._updatePhysics = this._updatePhysics.bind( this );
-        this._onUpdate = this._onUpdate.bind( this );
+        this._onUpdate = this._onUpdate.bind( this, gameState );
         this._getMeshStates = this._getMeshStates.bind( this );
         this._getPlankStates = this._getPlankStates.bind( this );
         this._getAnchorStates = this._getAnchorStates.bind( this );
-        this.onWorldEndContact = this.onWorldEndContact.bind( this );
-        this.onWorldBeginContact = this.onWorldBeginContact.bind( this );
-        this._setupPhysics = this._setupPhysics.bind( this );
-        this.scalePlayer = this.scalePlayer.bind( this );
 
         // Things to pass to reducers so they can call them
-        this.reducerActions = {
-            scalePlayer: this.scalePlayer,
+        gameState.reducerActions = {
+            scalePlayerAndDispatch: scalePlayer,
             onPause, advanceChapter, onShowConfirmMenuScreen,
             onShowConfirmRestartScreen
         };
 
     }
 
-    _setupWorld() {
-
-        const world = new p2.World({
-            gravity: [ 0, 9.82 ]
-        });
-
-        world.addContactMaterial( playerToPushyContact );
-        world.addContactMaterial( playerToWallContact );
-        world.addContactMaterial( pushyToWallContact );
-
-        world.on( 'beginContact', this.onWorldBeginContact );
-        world.on( 'endContact', this.onWorldEndContact );
-
-        this.world = world;
-        this.playerMaterial = playerMaterial;
-        this.pushyMaterial = pushyMaterial;
-        this.wallMaterial = wallMaterial;
-
-    }
-
-    _teardownWorld() {
-
-        const { world } = this;
-
-        // We could manually removeBody() for all bodies, but that does a lot
-        // of work that we don't care about, see
-        // http://schteppe.github.io/p2.js/docs/files/src_world_World.js.html#l1005
-        world.off( 'beginContact', this.onWorldBeginContact );
-        world.off( 'endContact', this.onWorldEndContact );
-        world.clear();
-
-        this.world = null;
-
-    }
-
-    _emptyWorld( world ) {
-
-        world.clear();
-
-        // Re-add stuff. World.clear() resets contacts and gravity
-        world.addContactMaterial( playerToPushyContact );
-        world.addContactMaterial( playerToWallContact );
-        world.addContactMaterial( pushyToWallContact );
-
-        world.gravity = [ 0, 9.82 ];
-
-    }
-
-    _setupPhysics( props, playerPositionOverride2D ) {
-
-        const {
-            playerRadius, playerDensity, pushyDensity,
-            currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray,
-            currentLevelBridgesArray
-        } = props;
-
-        const playerPosition = playerPositionOverride2D || v3toP2(
-            props.playerPosition
-        );
-
-        const playerBody = this._createPlayerBody(
-            playerPosition,
-            playerRadius,
-            playerDensity
-        );
-
-        const { world } = this;
-
-        world.addBody( playerBody );
-        this.playerBody = playerBody;
-
-        this.physicsBodies = currentLevelMovableEntitiesArray.map( entity => {
-            const { position, scale } = entity;
-
-            const pushyBody = new p2.Body({
-                mass: getCubeMass( pushyDensity, scale.x * 0.8 ),
-                position: v3toP2( position ),
-                fixedRotation: true
-            });
-
-            // Copy scale to pushyBody so _getMeshStates can access it to pass
-            // to three
-            pushyBody.scale = scale;
-            pushyBody.entityId = entity.id;
-
-            // Store the y position as "depth" to place this object correctly
-            // set back into the screen
-            pushyBody.depth = position.y;
-
-            const pushyShape = new p2.Box({
-                material: this.pushyMaterial,
-                width: scale.x,
-                height: scale.z,
-            });
-
-            pushyBody.addShape( pushyShape );
-            world.addBody( pushyBody );
-            return pushyBody;
-
-        });
-
-        const emptyWorldAnchor = new p2.Body({
-            mass: 0,
-            position: [ -100, -100 ]
-        });
-        world.addBody( emptyWorldAnchor );
-        this.emptyWorldAnchor = emptyWorldAnchor;
-        
-        // Construct the data needed for all bridges (planks and anchors)
-        const bridgeData = currentLevelBridgesArray.reduce( ( memo, bridgeEntity ) => {
-
-            const {
-                scale, position, segments, paddingPercent, id
-            } = bridgeEntity;
-
-            // This is duplicated in the bridge component which isn't ideal,
-            // but there are more comments there
-            const { x: width, y: size } = scale;
-            const plankWidth = size * ( width / segments );
-            const plankStartX = -( width / 2 ) + ( plankWidth / 2 );
-            const plankBodyWidth = plankWidth - ( paddingPercent * plankWidth );
-
-            // Generate an array to map over for how many planks there are
-            const segmentsArray = new Array( segments ).fill( 0 );
-
-            // Build the planks only
-            const planks = segmentsArray.map( ( zero, index ) => {
-
-                const plankBody = new p2.Body({
-                    mass: getCubeMass( pushyDensity, plankWidth * 1 ),
-                    position: [
-                        position.x + ( plankWidth * index + plankStartX ),
-                        position.z + ( 0.5 * size ),
-                    ],
-                });
-
-                const plankShape = new p2.Box({
-                    material: this.wallMaterial,
-                    width: plankBodyWidth,
-                    height: 0.1 * size
-                });
-
-                plankBody.entityId = id;
-                plankBody.depth = position.y;
-
-                plankBody.addShape( plankShape );
-
-                world.addBody( plankBody );
-                memo.planks.push( plankBody );
-
-                return plankBody;
-
-            });
-
-            // Bridge plank constants. Hard coded for now, mabye put into the
-            // editor later, the problem is that things like distance are
-            // computed values. Actually could probably multiply computed
-            // value by some "relax" editor value
-            const anchorInsetPercent = 0.1;
-
-            // Calculate how long the ropes at rest should be between each
-            // plank
-            const distance = ( plankWidth * paddingPercent ) +
-                ( plankBodyWidth * anchorInsetPercent * 2 );
-
-            const maxForce = 1000000;
-
-            // Build the anchors!
-            segmentsArray.map( ( zero, index ) => {
-
-                const plankBody = planks[ index ];
-                const nextPlank = planks[ index + 1 ];
-
-                // Is this the first plank? anchor to the left
-                if( index === 0 ) {
-
-                    // Figure out the world position of the left anchor...
-                    const emptyAnchorBefore = new p2.Body({
-                        mass: 0,
-                        position: [
-                            position.x - ( width * size * 0.5 ) - ( plankBodyWidth * anchorInsetPercent * 2 /* little more cause no padding */ ),
-                            position.z - ( 0.4 * size ),
-                        ],
-                    });
-
-                    // Build a constraint with the proper anchor positions
-                    const beforeConstraint = new p2.DistanceConstraint( emptyAnchorBefore, plankBody, {
-                        maxForce, distance,
-                        localAnchorA: [ 0, 0 ],
-                        localAnchorB: [
-                            -( plankBodyWidth / 2 ) + ( plankBodyWidth * anchorInsetPercent ),
-                            0,
-                        ],
-                    });
-
-                    // Data needed to group these anchors later at runtime
-                    beforeConstraint.entityId = id;
-                    beforeConstraint.depth = position.y;
-                    memo.constraints.push( beforeConstraint );
-
-                    world.addBody( emptyAnchorBefore );
-                    world.addConstraint( beforeConstraint );
-
-                }
-
-                // If there's a next plank, anchor to it
-                if( nextPlank ) {
-
-                    const betweenConstraint = new p2.DistanceConstraint( plankBody, nextPlank, {
-                        maxForce, distance,
-                        localAnchorA: [
-                            ( plankBodyWidth / 2 ) - ( plankBodyWidth * anchorInsetPercent ),
-                            0,
-                        ],
-                        localAnchorB: [
-                            -( plankBodyWidth / 2 ) + ( plankBodyWidth * anchorInsetPercent ),
-                            0,
-                        ],
-                    });
-
-                    betweenConstraint.entityId = id;
-                    betweenConstraint.depth = position.y;
-                    memo.constraints.push( betweenConstraint );
-
-                    world.addConstraint( betweenConstraint );
-
-                // Otherwise build the last world anchor
-                } else {
-
-                    const emptyAnchorAfter = new p2.Body({
-                        mass: 0,
-                        position: [
-                            position.x + ( width * size * 0.5 ) + ( plankBodyWidth * anchorInsetPercent * 2 ),
-                            position.z - ( 0.4 * size ),
-                        ],
-                    });
-
-                    const afterConstraint = new p2.DistanceConstraint( plankBody, emptyAnchorAfter, {
-                        maxForce, distance,
-                        localAnchorA: [
-                            ( plankWidth / 2 ) - ( plankBodyWidth * anchorInsetPercent ),
-                            0,
-                        ],
-                        localAnchorB: [ 0, 0 ],
-                    });
-
-                    afterConstraint.entityId = id;
-                    afterConstraint.depth = position.y;
-                    memo.constraints.push( afterConstraint );
-
-                    world.addBody( emptyAnchorAfter );
-                    world.addConstraint( afterConstraint );
-
-                }
-
-            });
-
-            return memo;
-
-        }, { planks: [], constraints: [] } );
-
-        this.plankData = bridgeData.planks;
-        this.plankConstraints = bridgeData.constraints;
-
-        currentLevelStaticEntitiesArray.forEach( entity => {
-
-            const { position, scale, rotation, type } = entity;
-
-            const entityBody = new p2.Body({
-                mass: 0,
-                position: v3toP2( position ),
-            });
-            
-            let shape;
-            if( type === 'curvedwall' ) {
-
-                // Current version of p2 doesn't copy the vertices in and
-                // breaks when level restarts, lame. We have to map back to
-                // threejs to properly rotate and scale the verts
-                const vertices = deepArrayClone( curvedWallVertices )
-                    .map( xy =>
-                        v3toP2( p2ToV3( xy )
-                            .applyQuaternion( rotation )
-                            .multiply( scale ) )
-                    );
-                entityBody.fromPolygon( vertices );
-
-            } else {
-
-                shape = new p2.Box({
-                    material: this.wallMaterial,
-                    width: scale.x,
-                    height: scale.z,
-                });
-                entityBody.addShape( shape );
-
-            }
-
-            entityBody.entity = entity;
-            world.addBody( entityBody );
-
-        });
-
-        this.setState({ playerContact: {} });
-
-    }
-
     componentDidMount() {
 
-        this._setupWorld( this.props );
-        this._setupPhysics( this.props );
+        const { gameState, } = this.props;
+        setUpWorld( gameState );
+        setUpPhysics( gameState );
 
     }
 
     componentWillUnmount() {
 
-        this._teardownWorld();
+        tearDownWorld( this.props.gameState );
 
     }
 
     // Don't forget to pass down any of these props from GameGUI!
     componentWillReceiveProps( nextProps ) {
+
+        const { gameState, } = nextProps;
+        const { world, } = gameState;
 
         if( nextProps.recursionBusterId !== this.props.recursionBusterId ) {
 
@@ -451,8 +93,8 @@ export default class GameRenderer extends Component {
 
         } else if( nextProps.restartBusterId !== this.props.restartBusterId ) {
 
-            this._emptyWorld( this.world );
-            this._setupPhysics( nextProps );
+            emptyWorld( world );
+            setUpPhysics( nextProps );
 
             const { playerScale, playerPosition } = nextProps;
 
@@ -462,9 +104,6 @@ export default class GameRenderer extends Component {
                     getCameraDistanceToPlayer( playerPosition.y, cameraFov, playerScale ),
                     playerPosition.z
                 ),
-                tubeFlow: null,
-                scaleStartTime: null,
-                advancing: false,
             });
 
         }
@@ -491,11 +130,12 @@ export default class GameRenderer extends Component {
         const {
             cameraPosition, currentTransitionPosition
         } = this.state;
+        const { gameState, } = this.props;
 
         const { previousChapterNextChapter } = nextProps;
         const {
             position: chapterPosition,
-            scale
+            scale,
         } = previousChapterNextChapter;
 
         const multiplier = scale.x < 1 ? 8 : 0.125;
@@ -508,425 +148,16 @@ export default class GameRenderer extends Component {
             ),
             currentTransitionPosition: null,
             currentTransitionTarget: null,
-            isAdvancing: false,
         });
 
-        this._emptyWorld( this.world );
+        emptyWorld( gameState.world );
 
         const newPosition2D = [
             ( currentTransitionPosition.x - chapterPosition.x ) * multiplier,
             ( currentTransitionPosition.z - chapterPosition.z ) * multiplier,
         ];
 
-        this._setupPhysics( nextProps, newPosition2D );
-
-    }
-
-    onWorldBeginContact( event ) {
-
-        let otherBody;
-        const { bodyA, bodyB, contactEquations } = event;
-        const { playerBody } = this;
-        const { playerContact } = this.state;
-
-        // Figure out if either body equals the player, and if so, assign
-        // otherBody to the other body
-        if( bodyA === playerBody ) {
-
-            otherBody = bodyB;
-
-        } else if( bodyB === playerBody ) {
-
-            otherBody = bodyA;
-
-        }
-
-        if( otherBody ) {
-
-            // Get the contact point local to body a. There might be an easier
-            // way to do this but I can't figure out how
-            const { contactPointA } = contactEquations[ 0 ];
-
-            // Convert it to world coordinates
-            const contactPointWorld = [
-                contactPointA[ 0 ] + bodyA.position[ 0 ],
-                contactPointA[ 1 ] + bodyA.position[ 1 ]
-            ];
-
-            // Calculate the normal to the player position
-            const contactToPlayerNormal = p2.vec2.normalize( [ 0, 0 ], [
-                contactPointWorld[ 0 ] - playerBody.position[ 0 ],
-                contactPointWorld[ 1 ] - playerBody.position[ 1 ]
-            ]);
-
-            const contactNormal = getCardinalityOfVector( new THREE.Vector3(
-                contactToPlayerNormal[ 0 ],
-                0,
-                contactToPlayerNormal[ 1 ],
-            ));
-
-            const assign = {
-                [ otherBody.id ]: contactNormal
-            };
-            //console.log('onPlayerColide with',otherBody.id, contactNormal);
-            this.setState({
-                playerContact: { ...playerContact, ...assign }
-            });
-            
-        }
-
-    }
-
-
-    onWorldEndContact( event ) {
-
-        let otherBody;
-        const { bodyA, bodyB } = event;
-
-        const { playerContact } = this.state;
-        const { playerBody, } = this;
-
-        if( bodyA === playerBody ) {
-
-            otherBody = bodyB;
-
-        } else if( bodyB === playerBody ) {
-
-            otherBody = bodyA;
-
-        }
-
-        if( otherBody ) {
-
-            //console.log('ended contact with ',otherBody.id);
-            this.setState({
-                playerContact: without( playerContact, otherBody.id )
-            });
-
-        }
-
-    }
-
-    _canJump( world, body ) {
-
-        return world.narrowphase.contactEquations.some( contact => {
-
-            if( contact.bodyA === body || contact.bodyB === body ) {
-
-                let d = p2.vec2.dot( contact.normalA, yAxis );
-                if( contact.bodyA === body ) {
-                    d *= -1;
-                }
-                return d > 0.5;
-
-            }
-
-        });
-
-    }
-
-    _updatePhysics( elapsedTime, delta, keysDown ) {
-
-        if( this.state.touring || this.state.isAdvancing ) {
-            return {};
-        }
-
-        let newState = {
-            entrances: [],
-        };
-
-        const {
-            playerScale, playerRadius, currentLevelStaticEntitiesArray
-        } = this.props;
-        const { playerContact } = this.state;
-
-        const { playerBody, world } = this;
-        const {
-            velocity: playerVelocity, position: playerPosition2D
-        } = playerBody;
-
-        let directionX = 0;
-        let directionZ = 0;
-
-        const velocityMoveMax = 5 * playerScale;
-        const velocityMax = 10.0 * velocityMoveMax;
-
-        newState.playerBody = playerBody;
-        newState.playerVelocity = playerVelocity;
-
-        const isLeft = keysDown.isPressed( 'A' ) || keysDown.isPressed( 'LEFT' );
-        const isRight = keysDown.isPressed( 'D' ) || keysDown.isPressed( 'RIGHT' );
-        const isUp = keysDown.isPressed( 'W' ) || keysDown.isPressed( 'UP' );
-        const isDown = keysDown.isPressed( 'S' ) || keysDown.isPressed( 'DOWN' );
-
-        newState.isLeft = isLeft;
-        newState.isRight = isRight;
-        newState.isUp = isUp;
-        newState.isDown = isDown;
-
-        const playerPosition = p2ToV3( playerPosition2D, 1 + playerRadius );
-
-        const playerSnapped = new THREE.Vector3(
-            snapTo( playerPosition.x, playerScale ),
-            snapTo( playerPosition.y, playerScale ),
-            snapTo( playerPosition.z, playerScale )
-        ).addScalar( -playerScale / 2 );
-
-        const contactKeys = Object.keys( playerContact );
-
-        if( !this.state.tubeFlow ) {
-
-            for( let i = 0; i < contactKeys.length; i++ ) {
-                const key = contactKeys[ i ];
-
-                const physicsBody = world.bodies.find( entity => {
-                    return entity.id.toString() === key;
-                });
-
-                const { entity } = physicsBody;
-                if( entity && ( entity.type === 'tube' || entity.type === 'tubebend' ) ) {
-
-                    newState.entrances.push( getEntrancesForTube( entity, playerScale ) );
-
-                }
-
-            }
-
-        }
-
-        // Determine which way the player is attempting to move
-        if( isLeft ) {
-            directionX = -1;
-        }
-        if( isRight ) {
-            directionX = 1;
-        }
-        // Use for tube direction
-        if( isUp ) {
-            directionZ = -1;
-        }
-        if( isDown ) {
-            directionZ = 1;
-        }
-
-        let newTubeFlow;
-        if( newState.entrances.length ) {
-
-            for( let i = 0; i < newState.entrances.length; i++ ) {
-
-                const tubeEntrances = newState.entrances[ i ];
-
-                const { tube, entrance1, entrance2, threshold1, threshold2, middle } = tubeEntrances;
-                const isAtEntrance1 = vec3Equals( playerSnapped, entrance1 );
-                const isAtEntrance2 = vec3Equals( playerSnapped, entrance2 );
-                const isInTubeRange = isAtEntrance1 || isAtEntrance2;
-                const entrancePlayerStartsAt = isAtEntrance1 ? entrance1 : entrance2;
-                const thresholdPlayerStartsAt = isAtEntrance1 ? threshold1 : threshold2;
-                const thresholdPlayerEndsAt = isAtEntrance1 ? threshold2 : threshold1;
-
-                const playerTowardTube = playerSnapped.clone().add(
-                    new THREE.Vector3( directionX, 0, directionZ )
-                        .normalize()
-                        .multiplyScalar( playerScale )
-                );
-                newState.playerTowardTube = playerTowardTube;
-
-                if( isInTubeRange && vec3Equals( playerTowardTube, tube.position ) ) {
-
-                    const newPlayerContact = Object.keys( playerContact ).reduce( ( memo, key ) => {
-
-                        const { entity } = world.bodies.find( search => {
-                            return search.id.toString() === key;
-                        });
-
-                        if( entity && ( entity.type !== 'tubebend' && entity.type !== 'tube' ) ) {
-                            memo[ key ] = playerContact[ key ];
-                        }
-
-                        return memo;
-
-                    }, {} );
-
-                    debuggingReplay = [];
-
-                    newTubeFlow = [{
-                        start: playerPosition,
-                        end: thresholdPlayerStartsAt
-                    }, {
-                        start: thresholdPlayerStartsAt,
-                        middle,
-                        end: thresholdPlayerEndsAt,
-                        exit: isAtEntrance1 ? entrance2 : entrance1
-                    }];
-
-                    let nextTube;
-                    let currentTube = tube;
-                    let currentEntrance = entrancePlayerStartsAt;
-
-                    let failSafe = 0;
-                    while( failSafe < 30 && ( nextTube = findNextTube( currentTube, currentEntrance, currentLevelStaticEntitiesArray, playerScale ) ) ) {
-
-                        failSafe++;
-
-                        //console.log('FOUND ANOTHER TUBE');
-
-                        const isAtNextEntrance1 = vec3Equals( nextTube.entrance1, currentTube.position );
-                        const isAtNextEntrance2 = vec3Equals( nextTube.entrance2, currentTube.position );
-
-                        if( !isAtNextEntrance1 && !isAtNextEntrance2 ) {
-                            console.warn('current entrance',currentEntrance,'did not match either',nextTube.entrance1,'or', nextTube.entrance2);
-                            continue;
-                        }
-
-                        newTubeFlow.push({
-                            start: isAtNextEntrance1 ? nextTube.threshold1 : nextTube.threshold2,
-                            middle: nextTube.middle,
-                            end: isAtNextEntrance1 ? nextTube.threshold2 : nextTube.threshold1,
-                            exit: isAtNextEntrance1 ? nextTube.entrance2 : nextTube.entrance1
-                        });
-
-                        currentEntrance = currentTube.position;
-                        currentTube = nextTube.tube;
-
-                    }
-
-                    if( failSafe > 29 ) {
-                        newTubeFlow = null;
-                    }
-
-                    //console.log('traversing',newTubeFlow.length - 1,'tubes');
-
-                    newState = {
-                        ...newState,
-                        playerSnapped,
-                        playerContact: newPlayerContact,
-                        startTime: elapsedTime,
-                        tubeFlow: newTubeFlow,
-                        currentFlowPosition: newTubeFlow[ 0 ].start,
-                        tubeIndex: 0
-                    };
-
-                }
-
-            }
-
-        }
-
-        const isFlowing = this.state.tubeFlow || newTubeFlow;
-
-        if( this.state.tubeFlow ) {
-
-            let { startTime, tubeIndex } = this.state;
-            const { tubeFlow } = this.state;
-
-            const isLastTube = tubeIndex === tubeFlow.length - 1;
-
-            let currentPercent = ( ( elapsedTime - startTime ) * 1000 ) / ( tubeIndex === 0 ?
-                tubeStartTravelDurationMs : tubeTravelDurationMs
-            ) * ( this.state.debug ? 0.1 : 1 );
-            let isDone;
-
-            if( currentPercent >= 1 ) {
-
-                //console.log('at end of tube...');
-
-                if( isLastTube ) {
-                    //console.log('FREE');
-                    const lastTube = tubeFlow[ tubeIndex ];
-
-                    isDone = true;
-                    newState = {
-                        ...newState,
-                        tubeFlow: null,
-                        currentFlowPosition: null
-                    };
-                    resetBodyPhysics( playerBody, [
-                        lastTube.exit.x,
-                        lastTube.exit.z
-                    ]);
-                } else {
-                    //console.log('NEXT_TUBE');
-                    tubeIndex++;
-                    startTime = elapsedTime;
-                    currentPercent = 0;
-                }
-
-            }
-
-            const currentTube = tubeFlow[ tubeIndex ];
-
-            if( !isDone ) {
-
-                let currentFlowPosition;
-
-                // For a bent tube, we first tween to the middle position, then
-                // tween to the end position. Our percent counter goes from 0
-                // to 1, so scale it to go from 0-1, 0-1
-                if( currentTube.middle ) {
-                    const pastMiddle = currentPercent >= 0.5;
-                    currentFlowPosition = lerpVectors(
-                        pastMiddle ? currentTube.middle : currentTube.start,
-                        pastMiddle ? ( isLastTube ?
-                            currentTube.exit :
-                            currentTube.end
-                        ) : currentTube.middle,
-                        ( currentPercent * 2 ) % 1
-                    );
-                } else {
-                    currentFlowPosition = lerpVectors(
-                        currentTube.start, isLastTube ?
-                            currentTube.exit :
-                            currentTube.end,
-                        currentPercent
-                    );
-                }
-
-                newState = {
-                    ...newState,
-                    currentFlowPosition, tubeIndex, startTime, currentPercent,
-                    modPercent: ( currentPercent * 2 ) % 1,
-                };
-                debuggingReplay.push({ ...this.state, ...newState, debug: true });
-
-            }
-
-        }
-
-        if( !isFlowing ) {
-
-            if( ( isRight && playerVelocity[ 0 ] < velocityMax ) ||
-                    ( isLeft && playerVelocity[ 0 ] > -velocityMax ) ) {
-
-                playerVelocity[ 0 ] = lerp( playerVelocity[ 0 ], directionX * velocityMoveMax, 0.1 );
-
-            } else {
-
-                playerVelocity[ 0 ] = lerp( playerVelocity[ 0 ], 0, 0.2 );
-
-            }
-
-            if( keysDown.isPressed( 'SPACE' ) && this._canJump( world, playerBody ) ) {
-
-                newState.jumpedOnThisFrame = true;
-                playerVelocity[ 1 ] = -Math.sqrt( 1.5 * 4 * 9.8 * playerRadius );
-
-            }
-
-            playerVelocity[ 0 ] = Math.max(
-                Math.min( playerVelocity[ 0 ], velocityMax ),
-                -velocityMax
-            );
-            playerVelocity[ 1 ] = Math.max(
-                Math.min( playerVelocity[ 1 ], velocityMax ),
-                -velocityMax
-            );
-
-        }
-
-        // Step the physics world
-        world.step( 1 / 60, delta, 3 );
-
-        return newState;
+        setUpPhysics( nextProps, newPosition2D );
 
     }
 
@@ -1006,62 +237,14 @@ export default class GameRenderer extends Component {
 
     }
 
-    _createPlayerBody( position:Array, radius:number, density:number ) {
+    _onUpdate( gameState, elapsedTime, delta, keysDown ) {
 
-        const playerBody = new p2.Body({
-            mass: getSphereMass( density, radius ),
-            fixedRotation: true,
-            position
-        });
+        const { world, playerBody } = gameState;
 
-        const playerShape = new p2.Circle({
-            material: this.playerMaterial,
-            radius
-        });
-
-        playerBody.addShape( playerShape );
-
-        return playerBody;
-
-    }
-
-    scalePlayer( playerRadius, playerPosition, playerDensity, entityId, currentLevelId, isShrinking ) {
-
-        const multiplier = isShrinking ? 0.5 : 2;
-        const newRadius = multiplier * playerRadius;
-        const radiusDiff = playerRadius - newRadius;
-
-        this.world.removeBody( this.playerBody );
-
-        const newPlayerBody = this._createPlayerBody(
-            [
-                playerPosition.x,
-                playerPosition.z + radiusDiff
-            ],
-            newRadius,
-            playerDensity,
-        );
-
-        this.world.addBody( newPlayerBody );
-
-        this.playerBody = newPlayerBody;
-
-        // Reset contact points
-        this.setState({ playerContact: {} });
-
-        this.props.scalePlayer( currentLevelId, entityId, multiplier );
-
-        return radiusDiff;
-
-    }
-
-    _onUpdate( elapsedTime, delta, keysDown ) {
-
-        if( !this.world ) {
+        if( !world ) {
             return;
         }
 
-        const { playerBody } = this;
         const { playerRadius, paused } = this.props;
         const { currentFlowPosition, } = this.state;
 
@@ -1070,9 +253,10 @@ export default class GameRenderer extends Component {
 
         // In any state, (paused, etc), child components need the updaed time
         const baseState = {
-            keysDown, cameraFov,
+            cameraFov,
             playerPositionV3: playerPosition,
-            time: elapsedTime
+            time: elapsedTime,
+            delta,
         };
 
         if( paused ) {
@@ -1080,33 +264,30 @@ export default class GameRenderer extends Component {
             return;
         }
 
-        // needs to be called before _getMeshStates
-        const newPhysicsState = this._updatePhysics( elapsedTime, delta, keysDown );
-
-        const newState = {
-            ...baseState,
-            ...newPhysicsState
-        };
-
-        newState.movableEntities = this._getMeshStates( this.physicsBodies );
-        newState.plankEntities = this._getPlankStates( this.plankData );
-        newState.anchorEntities = this._getAnchorStates( this.plankConstraints );
-
-        // Apply the middleware
-        const reducedState = applyMiddleware(
-            this.reducerActions, this.props, this.state, newState,
-            gameKeyPressReducer, tourReducer, advanceLevelReducer, zoomReducer,
-            debugReducer, entityInteractionReducer, playerScaleReducer,
-            defaultCameraReducer, playerAnimationReducer, speechReducer,
+        // Apply the middleware. Will reduce gameState in place :(
+        applyMiddleware(
+            keysDown, this.reducerActions, this.props, gameState, baseState,
+            physicsReducer, gameKeyPressReducer, tourReducer,
+            advanceLevelReducer, zoomReducer, debugReducer,
+            entityInteractionReducer, playerScaleReducer, defaultCameraReducer,
+            playerAnimationReducer, speechReducer,
         );
 
-        this.setState( reducedState );
+        // Maybe worth moving into reducers?
+        this.setState({
+            movableEntities: this._getMeshStates( this.physicsBodies ),
+            plankEntities: this._getPlankStates( this.plankData ),
+            anchorEntities: this._getAnchorStates( this.plankConstraints ),
+        });
 
     }
 
     render() {
 
-        if( !this.world ) {
+        const { gameState, } = this.props;
+        const { world, playerContact, } = gameState;
+
+        if( !world ) {
 
             return <object3D />;
 
@@ -1116,16 +297,15 @@ export default class GameRenderer extends Component {
             movableEntities, time, cameraPosition, cameraPositionZoomOut,
             cameraPositionZoomIn, currentFlowPosition, debug, touring,
             cameraTourTarget, entrance1, entrance2, tubeFlow, tubeIndex,
-            currentScalePercent, radiusDiff, currentTransitionPosition,
-            currentTransitionTarget, plankEntities, anchorEntities,
-            playerContact, scalingOffsetZ, adjustedPlayerScale, playerRotation,
-            playerScaleEffectsEnabled, playerScaleEffectsVisible,
-            percentMouthOpen, rightEyeRotation, leftEyeRotation,
+            currentTransitionPosition, currentTransitionTarget, plankEntities,
+            anchorEntities, scalingOffsetZ, adjustedPlayerScale,
+            playerRotation, playerScaleEffectsEnabled,
+            playerScaleEffectsVisible, rightEyeRotation, leftEyeRotation,
             rightLidRotation, leftLidRotation, headAnimations, legAnimations,
             tailAnimations, eyeMorphTargets, tailRotation, tailPosition,
             // TODO: you realize that upper level gamegui which shows
             // text bubbles needs to read this shit :X
-            textIsVisible, visibleText, textOpenPercent,
+            //textIsVisible, visibleText, textOpenPercent,
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {

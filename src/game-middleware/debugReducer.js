@@ -1,15 +1,18 @@
-import KeyCodes from '../helpers/KeyCodes';
-import THREE from 'three';
 
-export default function debugReducer( actions, props, oldState, currentState, next ) {
+export default function debugReducer(
+    keysDown:Object,
+    actions:Object,
+    props:Object,
+    oldState:Object,
+    currentState:Object,
+    next:Function
+) {
 
     const { debug } = oldState;
 
-    const { scalePlayer } = actions;
-
     const { playerRadius, playerDensity, currentLevelId, } = props;
 
-    const { keysDown, playerPositionV3, time, } = currentState;
+    const { playerPositionV3, time, } = currentState;
 
     const newState = {};
 
