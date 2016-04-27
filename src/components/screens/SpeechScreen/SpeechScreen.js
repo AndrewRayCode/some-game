@@ -8,14 +8,17 @@ const tubeScale = new Vector3( 0.9, 0.9, 0.2 );
 const rotationAngle = 0.09;
 const rotationSpeed = 1.5;
 
+const tailRotation = new Euler( 0, 0, THREE.Math.degToRad( -60 ) );
 const avatarRotation = new Euler( 0, Math.PI / 2, -1.0 );
 
 const cameraPosition = new Vector3( 0, 8, 0 );
 const lookAt = new Vector3( 0, 0, 0 );
 const cameraFov = 75;
 
+const circleRotation = new Euler( 0, -0.5, 0 );
 const circleScale = new Vector3( 1, 1, 1 ).multiplyScalar( 1.1 );
 
+const avatarRadius = 0.65;
 const avatarDistance = 12;
 const avatarOffset = {
     x: 70,
@@ -23,11 +26,11 @@ const avatarOffset = {
 };
 
 const wreathRotation = new Euler( Math.PI / 2, 0, 0 );
-const wreathScale = new Vector3( 1, 1, 1 ).multiplyScalar( 2.2 );
+const wreathScale = new Vector3( 1, 1, 1 ).multiplyScalar( 2.6 );
 const wreathSpeed = 0.05;
 
-const mouthOpenCloseSpeedMs = 1500;
-const mouthOpenPercent = 0.8;
+const mouthOpenCloseSpeedMs = 1100;
+const mouthOpenPercent = 0.9;
 
 const localPlayerOffset = new Vector3( 0.1, 0, 0 );
 
@@ -106,11 +109,7 @@ export default class SpeechScreen extends Component {
                 position={ projectedAvatarPosition }
             >
                 <group
-                    rotation={ new Euler(
-                        rotationAngle * Math.sin( time * rotationSpeed ),
-                        rotationAngle * Math.cos( time * rotationSpeed ),
-                        0,
-                    ) }
+                    rotation={ circleRotation }
                     scale={ circleScale }
                 >
                     <mesh
@@ -131,21 +130,15 @@ export default class SpeechScreen extends Component {
                             resourceId="wreathMaterial"
                         />
                     </mesh>
-                    {/*<Mesh
-                        scale={ tubeScale }
-                        rotation={ tubeRotation }
-                        meshName="genericTube"
-                        assets={ assets }
-                        materialId="white"
-                    />*/}
                 </group>
                 <Player
                     materialId="glowTextureFace"
                     assets={ assets }
                     position={ localPlayerOffset }
                     rotation={ avatarRotation }
-                    radius={ 0.5 }
+                    radius={ avatarRadius }
                     time={ time }
+                    tailRotation={ tailRotation }
                     playerTexture={ playerTexture }
                     playerTextureLegs={ playerTextureLegs }
                     headAnimations={ headAnimations }
