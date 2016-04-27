@@ -3,11 +3,6 @@ import THREE, { Euler, Vector3, } from 'three';
 import { Mesh, Text, SelectableMenu, Player } from 'components';
 import { frac } from 'helpers/Utils';
 
-const tubeRotation = new Euler( THREE.Math.degToRad( 90 ), 0, 0 );
-const tubeScale = new Vector3( 0.9, 0.9, 0.2 );
-const rotationAngle = 0.09;
-const rotationSpeed = 1.5;
-
 const tailRotation = new Euler( 0, 0, THREE.Math.degToRad( -60 ) );
 const avatarRotation = new Euler( 0, Math.PI / 2, -1.0 );
 
@@ -29,16 +24,12 @@ const wreathRotation = new Euler( Math.PI / 2, 0, 0 );
 const wreathScale = new Vector3( 1, 1, 1 ).multiplyScalar( 2.6 );
 const wreathSpeed = 0.05;
 
-const mouthOpenCloseSpeedMs = 1100;
-const mouthOpenPercent = 0.9;
+const mouthOpenCloseSpeedMs = 1000;
+const mouthOpenPercent = 1.0;
 
 const localPlayerOffset = new Vector3( 0.1, 0, 0 );
 
 const sceneOffset = new Vector3( 100, 100, 100 );
-
-const bgRotation = new Euler( -Math.PI / 2, 0, Math.PI / 2 );
-const bgPosition = new Vector3( 0, -2, 0 );
-const bgScale = new Vector3( 18, 18, 18 );
 
 export default class SpeechScreen extends Component {
     
