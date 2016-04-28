@@ -5,18 +5,19 @@ import THREE from 'three';
 import { connect } from 'react-redux';
 import { asyncConnect } from 'redux-async-connect';
 import { bindActionCreators } from 'redux';
+import { createSelector } from 'reselect';
 import {
     areBooksLoaded, loadAllBooks, deserializeLevels
-} from '../../redux/modules/editor';
-import { loadAllAssets } from '../../redux/modules/assets';
+} from 'redux/modules/editor';
+import { loadAllAssets } from 'redux/modules/assets';
 import {
-    scalePlayer, advanceChapter, startGame, stopGame, restartChapter
-} from '../../redux/modules/game';
+    scalePlayer, advanceChapter, startGame, stopGame, restartChapter,
+} from 'redux/modules/game';
 
 import { getSphereMass, without, toScreenPosition } from 'helpers/Utils';
 import KeyCodes from 'helpers/KeyCodes';
 
-import GameRenderer from './GameRenderer';
+import { GameRenderer } from 'containers';
 import {
     TitleScreen, GameResources, PausedScreen, ConfirmRestartScreen, Kbd,
     TransitionScreen, ConfirmMenuScreen, SpeechBubble, SpeechScreen,
@@ -53,7 +54,6 @@ const bubbleOffset = 40;
     state => {
 
         const {
-            gameState,
             entities: allEntities,
             chapters: allChapters,
             levels, books, chapters, playerMaterialId,
@@ -73,7 +73,6 @@ const bubbleOffset = 40;
                 books: state.books,
                 chapters: state.chapters,
                 originalLevels, originalEntities, fonts, letters, assets,
-                gameState,
             };
 
         }
@@ -206,7 +205,7 @@ const bubbleOffset = 40;
         }
 
         return {
-            gameState, levels, currentLevel, currentLevelId, currentChapterId,
+            levels, currentLevel, currentLevelId, currentChapterId,
             currentLevelAllEntities, currentLevelStaticEntities, allEntities,
             nextChaptersEntities, assets, fonts, letters, originalLevels,
             originalEntities, books, chapters,
@@ -238,7 +237,7 @@ const bubbleOffset = 40;
     },
     dispatch => bindActionCreators({
         scalePlayer, advanceChapter, loadAllAssets, deserializeLevels,
-        startGame, stopGame, restartChapter
+        startGame, stopGame, restartChapter,
     }, dispatch )
 )
 export default class GameGUI extends Component {
@@ -482,7 +481,7 @@ export default class GameGUI extends Component {
 
     _onRenderUpdate( renderer ) {
 
-        const { gameState, } = this.props;
+        const { gameState, } = Mediator;
 
         if( gameState && !gameState.renderer ) {
 
@@ -558,7 +557,7 @@ export default class GameGUI extends Component {
 
     onBeforeRender() {
 
-        const { gameState, } = this.props;
+        const { gameState, } = Mediator;
 
         if( gameState && gameState.renderer ) {
             gameState.renderer.clearDepth();
@@ -568,13 +567,15 @@ export default class GameGUI extends Component {
 
     render() {
 
+        const { gameState, } = Mediator;
+
         const {
             fps, mouseInput, clickable, paused, confirmRestart, confirmMenu,
         } = this.state;
 
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
-            assets, gameState,
+            assets,
         } = this.props;
 
         // Game might not be started yet?

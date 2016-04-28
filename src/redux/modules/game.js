@@ -1,4 +1,5 @@
-import THREE from 'three';
+import THREE, { Vector3, } from 'three';
+import Mediator from 'helpers/Mediator';
 
 const playerRadius = 0.45;
 const playerDensity = 1000; // kg / m^3
@@ -20,7 +21,7 @@ function findPlayerPosition( levels, chapters, entities, chapterId ) {
     return ( ( levels[ chapters[ chapterId ].levelId ].entityIds
         .map( id => entities[ id ] )
         .find( entity => entity.type === 'player' ) || {}
-    ).position || new THREE.Vector3( 0, 1.5, 0 ) ).clone();
+    ).position || new Vector3( 0, 1.5, 0 ) ).clone();
 
 }
 
@@ -66,14 +67,14 @@ function convertOriginalEntitiesToGameEntities( originalEntities ) {
 
 }
 
-const defaultGameState = {
+const initialGameReducerState = {
     playerRadius, playerDensity, pushyDensity,
     playerScale: 1,
     entities: {},
     levels: {}
 };
 
-export function game( state = defaultGameState, action = {} ) {
+export function game( state = initialGameReducerState, action = {} ) {
 
     const {
         originalEntities, originalLevels, chapters, books,
@@ -96,8 +97,6 @@ export function game( state = defaultGameState, action = {} ) {
 
                 playerPosition: findPlayerPosition( originalLevels, chapters, originalEntities, chapterId ),
 
-                // TODO: Special?
-                gameState: {}
             };
 
         case RESTART_CHAPTER:
@@ -112,8 +111,8 @@ export function game( state = defaultGameState, action = {} ) {
                 entities: convertOriginalEntitiesToGameEntities( originalEntities ),
 
                 playerPosition: findPlayerPosition( originalLevels, chapters, originalEntities, chapterId ),
-                playerRadius: defaultGameState.playerRadius,
-                playerScale: defaultGameState.playerScale,
+                playerRadius: initialGameReducerState.playerRadius,
+                playerScale: initialGameReducerState.playerScale,
             };
 
         case GAME_SELECT_CHAPTER:
@@ -144,7 +143,7 @@ export function game( state = defaultGameState, action = {} ) {
             };
 
         case STOP_GAME:
-            return defaultGameState;
+            return initialGameReducerState;
 
         default:
             return state;
@@ -199,7 +198,18 @@ export function gameBookReducer( state = defaultBookState, action = {} ) {
 
 }
 
+// Because we're mutating this at runtime, for now, on a new game, recreate it
+const initialGameState = () => ({
+    cameraPosition: new Vector3( 0, 0, 0 ),
+});
+
+function resetGameState() {
+    // TODO: Lord
+    Mediator.gameState = initialGameState();
+}
+
 export function startGame( bookId, chapterId, originalLevels, originalEntities, books, chapters ) {
+
     return {
         type: START_GAME,
         bookId, chapterId, originalLevels, originalEntities, chapters, books
@@ -207,6 +217,9 @@ export function startGame( bookId, chapterId, originalLevels, originalEntities, 
 }
 
 export function restartChapter( chapterId, originalEntities, originalLevels, chapters, books ) {
+
+    resetGameState();
+
     return {
         type: RESTART_CHAPTER,
         restartBusterId: Date.now(),

@@ -441,7 +441,10 @@ export function applyMiddleware(
 
     };
 
-    return next( initialState );
+    return {
+        ...oldState,
+        ...next( initialState ),
+    };
 
 }
 

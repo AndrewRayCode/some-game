@@ -6,6 +6,7 @@ import {
     getCameraDistanceToPlayer, lookAtVector, p2ToV3, applyMiddleware,
     p2AngleToEuler,
 } from 'helpers/Utils';
+import Mediator from 'helpers/Mediator';
 import {
     gameKeyPressReducer, tourReducer, zoomReducer, entityInteractionReducer,
     playerScaleReducer, debugReducer, advanceLevelReducer,
@@ -39,16 +40,18 @@ export default class GameRenderer extends Component {
         
         const {
             playerPosition, playerScale, playerRadius, onPause, advanceChapter,
-            onShowConfirmMenuScreen, onShowConfirmRestartScreen, gameState,
+            onShowConfirmMenuScreen, onShowConfirmRestartScreen,
             scalePlayer,
         } = props;
 
-        this.state = { touring: false, };
+        this.state = {};
 
-        this._onUpdate = this._onUpdate.bind( this, gameState );
+        this._onUpdate = this._onUpdate.bind( this );
         this._getMeshStates = this._getMeshStates.bind( this );
         this._getPlankStates = this._getPlankStates.bind( this );
         this._getAnchorStates = this._getAnchorStates.bind( this );
+
+        const { gameState, } = Mediator;
 
         // Things to pass to reducers so they can call them
         gameState.reducerActions = {
@@ -62,7 +65,7 @@ export default class GameRenderer extends Component {
 
     componentDidMount() {
 
-        const { gameState, } = this.props;
+        const { gameState, } = Mediator;
         setUpWorld( gameState );
 
         setUpPhysics( gameState, this.props );
@@ -78,8 +81,8 @@ export default class GameRenderer extends Component {
     // Don't forget to pass down any of these props from GameGUI!
     componentWillReceiveProps( nextProps ) {
 
-        const { gameState, } = nextProps;
-        const { world, } = gameState;
+        const { gameState, } = Mediator;
+        const { world, } = gameState || {};
 
         if( nextProps.recursionBusterId !== this.props.recursionBusterId ) {
 
@@ -120,7 +123,7 @@ export default class GameRenderer extends Component {
 
     transitionFromLastChapterToNextChapter( nextProps ) {
 
-        const { gameState, } = this.props;
+        const { gameState, } = Mediator;
         const {
             cameraPosition, currentTransitionPosition
         } = gameState;
@@ -229,15 +232,16 @@ export default class GameRenderer extends Component {
 
     }
 
-    _onUpdate( gameState, elapsedTime, delta, keysDown ) {
+    _onUpdate( elapsedTime, delta, keysDown ) {
 
+        const { gameState, } = Mediator;
         const { world, playerBody } = gameState;
 
         if( !world ) {
             return;
         }
 
-        const { playerRadius, paused } = this.props;
+        const { playerRadius, paused, } = this.props;
         const { currentFlowPosition, } = this.state;
 
         const playerPosition = currentFlowPosition ||
@@ -257,7 +261,7 @@ export default class GameRenderer extends Component {
         }
 
         // Apply the middleware. Will reduce gameState in place :(
-        applyMiddleware(
+        Mediator.gameState = applyMiddleware(
             keysDown, gameState.reducerActions, this.props, gameState, baseState,
             physicsReducer, gameKeyPressReducer, tourReducer,
             advanceLevelReducer, zoomReducer, debugReducer,
@@ -267,34 +271,34 @@ export default class GameRenderer extends Component {
 
         // Maybe worth moving into reducers?
         this.setState({
-            movableEntities: this._getMeshStates( gameState.physicsBodies ),
-            plankEntities: this._getPlankStates( gameState.plankData ),
-            anchorEntities: this._getAnchorStates( gameState.plankConstraints ),
+            movableEntities: this._getMeshStates( Mediator.gameState.physicsBodies ),
+            plankEntities: this._getPlankStates( Mediator.gameState.plankData ),
+            anchorEntities: this._getAnchorStates( Mediator.gameState.plankConstraints ),
         });
 
     }
 
     render() {
 
-        const { gameState, } = this.props;
-        const { world, playerContact, playerBody, } = gameState;
+        const { gameState, } = Mediator;
+
+        const {
+            world, playerContact, playerBody, time, cameraPosition,
+            cameraPositionZoomOut, cameraPositionZoomIn, currentFlowPosition,
+            debug, touring, cameraTourTarget, entrance1, entrance2, tubeFlow,
+            tubeIndex, currentTransitionPosition, currentTransitionTarget,
+            scalingOffsetZ, adjustedPlayerScale, playerRotation,
+            playerScaleEffectsEnabled, playerScaleEffectsVisible,
+            rightEyeRotation, leftEyeRotation, rightLidRotation,
+            leftLidRotation, headAnimations, legAnimations, tailAnimations,
+            eyeMorphTargets, tailRotation, tailPosition,
+        } = gameState;
 
         if( !world ) {
 
             return <object3D />;
 
         }
-
-        const {
-            time, cameraPosition, cameraPositionZoomOut, cameraPositionZoomIn,
-            currentFlowPosition, debug, touring, cameraTourTarget, entrance1,
-            entrance2, tubeFlow, tubeIndex, currentTransitionPosition,
-            currentTransitionTarget, scalingOffsetZ, adjustedPlayerScale,
-            playerRotation, playerScaleEffectsEnabled,
-            playerScaleEffectsVisible, rightEyeRotation, leftEyeRotation,
-            rightLidRotation, leftLidRotation, headAnimations, legAnimations,
-            tailAnimations, eyeMorphTargets, tailRotation, tailPosition,
-        } = gameState;
 
         const {
             movableEntities, plankEntities, anchorEntities,
@@ -361,27 +365,25 @@ export default class GameRenderer extends Component {
                 time={ time }
             />
 
-            <EntityGroup
+            { movableEntities ? <EntityGroup
                 paused={ paused }
-                playerBody={ this.playerBody }
-                world={ this.world }
+                playerBody={ playerBody }
+                world={ world }
                 assets={ assets }
                 shaders={ shaders }
                 debug={ debug }
-                ref="staticEntities"
                 playerRadius={ playerRadius }
                 entities={ movableEntities }
                 time={ time }
-            />
+            /> : null }
 
             <EntityGroup
                 paused={ paused }
-                playerBody={ this.playerBody }
-                world={ this.world }
+                playerBody={ playerBody }
+                world={ world }
                 assets={ assets }
                 shaders={ shaders }
                 debug={ debug }
-                ref="staticEntities"
                 playerRadius={ playerRadius }
                 entities={ currentLevelRenderableEntitiesArray }
                 plankEntities={ plankEntities }
@@ -498,8 +500,8 @@ export default class GameRenderer extends Component {
                     resourceId="exitMaterial"
                 />
             </mesh> }
-            { debug && this.state.playerSnapped && <mesh
-                position={this.state.playerSnapped }
+            { debug && gameState.playerSnapped && <mesh
+                position={gameState.playerSnapped }
                 scale={ new THREE.Vector3( 0.1, 3.5, 0.1 ).multiplyScalar( playerScale ) }
             >
                 <geometryResource
@@ -509,8 +511,8 @@ export default class GameRenderer extends Component {
                     resourceId="exitMaterial"
                 />
             </mesh> }
-            { debug && this.state.playerTowardTube && <mesh
-                position={this.state.playerTowardTube }
+            { debug && gameState.playerTowardTube && <mesh
+                position={gameState.playerTowardTube }
                 scale={ new THREE.Vector3( 0.1, 3.5, 0.1 ).multiplyScalar( playerScale ) }
             >
                 <geometryResource
@@ -538,7 +540,7 @@ export default class GameRenderer extends Component {
 
             }) }
 
-            { debug && this.world.narrowphase.contactEquations.map( ( contact, index ) => {
+            { debug && world.narrowphase.contactEquations.map( ( contact, index ) => {
                 const { contactPointA, bodyA } = contact;
                 return <mesh
                     scale={ new THREE.Vector3( playerScale * 0.1, playerScale * 3, playerScale * 0.1 ) }
