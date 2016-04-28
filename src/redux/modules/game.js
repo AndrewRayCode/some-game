@@ -228,7 +228,11 @@ export function advanceChapter( nextChapter ) {
     };
 }
 
-export function scalePlayer( levelId, powerupIdToRemove, multiplier ) {
+export function scalePlayer(
+    levelId:string,
+    powerupIdToRemove:any,
+    multiplier:any
+) {
     return {
         type: SCALE_PLAYER,
         levelId, powerupIdToRemove, multiplier

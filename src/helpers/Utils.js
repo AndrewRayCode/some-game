@@ -303,7 +303,7 @@ export function snapVectorAngleTo( v3, snapAngle ) {
 
 }
 
-export function lookAtVector( sourcePoint, destPoint ) {
+export function lookAtVector( sourcePoint:Vector3, destPoint:Vector3 ) {
 
     return new Quaternion().setFromRotationMatrix(
         new Matrix4().lookAt( sourcePoint, destPoint, Cardinality.UP )

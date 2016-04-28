@@ -161,11 +161,11 @@ export function setUpWorld( gameState:Object ) {
     world.addContactMaterial( playerToWallContact );
     world.addContactMaterial( pushyToWallContact );
 
-    gameState.onWorldBeginContact = gameState.onWorldBeginContact.bind( null, gameState );
-    gameState.onWorldEndContact = gameState.onWorldEndContact.bind( null, gameState );
+    gameState.onWorldBeginContact = onWorldBeginContact.bind( null, gameState );
+    gameState.onWorldEndContact = onWorldEndContact.bind( null, gameState );
 
-    world.on( 'beginContact', onWorldBeginContact );
-    world.on( 'endContact', onWorldEndContact );
+    world.on( 'beginContact', gameState.onWorldBeginContact );
+    world.on( 'endContact', gameState.onWorldEndContact );
 
     gameState.world = world;
     gameState.playerMaterial = playerMaterial;
@@ -174,7 +174,7 @@ export function setUpWorld( gameState:Object ) {
 
 }
 
-export function setUpPhysics( gameState:Object, gameData:Object, playerPositionOverride2D:Array ) {
+export function setUpPhysics( gameState:Object, gameData:Object, playerPositionOverride2D:any ) {
 
     const {
         playerRadius, playerDensity, pushyDensity,
@@ -187,6 +187,7 @@ export function setUpPhysics( gameState:Object, gameData:Object, playerPositionO
     );
 
     const playerBody = createPlayerBody(
+        playerMaterial,
         playerPosition,
         playerRadius,
         playerDensity
@@ -484,7 +485,7 @@ export function scalePlayer(
     playerRadius:number,
     playerPosition:Vector3,
     playerDensity:number,
-    entityId:string,
+    entityId:any,
     currentLevelId:string,
     isShrinking:any
 ) {
@@ -496,6 +497,7 @@ export function scalePlayer(
     gameState.world.removeBody( gameState.playerBody );
 
     const newPlayerBody = createPlayerBody(
+        playerMaterial,
         [
             playerPosition.x,
             playerPosition.z + radiusDiff
@@ -512,7 +514,7 @@ export function scalePlayer(
     gameState.playerContact = {};
 
     // TODO: Fix this side effect
-    gameState.reducerActions.scalePlayerDispatch( currentLevelId, entityId, multiplier );
+    gameState.reducerActions.reduxScalePlayer( currentLevelId, entityId, multiplier );
 
     return radiusDiff;
 

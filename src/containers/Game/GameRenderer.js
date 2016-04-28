@@ -14,7 +14,8 @@ import {
 } from 'game-middleware';
 
 import {
-    setUpPhysics, setUpWorld, emptyWorld, tearDownWorld
+    setUpPhysics, setUpWorld, emptyWorld, tearDownWorld,
+    scalePlayer as scalePlayerAndDispatch,
 } from 'physics-utils';
 
 const gameWidth = 400;
@@ -42,17 +43,8 @@ export default class GameRenderer extends Component {
             scalePlayer,
         } = props;
 
-        this.state = {
-            touring: false,
-            cameraPosition: new THREE.Vector3(
-                playerPosition.x,
-                getCameraDistanceToPlayer( 1 + playerRadius, cameraFov, playerScale ),
-                playerPosition.z
-            ),
-            movableEntities: []
-        };
+        this.state = { touring: false, };
 
-        this._updatePhysics = this._updatePhysics.bind( this );
         this._onUpdate = this._onUpdate.bind( this, gameState );
         this._getMeshStates = this._getMeshStates.bind( this );
         this._getPlankStates = this._getPlankStates.bind( this );
@@ -60,7 +52,8 @@ export default class GameRenderer extends Component {
 
         // Things to pass to reducers so they can call them
         gameState.reducerActions = {
-            scalePlayerAndDispatch: scalePlayer,
+            reduxScalePlayer: scalePlayer,
+            scalePlayerAndDispatch,
             onPause, advanceChapter, onShowConfirmMenuScreen,
             onShowConfirmRestartScreen
         };
@@ -71,7 +64,8 @@ export default class GameRenderer extends Component {
 
         const { gameState, } = this.props;
         setUpWorld( gameState );
-        setUpPhysics( gameState );
+
+        setUpPhysics( gameState, this.props );
 
     }
 
@@ -94,17 +88,16 @@ export default class GameRenderer extends Component {
         } else if( nextProps.restartBusterId !== this.props.restartBusterId ) {
 
             emptyWorld( world );
-            setUpPhysics( nextProps );
+            setUpPhysics( gameState, nextProps );
 
             const { playerScale, playerPosition } = nextProps;
 
-            this.setState({
-                cameraPosition: new THREE.Vector3(
-                    playerPosition.x,
-                    getCameraDistanceToPlayer( playerPosition.y, cameraFov, playerScale ),
-                    playerPosition.z
-                ),
-            });
+            // TODO: Resetting here should be done in a reducer
+            gameState.cameraPosition = THREE.Vector3(
+                playerPosition.x,
+                getCameraDistanceToPlayer( playerPosition.y, cameraFov, playerScale ),
+                playerPosition.z
+            );
 
         }
 
@@ -127,10 +120,10 @@ export default class GameRenderer extends Component {
 
     transitionFromLastChapterToNextChapter( nextProps ) {
 
+        const { gameState, } = this.props;
         const {
             cameraPosition, currentTransitionPosition
-        } = this.state;
-        const { gameState, } = this.props;
+        } = gameState;
 
         const { previousChapterNextChapter } = nextProps;
         const {
@@ -140,15 +133,14 @@ export default class GameRenderer extends Component {
 
         const multiplier = scale.x < 1 ? 8 : 0.125;
 
-        this.setState({
-            cameraPosition: new THREE.Vector3(
-                ( cameraPosition.x - chapterPosition.x ) * multiplier,
-                getCameraDistanceToPlayer( 1 + nextProps.playerRadius, cameraFov, nextProps.playerScale ),
-                ( cameraPosition.z - chapterPosition.z ) * multiplier
-            ),
-            currentTransitionPosition: null,
-            currentTransitionTarget: null,
-        });
+        // TODO: Same here
+        gameState.cameraPosition = new THREE.Vector3(
+            ( cameraPosition.x - chapterPosition.x ) * multiplier,
+            getCameraDistanceToPlayer( 1 + nextProps.playerRadius, cameraFov, nextProps.playerScale ),
+            ( cameraPosition.z - chapterPosition.z ) * multiplier
+        );
+        gameState.currentTransitionPosition = null;
+        gameState.currentTransitionTarget = null;
 
         emptyWorld( gameState.world );
 
@@ -266,7 +258,7 @@ export default class GameRenderer extends Component {
 
         // Apply the middleware. Will reduce gameState in place :(
         applyMiddleware(
-            keysDown, this.reducerActions, this.props, gameState, baseState,
+            keysDown, gameState.reducerActions, this.props, gameState, baseState,
             physicsReducer, gameKeyPressReducer, tourReducer,
             advanceLevelReducer, zoomReducer, debugReducer,
             entityInteractionReducer, playerScaleReducer, defaultCameraReducer,
@@ -275,9 +267,9 @@ export default class GameRenderer extends Component {
 
         // Maybe worth moving into reducers?
         this.setState({
-            movableEntities: this._getMeshStates( this.physicsBodies ),
-            plankEntities: this._getPlankStates( this.plankData ),
-            anchorEntities: this._getAnchorStates( this.plankConstraints ),
+            movableEntities: this._getMeshStates( gameState.physicsBodies ),
+            plankEntities: this._getPlankStates( gameState.plankData ),
+            anchorEntities: this._getAnchorStates( gameState.plankConstraints ),
         });
 
     }
@@ -285,7 +277,7 @@ export default class GameRenderer extends Component {
     render() {
 
         const { gameState, } = this.props;
-        const { world, playerContact, } = gameState;
+        const { world, playerContact, playerBody, } = gameState;
 
         if( !world ) {
 
@@ -294,18 +286,18 @@ export default class GameRenderer extends Component {
         }
 
         const {
-            movableEntities, time, cameraPosition, cameraPositionZoomOut,
-            cameraPositionZoomIn, currentFlowPosition, debug, touring,
-            cameraTourTarget, entrance1, entrance2, tubeFlow, tubeIndex,
-            currentTransitionPosition, currentTransitionTarget, plankEntities,
-            anchorEntities, scalingOffsetZ, adjustedPlayerScale,
+            time, cameraPosition, cameraPositionZoomOut, cameraPositionZoomIn,
+            currentFlowPosition, debug, touring, cameraTourTarget, entrance1,
+            entrance2, tubeFlow, tubeIndex, currentTransitionPosition,
+            currentTransitionTarget, scalingOffsetZ, adjustedPlayerScale,
             playerRotation, playerScaleEffectsEnabled,
             playerScaleEffectsVisible, rightEyeRotation, leftEyeRotation,
             rightLidRotation, leftLidRotation, headAnimations, legAnimations,
             tailAnimations, eyeMorphTargets, tailRotation, tailPosition,
-            // TODO: you realize that upper level gamegui which shows
-            // text bubbles needs to read this shit :X
-            //textIsVisible, visibleText, textOpenPercent,
+        } = gameState;
+
+        const {
+            movableEntities, plankEntities, anchorEntities,
         } = ( this.state.debuggingReplay ? this.state.debuggingReplay[ this.state.debuggingIndex ] : this.state );
 
         const {
@@ -315,8 +307,6 @@ export default class GameRenderer extends Component {
             assets, shaders, paused, playerMaterialId, playerTexture,
             playerTextureLegs, playerTextureTail,
         } = this.props;
-
-        const { playerBody } = this;
 
         const playerPosition = new THREE.Vector3()
             .copy(

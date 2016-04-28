@@ -35,8 +35,6 @@ import {
     playerTextureTail, playerTextureLegs, playerTexture,
 } from 'ThreeMaterials';
 
-const isSpeech = 1;
-
 const gameWidth = 400;
 const gameHeight = 400;
 const transitionFadeMs = 1000;
@@ -74,10 +72,7 @@ const bubbleOffset = 40;
             return {
                 books: state.books,
                 chapters: state.chapters,
-                originalLevels,
-                originalEntities,
-                fonts, letters,
-                assets,
+                originalLevels, originalEntities, fonts, letters, assets,
                 gameState,
             };
 
@@ -405,7 +400,7 @@ export default class GameGUI extends Component {
             confirmRestartScreen, speechScreen,
         } = refs;
 
-        if( isSpeech && speechScreen ) {
+        if( speechScreen ) {
             return speechScreen.refs.camera;
         } else if( titleScreen ) {
             return titleScreen.refs.camera;
@@ -426,7 +421,6 @@ export default class GameGUI extends Component {
         
         const { mouseInput, } = this.refs;
 
-        const { gameStarted } = this.props;
         const {
             _fps, paused, confirmRestart, transitionFadeStartTime, confirmMenu,
         } = this.state;
@@ -490,7 +484,7 @@ export default class GameGUI extends Component {
 
         const { gameState, } = this.props;
 
-        if( !gameState.renderer ) {
+        if( gameState && !gameState.renderer ) {
 
             gameState.renderer = renderer;
 
@@ -564,9 +558,10 @@ export default class GameGUI extends Component {
 
     onBeforeRender() {
 
-        const { renderer } = this.props.gameState;
-        if( renderer ) {
-            renderer.clearDepth();
+        const { gameState, } = this.props;
+
+        if( gameState && gameState.renderer ) {
+            gameState.renderer.clearDepth();
         }
 
     }
@@ -579,13 +574,16 @@ export default class GameGUI extends Component {
 
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
-            assets,
+            assets, gameState,
         } = this.props;
+
+        // Game might not be started yet?
+        const { textIsVisible, } = gameState || {};
 
         const { gameRenderer, } = this.refs;
 
         const { playerMatrix } = Mediator;
-        const bubblePosition = isSpeech && gameRenderer && playerMatrix ?
+        const bubblePosition = gameRenderer && gameRenderer.refs.camera && playerMatrix ?
             toScreenPosition(
                 gameWidth, gameHeight, playerMatrix, gameRenderer.refs.camera
             ) : null;
@@ -639,7 +637,7 @@ export default class GameGUI extends Component {
                 onBeforeRender={ this.onBeforeRender }
             /> : null }
 
-            { isSpeech ? <viewport
+            { textIsVisible ? <viewport
                 x={ 0 }
                 y={ 0 }
                 width={ gameWidth }
@@ -712,7 +710,7 @@ export default class GameGUI extends Component {
                     />
                 }
 
-                { gameStarted && isSpeech && <SpeechScreen
+                { gameStarted && !paused && textIsVisible && <SpeechScreen
                     ref="speechScreen"
                     assets={ assets }
                     fonts={ fonts }
@@ -787,7 +785,7 @@ export default class GameGUI extends Component {
                     height: gameHeight,
                 }}
             >
-                { isSpeech && bubblePosition ? <SpeechBubble
+                { textIsVisible && bubblePosition ? <SpeechBubble
                     position={ bubblePosition }
                     offset={ bubbleOffset }
                     gameWidth={ gameWidth }

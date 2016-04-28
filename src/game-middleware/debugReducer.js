@@ -25,8 +25,8 @@ export default function debugReducer(
     const minusPressed = keysDown.isFirstPress( '-' );
     if( minusPressed || keysDown.isFirstPress( '=' ) ) {
 
-        const radiusDiff = actions.scalePlayer(
-            playerRadius, playerPositionV3, playerDensity, null,
+        const radiusDiff = actions.scalePlayerAndDispatch(
+            oldState, playerRadius, playerPositionV3, playerDensity, null,
             currentLevelId, minusPressed
         );
 

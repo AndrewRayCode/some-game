@@ -100,7 +100,7 @@ export default function entityInteractionReducer(
             ) {
 
             const isShrinking = entity.type === 'shrink';
-            const radiusDiff = actions.scalePlayer(
+            const radiusDiff = actions.scalePlayerAndDispatch(
                 playerRadius, playerPositionV3, playerDensity, entity.id,
                 currentLevelId, isShrinking
             );

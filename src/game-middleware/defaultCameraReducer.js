@@ -1,5 +1,7 @@
-import THREE from 'three';
+import { Vector3, } from 'three';
 import { lerp, getCameraDistanceToPlayer } from '../helpers/Utils';
+
+const initialCameraPosition = new Vector3( 0, 0, 0 );
 
 export default function defaultCameraReducer(
     keysDown:Object,
@@ -24,15 +26,17 @@ export default function defaultCameraReducer(
     // individually to make the (y) camera zoom to player different
     return next({
         ...currentState,
-        cameraPosition: new THREE.Vector3(
-            lerp( cameraPosition.x, playerPositionV3.x, 0.05 / playerScale ),
-            lerp(
-                cameraPosition.y,
-                getCameraDistanceToPlayer( playerPositionV3.y, cameraFov, playerScale ),
-                0.025 / playerScale,
-            ),
-            lerp( cameraPosition.z, playerPositionV3.z, 0.05 / playerScale ),
-        )
+        cameraPosition: cameraPosition ?
+            new Vector3(
+                lerp( cameraPosition.x, playerPositionV3.x, 0.05 / playerScale ),
+                lerp(
+                    cameraPosition.y,
+                    getCameraDistanceToPlayer( playerPositionV3.y, cameraFov, playerScale ),
+                    0.025 / playerScale,
+                ),
+                lerp( cameraPosition.z, playerPositionV3.z, 0.05 / playerScale )
+            ) :
+            initialCameraPosition,
     });
 
 }
