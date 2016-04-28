@@ -210,6 +210,8 @@ function resetGameState() {
 
 export function startGame( bookId, chapterId, originalLevels, originalEntities, books, chapters ) {
 
+    resetGameState();
+
     return {
         type: START_GAME,
         bookId, chapterId, originalLevels, originalEntities, chapters, books
@@ -217,8 +219,6 @@ export function startGame( bookId, chapterId, originalLevels, originalEntities, 
 }
 
 export function restartChapter( chapterId, originalEntities, originalLevels, chapters, books ) {
-
-    resetGameState();
 
     return {
         type: RESTART_CHAPTER,

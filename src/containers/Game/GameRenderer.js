@@ -51,10 +51,8 @@ export default class GameRenderer extends Component {
         this._getPlankStates = this._getPlankStates.bind( this );
         this._getAnchorStates = this._getAnchorStates.bind( this );
 
-        const { gameState, } = Mediator;
-
         // Things to pass to reducers so they can call them
-        gameState.reducerActions = {
+        Mediator.reducerActions = {
             reduxScalePlayer: scalePlayer,
             scalePlayerAndDispatch,
             onPause, advanceChapter, onShowConfirmMenuScreen,
@@ -234,7 +232,7 @@ export default class GameRenderer extends Component {
 
     _onUpdate( elapsedTime, delta, keysDown ) {
 
-        const { gameState, } = Mediator;
+        const { gameState, reducerActions, } = Mediator;
         const { world, playerBody } = gameState;
 
         if( !world ) {
@@ -262,7 +260,7 @@ export default class GameRenderer extends Component {
 
         // Apply the middleware. Will reduce gameState in place :(
         Mediator.gameState = applyMiddleware(
-            keysDown, gameState.reducerActions, this.props, gameState, baseState,
+            keysDown, reducerActions, this.props, gameState, baseState,
             physicsReducer, gameKeyPressReducer, tourReducer,
             advanceLevelReducer, zoomReducer, debugReducer,
             entityInteractionReducer, playerScaleReducer, defaultCameraReducer,
@@ -282,6 +280,12 @@ export default class GameRenderer extends Component {
 
         const { gameState, } = Mediator;
 
+        if( !gameState || !gameState.world ) {
+
+            return <object3D />;
+
+        }
+
         const {
             world, playerContact, playerBody, time, cameraPosition,
             cameraPositionZoomOut, cameraPositionZoomIn, currentFlowPosition,
@@ -293,12 +297,6 @@ export default class GameRenderer extends Component {
             leftLidRotation, headAnimations, legAnimations, tailAnimations,
             eyeMorphTargets, tailRotation, tailPosition,
         } = gameState;
-
-        if( !world ) {
-
-            return <object3D />;
-
-        }
 
         const {
             movableEntities, plankEntities, anchorEntities,

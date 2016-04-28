@@ -482,6 +482,7 @@ export function canJump( world:Object, body:Object ):bool {
 
 export function scalePlayer(
     gameState:Object,
+    reduxScalePlayer:Function,
     playerRadius:number,
     playerPosition:Vector3,
     playerDensity:number,
@@ -514,7 +515,7 @@ export function scalePlayer(
     gameState.playerContact = {};
 
     // TODO: Fix this side effect
-    gameState.reducerActions.reduxScalePlayer( currentLevelId, entityId, multiplier );
+    reduxScalePlayer( currentLevelId, entityId, multiplier );
 
     return radiusDiff;
 

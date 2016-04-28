@@ -4,12 +4,225 @@ import p2 from 'p2';
 import { connect } from 'react-redux';
 import { asyncConnect } from 'redux-async-connect';
 import { bindActionCreators } from 'redux';
+import { createSelector } from 'reselect';
+
+import { loadAllAssets, } from 'redux/modules/assets';
+import {
+    scalePlayer, advanceChapter, startGame, stopGame, restartChapter,
+} from 'redux/modules/game';
 import {
     areBooksLoaded, loadAllBooks, deserializeLevels
-} from '../../redux/modules/editor';
-import { loadAllAssets } from '../../redux/modules/assets';
+} from 'redux/modules/editor';
+
+import { getSphereMass } from 'helpers/Utils';
 
 import GameGUI from './GameGUI';
+
+// State selectors for createSelector memoization
+const getAllEntities = state => state.game.entities;
+const getAllChapters = state => state.game.chapters;
+const getLevels = state => state.game.levels;
+const getBooks = state => state.books;
+const getChapters = state => state.game.chapters;
+const getPlayerMaterialId = state => state.game.playerMaterialId;
+const getGameChapterData = state => state.gameChapterData;
+const getOriginalLevels = state => state.levels;
+const getOriginalEntities = state => state.entities;
+const getAssets = state => state.assets;
+const getFonts = state => state.fonts;
+const getLetters = state => state.letters;
+const getRestartBusterId = state => state.game.restartBusterId;
+const getRecursionBusterId = state => state.game.recursionBusterId;
+const getPlayerPosition = state => state.game.playerPosition;
+const getPlayerRadius = state => state.game.playerRadius;
+const getPlayerScale = state => state.game.playerScale;
+const getPlayerDensity = state => state.game.playerDensity;
+const getPushyDensity = state => state.game.pushyDensity;
+
+const gameDataSelector = createSelector(
+    [
+        getAllEntities, getAllChapters, getLevels, getBooks, getChapters,
+        getPlayerMaterialId, getGameChapterData, getOriginalLevels,
+        getOriginalEntities, getAssets, getFonts, getLetters,
+        getRestartBusterId, getRecursionBusterId, getPlayerPosition,
+        getPlayerRadius, getPlayerScale, getPlayerDensity, getPushyDensity,
+    ],
+    (
+        allEntities, allChapters, levels, books, chapters, playerMaterialId,
+        gameChapterData, originalLevels, originalEntities, assets, fonts,
+        letters, restartBusterId, recursionBusterId, playerPosition,
+        playerRadius, playerScale, playerDensity, pushyDensity,
+    ) => {
+
+        // No game has been started yet!
+        if( !gameChapterData.currentChapterId ) {
+
+            const x = {
+                books, chapters, originalLevels, originalEntities, fonts,
+                letters, assets,
+            };
+            console.log('returning',x);
+            return x;
+
+        }
+
+        const {
+            previousChapterId, currentChapterId, previousChapterNextChapter
+        } = gameChapterData;
+
+        // Levels and entities
+        const currentChapter = allChapters[ currentChapterId ];
+        const { levelId: currentLevelId } = currentChapter;
+        const currentLevel = levels[ currentLevelId ];
+
+        const {
+            currentLevelAllEntities,
+            currentLevelStaticEntities,
+            currentLevelRenderableEntities,
+            currentLevelMovableEntities,
+            currentLevelTouchyArray,
+            currentLevelBridges,
+        } = currentLevel.entityIds.reduce( ( memo, id ) => {
+
+            const entity = allEntities[ id ];
+            memo.currentLevelAllEntities[ id ] = entity;
+
+            if( entity.type === 'shrink' || entity.type === 'grow' || entity.type === 'finish' ) {
+                memo.currentLevelTouchyArray = [
+                    ...memo.currentLevelTouchyArray, entity
+                ];
+                // needs to go into static to render
+                memo.currentLevelRenderableEntities[ id ] = entity;
+            } else if( entity.movable === true ) {
+                memo.currentLevelMovableEntities[ id ] = entity;
+            // Things like waterfalls with no physical geometry
+            } else if( entity.type === 'waterfall' || entity.type === 'puffer' ) {
+                memo.currentLevelRenderableEntities[ id ] = entity;
+            // bridges?
+            } else if( entity.type === 'bridge' ) {
+                memo.currentLevelBridges[ id ] = entity;
+                memo.currentLevelRenderableEntities[ id ] = entity;
+            // walls, floors, etc
+            } else {
+
+                if( entity.touchable !== false ) {
+                    memo.currentLevelStaticEntities[ id ] = entity;
+                }
+
+                memo.currentLevelRenderableEntities[ id ] = entity;
+            }
+
+            return memo;
+
+        }, {
+            currentLevelBridges: {},
+            currentLevelRenderableEntities: {},
+            currentLevelMovableEntities: {},
+            currentLevelAllEntities: {},
+            currentLevelStaticEntities: {},
+            currentLevelTouchyArray: [],
+        });
+
+        // Books and chapters
+        let previousChapterEntities;
+        let previousChapterEntity;
+        let previousChapterFinishData;
+        let previousChapterFinishEntity;
+        let previousChapter;
+
+        const nextChapters = currentChapter.nextChapters;
+
+        if( previousChapterId ) {
+
+            previousChapter = allChapters[ previousChapterId ];
+
+            const previousLevel = levels[ previousChapter.levelId ];
+            previousChapterEntities = previousLevel.entityIds.map(
+                id => allEntities[ id ]
+            );
+
+            const { position, scale } = previousChapterNextChapter;
+            const isPreviousChapterBigger = scale.x > 1;
+            const multiplier = isPreviousChapterBigger ? 0.125 : 8;
+
+            previousChapterEntity = {
+                scale: new THREE.Vector3(
+                    multiplier, multiplier, multiplier
+                ),
+                position: position
+                    .clone()
+                    .multiply(
+                        new THREE.Vector3( -multiplier, multiplier, -multiplier )
+                    )
+                    .setY( isPreviousChapterBigger ? 0.875 : -7 )
+            };
+
+            previousChapterFinishData = previousLevel.entityIds
+                .map( id => allEntities[ id ] )
+                .find( entity => entity.type === 'finish' );
+
+            previousChapterFinishEntity = {
+                ...previousChapterFinishData,
+                scale: previousChapterFinishData.scale
+                    .clone()
+                    .multiplyScalar( multiplier ),
+                position: previousChapterFinishData.position.clone().add(
+                    previousChapterFinishData.position
+                        .clone()
+                        .multiplyScalar( multiplier )
+                )
+            };
+
+            currentLevelTouchyArray.push( previousChapterFinishEntity );
+
+        }
+
+        // Index all next chapter entities by chapter id
+        let nextChaptersEntities;
+        if( nextChapters ) {
+
+            nextChaptersEntities = nextChapters.reduce(
+                ( memo, nextChapter ) => ({
+                    ...memo,
+                    [ nextChapter.chapterId ]: levels[
+                            allChapters[ nextChapter.chapterId ].levelId
+                        ].entityIds.map( id => allEntities[ id ] )
+                }),
+                {}
+            );
+
+        }
+
+        return {
+            levels, currentLevel, currentLevelId, currentChapterId,
+            currentLevelAllEntities, currentLevelStaticEntities, allEntities,
+            nextChaptersEntities, assets, fonts, letters, originalLevels,
+            originalEntities, books, chapters,
+            currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
+            currentLevelTouchyArray, nextChapters, previousChapterEntities,
+            previousChapterFinishEntity, previousChapterEntity,
+            previousChapter, previousChapterNextChapter,
+            currentLevelMovableEntities,
+            currentLevelMovableEntitiesArray: Object.values( currentLevelMovableEntities ),
+            currentLevelRenderableEntities,
+            currentLevelRenderableEntitiesArray: Object.values( currentLevelRenderableEntities ),
+            currentLevelBridges,
+            currentLevelBridgesArray: Object.values( currentLevelBridges ),
+
+            playerMaterialId,
+            gameStarted: true,
+            restartBusterId: restartBusterId,
+            recursionBusterId: recursionBusterId,
+            playerPosition: playerPosition,
+            playerRadius: playerRadius,
+            playerScale: playerScale,
+            playerDensity: playerDensity,
+            pushyDensity: pushyDensity,
+            playerMass: getSphereMass( playerDensity, playerRadius )
+        };
+
+    }
+);
 
 // Determines server and client side rendering and calling initial data loading
 @asyncConnect([{
@@ -27,9 +240,11 @@ import GameGUI from './GameGUI';
         assetsLoading: state.assetsLoading,
         fonts: state.fonts,
         assets: state.assets,
+        ...gameDataSelector( state ),
     }),
     dispatch => bindActionCreators({
-        loadAllAssets, deserializeLevels,
+        loadAllAssets, deserializeLevels, scalePlayer, advanceChapter,
+        startGame, stopGame, restartChapter,
     }, dispatch )
 )
 export default class GameContainer extends Component {
@@ -58,9 +273,10 @@ export default class GameContainer extends Component {
 
     render() {
 
-        const { fonts, assets } = this.props;
+        const { fonts, assets, books, } = this.props;
 
         if( !__CLIENT__ ||
+                !books ||
                 !( 'Sniglet Regular' in fonts ) ||
                 !( 'charisma' in assets ) ||
                 !( 'charismaLegs' in assets ) ||
@@ -71,7 +287,10 @@ export default class GameContainer extends Component {
             return <div>Loading&hellip;</div>;
         }
 
-        return <GameGUI store={ this.context.store } />;
+        return <GameGUI
+            { ...this.props }
+            store={ this.context.store }
+        />;
 
     }
 

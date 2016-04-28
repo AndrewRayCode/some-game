@@ -14,6 +14,8 @@ export default function debugReducer(
 
     const { playerPositionV3, time, } = currentState;
 
+    const { reduxScalePlayer, } = actions;
+
     const newState = {};
 
     if( keysDown.isFirstPress( '`' ) ) {
@@ -26,8 +28,8 @@ export default function debugReducer(
     if( minusPressed || keysDown.isFirstPress( '=' ) ) {
 
         const radiusDiff = actions.scalePlayerAndDispatch(
-            oldState, playerRadius, playerPositionV3, playerDensity, null,
-            currentLevelId, minusPressed
+            oldState, reduxScalePlayer, playerRadius, playerPositionV3,
+            playerDensity, null, currentLevelId, minusPressed
         );
 
         newState.isShrinking = minusPressed;
