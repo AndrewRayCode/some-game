@@ -1,8 +1,14 @@
 import { Vector3, } from 'three';
 
-const playerRadius = 0.45;
-const playerDensity = 1000; // kg / m^3
-const pushyDensity = 750; // kg / m^3
+import {
+    setUpPhysics, createWorld, emptyWorld, tearDownWorld,
+} from 'physics-utils';
+
+// todo: move these to config file?
+const defaultPlayerRadius = 0.45;
+const defaultPlayerDensity = 1000; // kg / m^3
+const defaultPushyDensity = 750; // kg / m^3
+const cameraFov = 75;
 
 // So the impulse you needs drops to 1/(8 * sqrt(2)) of the original.
 
@@ -13,6 +19,8 @@ const UPDATE_RUNNING_GAME_STATE = 'game/UPDATE_RUNNING_GAME_STATE';
 const RESTART_CHAPTER = 'game/RESTART_CHAPTER';
 const STOP_GAME = 'game/STOP_GAME';
 const SCALE_PLAYER = 'game/SCALE_PLAYER';
+const QUEUE_BEGIN_CONTACT_EVENT = 'game/QUEUE_BEGIN_CONTACT_EVENT';
+const QUEUE_END_CONTACT_EVENT = 'game/QUEUE_END_CONTACT_EVENT';
 
 // Find the player entity for this chapter to use the starting point, or
 // default to the middle
@@ -69,12 +77,13 @@ function convertOriginalEntitiesToGameEntities( originalEntities ) {
 
 const initialGameReducerState = {
     started: false,
-    playerRadius, playerDensity, pushyDensity,
+    playerRadius: defaultPlayerRadius,
+    playerDensity: defaultPlayerDensity,
+    pushyDensity: defaultPushyDensity,
     playerScale: 1,
     entities: {},
     levels: {}
 };
-const cameraFov = 75;
 
 // Because we're mutating this at runtime, for now, on a new game, recreate it
 const initialGameState = () => ({
@@ -104,12 +113,43 @@ export function game( state = initialGameReducerState, action = {} ) {
 
                 playerPosition: findPlayerPosition( originalLevels, chapters, originalEntities, chapterId ),
 
-                gameState: initialGameState(),
+                gameState: {
+                    ...initialGameState(),
+                    ...action.initialPhysicsGameState,
+                    beginContactEventQueue: [],
+                    endContactEventQueue: [],
+                },
 
                 cameraFov,
 
                 started: true,
 
+            };
+
+        // todo: put these in a sub reducer? or take out of gameState and pass
+        // as props. Keep in mind contactEventReducer clears
+        case QUEUE_BEGIN_CONTACT_EVENT:
+            return {
+                ...state,
+                gameState: {
+                    ...state.gameState,
+                    beginContactEventQueue: [
+                        ...state.gameState.beginContactEventQueue,
+                        action.event
+                    ],
+                }
+            };
+        
+        case QUEUE_END_CONTACT_EVENT:
+            return {
+                ...state,
+                gameState: {
+                    ...state.gameState,
+                    endContactEventQueue: [
+                        ...state.gameState.endContactEventQueue,
+                        action.event
+                    ],
+                }
             };
 
         case UPDATE_RUNNING_GAME_STATE:
@@ -225,10 +265,34 @@ export function updateGameState( newGameState:Object ) {
     };
 }
 
-export function startGame( bookId, chapterId, originalLevels, originalEntities, books, chapters ) {
+export function startGame(
+    actions:Object,
+    bookId:Object,
+    chapterId:string,
+    originalLevels:Object,
+    originalEntities:Object,
+    books:Object,
+    chapters:Object,
+    playerPositionV3FromProps:Object,
+    playerRadius:number,
+    playerDensity:number,
+    pushyDensity:number,
+    currentLevelStaticEntitiesArray:Array,
+    currentLevelMovableEntitiesArray:Array,
+    currentLevelBridgesArray:Array,
+) {
+
+    const world = createWorld( actions );
+
+    const initialPhysicsGameState = setUpPhysics(
+        world, null, playerPositionV3FromProps, playerRadius, playerDensity,
+        pushyDensity, currentLevelStaticEntitiesArray,
+        currentLevelMovableEntitiesArray, currentLevelBridgesArray,
+    );
 
     return {
         type: START_GAME,
+        initialPhysicsGameState,
         bookId, chapterId, originalLevels, originalEntities, chapters, books
     };
 }
@@ -256,6 +320,8 @@ export function advanceChapter( nextChapter ) {
     };
 }
 
+// Update all the player data props like radius, and remove the entity we
+// collected from the current level.
 export function scalePlayer(
     levelId:string,
     powerupIdToRemove:any,
@@ -267,6 +333,23 @@ export function scalePlayer(
     };
 }
 
-export function stopGame() {
+export function stopGame( world ) {
+
+    tearDownWorld( world );
     return { type: STOP_GAME, };
+
+}
+
+export function queueBeginContactEvent( event ) {
+    return {
+        type: QUEUE_BEGIN_CONTACT_EVENT,
+        event,
+    };
+}
+
+export function queueEndContactEvent( event ) {
+    return {
+        type: QUEUE_END_CONTACT_EVENT,
+        event,
+    };
 }

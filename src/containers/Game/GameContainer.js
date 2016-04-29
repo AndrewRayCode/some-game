@@ -8,33 +8,28 @@ import { createSelector } from 'reselect';
 import KeyHandler from 'helpers/KeyHandler';
 
 import { loadAllAssets, } from 'redux/modules/assets';
-import { scalePlayer as scalePlayerAndDispatch, } from 'physics-utils';
 import {
     scalePlayer, advanceChapter, startGame, stopGame, restartChapter,
+    queueBeginContactEvent, queueEndContactEvent,
 } from 'redux/modules/game';
 import {
     areBooksLoaded, loadAllBooks, deserializeLevels
 } from 'redux/modules/editor';
 
-import { getSphereMass } from 'helpers/Utils';
+import { getSphereMass, applyMiddleware, } from 'helpers/Utils';
 
 import { updateGameState, } from 'redux/modules/game';
-
-import {
-    applyMiddleware,
-} from 'helpers/Utils';
 
 import {
     pauseGame, unpauseGame, showConfirmMenuScreen, exitToMenuDeny,
     showConfirmRestartScreen, exitToMenuConfirm, confirmRestart, denyRestart,
 } from 'redux/modules/gameScreen';
 
-
 import {
     playerPositionReducer, gameKeyPressReducer, tourReducer, zoomReducer,
     entityInteractionReducer, playerScaleReducer, debugReducer,
     advanceLevelReducer, defaultCameraReducer, playerAnimationReducer,
-    speechReducer, physicsReducer,
+    speechReducer, contactEventReducer, physicsReducer,
 } from 'game-middleware';
 
 import GameGUI from './GameGUI';
@@ -271,6 +266,7 @@ const gameDataSelector = createSelector(
         startGame, stopGame, restartChapter, pauseGame, unpauseGame,
         showConfirmMenuScreen, exitToMenuDeny, showConfirmRestartScreen,
         exitToMenuConfirm, confirmRestart, denyRestart, updateGameState,
+        queueBeginContactEvent, queueEndContactEvent,
     }, dispatch )
 )
 export default class GameContainer extends Component {
@@ -305,13 +301,6 @@ export default class GameContainer extends Component {
         }
 
         this.lastTime = 0;
-
-        this.actions = {
-            reduxScalePlayer: scalePlayer,
-            scalePlayerAndDispatch, advanceChapter, pauseGame, unpauseGame,
-            showConfirmMenuScreen, exitToMenuDeny, showConfirmRestartScreen,
-            exitToMenuConfirm, confirmRestart, denyRestart,
-        };
 
         this.reqAnimId = window.requestAnimationFrame( this.gameLoop );
 
@@ -350,11 +339,13 @@ export default class GameContainer extends Component {
         updateState(
             applyMiddleware(
                 // Note: KeyHandler is updated in UpdateAllObjects for now
-                KeyHandler, this.actions, this.props, gameState, currentState,
-                playerPositionReducer, physicsReducer, gameKeyPressReducer,
-                tourReducer, advanceLevelReducer, zoomReducer, debugReducer,
-                entityInteractionReducer, playerScaleReducer,
-                defaultCameraReducer, playerAnimationReducer, speechReducer,
+                // props twice for "actions" and "gameData". Refacotr later.
+                KeyHandler, this.props, this.props, gameState, currentState,
+                playerPositionReducer, contactEventReducer, physicsReducer,
+                gameKeyPressReducer, tourReducer, advanceLevelReducer,
+                zoomReducer, debugReducer, entityInteractionReducer,
+                playerScaleReducer, defaultCameraReducer,
+                playerAnimationReducer, speechReducer,
             )
         );
 

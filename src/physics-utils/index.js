@@ -72,86 +72,20 @@ export function createPlayerBody( material:Object, position:Array, radius:number
 
 }
 
-export function onWorldBeginContact( gameState:Object, event:Object ) {
+// Probably better to decopule these further by passing them in from outside
+export function onWorldBeginContact( actions:Object, event:Object ) {
 
-    let otherBody;
-    const { bodyA, bodyB, contactEquations } = event;
-    const { playerBody, playerContact } = gameState;
-
-    // Figure out if either body equals the player, and if so, assign
-    // otherBody to the other body
-    if( bodyA === playerBody ) {
-
-        otherBody = bodyB;
-
-    } else if( bodyB === playerBody ) {
-
-        otherBody = bodyA;
-
-    }
-
-    if( otherBody ) {
-
-        // Get the contact point local to body a. There might be an easier
-        // way to do this but I can't figure out how
-        const { contactPointA } = contactEquations[ 0 ];
-
-        // Convert it to world coordinates
-        const contactPointWorld = [
-            contactPointA[ 0 ] + bodyA.position[ 0 ],
-            contactPointA[ 1 ] + bodyA.position[ 1 ]
-        ];
-
-        // Calculate the normal to the player position
-        const contactToPlayerNormal = p2.vec2.normalize( [ 0, 0 ], [
-            contactPointWorld[ 0 ] - playerBody.position[ 0 ],
-            contactPointWorld[ 1 ] - playerBody.position[ 1 ]
-        ]);
-
-        const contactNormal = getCardinalityOfVector( new Vector3(
-            contactToPlayerNormal[ 0 ],
-            0,
-            contactToPlayerNormal[ 1 ],
-        ));
-
-        const assign = {
-            [ otherBody.id ]: contactNormal
-        };
-
-        //console.log('onPlayerColide with',otherBody.id, contactNormal);
-        gameState.playerContact = { ...playerContact, ...assign };
-        
-    }
+    actions.queueBeginContactEvent( event );
 
 }
 
-export function onWorldEndContact( gameState:Object, event:Object ) {
+export function onWorldEndContact( actions:Object, event:Object ) {
 
-    let otherBody;
-    const { bodyA, bodyB } = event;
-
-    const { playerContact, playerBody, } = gameState;
-
-    if( bodyA === playerBody ) {
-
-        otherBody = bodyB;
-
-    } else if( bodyB === playerBody ) {
-
-        otherBody = bodyA;
-
-    }
-
-    if( otherBody ) {
-
-        //console.log('ended contact with ',otherBody.id);
-        gameState.playerContact = without( playerContact, otherBody.id );
-
-    }
+    actions.queueEndContactEvent( event );
 
 }
 
-export function setUpWorld( gameState:Object ) {
+export function createWorld( actions:Object ) {
 
     const world = new p2.World({
         gravity: [ 0, 9.82 ]
@@ -161,29 +95,34 @@ export function setUpWorld( gameState:Object ) {
     world.addContactMaterial( playerToWallContact );
     world.addContactMaterial( pushyToWallContact );
 
-    gameState.onWorldBeginContact = onWorldBeginContact.bind( null, gameState );
-    gameState.onWorldEndContact = onWorldEndContact.bind( null, gameState );
+    world.onWorldBeginContact = onWorldBeginContact.bind( null, actions );
+    world.onWorldEndContact = onWorldEndContact.bind( null, actions );
 
-    world.on( 'beginContact', gameState.onWorldBeginContact );
-    world.on( 'endContact', gameState.onWorldEndContact );
+    world.on( 'beginContact', world.onWorldBeginContact );
+    world.on( 'endContact', world.onWorldEndContact );
 
-    gameState.world = world;
-    gameState.playerMaterial = playerMaterial;
-    gameState.pushyMaterial = pushyMaterial;
-    gameState.wallMaterial = wallMaterial;
+    world.playerMaterial = playerMaterial;
+    world.pushyMaterial = pushyMaterial;
+    world.wallMaterial = wallMaterial;
+
+    return world;
 
 }
 
-export function setUpPhysics( gameState:Object, gameData:Object, playerPositionOverride2D:any ) {
-
-    const {
-        playerRadius, playerDensity, pushyDensity,
-        currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray,
-        currentLevelBridgesArray
-    } = gameData;
+export function setUpPhysics(
+    world:Object,
+    playerPositionOverride2D:any,
+    playerPositionV3FromProps:Object,
+    playerRadius:number,
+    playerDensity:number,
+    pushyDensity:number,
+    currentLevelStaticEntitiesArray:Array,
+    currentLevelMovableEntitiesArray:Array,
+    currentLevelBridgesArray:Array,
+) {
 
     const playerPosition = playerPositionOverride2D || v3toP2(
-        gameData.playerPosition
+        playerPositionV3FromProps
     );
 
     const playerBody = createPlayerBody(
@@ -193,12 +132,9 @@ export function setUpPhysics( gameState:Object, gameData:Object, playerPositionO
         playerDensity
     );
 
-    const { world } = gameState;
-
     world.addBody( playerBody );
-    gameState.playerBody = playerBody;
 
-    gameState.physicsBodies = currentLevelMovableEntitiesArray.map( entity => {
+    const physicsBodies = currentLevelMovableEntitiesArray.map( entity => {
         const { position, scale } = entity;
 
         const pushyBody = new p2.Body({
@@ -217,7 +153,7 @@ export function setUpPhysics( gameState:Object, gameData:Object, playerPositionO
         pushyBody.depth = position.y;
 
         const pushyShape = new p2.Box({
-            material: gameState.pushyMaterial,
+            material: world.pushyMaterial,
             width: scale.x,
             height: scale.z,
         });
@@ -233,7 +169,6 @@ export function setUpPhysics( gameState:Object, gameData:Object, playerPositionO
         position: [ -100, -100 ]
     });
     world.addBody( emptyWorldAnchor );
-    gameState.emptyWorldAnchor = emptyWorldAnchor;
     
     // Construct the data needed for all bridges (planks and anchors)
     const bridgeData = currentLevelBridgesArray.reduce( ( memo, bridgeEntity ) => {
@@ -264,7 +199,7 @@ export function setUpPhysics( gameState:Object, gameData:Object, playerPositionO
             });
 
             const plankShape = new p2.Box({
-                material: gameState.wallMaterial,
+                material: world.wallMaterial,
                 width: plankBodyWidth,
                 height: 0.1 * size
             });
@@ -388,9 +323,6 @@ export function setUpPhysics( gameState:Object, gameData:Object, playerPositionO
 
     }, { planks: [], constraints: [] } );
 
-    gameState.plankData = bridgeData.planks;
-    gameState.plankConstraints = bridgeData.constraints;
-
     currentLevelStaticEntitiesArray.forEach( entity => {
 
         const { position, scale, rotation, type } = entity;
@@ -417,7 +349,7 @@ export function setUpPhysics( gameState:Object, gameData:Object, playerPositionO
         } else {
 
             shape = new p2.Box({
-                material: gameState.wallMaterial,
+                material: world.wallMaterial,
                 width: scale.x,
                 height: scale.z,
             });
@@ -430,22 +362,25 @@ export function setUpPhysics( gameState:Object, gameData:Object, playerPositionO
 
     });
 
-    gameState.playerContact = {};
+    return {
+        playerContact: {},
+        // the GameRenderer will read these later for visual conversion
+        plankData: bridgeData.planks,
+        plankConstraints: bridgeData.constraints,
+        emptyWorldAnchor,
+        playerBody,
+    };
 
 }
 
-export function tearDownWorld( gameState:Object ) {
-
-    const { world } = gameState;
+export function tearDownWorld( world:Object ) {
 
     // We could manually removeBody() for all bodies, but that does a lot
     // of work that we don't care about, see
     // http://schteppe.github.io/p2.js/docs/files/src_world_World.js.html#l1005
-    world.off( 'beginContact', gameState.onWorldBeginContact );
-    world.off( 'endContact', gameState.onWorldEndContact );
+    world.off( 'beginContact', world.onWorldBeginContact );
+    world.off( 'endContact', world.onWorldEndContact );
     world.clear();
-
-    gameState.world = null;
 
 }
 
@@ -481,13 +416,11 @@ export function canJump( world:Object, body:Object ):bool {
 }
 
 export function scalePlayer(
-    gameState:Object,
-    reduxScalePlayer:Function,
+    world:Object,
+    playerBody:Object,
     playerRadius:number,
     playerPosition:Vector3,
     playerDensity:number,
-    entityId:any,
-    currentLevelId:string,
     isShrinking:any
 ) {
 
@@ -495,7 +428,7 @@ export function scalePlayer(
     const newRadius = multiplier * playerRadius;
     const radiusDiff = playerRadius - newRadius;
 
-    gameState.world.removeBody( gameState.playerBody );
+    world.removeBody( playerBody );
 
     const newPlayerBody = createPlayerBody(
         playerMaterial,
@@ -507,21 +440,17 @@ export function scalePlayer(
         playerDensity,
     );
 
-    gameState.world.addBody( newPlayerBody );
+    world.addBody( newPlayerBody );
 
-    gameState.playerBody = newPlayerBody;
-
-    // Reset contact points
-    gameState.playerContact = {};
-
-    // TODO: Fix this side effect
-    reduxScalePlayer( currentLevelId, entityId, multiplier );
-
-    return radiusDiff;
+    return {
+        radiusDiff,
+        multiplier,
+        playerBody: newPlayerBody,
+    };
 
 }
 
-export function resetBodyPhysics( body, position ) {
+export function resetBodyPhysics( body:Object, position:Array ) {
 
     // Position
     body.position = position;
@@ -542,4 +471,3 @@ export function resetBodyPhysics( body, position ) {
     body._wakeUpAfterNarrowphase = false;
 
 }
-

@@ -6,10 +6,6 @@ import {
     getCameraDistanceToPlayer, lookAtVector, p2ToV3, p2AngleToEuler,
 } from 'helpers/Utils';
 
-import {
-    setUpPhysics, setUpWorld, emptyWorld, tearDownWorld,
-} from 'physics-utils';
-
 const gameWidth = 400;
 const gameHeight = 400;
 const cameraAspect = gameWidth / gameHeight;
@@ -36,20 +32,20 @@ export default class GameRenderer extends Component {
 
     }
 
-    componentDidMount() {
+    //componentDidMount() {
 
-        const { gameState, } = this.props;
-        setUpWorld( gameState );
+        //const { gameState, } = this.props;
+        //setUpWorld( gameState );
 
-        setUpPhysics( gameState, this.props );
+        //setUpPhysics( gameState, this.props );
 
-    }
+    //}
 
-    componentWillUnmount() {
+    //componentWillUnmount() {
 
-        tearDownWorld( this.props.gameState );
+        //tearDownWorld( this.props.gameState );
 
-    }
+    //}
 
     // Don't forget to pass down any of these props from GameGUI!
     componentWillReceiveProps( nextProps ) {

@@ -22,11 +22,15 @@ export default function physicsReducer(
 ) {
 
     const {
-        touring, isAdvancing,
-        tubeFlow, debug,
+        touring, isAdvancing, tubeFlow, debug, playerContact, playerBody,
+        world,
     } = oldState;
 
     const { time, delta, } = currentState;
+
+    const {
+        playerScale, playerRadius, currentLevelStaticEntitiesArray
+    } = gameData;
 
     if( touring || isAdvancing ) {
         return next( currentState );
@@ -36,11 +40,6 @@ export default function physicsReducer(
         entrances: [],
     };
 
-    const {
-        playerScale, playerRadius, currentLevelStaticEntitiesArray
-    } = gameData;
-
-    const { playerContact, playerBody, world } = oldState;
     const {
         velocity: playerVelocity, position: playerPosition2D
     } = playerBody;

@@ -152,6 +152,7 @@ export default class GameGUI extends Component {
 
     }
 
+    // todo get these workin
     onShowConfirmMenuScreen() {
 
         this.setState({
@@ -185,11 +186,17 @@ export default class GameGUI extends Component {
             clickable: false,
         });
         const {
-            originalLevels, originalEntities, books, chapters
+            actions, originalLevels, originalEntities, books, chapters,
+            playerPositionV3FromProps, playerRadius, playerDensity,
+            pushyDensity, currentLevelStaticEntitiesArray,
+            currentLevelMovableEntitiesArray, currentLevelBridgesArray,
         } = this.props;
 
         this.props.startGame(
-            book.id, book.chapterIds[ 0 ], originalLevels, originalEntities, books, chapters
+            book.id, book.chapterIds[ 0 ], originalLevels, originalEntities,
+            books, chapters, playerPositionV3FromProps, playerRadius,
+            playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
+            currentLevelMovableEntitiesArray, currentLevelBridgesArray,
         );
 
     }

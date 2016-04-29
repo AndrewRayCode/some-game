@@ -1,3 +1,4 @@
+import { scalePlayer, } from 'physics-utils';
 
 export default function debugReducer(
     keysDown:Object,
@@ -8,15 +9,13 @@ export default function debugReducer(
     next:Function
 ) {
 
-    const { debug } = oldState;
+    const { debug, world, playerBody, } = oldState;
 
     const { playerRadius, playerDensity, currentLevelId, } = gameData;
 
     const { playerPositionV3, time, } = currentState;
 
-    const { reduxScalePlayer, } = actions;
-
-    const newState = {};
+    let newState = {};
 
     if( keysDown.isFirstPress( '`' ) ) {
 
@@ -27,14 +26,21 @@ export default function debugReducer(
     const minusPressed = keysDown.isFirstPress( '-' );
     if( minusPressed || keysDown.isFirstPress( '=' ) ) {
 
-        const radiusDiff = actions.scalePlayerAndDispatch(
-            oldState, reduxScalePlayer, playerRadius, playerPositionV3,
-            playerDensity, null, currentLevelId, minusPressed
+        const scaleResult = scalePlayer(
+            world, playerBody, playerRadius, playerPositionV3, playerDensity,
+            minusPressed
         );
 
-        newState.isShrinking = minusPressed;
-        newState.radiusDiff = radiusDiff;
-        newState.scaleStartTime = time + 250;
+        actions.scalePlayer( currentLevelId, null, scaleResult.multiplier, );
+
+        newState = {
+            ...newState,
+            playerContact: {},
+            isShrinking: minusPressed,
+            radiusDiff: scaleResult.radiusDiff,
+            playerBody: scaleResult.playerBody,
+            scaleStartTime: time + 250,
+        };
 
     }
 

@@ -1,4 +1,5 @@
 import Cardinality from '../helpers/Cardinality';
+import { scalePlayer, } from 'physics-utils';
 import {
     getCardinalityOfVector, getCameraDistanceToPlayer, lerp
 } from '../helpers/Utils';
@@ -22,7 +23,7 @@ export default function entityInteractionReducer(
         previousChapterEntity, previousChapter, cameraFov,
     } = gameData;
 
-    const { cameraPosition, } = oldState;
+    const { cameraPosition, world, playerBody, } = oldState;
 
     const {
         playerPositionV3, time,
@@ -100,14 +101,22 @@ export default function entityInteractionReducer(
             ) {
 
             const isShrinking = entity.type === 'shrink';
-            const radiusDiff = actions.scalePlayerAndDispatch(
-                playerRadius, playerPositionV3, playerDensity, entity.id,
-                currentLevelId, isShrinking
+
+            const scaleResult = scalePlayer(
+                world, playerBody, playerRadius, playerPositionV3,
+                playerDensity, isShrinking
             );
 
-            newState.isShrinking = isShrinking;
-            newState.scaleStartTime = time + scaleStartDelayMs;
-            newState.radiusDiff = radiusDiff;
+            actions.scalePlayer( currentLevelId, null, scaleResult.multiplier, );
+
+            newState = {
+                ...newState,
+                playerContact: {},
+                isShrinking,
+                radiusDiff: scaleResult.radiusDiff,
+                playerBody: scaleResult.playerBody,
+                scaleStartTime: time + scaleStartDelayMs,
+            };
 
             break;
 
