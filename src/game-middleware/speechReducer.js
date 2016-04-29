@@ -4,7 +4,7 @@ const msPerLetter = 500;
 export default function speechReducer(
     keysDown:Object,
     actions:Object,
-    props:Object,
+    gameData:Object,
     oldState:Object,
     currentState:Object,
     next:Function

@@ -1,7 +1,7 @@
 export default function gameKeyPressReducer(
     keysDown:Object,
     actions:Object,
-    props:Object,
+    gameData:Object,
     oldState:Object,
     currentState:Object,
     next:Function

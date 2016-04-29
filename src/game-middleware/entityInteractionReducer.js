@@ -10,7 +10,7 @@ const scaleStartDelayMs = 250;
 export default function entityInteractionReducer(
     keysDown:Object,
     actions:Object,
-    props:Object,
+    gameData:Object,
     oldState:Object,
     currentState:Object,
     next:Function
@@ -20,7 +20,7 @@ export default function entityInteractionReducer(
         currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
         currentLevelId, nextChapters, previousChapterFinishEntity,
         previousChapterEntity, previousChapter,
-    } = props;
+    } = gameData;
 
     const { cameraPosition, } = oldState;
 

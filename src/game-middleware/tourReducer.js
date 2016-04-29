@@ -3,7 +3,7 @@ import THREE from 'three';
 export default function tourReducer(
     keysDown:Object,
     actions:Object,
-    props:Object,
+    gameData:Object,
     oldState:Object,
     currentState:Object,
     next:Function
@@ -16,7 +16,7 @@ export default function tourReducer(
 
     const { advanceChapter } = actions;
 
-    const { nextChapters } = props;
+    const { nextChapters } = gameData;
 
     const { playerPositionV3, } = currentState;
 

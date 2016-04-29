@@ -4,14 +4,14 @@ import { lerp, getCameraDistanceToPlayer } from '../helpers/Utils';
 export default function defaultCameraReducer(
     keysDown:Object,
     actions:Object,
-    props:Object,
+    gameData:Object,
     oldState:Object,
     currentState:Object,
     next:Function
 ) {
 
     const { cameraPosition, } = oldState;
-    const { playerScale, } = props;
+    const { playerScale, } = gameData;
     const { playerPositionV3, cameraFov } = currentState;
 
     if( currentState.cameraPosition ) {

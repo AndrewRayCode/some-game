@@ -5,8 +5,10 @@ import { connect } from 'react-redux';
 import { asyncConnect } from 'redux-async-connect';
 import { bindActionCreators } from 'redux';
 import { createSelector } from 'reselect';
+import KeyHandler from 'helpers/KeyHandler';
 
 import { loadAllAssets, } from 'redux/modules/assets';
+import { scalePlayer as scalePlayerAndDispatch, } from 'physics-utils';
 import {
     scalePlayer, advanceChapter, startGame, stopGame, restartChapter,
 } from 'redux/modules/game';
@@ -15,6 +17,25 @@ import {
 } from 'redux/modules/editor';
 
 import { getSphereMass } from 'helpers/Utils';
+
+import { updateGameState, } from 'redux/modules/game';
+
+import {
+    applyMiddleware,
+} from 'helpers/Utils';
+
+import {
+    pauseGame, unpauseGame, showConfirmMenuScreen, exitToMenuDeny,
+    showConfirmRestartScreen, exitToMenuConfirm, confirmRestart, denyRestart,
+} from 'redux/modules/gameScreenReducer';
+
+
+import {
+    gameKeyPressReducer, tourReducer, zoomReducer, entityInteractionReducer,
+    playerScaleReducer, debugReducer, advanceLevelReducer,
+    defaultCameraReducer, playerAnimationReducer, speechReducer,
+    physicsReducer,
+} from 'game-middleware';
 
 import GameGUI from './GameGUI';
 
@@ -57,12 +78,10 @@ const gameDataSelector = createSelector(
         // No game has been started yet!
         if( !gameChapterData.currentChapterId ) {
 
-            const x = {
+            return {
                 books, chapters, originalLevels, originalEntities, fonts,
                 letters, assets,
             };
-            console.log('returning',x);
-            return x;
 
         }
 
@@ -244,7 +263,9 @@ const gameDataSelector = createSelector(
     }),
     dispatch => bindActionCreators({
         loadAllAssets, deserializeLevels, scalePlayer, advanceChapter,
-        startGame, stopGame, restartChapter,
+        startGame, stopGame, restartChapter, pauseGame, unpauseGame,
+        showConfirmMenuScreen, exitToMenuDeny, showConfirmRestartScreen,
+        exitToMenuConfirm, confirmRestart, denyRestart,
     }, dispatch )
 )
 export default class GameContainer extends Component {
@@ -268,6 +289,51 @@ export default class GameContainer extends Component {
             deserialize();
             loadAll();
         }
+
+        this.gameLoop = this.gameLoop.bind( this );
+        this.lastTime = 0;
+
+        this.actions = {
+            reduxScalePlayer: scalePlayer,
+            scalePlayerAndDispatch, advanceChapter, pauseGame, unpauseGame,
+            showConfirmMenuScreen, exitToMenuDeny, showConfirmRestartScreen,
+            exitToMenuConfirm, confirmRestart, denyRestart,
+        };
+
+        this.reqAnimId = window.requestAnimationFrame( this.gameLoop );
+
+    }
+
+    componentWillUnmount() {
+
+        this.mounted = false;
+        window.cancelAnimationFrame( this.reqAnimId );
+
+    }
+
+    gameLoop( time ) {
+
+        this.reqAnimId = window.requestAnimationFrame( this.gameLoop );
+
+        const { gameState, } = this.props;
+
+        const delta = time - this.lastTime;
+        this.lastTime = time;
+
+        // In any state, (paused, etc), child components need the updaed time
+        const currentState = { time, delta, };
+
+        // Apply the middleware. Will reduce gameState in place :(
+        updateGameState(
+            applyMiddleware(
+                // Note: KeyHandler is updated in UpdateAllObjects for now
+                KeyHandler, this.actions, this.props, gameState, currentState,
+                physicsReducer, gameKeyPressReducer, tourReducer,
+                advanceLevelReducer, zoomReducer, debugReducer,
+                entityInteractionReducer, playerScaleReducer, defaultCameraReducer,
+                playerAnimationReducer, speechReducer,
+            )
+        );
 
     }
 

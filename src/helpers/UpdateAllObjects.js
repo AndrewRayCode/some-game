@@ -1,5 +1,6 @@
 import Module from 'react-three-renderer/lib/Module';
 import KeyCodes from './KeyCodes';
+import KeyHandler from 'helpers/KeyHandler';
 
 import PropTypes from 'react/lib/ReactPropTypes';
 
@@ -18,34 +19,6 @@ class UpdateAllObjects extends Module {
         this.onKeyDown = this.onKeyDown.bind( this );
         this.onKeyUp = this.onKeyUp.bind( this );
 
-        this._keysDown = {
-            keys: {},
-            reset() {
-                this.keys = {};
-            },
-            getKey( code ) {
-                return this.keys[ KeyCodes[ code ] ];
-            },
-            isRepeated( keyCode ) {
-                const keyTest = this.getKey( keyCode );
-                return keyTest && keyTest.repeat;
-            },
-            isFirstPress( keyCode ) {
-                const keyTest = this.getKey( keyCode );
-                return keyTest && keyTest.firstPress;
-            },
-            isPressed( keyCode ) {
-                return !!this.getKey( keyCode );
-            },
-            updateFirstPressed() {
-                for( const key in this.keys ) {
-                    const keyData = this.keys[ key ];
-                    if( keyData.firstPress ) {
-                        this.keys[ key ] = { repeat: true };
-                    }
-                }
-            }
-        };
         this._updatePropName = 'onUpdate';
         this._patchedDescriptors = [];
         this._activeCallbacks = new EventEmitter();
@@ -54,12 +27,12 @@ class UpdateAllObjects extends Module {
 
     update() {
         const delta = clock.getDelta();
-        this._activeCallbacks.emit('update', clock.elapsedTime, delta, this._keysDown );
+        this._activeCallbacks.emit('update', clock.elapsedTime, delta, KeyHandler );
 
         // The problem is onKeyPress is repeated, but multiple frames might
         // elapse before that happens. Update all firstPress to repeat after
         // our callbacks so they will only get firstPress on one frame
-        this._keysDown.updateFirstPressed();
+        KeyHandler.updateFirstPressed();
     }
 
     _addUpdateCallback(threeObject, callback) {
@@ -107,7 +80,7 @@ class UpdateAllObjects extends Module {
 
     onWindowBlur() {
 
-        this._keysDown.reset();
+        KeyHandler.reset();
 
     }
 
@@ -116,7 +89,7 @@ class UpdateAllObjects extends Module {
         const { which: key } = event;
 
         const keyData = {
-            [ key ]: this._keysDown.keys[ key ] || { firstPress: true }
+            [ key ]: KeyHandler.keys[ key ] || { firstPress: true }
         };
 
         if( key === KeyCodes.SPACE ||
@@ -126,13 +99,13 @@ class UpdateAllObjects extends Module {
             event.preventDefault();
         }
 
-        this._keysDown.keys = { ...this._keysDown.keys, ...keyData };
+        KeyHandler.keys = { ...KeyHandler.keys, ...keyData };
 
     }
 
     onKeyUp( event ) {
 
-        this._keysDown.keys = without( this._keysDown.keys, event.which );
+        KeyHandler.keys = without( KeyHandler.keys, event.which );
 
     }
 

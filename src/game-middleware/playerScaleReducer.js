@@ -11,13 +11,13 @@ const totalScaleDurationSeconds = ( emitterVisibleDurationMs + scaleDurationMs +
 export default function playerScaleReducer(
     keysDown:Object,
     actions:Object,
-    props:Object,
+    gameData:Object,
     oldState:Object,
     currentState:Object,
     next:Function
 ) {
 
-    const { playerRadius, } = props;
+    const { playerRadius, } = gameData;
     const { time, } = currentState;
 
     const newState = {};

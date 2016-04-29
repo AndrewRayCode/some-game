@@ -419,7 +419,7 @@ export function str2Hex( str ) {
 export function applyMiddleware(
     keysDown:Object,
     actions:Object,
-    props:Object,
+    gameData:Object,
     oldState:Object,
     initialState:Object,
     ...reducers
@@ -435,7 +435,7 @@ export function applyMiddleware(
 
         return reducers[ index ] ?
             // Either call the next reducer...
-            reducers[ index ]( keysDown, actions, props, oldState, newState, next ) :
+            reducers[ index ]( keysDown, actions, gameData, oldState, newState, next ) :
             // Or we're at the end
             newState;
 

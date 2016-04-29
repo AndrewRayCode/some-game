@@ -66,7 +66,7 @@ function canBlink( time, lastBlinkTime, minBlinkInterval ) {
 export default function playerAnimationReducer(
     keysDown:Object,
     actions:Object,
-    props:Object,
+    gameData:Object,
     oldState:Object,
     currentState:Object,
     next:Function

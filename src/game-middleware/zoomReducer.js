@@ -7,7 +7,7 @@ import zoomOut from './zoomOut';
 export default function zoomReducer(
     keysDown:Object,
     actions:Object,
-    props:Object,
+    gameData:Object,
     oldState:Object,
     currentState:Object,
     next:Function
@@ -16,16 +16,16 @@ export default function zoomReducer(
     // Is the zoomIn reducer already running?
     if( oldState.cameraPositionZoomIn ) {
 
-        return next( zoomIn( keysDown, actions, props, oldState, currentState, ) );
+        return next( zoomIn( keysDown, actions, gameData, oldState, currentState, ) );
 
     // Is the zoom out reducer already running?
     } else if( oldState.cameraPositionZoomOut ) {
 
-        return next( zoomOut( keysDown, actions, props, oldState, currentState, ) );
+        return next( zoomOut( keysDown, actions, gameData, oldState, currentState, ) );
 
     }
 
-    const zoomInState = zoomIn( keysDown, actions, props, oldState, currentState, );
+    const zoomInState = zoomIn( keysDown, actions, gameData, oldState, currentState, );
 
     // Did the zoom in reducer modify the state? It takes priority
     if( zoomInState !== currentState ) {
@@ -35,7 +35,7 @@ export default function zoomReducer(
     // Otherwise fall back to zoomOut
     } else {
 
-        return next( zoomOut( keysDown, actions, props, oldState, currentState, ) );
+        return next( zoomOut( keysDown, actions, gameData, oldState, currentState, ) );
     
     }
 

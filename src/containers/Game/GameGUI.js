@@ -98,31 +98,11 @@ export default class GameGUI extends Component {
 
     }
 
-    selectBook( book ) {
-
-        this.setState({
-            clickable: false,
-            paused: false,
-            confirmRestart: false,
-            confirmMenu: false,
-        });
-        const {
-            originalLevels, originalEntities, books, chapters
-        } = this.props;
-
-        this.props.startGame(
-            book.id, book.chapterIds[ 0 ], originalLevels, originalEntities, books, chapters
-        );
-
-    }
-
+    
     onExitToMenuConfirm() {
 
         this.setState({
             clickable: false,
-            paused: false,
-            confirmRestart: false,
-            confirmMenu: false,
         });
         this.props.stopGame();
 
@@ -132,9 +112,6 @@ export default class GameGUI extends Component {
 
         this.setState({
             clickable: false,
-            paused: false,
-            confirmRestart: false,
-            confirmMenu: false,
         });
 
         const {
@@ -151,10 +128,68 @@ export default class GameGUI extends Component {
 
         this.setState({
             clickable: false,
-            paused: true,
-            confirmRestart: false,
-            confirmMenu: false,
         });
+        this.props.denyRestart();
+
+    }
+
+    onPause() {
+
+        this.setState({
+            clickable: false,
+        });
+        this.props.pauseGame();
+
+    }
+
+    onUnpause() {
+
+        this.setState({
+            clickable: false,
+        });
+        this.props.unPauseGame();
+
+    }
+
+    onShowConfirmMenuScreen() {
+
+        this.setState({
+            clickable: false,
+        });
+        this.props.showConfirmMenuScreen();
+
+    }
+
+    onExitToMenuDeny() {
+
+        this.setState({
+            clickable: false,
+        });
+        this.props.exitToMenuDeny();
+
+    }
+
+    onShowConfirmRestartScreen() {
+
+        this.setState({
+            clickable: false,
+        });
+        this.props.showConfirmRestartScreen();
+
+    }
+
+    selectBook( book ) {
+
+        this.setState({
+            clickable: false,
+        });
+        const {
+            originalLevels, originalEntities, books, chapters
+        } = this.props;
+
+        this.props.startGame(
+            book.id, book.chapterIds[ 0 ], originalLevels, originalEntities, books, chapters
+        );
 
     }
 
@@ -286,58 +321,6 @@ export default class GameGUI extends Component {
     onClickRegionEnter() {
 
         this.setState({ clickable: true });
-
-    }
-
-    onPause() {
-
-        this.setState({
-            clickable: false,
-            paused: true,
-            confirmRestart: false,
-        });
-
-    }
-
-    onUnpause() {
-
-        this.setState({
-            clickable: false,
-            paused: false,
-            confirmRestart: false,
-        });
-
-    }
-
-    onShowConfirmMenuScreen() {
-
-        this.setState({
-            clickable: false,
-            paused: true,
-            confirmRestart: false,
-            confirmMenu: true,
-        });
-
-    }
-
-    onExitToMenuDeny() {
-
-        this.setState({
-            clickable: false,
-            paused: true,
-            confirmRestart: false,
-            confirmMenu: false,
-        });
-
-    }
-
-    onShowConfirmRestartScreen() {
-
-        this.setState({
-            clickable: false,
-            paused: true,
-            confirmRestart: true,
-        });
 
     }
 

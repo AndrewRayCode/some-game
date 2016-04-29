@@ -3,20 +3,11 @@ import THREE from 'three';
 import p2 from 'p2';
 import { Player, EntityGroup } from 'components';
 import {
-    getCameraDistanceToPlayer, lookAtVector, p2ToV3, applyMiddleware,
-    p2AngleToEuler,
+    getCameraDistanceToPlayer, lookAtVector, p2ToV3, p2AngleToEuler,
 } from 'helpers/Utils';
-import Mediator from 'helpers/Mediator';
-import {
-    gameKeyPressReducer, tourReducer, zoomReducer, entityInteractionReducer,
-    playerScaleReducer, debugReducer, advanceLevelReducer,
-    defaultCameraReducer, playerAnimationReducer, speechReducer,
-    physicsReducer,
-} from 'game-middleware';
 
 import {
     setUpPhysics, setUpWorld, emptyWorld, tearDownWorld,
-    scalePlayer as scalePlayerAndDispatch,
 } from 'physics-utils';
 
 const gameWidth = 400;
@@ -28,8 +19,6 @@ export default class GameRenderer extends Component {
 
     static propTypes = {
         onPause: PropTypes.func.isRequired,
-        onShowConfirmRestartScreen: PropTypes.func.isRequired,
-        onShowConfirmMenuScreen: PropTypes.func.isRequired,
         fonts: PropTypes.object.isRequired,
         letters: PropTypes.object.isRequired,
     }
@@ -38,12 +27,6 @@ export default class GameRenderer extends Component {
 
         super( props, context );
         
-        const {
-            playerPosition, playerScale, playerRadius, onPause, advanceChapter,
-            onShowConfirmMenuScreen, onShowConfirmRestartScreen,
-            scalePlayer,
-        } = props;
-
         this.state = {};
 
         this._onUpdate = this._onUpdate.bind( this );
@@ -51,19 +34,11 @@ export default class GameRenderer extends Component {
         this._getPlankStates = this._getPlankStates.bind( this );
         this._getAnchorStates = this._getAnchorStates.bind( this );
 
-        // Things to pass to reducers so they can call them
-        Mediator.reducerActions = {
-            reduxScalePlayer: scalePlayer,
-            scalePlayerAndDispatch,
-            onPause, advanceChapter, onShowConfirmMenuScreen,
-            onShowConfirmRestartScreen
-        };
-
     }
 
     componentDidMount() {
 
-        const { gameState, } = Mediator;
+        const { gameState, } = this.props;
         setUpWorld( gameState );
 
         setUpPhysics( gameState, this.props );
@@ -79,7 +54,7 @@ export default class GameRenderer extends Component {
     // Don't forget to pass down any of these props from GameGUI!
     componentWillReceiveProps( nextProps ) {
 
-        const { gameState, } = Mediator;
+        const { gameState, } = this.props;
         const { world, } = gameState || {};
 
         if( nextProps.recursionBusterId !== this.props.recursionBusterId ) {
@@ -121,7 +96,7 @@ export default class GameRenderer extends Component {
 
     transitionFromLastChapterToNextChapter( nextProps ) {
 
-        const { gameState, } = Mediator;
+        const { gameState, } = this.props;
         const {
             cameraPosition, currentTransitionPosition
         } = gameState;
@@ -230,55 +205,27 @@ export default class GameRenderer extends Component {
 
     }
 
-    _onUpdate( elapsedTime, delta, keysDown ) {
+    _onUpdate() {
 
-        const { gameState, reducerActions, } = Mediator;
-        const { world, playerBody } = gameState;
+        const { gameState, } = this.props;
+        const { world, } = gameState;
 
         if( !world ) {
             return;
         }
 
-        const { playerRadius, paused, } = this.props;
-        const { currentFlowPosition, } = this.state;
-
-        const playerPosition = currentFlowPosition ||
-            p2ToV3( playerBody.position, 1 + playerRadius );
-
-        // In any state, (paused, etc), child components need the updaed time
-        const baseState = {
-            cameraFov,
-            playerPositionV3: playerPosition,
-            time: elapsedTime,
-            delta,
-        };
-
-        if( paused ) {
-            this.setState( baseState );
-            return;
-        }
-
-        // Apply the middleware. Will reduce gameState in place :(
-        Mediator.gameState = applyMiddleware(
-            keysDown, reducerActions, this.props, gameState, baseState,
-            physicsReducer, gameKeyPressReducer, tourReducer,
-            advanceLevelReducer, zoomReducer, debugReducer,
-            entityInteractionReducer, playerScaleReducer, defaultCameraReducer,
-            playerAnimationReducer, speechReducer,
-        );
-
         // Maybe worth moving into reducers?
         this.setState({
-            movableEntities: this._getMeshStates( Mediator.gameState.physicsBodies ),
-            plankEntities: this._getPlankStates( Mediator.gameState.plankData ),
-            anchorEntities: this._getAnchorStates( Mediator.gameState.plankConstraints ),
+            movableEntities: this._getMeshStates( gameState.physicsBodies ),
+            plankEntities: this._getPlankStates( gameState.plankData ),
+            anchorEntities: this._getAnchorStates( gameState.plankConstraints ),
         });
 
     }
 
     render() {
 
-        const { gameState, } = Mediator;
+        const { gameState, } = this.props;
 
         if( !gameState || !gameState.world ) {
 

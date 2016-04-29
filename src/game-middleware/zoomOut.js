@@ -18,7 +18,7 @@ function zoomedOutPosition( cameraFov ) {
 export default function zoomOutReducer(
     keysDown:Object,
     actions:Object,
-    props:Object,
+    gameData:Object,
     oldState:Object,
     currentState:Object,
 ) {

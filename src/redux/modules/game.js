@@ -1,5 +1,4 @@
-import THREE, { Vector3, } from 'three';
-import Mediator from 'helpers/Mediator';
+import { Vector3, } from 'three';
 
 const playerRadius = 0.45;
 const playerDensity = 1000; // kg / m^3
@@ -7,9 +6,10 @@ const pushyDensity = 750; // kg / m^3
 
 // So the impulse you needs drops to 1/(8 * sqrt(2)) of the original.
 
-const QUEUE_TEXT = 'game/QUEUE_TEXT';
+//const QUEUE_TEXT = 'game/QUEUE_TEXT';
 const GAME_SELECT_CHAPTER = 'game/GAME_SELECT_CHAPTER';
 const START_GAME = 'game/START_GAME';
+const UPDATE_RUNNING_GAME_STATE = 'game/UPDATE_RUNNING_GAME_STATE';
 const RESTART_CHAPTER = 'game/RESTART_CHAPTER';
 const STOP_GAME = 'game/STOP_GAME';
 const SCALE_PLAYER = 'game/SCALE_PLAYER';
@@ -74,6 +74,11 @@ const initialGameReducerState = {
     levels: {}
 };
 
+// Because we're mutating this at runtime, for now, on a new game, recreate it
+const initialGameState = () => ({
+    cameraPosition: new Vector3( 0, 0, 0 ),
+});
+
 export function game( state = initialGameReducerState, action = {} ) {
 
     const {
@@ -97,6 +102,15 @@ export function game( state = initialGameReducerState, action = {} ) {
 
                 playerPosition: findPlayerPosition( originalLevels, chapters, originalEntities, chapterId ),
 
+                gameState: initialGameState()
+
+            };
+
+        case UPDATE_RUNNING_GAME_STATE:
+
+            return {
+                ...state,
+                gameStaet: initialGameState,
             };
 
         case RESTART_CHAPTER:
@@ -198,19 +212,14 @@ export function gameBookReducer( state = defaultBookState, action = {} ) {
 
 }
 
-// Because we're mutating this at runtime, for now, on a new game, recreate it
-const initialGameState = () => ({
-    cameraPosition: new Vector3( 0, 0, 0 ),
-});
-
-function resetGameState() {
-    // TODO: Lord
-    Mediator.gameState = initialGameState();
+export function updateGameState( newGameState:Object ) {
+    return {
+        type: UPDATE_RUNNING_GAME_STATE,
+        newGameState,
+    };
 }
 
 export function startGame( bookId, chapterId, originalLevels, originalEntities, books, chapters ) {
-
-    resetGameState();
 
     return {
         type: START_GAME,
@@ -253,5 +262,5 @@ export function scalePlayer(
 }
 
 export function stopGame() {
-    return { type: STOP_GAME };
+    return { type: STOP_GAME, };
 }

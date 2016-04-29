@@ -15,7 +15,7 @@ const tubeStartTravelDurationMs = 80;
 export default function physicsReducer(
     keysDown:Object,
     actions:Object,
-    props:Object,
+    gameData:Object,
     oldState:Object,
     currentState:Object,
     next:Function
@@ -38,7 +38,7 @@ export default function physicsReducer(
 
     const {
         playerScale, playerRadius, currentLevelStaticEntitiesArray
-    } = props;
+    } = gameData;
 
     const { playerContact, playerBody, world } = oldState;
     const {

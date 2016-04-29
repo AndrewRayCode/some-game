@@ -14,6 +14,7 @@ import {
     editorSelectedLevelReducer, booksReducer, chaptersReducer,
     editorSelectedBookReducer, editorSelectedChapterReducer
 } from './editor';
+import { gameScreenReducer } from './gameScreen';
 
 export default combineReducers({
     routing: routeReducer,
@@ -41,5 +42,6 @@ export default combineReducers({
     // game
     gameChapterData: gameChapterReducer,
     currentGameBook: gameBookReducer,
+    gameScreen: gameScreenReducer,
     game,
 });
