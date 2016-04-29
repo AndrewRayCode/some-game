@@ -29,7 +29,7 @@ export default function entityInteractionReducer(
         playerPositionV3, time,
     } = currentState;
 
-    const newState = {};
+    let newState = {};
 
     for( let i = 0; i < currentLevelTouchyArray.length; i++ ) {
 
