@@ -14,11 +14,9 @@ export default function contactEventReducer(
 ) {
 
     const {
-        beginContactEventQueue, endContactEventQueue,
+        beginContactEventQueue, endContactEventQueue, playerBody,
         playerContact: oldPlayerContact,
     } = oldState;
-
-    const { playerBody, } = gameData;
 
     let playerContact = oldPlayerContact;
 
