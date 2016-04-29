@@ -23,12 +23,14 @@ export default function zoomOutReducer(
     currentState:Object,
 ) {
 
+    const { cameraFov, } = gameData;
+
     const {
         zoomBackInDuration, zoomOutStartTime, cameraPositionZoomOut,
         startZoomBackInTime, cameraPosition,
     } = oldState;
 
-    const { time, cameraFov, } = currentState;
+    const { time, } = currentState;
 
     const newState = {};
 
@@ -36,7 +38,7 @@ export default function zoomOutReducer(
 
         newState.zoomOutStartTime = zoomOutStartTime || time;
 
-        const howFarZoomedOut = Math.min( ( ( time - newState.zoomOutStartTime ) * 1000 ) / zoomOutDurationMs, 1 );
+        const howFarZoomedOut = Math.min( ( time - newState.zoomOutStartTime ) / zoomOutDurationMs, 1 );
 
         newState.cameraPositionZoomOut = lerpVectors(
             cameraPosition,
@@ -51,7 +53,7 @@ export default function zoomOutReducer(
         if( !zoomBackInDuration ) {
 
             const howFarZoomedOut = Math.min(
-                ( ( time - zoomOutStartTime ) * 1000 ) / zoomOutDurationMs,
+                ( time - zoomOutStartTime ) / zoomOutDurationMs,
                 1
             );
             newState.zoomBackInDuration = zoomInDurationMs * howFarZoomedOut;
@@ -64,7 +66,7 @@ export default function zoomOutReducer(
         const _startZoomBackInTime = newState.startZoomBackInTime || startZoomBackInTime;
 
         const howFarZoomedIn = Math.min(
-            ( ( time - _startZoomBackInTime ) * 1000 ) / _zoomBackInDuration,
+            ( time - _startZoomBackInTime ) / _zoomBackInDuration,
             1
         );
 

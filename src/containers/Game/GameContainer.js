@@ -27,24 +27,25 @@ import {
 import {
     pauseGame, unpauseGame, showConfirmMenuScreen, exitToMenuDeny,
     showConfirmRestartScreen, exitToMenuConfirm, confirmRestart, denyRestart,
-} from 'redux/modules/gameScreenReducer';
+} from 'redux/modules/gameScreen';
 
 
 import {
-    gameKeyPressReducer, tourReducer, zoomReducer, entityInteractionReducer,
-    playerScaleReducer, debugReducer, advanceLevelReducer,
-    defaultCameraReducer, playerAnimationReducer, speechReducer,
-    physicsReducer,
+    playerPositionReducer, gameKeyPressReducer, tourReducer, zoomReducer,
+    entityInteractionReducer, playerScaleReducer, debugReducer,
+    advanceLevelReducer, defaultCameraReducer, playerAnimationReducer,
+    speechReducer, physicsReducer,
 } from 'game-middleware';
 
 import GameGUI from './GameGUI';
 
 // State selectors for createSelector memoization
 const getAllEntities = state => state.game.entities;
-const getAllChapters = state => state.game.chapters;
+const getAllChapters = state => state.chapters;
 const getLevels = state => state.game.levels;
+const getGameStarted = state => state.game.started;
 const getBooks = state => state.books;
-const getChapters = state => state.game.chapters;
+const getActiveChapters = state => state.game.chapters;
 const getPlayerMaterialId = state => state.game.playerMaterialId;
 const getGameChapterData = state => state.gameChapterData;
 const getOriginalLevels = state => state.levels;
@@ -62,24 +63,26 @@ const getPushyDensity = state => state.game.pushyDensity;
 
 const gameDataSelector = createSelector(
     [
-        getAllEntities, getAllChapters, getLevels, getBooks, getChapters,
-        getPlayerMaterialId, getGameChapterData, getOriginalLevels,
-        getOriginalEntities, getAssets, getFonts, getLetters,
-        getRestartBusterId, getRecursionBusterId, getPlayerPosition,
-        getPlayerRadius, getPlayerScale, getPlayerDensity, getPushyDensity,
+        getGameStarted, getAllEntities, getAllChapters, getLevels, getBooks,
+        getActiveChapters, getPlayerMaterialId, getGameChapterData,
+        getOriginalLevels, getOriginalEntities, getAssets, getFonts,
+        getLetters, getRestartBusterId, getRecursionBusterId,
+        getPlayerPosition, getPlayerRadius, getPlayerScale, getPlayerDensity,
+        getPushyDensity,
     ],
     (
-        allEntities, allChapters, levels, books, chapters, playerMaterialId,
-        gameChapterData, originalLevels, originalEntities, assets, fonts,
-        letters, restartBusterId, recursionBusterId, playerPosition,
-        playerRadius, playerScale, playerDensity, pushyDensity,
+        gameStarted, allEntities, allChapters, levels, books, activeChapters,
+        playerMaterialId, gameChapterData, originalLevels, originalEntities,
+        assets, fonts, letters, restartBusterId, recursionBusterId,
+        playerPosition, playerRadius, playerScale, playerDensity, pushyDensity,
     ) => {
 
         // No game has been started yet!
         if( !gameChapterData.currentChapterId ) {
 
             return {
-                books, chapters, originalLevels, originalEntities, fonts,
+                chapters: allChapters,
+                books, originalLevels, originalEntities, fonts,
                 letters, assets,
             };
 
@@ -216,7 +219,7 @@ const gameDataSelector = createSelector(
             levels, currentLevel, currentLevelId, currentChapterId,
             currentLevelAllEntities, currentLevelStaticEntities, allEntities,
             nextChaptersEntities, assets, fonts, letters, originalLevels,
-            originalEntities, books, chapters,
+            originalEntities, books, gameStarted,
             currentLevelStaticEntitiesArray: Object.values( currentLevelStaticEntities ),
             currentLevelTouchyArray, nextChapters, previousChapterEntities,
             previousChapterFinishEntity, previousChapterEntity,
@@ -229,7 +232,7 @@ const gameDataSelector = createSelector(
             currentLevelBridgesArray: Object.values( currentLevelBridges ),
 
             playerMaterialId,
-            gameStarted: true,
+            chapters: activeChapters,
             restartBusterId: restartBusterId,
             recursionBusterId: recursionBusterId,
             playerPosition: playerPosition,
@@ -259,13 +262,15 @@ const gameDataSelector = createSelector(
         assetsLoading: state.assetsLoading,
         fonts: state.fonts,
         assets: state.assets,
+        gameState: state.game.gameState,
+        cameraFov: state.game.cameraFov,
         ...gameDataSelector( state ),
     }),
     dispatch => bindActionCreators({
         loadAllAssets, deserializeLevels, scalePlayer, advanceChapter,
         startGame, stopGame, restartChapter, pauseGame, unpauseGame,
         showConfirmMenuScreen, exitToMenuDeny, showConfirmRestartScreen,
-        exitToMenuConfirm, confirmRestart, denyRestart,
+        exitToMenuConfirm, confirmRestart, denyRestart, updateGameState,
     }, dispatch )
 )
 export default class GameContainer extends Component {
@@ -274,7 +279,16 @@ export default class GameContainer extends Component {
         store: PropTypes.object.isRequired
     }
 
+    constructor() {
+
+        super();
+        this.gameLoop = this.gameLoop.bind( this );
+
+    }
+
     componentDidMount() {
+
+        this.mounted = true;
 
         const {
             assetsLoaded, assetsLoading,
@@ -290,7 +304,6 @@ export default class GameContainer extends Component {
             loadAll();
         }
 
-        this.gameLoop = this.gameLoop.bind( this );
         this.lastTime = 0;
 
         this.actions = {
@@ -313,9 +326,19 @@ export default class GameContainer extends Component {
 
     gameLoop( time ) {
 
+        if( !this.mounted ) {
+            return;
+        }
+
         this.reqAnimId = window.requestAnimationFrame( this.gameLoop );
 
-        const { gameState, } = this.props;
+        const {
+            updateGameState: updateState, gameState, gameStarted,
+        } = this.props;
+
+        if( !gameStarted ) {
+            return;
+        }
 
         const delta = time - this.lastTime;
         this.lastTime = time;
@@ -323,15 +346,15 @@ export default class GameContainer extends Component {
         // In any state, (paused, etc), child components need the updaed time
         const currentState = { time, delta, };
 
-        // Apply the middleware. Will reduce gameState in place :(
-        updateGameState(
+        // Apply the middleware
+        updateState(
             applyMiddleware(
                 // Note: KeyHandler is updated in UpdateAllObjects for now
                 KeyHandler, this.actions, this.props, gameState, currentState,
-                physicsReducer, gameKeyPressReducer, tourReducer,
-                advanceLevelReducer, zoomReducer, debugReducer,
-                entityInteractionReducer, playerScaleReducer, defaultCameraReducer,
-                playerAnimationReducer, speechReducer,
+                playerPositionReducer, physicsReducer, gameKeyPressReducer,
+                tourReducer, advanceLevelReducer, zoomReducer, debugReducer,
+                entityInteractionReducer, playerScaleReducer,
+                defaultCameraReducer, playerAnimationReducer, speechReducer,
             )
         );
 

@@ -87,7 +87,6 @@ export default function playerAnimationReducer(
     } = oldState;
 
     const { time, isLeft, isRight } = currentState;
-    const timeMs = time * 1000;
 
     const turnAngle = playerRotation ? playerRotation.z : 0;
     const turnPercent = Math.abs( turnAngle ) / playerRotationLimit;
@@ -105,7 +104,7 @@ export default function playerAnimationReducer(
         },
         Walk: {
             weight: 0,
-            percent: ( timeMs % walkLoopMs ) / walkLoopMs,
+            percent: ( time % walkLoopMs ) / walkLoopMs,
         },
         Jump: {
             weight: 0,
@@ -115,7 +114,7 @@ export default function playerAnimationReducer(
     const tailAnimations = {
         Idle: {
             weight: 1,
-            percent: ( timeMs % tailIdleTimeMs ) / tailIdleTimeMs
+            percent: ( time % tailIdleTimeMs ) / tailIdleTimeMs
         }
     };
 
@@ -144,7 +143,7 @@ export default function playerAnimationReducer(
 
         if( oldState.isLeft || oldState.isRight ) {
 
-            nextSwishStartTime = timeMs + randFloat(
+            nextSwishStartTime = time + randFloat(
                 minIdleToSwishWaitMs,
                 maxIdleToSwishWaitMs,
             );
@@ -156,14 +155,14 @@ export default function playerAnimationReducer(
     // Did we jump on this frame?
     if( currentState.jumpedOnThisFrame ) {
 
-        jumpStartTime = timeMs;
+        jumpStartTime = time;
 
     }
 
     if( jumpStartTime ) {
 
         // Calculate how much time has passed since the first jump frame
-        const timeSinceJumpStartMs = timeMs - jumpStartTime;
+        const timeSinceJumpStartMs = time - jumpStartTime;
 
         // Initial jump animation
         if( timeSinceJumpStartMs <= jumpTweenTimeMs ) {
@@ -174,7 +173,7 @@ export default function playerAnimationReducer(
         // Slowly return to whatever it was before
         } else {
 
-            jumpWeight = 1 - ( timeMs - ( jumpStartTime + jumpTweenTimeMs ) ) / jumpReturnTweenTimeMs;
+            jumpWeight = 1 - ( time - ( jumpStartTime + jumpTweenTimeMs ) ) / jumpReturnTweenTimeMs;
             jumpAnimationPercent = maxJumpPercent;
 
             if( jumpWeight < 0 ) {
@@ -207,7 +206,7 @@ export default function playerAnimationReducer(
 
     // Figure out how much time has elapsed since the swish. Will be <0 until
     // start time
-    const timeSinceSwishStart = timeMs - nextSwishStartTime;
+    const timeSinceSwishStart = time - nextSwishStartTime;
 
     // Have we never swished before, and it's time? figure out where to swish
     if( !swishTarget1 && nextSwishStartTime && ( timeSinceSwishStart > 0 ) ) {
@@ -258,7 +257,7 @@ export default function playerAnimationReducer(
         // Done! unset all the things
         if( timeSinceSwishStart >= tailSwishTime * 2 ) {
 
-            nextSwishStartTime = timeMs + randFloat(
+            nextSwishStartTime = time + randFloat(
                 minIdleToSwishWaitMs,
                 maxIdleToSwishWaitMs,
             );
@@ -291,11 +290,11 @@ export default function playerAnimationReducer(
 
     if( !actionStartTime ) {
 
-        newState.actionStartTime = timeMs;
+        newState.actionStartTime = time;
 
     }
 
-    if( !actionStartTime || ( timeMs - actionStartTime ) < eyeTweenStartDelayMs ) {
+    if( !actionStartTime || ( time - actionStartTime ) < eyeTweenStartDelayMs ) {
         return next({
             ...currentState,
             ...newState
@@ -304,14 +303,14 @@ export default function playerAnimationReducer(
 
     const leftEyeFinish = leftEyeTweenStart + leftEyeTweenDuraiton + leftEyeTweenRest;
 
-    if( !leftEyeTweenStart || timeMs > leftEyeFinish ) {
+    if( !leftEyeTweenStart || time > leftEyeFinish ) {
 
         newState.leftEyeTweenTarget = new Euler(
             randFloat( eyeRotationLimit.x.min, eyeRotationLimit.x.max ),
             randFloat( eyeRotationLimit.y.min, eyeRotationLimit.y.max ),
             randFloat( -eyeRotationLimit.z.min, -eyeRotationLimit.z.max ),
         );
-        newState.leftEyeTweenStart = timeMs;
+        newState.leftEyeTweenStart = time;
         newState.leftEyeTweenDuraiton = randFloat(
             eyeTweenTimeMinMs, eyeTweenTimeMaxMs,
         );
@@ -324,7 +323,7 @@ export default function playerAnimationReducer(
     if( leftEyeTweenStart ) {
 
         const eyeTweenPercent = Math.min(
-            ( timeMs - leftEyeTweenStart ) / leftEyeTweenDuraiton,
+            ( time - leftEyeTweenStart ) / leftEyeTweenDuraiton,
             1
         );
 
@@ -346,14 +345,14 @@ export default function playerAnimationReducer(
 
     const rightEyeFinish = rightEyeTweenStart + rightEyeTweenDuraiton + rightEyeTweenRest;
 
-    if( !rightEyeTweenStart || timeMs > rightEyeFinish ) {
+    if( !rightEyeTweenStart || time > rightEyeFinish ) {
 
         newState.rightEyeTweenTarget = new Euler(
             randFloat( eyeRotationLimit.x.min, eyeRotationLimit.x.max ),
             randFloat( eyeRotationLimit.y.min, eyeRotationLimit.y.max ),
             randFloat( eyeRotationLimit.z.min, eyeRotationLimit.z.max ),
         );
-        newState.rightEyeTweenStart = timeMs;
+        newState.rightEyeTweenStart = time;
         newState.rightEyeTweenDuraiton = randFloat(
             eyeTweenTimeMinMs, eyeTweenTimeMaxMs,
         );
@@ -366,7 +365,7 @@ export default function playerAnimationReducer(
     if( rightEyeTweenStart ) {
 
         const eyeTweenPercent = Math.min(
-            ( timeMs - rightEyeTweenStart ) / rightEyeTweenDuraiton,
+            ( time - rightEyeTweenStart ) / rightEyeTweenDuraiton,
             1
         );
 
@@ -386,12 +385,12 @@ export default function playerAnimationReducer(
 
     }
 
-    if( canBlink( timeMs, lastBlinkTime, minBlinkIntervalMs ) && (
+    if( canBlink( time, lastBlinkTime, minBlinkIntervalMs ) && (
             ( !oldState.isLeft && currentState.isLeft ) ||
             ( !oldState.isRight && currentState.isRight )
         ) ) {
 
-        blinkStartTime = timeMs;
+        blinkStartTime = time;
 
     }
 
@@ -399,13 +398,13 @@ export default function playerAnimationReducer(
 
         if( !oldBlinkStartTime ) {
 
-            newState.lastBlinkTime = timeMs;
+            newState.lastBlinkTime = time;
 
         }
 
         newState.blinkStartTime = blinkStartTime;
 
-        const blinkPercent = ( timeMs - blinkStartTime ) / blinkDurationMs;
+        const blinkPercent = ( time - blinkStartTime ) / blinkDurationMs;
 
         const upperCloseHalfMorph = 2 * Math.abs( 0.5 - frac( 2 * blinkPercent + 0.5 ) );
         const upperCloseFullMorph = 2 * Math.abs( 0.5 - frac( blinkPercent + 0.5 ) );
@@ -426,14 +425,14 @@ export default function playerAnimationReducer(
         if( blinkPercent >= 0.5 ) {
 
             newState.leftEyeRotation = new Euler( 0, 0, 0 );
-            newState.leftEyeTweenStart = timeMs;
+            newState.leftEyeTweenStart = time;
             newState.leftEyeTweenDuration = 0;
             newState.leftEyeTweenTarget = new Euler( 0, 0, 0 );
             newState.leftEyeTweenRest = timeAfterBlinkToResetMs;
 
             newState.rightEyeRotation = new Euler( 0, 0, 0 );
             newState.rightEyeTweenTarget = new Euler( 0, 0, 0 );
-            newState.rightEyeTweenStart = timeMs;
+            newState.rightEyeTweenStart = time;
             newState.rightEyeTweenDuration = 0;
             newState.rightEyeTweenRest = timeAfterBlinkToResetMs;
 

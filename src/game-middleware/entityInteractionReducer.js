@@ -19,13 +19,13 @@ export default function entityInteractionReducer(
     const {
         currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
         currentLevelId, nextChapters, previousChapterFinishEntity,
-        previousChapterEntity, previousChapter,
+        previousChapterEntity, previousChapter, cameraFov,
     } = gameData;
 
     const { cameraPosition, } = oldState;
 
     const {
-        playerPositionV3, time, cameraFov
+        playerPositionV3, time,
     } = currentState;
 
     const newState = {};
@@ -106,7 +106,7 @@ export default function entityInteractionReducer(
             );
 
             newState.isShrinking = isShrinking;
-            newState.scaleStartTime = time + ( scaleStartDelayMs / 1000 );
+            newState.scaleStartTime = time + scaleStartDelayMs;
             newState.radiusDiff = radiusDiff;
 
             break;

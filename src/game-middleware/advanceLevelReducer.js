@@ -40,7 +40,7 @@ export default function advanceLevelReducer(
 
         const newState = {};
         const transitionPercent = Math.min(
-            ( ( time - currentTransitionStartTime ) * 1000 ) / levelTransitionDuration,
+            ( time - currentTransitionStartTime ) / levelTransitionDuration,
             1
         );
 

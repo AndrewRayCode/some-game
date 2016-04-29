@@ -19,7 +19,6 @@ export default function speechReducer(
     } = oldState;
 
     const { time, } = currentState;
-    const timeMs = time * 1000;
 
     let newState = {};
 
@@ -46,12 +45,12 @@ export default function speechReducer(
         // Is the text box closed?
         if( !textVisibleStartTime ) {
 
-            textVisibleStartTime = timeMs;
+            textVisibleStartTime = time;
 
         }
 
         // If the text box isn't fully open yet, finish animating it
-        const timeSinceTextVisible = timeMs - textVisibleStartTime;
+        const timeSinceTextVisible = time - textVisibleStartTime;
         if( timeSinceTextVisible < textExpandTime ) {
 
             newState.textOpenPercent = timeSinceTextVisible / textVisibleStartTime;
@@ -60,7 +59,7 @@ export default function speechReducer(
             if( newState.textOpenPercent >= 1 ) {
 
                 newState.textOpenPercent = null;
-                activeTextStartTime = timeMs;
+                activeTextStartTime = time;
 
             }
 
@@ -70,7 +69,7 @@ export default function speechReducer(
         if( activeTextStartTime ) {
 
             const currentTextIndex = Math.min(
-                Math.round( ( ( timeMs - activeTextStartTime ) / msPerLetter ) ),
+                Math.round( ( ( time - activeTextStartTime ) / msPerLetter ) ),
                 currentText.length
             );
             const isFullyShown = currentTextIndex >= currentText.length;
@@ -80,7 +79,7 @@ export default function speechReducer(
             if( isFullyShown && keysDown.isFirstPressed( 'ENTER' ) ) {
 
                 textQueue = textQueue.slice( 1 );
-                textCloseStartTime = timeMs;
+                textCloseStartTime = time;
 
             }
 
@@ -91,7 +90,7 @@ export default function speechReducer(
     // Otherwise is the text box still open? animate it closed
     if( textCloseStartTime ) {
 
-        const timeSinceTextClosing = timeMs - textCloseStartTime;
+        const timeSinceTextClosing = time - textCloseStartTime;
         newState.textOpenPercent = timeSinceTextClosing / textVisibleStartTime;
 
         // Reset everything

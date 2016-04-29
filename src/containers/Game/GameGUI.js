@@ -90,7 +90,8 @@ export default class GameGUI extends Component {
 
         // This is dumb
         if( window.location.href.indexOf( '3000' ) === -1 &&
-           this.props.gameStarted && !this.state.paused ) {
+                this.props.gameStarted && !this.state.paused
+            ) {
 
             this.onPause();
 
@@ -302,11 +303,9 @@ export default class GameGUI extends Component {
 
     _onRenderUpdate( renderer ) {
 
-        const { gameState, } = Mediator;
+        if( this.renderer ) {
 
-        if( gameState && !gameState.renderer ) {
-
-            gameState.renderer = renderer;
+            this.renderer = renderer;
 
         }
 
@@ -326,17 +325,15 @@ export default class GameGUI extends Component {
 
     onBeforeRender() {
 
-        const { gameState, } = Mediator;
+        const { renderer, } = this;
 
-        if( gameState && gameState.renderer ) {
-            gameState.renderer.clearDepth();
+        if( renderer ) {
+            renderer.clearDepth();
         }
 
     }
 
     render() {
-
-        const { gameState, } = Mediator;
 
         const {
             fps, mouseInput, clickable, paused, confirmRestart, confirmMenu,
@@ -344,7 +341,7 @@ export default class GameGUI extends Component {
 
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
-            assets,
+            assets, gameState,
         } = this.props;
 
         // Game might not be started yet?

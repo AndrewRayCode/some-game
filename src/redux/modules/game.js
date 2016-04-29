@@ -68,11 +68,13 @@ function convertOriginalEntitiesToGameEntities( originalEntities ) {
 }
 
 const initialGameReducerState = {
+    started: false,
     playerRadius, playerDensity, pushyDensity,
     playerScale: 1,
     entities: {},
     levels: {}
 };
+const cameraFov = 75;
 
 // Because we're mutating this at runtime, for now, on a new game, recreate it
 const initialGameState = () => ({
@@ -102,7 +104,11 @@ export function game( state = initialGameReducerState, action = {} ) {
 
                 playerPosition: findPlayerPosition( originalLevels, chapters, originalEntities, chapterId ),
 
-                gameState: initialGameState()
+                gameState: initialGameState(),
+
+                cameraFov,
+
+                started: true,
 
             };
 
@@ -110,7 +116,7 @@ export function game( state = initialGameReducerState, action = {} ) {
 
             return {
                 ...state,
-                gameStaet: initialGameState,
+                gameState: action.newGameState,
             };
 
         case RESTART_CHAPTER:

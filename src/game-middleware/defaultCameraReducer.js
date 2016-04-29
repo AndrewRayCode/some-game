@@ -11,8 +11,8 @@ export default function defaultCameraReducer(
 ) {
 
     const { cameraPosition, } = oldState;
-    const { playerScale, } = gameData;
-    const { playerPositionV3, cameraFov } = currentState;
+    const { playerScale, cameraFov, } = gameData;
+    const { playerPositionV3, } = currentState;
 
     if( currentState.cameraPosition ) {
 

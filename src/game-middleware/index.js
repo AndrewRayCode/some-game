@@ -1,3 +1,4 @@
+export playerPositionReducer from './playerPositionReducer';
 export physicsReducer from './physicsReducer';
 export advanceLevelReducer from './advanceLevelReducer';
 export debugReducer from './debugReducer';

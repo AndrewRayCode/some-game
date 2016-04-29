@@ -23,13 +23,15 @@ export default function zoomInReducer(
     currentState:Object,
 ) {
 
+    const { cameraFov, } = gameData;
+
     const {
         zoomBackOutDuration, zoomInStartTime, cameraPositionZoomIn,
         startZoomBackOutTime, cameraPosition,
     } = oldState;
 
     const {
-        time, playerPositionV3, cameraFov,
+        time, playerPositionV3,
     } = currentState;
 
     const { playerScale, } = gameData;
@@ -42,7 +44,7 @@ export default function zoomInReducer(
         newState.zoomInStartTime = zoomInStartTime || time;
 
         const howFarZoomedIn = Math.min(
-            ( ( time - newState.zoomInStartTime ) * 1000 ) / zoomInDurationMs,
+            ( time - newState.zoomInStartTime ) / zoomInDurationMs,
             1
         );
 
@@ -59,7 +61,7 @@ export default function zoomInReducer(
         if( !zoomBackOutDuration ) {
 
             const howFarZoomedIn = Math.min(
-                ( ( time - zoomInStartTime ) * 1000 ) / zoomOutDurationMs,
+                ( time - zoomInStartTime ) / zoomOutDurationMs,
                 1
             );
             newState.zoomBackOutDuration = zoomInDurationMs * howFarZoomedIn;
@@ -72,7 +74,7 @@ export default function zoomInReducer(
         const _startZoomBackOutTime = newState.startZoomBackOutTime || startZoomBackOutTime;
 
         const howFarZoomedIn = Math.min(
-            ( ( time - _startZoomBackOutTime ) * 1000 ) / _zoomBackOutDuration,
+            ( time - _startZoomBackOutTime ) / _zoomBackOutDuration,
             1
         );
 

@@ -34,7 +34,7 @@ export default function debugReducer(
 
         newState.isShrinking = minusPressed;
         newState.radiusDiff = radiusDiff;
-        newState.scaleStartTime = time + 0.25; // seconds :(
+        newState.scaleStartTime = time + 250;
 
     }
 

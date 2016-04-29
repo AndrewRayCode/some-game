@@ -36,7 +36,7 @@ export default function playerScaleReducer(
         newState.playerScaleEffectsEnabled = true;
         newState.playerScaleEffectsVisible = true;
 
-        const currentScalePercent = 1 - ( ( Math.max( time - scaleStartTime, 0 ) * 1000 ) / scaleDurationMs );
+        const currentScalePercent = 1 - ( Math.max( time - scaleStartTime, 0 ) / scaleDurationMs );
 
         const scaleValue = currentScalePercent * radiusDiff;
         newState.scaleValue = scaleValue;

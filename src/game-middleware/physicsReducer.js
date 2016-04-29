@@ -218,7 +218,7 @@ export default function physicsReducer(
 
         const isLastTube = tubeIndex === tubeFlow.length - 1;
 
-        let currentPercent = ( ( time - startTime ) * 1000 ) / ( tubeIndex === 0 ?
+        let currentPercent = ( time - startTime ) / ( tubeIndex === 0 ?
             tubeStartTravelDurationMs : tubeTravelDurationMs
         ) * ( debug ? 0.1 : 1 );
         let isDone;
