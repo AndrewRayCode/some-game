@@ -163,7 +163,6 @@ export function game( state = initialGameReducerState, action = {} ) {
             };
 
         case UPDATE_RUNNING_GAME_STATE:
-
             return {
                 ...state,
                 gameState: action.newGameState,
@@ -374,14 +373,14 @@ export function stopGame( world ) {
 
 }
 
-export function queueBeginContactEvent( event ) {
+export function queueBeginContactEvent( event:Object ) {
     return {
         type: QUEUE_BEGIN_CONTACT_EVENT,
         event,
     };
 }
 
-export function queueEndContactEvent( event ) {
+export function queueEndContactEvent( event:Object ) {
     return {
         type: QUEUE_END_CONTACT_EVENT,
         event,

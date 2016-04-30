@@ -1,9 +1,9 @@
 import { Vector3, } from 'three';
 import {
     getEntrancesForTube, lerp, findNextTube, snapTo, lerpVectors, p2ToV3,
-    vec3Equals, resetBodyPhysics,
+    vec3Equals,
 } from 'helpers/Utils';
-import { canJump } from 'physics-utils';
+import { canJump, resetBodyPhysics, } from 'physics-utils';
 
 // TODO: If we need debugging again, fix this
 let debuggingReplay = [];
@@ -22,11 +22,10 @@ export default function physicsReducer(
 ) {
 
     const {
-        touring, isAdvancing, tubeFlow, debug, playerContact, playerBody,
-        world,
+        touring, isAdvancing, tubeFlow, debug, playerBody, world,
     } = oldState;
 
-    const { time, delta, } = currentState;
+    const { time, delta, playerContact, } = currentState;
 
     const {
         playerScale, playerRadius, currentLevelStaticEntitiesArray
@@ -193,14 +192,12 @@ export default function physicsReducer(
                     newTubeFlow = null;
                 }
 
-                //console.log('traversing',newTubeFlow.length - 1,'tubes');
-
                 newState = {
                     ...newState,
                     playerSnapped,
                     playerContact: newPlayerContact,
                     startTime: time,
-                    tubeFlow,
+                    tubeFlow: newTubeFlow,
                     currentFlowPosition: newTubeFlow[ 0 ].start,
                     tubeIndex: 0
                 };

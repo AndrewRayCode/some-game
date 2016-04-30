@@ -74,13 +74,18 @@ export function createPlayerBody( material:Object, position:Array, radius:number
 // Probably better to decopule these further by passing them in from outside
 export function onWorldBeginContact( actions:Object, event:Object ) {
 
-    actions.queueBeginContactEvent( event );
+    // p2 events are sync, and they happen in the middle of a reducer sequence.
+    // if we dispatch immediately, the state gets updated, but then the reducer
+    // sequence finishes and the final reduced state overwrites the state that
+    // we added this event to. if we do async then the next frame reducer loop
+    // will handle it. Maybe worth revisiting
+    setTimeout( () => actions.queueBeginContactEvent( event ), 0 );
 
 }
 
 export function onWorldEndContact( actions:Object, event:Object ) {
 
-    actions.queueEndContactEvent( event );
+    setTimeout( () => actions.queueEndContactEvent( event ), 0 );
 
 }
 
