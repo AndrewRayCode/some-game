@@ -313,11 +313,17 @@ export default class GameContainer extends Component {
             playerPosition,
         } = this.props;
 
-        // todo document odd flow that goes through this
+        // This is a lazy shortcut that probably should be refactored later.
+        // This flow is start game dispatch > store populates > mapStateToProps
+        // runs (now we have data we need to create physics) > create physics.
+        // It'd be ideal to build the physics when we start the game, but right
+        // now that relies on the derived data in mapStateToProps. So we do it
+        // in this lifecycle method where derived data is computed. Just
+        // annoying to manage state here.
         if( physicsInitted === false && !this.initting ) {
 
-            // multiple event dispatches means multiple will recieve props,
-            // or maybe devtools? Either way guard against it
+            // Multiple event dispatches means multiple will recieve props,
+            // or maybe devtools? Either way guard against it.
             this.initting = true;
 
             const { world, } = gameState;
@@ -362,11 +368,10 @@ export default class GameContainer extends Component {
         // In any state, (paused, etc), child components need the updaed time
         const currentState = { time, delta, };
 
-        // Apply the middleware
         updateState(
             applyMiddleware(
-                // Note: KeyHandler is updated in UpdateAllObjects for now
-                // props twice for "actions" and "gameData". Refacotr later.
+                // Note: KeyHandler is updated in UpdateAllObjects for now.
+                // `this.props` twice for "actions" and "gameData"
                 KeyHandler, this.props, this.props, gameState, currentState,
                 playerPositionReducer, contactEventReducer, physicsReducer,
                 gameKeyPressReducer, tourReducer, advanceLevelReducer,
