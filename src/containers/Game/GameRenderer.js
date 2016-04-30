@@ -128,9 +128,9 @@ export default class GameRenderer extends Component {
 
     render() {
 
-        const { gameState, } = this.props;
+        const { gameState, physicsInitted, } = this.props;
 
-        if( !gameState || !gameState.world ) {
+        if( !gameState || !gameState.world || !physicsInitted ) {
 
             return <object3D />;
 

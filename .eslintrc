@@ -37,7 +37,7 @@
     "spaced-comment": 0,
     "no-console": 0,
     "no-alert": 0,
-    "no-unused-vars": 0,
+    "no-unused-vars": 1,
     "space-after-keywords": 0,
     "id-length": 0
   },

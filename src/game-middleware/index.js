@@ -1,4 +1,5 @@
 export playerPositionReducer from './playerPositionReducer';
+export contactEventReducer from './contactEventReducer';
 export physicsReducer from './physicsReducer';
 export advanceLevelReducer from './advanceLevelReducer';
 export debugReducer from './debugReducer';
@@ -9,3 +10,4 @@ export defaultCameraReducer from './defaultCameraReducer';
 export gameKeyPressReducer from './gameKeyPressReducer';
 export playerAnimationReducer from './playerAnimationReducer';
 export playerScaleReducer from './playerScaleReducer';
+export speechReducer from './speechReducer';

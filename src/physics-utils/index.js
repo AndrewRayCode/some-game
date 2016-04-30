@@ -2,8 +2,7 @@ import p2 from 'p2';
 import THREE, { Vector3 } from 'three';
 
 import {
-    without, getSphereMass, getCubeMass, getCardinalityOfVector, v3toP2,
-    p2ToV3, deepArrayClone,
+    getSphereMass, getCubeMass, v3toP2, p2ToV3, deepArrayClone,
 } from 'helpers/Utils';
 
 const radialPoint = ( total, index ) => [
@@ -112,7 +111,7 @@ export function createWorld( actions:Object ) {
 export function setUpPhysics(
     world:Object,
     playerPositionOverride2D:any,
-    playerPositionV3FromProps:Object,
+    playerPositionV3FromProps:Vector3,
     playerRadius:number,
     playerDensity:number,
     pushyDensity:number,
@@ -369,6 +368,7 @@ export function setUpPhysics(
         plankConstraints: bridgeData.constraints,
         emptyWorldAnchor,
         playerBody,
+        physicsBodies,
     };
 
 }

@@ -433,6 +433,11 @@ export function applyMiddleware(
 
         index = index + 1;
 
+        if( !reducers[ index ] && index < reducers.length ) {
+            console.error( 'One of your reducers is undefined: ', reducers );
+            throw new Error( 'One of your reducers is undefined.' );
+        }
+
         return reducers[ index ] ?
             // Either call the next reducer...
             reducers[ index ]( keysDown, actions, gameData, oldState, newState, next ) :

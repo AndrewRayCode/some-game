@@ -1,7 +1,7 @@
 import { Vector3, } from 'three';
 
 import {
-    setUpPhysics, createWorld, emptyWorld, tearDownWorld,
+    setUpPhysics, createWorld, tearDownWorld,
 } from 'physics-utils';
 
 // todo: move these to config file?
@@ -299,7 +299,7 @@ export function startGame(
 }
 
 export function createPhysicsBodies(
-    playerPosition:Array,
+    playerPosition:Vector3,
     world:Object,
     books:Object,
     chapters:Object,
@@ -312,9 +312,9 @@ export function createPhysicsBodies(
 ) {
 
     const initialPhysicsGameState = setUpPhysics(
-        world, null, playerPosition, playerRadius, playerDensity,
-        pushyDensity, currentLevelStaticEntitiesArray,
-        currentLevelMovableEntitiesArray, currentLevelBridgesArray,
+        world, null, playerPosition, playerRadius, playerDensity, pushyDensity,
+        currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray,
+        currentLevelBridgesArray,
     );
 
     return {
@@ -324,13 +324,20 @@ export function createPhysicsBodies(
 
 }
 
-export function restartChapter( chapterId, originalEntities, originalLevels, chapters, books ) {
+export function restartChapter(
+    chapterId:number,
+    originalEntities:Object,
+    originalLevels:Object,
+    chapters:Object,
+    books:Object,
+) {
 
     return {
         type: RESTART_CHAPTER,
         restartBusterId: Date.now(),
         chapterId, originalLevels, originalEntities, chapters, books
     };
+
 }
 
 export function advanceChapter( nextChapter ) {

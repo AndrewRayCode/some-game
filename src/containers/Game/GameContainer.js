@@ -10,7 +10,7 @@ import KeyHandler from 'helpers/KeyHandler';
 import { loadAllAssets, } from 'redux/modules/assets';
 import {
     scalePlayer, advanceChapter, startGame, stopGame, restartChapter,
-    queueBeginContactEvent, queueEndContactEvent,
+    queueBeginContactEvent, queueEndContactEvent, createPhysicsBodies,
 } from 'redux/modules/game';
 import {
     areBooksLoaded, loadAllBooks, deserializeLevels
@@ -264,7 +264,7 @@ const gameDataSelector = createSelector(
         startGame, stopGame, restartChapter, pauseGame, unpauseGame,
         showConfirmMenuScreen, exitToMenuDeny, showConfirmRestartScreen,
         exitToMenuConfirm, confirmRestart, denyRestart, updateGameState,
-        queueBeginContactEvent, queueEndContactEvent,
+        queueBeginContactEvent, queueEndContactEvent, createPhysicsBodies,
     }, dispatch )
 )
 export default class GameContainer extends Component {
@@ -288,10 +288,6 @@ export default class GameContainer extends Component {
             assetsLoaded, assetsLoading,
             deserializeLevels: deserialize,
             loadAllAssets: loadAll,
-            physicsInitted, gameState, books, chapters, playerRadius,
-            playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
-            currentLevelMovableEntitiesArray, currentLevelBridgesArray,
-            playerPosition,
         } = this.props;
 
         window.THREE = THREE;
@@ -302,8 +298,27 @@ export default class GameContainer extends Component {
             loadAll();
         }
 
+        this.reqAnimId = window.requestAnimationFrame( this.gameLoop );
+
+        this.lastTime = 0;
+
+    }
+
+    componentWillReceiveProps() {
+
+        const {
+            physicsInitted, gameState, books, chapters, playerRadius,
+            playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
+            currentLevelMovableEntitiesArray, currentLevelBridgesArray,
+            playerPosition,
+        } = this.props;
+
         // todo document odd flow that goes through this
-        if( physicsInitted === false ) {
+        if( physicsInitted === false && !this.initting ) {
+
+            // multiple event dispatches means multiple will recieve props,
+            // or maybe devtools? Either way guard against it
+            this.initting = true;
 
             const { world, } = gameState;
 
@@ -315,15 +330,12 @@ export default class GameContainer extends Component {
 
         }
 
-        this.lastTime = 0;
-
-        this.reqAnimId = window.requestAnimationFrame( this.gameLoop );
-
     }
 
     componentWillUnmount() {
 
         this.mounted = false;
+        this.initting = false;
         window.cancelAnimationFrame( this.reqAnimId );
 
     }

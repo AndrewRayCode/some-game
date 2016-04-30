@@ -6,7 +6,7 @@ const scaleDurationMs = 1000;
 // Warning: duplicated in entityInteractionReducer
 const scaleStartDelayMs = 250;
 
-const totalScaleDurationSeconds = ( emitterVisibleDurationMs + scaleDurationMs + scaleStartDelayMs ) / 1000;
+const totalScaleDurationMs = emitterVisibleDurationMs + scaleDurationMs + scaleStartDelayMs;
 
 export default function playerScaleReducer(
     keysDown:Object,
@@ -62,7 +62,7 @@ export default function playerScaleReducer(
             newState.radiusDiff = null;
             newState.playerScaleEffectsEnabled = false;
 
-            if( time > scaleStartTime + totalScaleDurationSeconds ) {
+            if( time > scaleStartTime + totalScaleDurationMs ) {
                 newState.playerScaleEffectsEnabled = null;
                 newState.playerScaleEffectsVisible = null;
                 newState.scaleStartTime = null;

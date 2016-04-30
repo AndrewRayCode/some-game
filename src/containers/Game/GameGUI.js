@@ -186,7 +186,7 @@ export default class GameGUI extends Component {
             clickable: false,
         });
         const {
-            actions, originalLevels, originalEntities, books, chapters,
+            originalLevels, originalEntities, books, chapters,
             playerRadius, playerDensity, pushyDensity,
             currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray,
             currentLevelBridgesArray,
