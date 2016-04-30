@@ -13,6 +13,7 @@ const cameraFov = 75;
 // So the impulse you needs drops to 1/(8 * sqrt(2)) of the original.
 
 //const QUEUE_TEXT = 'game/QUEUE_TEXT';
+const SET_GAME_INITIAL_PHYSICS_STATE = 'game/SET_GAME_INITIAL_PHYSICS_STATE';
 const GAME_SELECT_CHAPTER = 'game/GAME_SELECT_CHAPTER';
 const START_GAME = 'game/START_GAME';
 const UPDATE_RUNNING_GAME_STATE = 'game/UPDATE_RUNNING_GAME_STATE';
@@ -76,7 +77,6 @@ function convertOriginalEntitiesToGameEntities( originalEntities ) {
 }
 
 const initialGameReducerState = {
-    started: false,
     playerRadius: defaultPlayerRadius,
     playerDensity: defaultPlayerDensity,
     pushyDensity: defaultPushyDensity,
@@ -93,7 +93,7 @@ const initialGameState = () => ({
 export function game( state = initialGameReducerState, action = {} ) {
 
     const {
-        originalEntities, originalLevels, chapters, books,
+        playerPosition, originalEntities, originalLevels, chapters, books,
         recursionBusterId, restartBusterId, chapterId
     } = action;
 
@@ -103,27 +103,37 @@ export function game( state = initialGameReducerState, action = {} ) {
 
             return {
                 ...state,
-                chapters, books,
+                playerPosition, chapters, books,
                 playerMaterialId: 'glowTextureFace',
 
                 recursionBusterId: recursionBusterId || state.recursionBusterId,
 
+                // TODO: Create these in the action creators instead?
                 levels: convertOriginalLevelsToGameLevels( originalLevels, originalEntities ),
                 entities: convertOriginalEntitiesToGameEntities( originalEntities ),
 
-                playerPosition: findPlayerPosition( originalLevels, chapters, originalEntities, chapterId ),
-
                 gameState: {
                     ...initialGameState(),
-                    ...action.initialPhysicsGameState,
+                    world: action.world,
                     beginContactEventQueue: [],
                     endContactEventQueue: [],
                 },
 
                 cameraFov,
 
+                physicsInitted: false,
                 started: true,
 
+            };
+
+        case SET_GAME_INITIAL_PHYSICS_STATE:
+            return {
+                ...state,
+                physicsInitted: true,
+                gameState: {
+                    ...state.gameState,
+                    ...action.initialPhysicsGameState,
+                }
             };
 
         // todo: put these in a sub reducer? or take out of gameState and pass
@@ -267,13 +277,32 @@ export function updateGameState( newGameState:Object ) {
 
 export function startGame(
     actions:Object,
-    bookId:Object,
+    bookId:any,
     chapterId:string,
     originalLevels:Object,
     originalEntities:Object,
     books:Object,
     chapters:Object,
-    playerPositionV3FromProps:Object,
+) {
+
+    const world = createWorld( actions );
+
+    const playerPosition = findPlayerPosition(
+        originalLevels, chapters, originalEntities, chapterId
+    );
+
+    return {
+        type: START_GAME,
+        world, playerPosition, bookId, chapterId, originalLevels,
+        originalEntities, chapters, books
+    };
+}
+
+export function createPhysicsBodies(
+    playerPosition:Array,
+    world:Object,
+    books:Object,
+    chapters:Object,
     playerRadius:number,
     playerDensity:number,
     pushyDensity:number,
@@ -282,19 +311,17 @@ export function startGame(
     currentLevelBridgesArray:Array,
 ) {
 
-    const world = createWorld( actions );
-
     const initialPhysicsGameState = setUpPhysics(
-        world, null, playerPositionV3FromProps, playerRadius, playerDensity,
+        world, null, playerPosition, playerRadius, playerDensity,
         pushyDensity, currentLevelStaticEntitiesArray,
         currentLevelMovableEntitiesArray, currentLevelBridgesArray,
     );
 
     return {
-        type: START_GAME,
+        type: SET_GAME_INITIAL_PHYSICS_STATE,
         initialPhysicsGameState,
-        bookId, chapterId, originalLevels, originalEntities, chapters, books
     };
+
 }
 
 export function restartChapter( chapterId, originalEntities, originalLevels, chapters, books ) {

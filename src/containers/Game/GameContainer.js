@@ -230,11 +230,8 @@ const gameDataSelector = createSelector(
             chapters: activeChapters,
             restartBusterId: restartBusterId,
             recursionBusterId: recursionBusterId,
-            playerPosition: playerPosition,
-            playerRadius: playerRadius,
-            playerScale: playerScale,
-            playerDensity: playerDensity,
-            pushyDensity: pushyDensity,
+            playerPosition, playerRadius, playerScale, playerDensity,
+            pushyDensity,
             playerMass: getSphereMass( playerDensity, playerRadius )
         };
 
@@ -259,6 +256,7 @@ const gameDataSelector = createSelector(
         assets: state.assets,
         gameState: state.game.gameState,
         cameraFov: state.game.cameraFov,
+        physicsInitted: state.game.physicsInitted,
         ...gameDataSelector( state ),
     }),
     dispatch => bindActionCreators({
@@ -290,6 +288,10 @@ export default class GameContainer extends Component {
             assetsLoaded, assetsLoading,
             deserializeLevels: deserialize,
             loadAllAssets: loadAll,
+            physicsInitted, gameState, books, chapters, playerRadius,
+            playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
+            currentLevelMovableEntitiesArray, currentLevelBridgesArray,
+            playerPosition,
         } = this.props;
 
         window.THREE = THREE;
@@ -298,6 +300,19 @@ export default class GameContainer extends Component {
         if( !assetsLoaded && !assetsLoading ) {
             deserialize();
             loadAll();
+        }
+
+        // todo document odd flow that goes through this
+        if( physicsInitted === false ) {
+
+            const { world, } = gameState;
+
+            this.props.createPhysicsBodies(
+                playerPosition, world, books, chapters, playerRadius,
+                playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
+                currentLevelMovableEntitiesArray, currentLevelBridgesArray,
+            );
+
         }
 
         this.lastTime = 0;

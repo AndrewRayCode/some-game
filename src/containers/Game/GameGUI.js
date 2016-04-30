@@ -187,15 +187,15 @@ export default class GameGUI extends Component {
         });
         const {
             actions, originalLevels, originalEntities, books, chapters,
-            playerPositionV3FromProps, playerRadius, playerDensity,
-            pushyDensity, currentLevelStaticEntitiesArray,
-            currentLevelMovableEntitiesArray, currentLevelBridgesArray,
+            playerRadius, playerDensity, pushyDensity,
+            currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray,
+            currentLevelBridgesArray,
         } = this.props;
 
         this.props.startGame(
-            book.id, book.chapterIds[ 0 ], originalLevels, originalEntities,
-            books, chapters, playerPositionV3FromProps, playerRadius,
-            playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
+            this.props, book.id, book.chapterIds[ 0 ], originalLevels,
+            originalEntities, books, chapters, playerRadius, playerDensity,
+            pushyDensity, currentLevelStaticEntitiesArray,
             currentLevelMovableEntitiesArray, currentLevelBridgesArray,
         );
 
