@@ -322,7 +322,7 @@ export default function physicsReducer(
     }
 
     // Step the physics world
-    world.step( 1 / 60, delta, 3 );
+    world.step( 1 / 60, delta / 1000, 3 );
 
     return next({
         ...currentState,
