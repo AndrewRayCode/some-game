@@ -317,6 +317,10 @@ export default class GameContainer extends Component {
             playerPosition,
         } = nextProps;
 
+        // If the game is stopped, reset the initted state
+        if( this.props.gameStarted === true && !nextProps.gameStarted ) {
+            this.initting = false;
+        }
 
         // This is a lazy shortcut that probably should be refactored later.
         // This flow is start game dispatch > store populates > mapStateToProps
@@ -326,8 +330,8 @@ export default class GameContainer extends Component {
         // in this lifecycle method where derived data is computed. Just
         // annoying to manage state here.
         if( ( physicsInitted === false && !this.initting ) ||
-            // If the game is stopped, reset the initted state
-            ( this.props.recursionBusterId !== nextProps.recursionBusterId )
+            // If the game is stopped, reset the initting state
+            ( nextProps.gameStarted && ( this.props.recursionBusterId !== nextProps.recursionBusterId ) )
         ) {
 
             // Multiple event dispatches means multiple will recieve props,
