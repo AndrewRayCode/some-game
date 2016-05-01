@@ -107,7 +107,8 @@ export default class GameGUI extends Component {
         this.setState({
             clickable: false,
         });
-        this.props.stopGame();
+        const { gameState, } = this.props;
+        this.props.stopGame( gameState.world );
 
     }
 
@@ -118,11 +119,15 @@ export default class GameGUI extends Component {
         });
 
         const {
-            currentChapterId, originalEntities, originalLevels, chapters, books
+            currentChapterId, originalEntities, originalLevels, chapters,
+            books, gameState, currentBookId,
         } = this.props;
 
+        const { world, } = gameState;
+
         this.props.restartChapter(
-            currentChapterId, originalEntities, originalLevels, chapters, books
+            this.props, currentBookId, currentChapterId, originalEntities, originalLevels,
+            chapters, books, world
         );
 
     }
@@ -312,7 +317,7 @@ export default class GameGUI extends Component {
 
     _onRenderUpdate( renderer ) {
 
-        if( this.renderer ) {
+        if( !this.renderer ) {
 
             this.renderer = renderer;
 

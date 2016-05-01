@@ -258,8 +258,9 @@ const gameDataSelector = createSelector(
         cameraFov: state.game.cameraFov,
         physicsInitted: state.game.physicsInitted,
         paused: state.gameScreen.paused,
-        confirmingRestart: state.gameScreen.confirmRestart,
-        confirmingMenu: state.gameScreen.confirmMenu,
+        confirmingRestart: state.gameScreen.confirmingRestart,
+        currentBookId: state.currentGameBook,
+        confirmingMenu: state.gameScreen.confirmingMenu,
         ...gameDataSelector( state ),
     }),
     dispatch => bindActionCreators({
@@ -307,14 +308,15 @@ export default class GameContainer extends Component {
 
     }
 
-    componentWillReceiveProps() {
+    componentWillReceiveProps( nextProps ) {
 
         const {
             physicsInitted, gameState, books, chapters, playerRadius,
             playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
             currentLevelMovableEntitiesArray, currentLevelBridgesArray,
             playerPosition,
-        } = this.props;
+        } = nextProps;
+
 
         // This is a lazy shortcut that probably should be refactored later.
         // This flow is start game dispatch > store populates > mapStateToProps
@@ -323,7 +325,10 @@ export default class GameContainer extends Component {
         // now that relies on the derived data in mapStateToProps. So we do it
         // in this lifecycle method where derived data is computed. Just
         // annoying to manage state here.
-        if( physicsInitted === false && !this.initting ) {
+        if( ( physicsInitted === false && !this.initting ) ||
+            // If the game is stopped, reset the initted state
+            ( this.props.recursionBusterId !== nextProps.recursionBusterId )
+        ) {
 
             // Multiple event dispatches means multiple will recieve props,
             // or maybe devtools? Either way guard against it.

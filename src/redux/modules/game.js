@@ -19,15 +19,20 @@ const SET_GAME_INITIAL_PHYSICS_STATE = 'game/SET_GAME_INITIAL_PHYSICS_STATE';
 const GAME_SELECT_CHAPTER = 'game/GAME_SELECT_CHAPTER';
 const START_GAME = 'game/START_GAME';
 const UPDATE_RUNNING_GAME_STATE = 'game/UPDATE_RUNNING_GAME_STATE';
-const RESTART_CHAPTER = 'game/RESTART_CHAPTER';
 const STOP_GAME = 'game/STOP_GAME';
+const RESTART_CHAPTER = 'game/RESTART_CHAPTER';
 const SCALE_PLAYER = 'game/SCALE_PLAYER';
 const QUEUE_BEGIN_CONTACT_EVENT = 'game/QUEUE_BEGIN_CONTACT_EVENT';
 const QUEUE_END_CONTACT_EVENT = 'game/QUEUE_END_CONTACT_EVENT';
 
 // Find the player entity for this chapter to use the starting point, or
 // default to the middle
-function findPlayerPosition( levels, chapters, entities, chapterId ) {
+function findPlayerPosition(
+    levels:Object,
+    chapters:Object,
+    entities:Object,
+    chapterId:any
+) {
 
     return ( ( levels[ chapters[ chapterId ].levelId ].entityIds
         .map( id => entities[ id ] )
@@ -36,7 +41,10 @@ function findPlayerPosition( levels, chapters, entities, chapterId ) {
 
 }
 
-function convertOriginalLevelsToGameLevels( levels, entities ) {
+function convertOriginalLevelsToGameLevels(
+    levels:Object,
+    entities:Object,
+) {
 
     // Remove player entities from each level
     return Object.keys( levels ).reduce( ( memo, id ) => {
@@ -56,7 +64,7 @@ function convertOriginalLevelsToGameLevels( levels, entities ) {
 
 }
 
-function convertOriginalEntitiesToGameEntities( originalEntities ) {
+function convertOriginalEntitiesToGameEntities( originalEntities:Object ) {
 
     return Object.keys( originalEntities ).reduce( ( memo, id ) => {
 
@@ -79,6 +87,9 @@ function convertOriginalEntitiesToGameEntities( originalEntities ) {
 }
 
 const initialGameReducerState = {
+    // Note that GameContainer requires this to be null instead of false to not
+    // recreate the physics
+    physicsInitted: null,
     playerRadius: defaultPlayerRadius,
     playerDensity: defaultPlayerDensity,
     pushyDensity: defaultPushyDensity,
@@ -96,6 +107,7 @@ export function game( state = initialGameReducerState, action = {} ) {
 
     switch( action.type ) {
 
+        case RESTART_CHAPTER:
         case START_GAME:
 
             return {
@@ -169,22 +181,6 @@ export function game( state = initialGameReducerState, action = {} ) {
                 gameState: action.newGameState,
             };
 
-        case RESTART_CHAPTER:
-
-            return {
-                ...state,
-                chapters, books,
-
-                restartBusterId: restartBusterId || state.restartBusterId,
-
-                levels: convertOriginalLevelsToGameLevels( originalLevels, originalEntities ),
-                entities: convertOriginalEntitiesToGameEntities( originalEntities ),
-
-                playerPosition: findPlayerPosition( originalLevels, chapters, originalEntities, chapterId ),
-                playerRadius: initialGameReducerState.playerRadius,
-                playerScale: initialGameReducerState.playerScale,
-            };
-
         case GAME_SELECT_CHAPTER:
 
             return {
@@ -227,6 +223,7 @@ export function gameChapterReducer( state = defaultChapterState, action = {} ) {
 
     switch( action.type ) {
 
+        case RESTART_CHAPTER:
         case START_GAME:
             return {
                 currentChapterId: action.chapterId,
@@ -255,6 +252,7 @@ export function gameBookReducer( state = defaultBookState, action = {} ) {
 
     switch( action.type ) {
 
+        case RESTART_CHAPTER:
         case START_GAME:
             return action.bookId;
 
@@ -278,11 +276,12 @@ export function updateGameState( newGameState:Object ) {
 export function startGame(
     actions:Object,
     bookId:any,
-    chapterId:string,
+    chapterId:any,
     originalLevels:Object,
     originalEntities:Object,
     books:Object,
     chapters:Object,
+    recursionBusterId:any,
 ) {
 
     const world = createWorld( actions );
@@ -294,9 +293,47 @@ export function startGame(
     return {
         type: START_GAME,
         world, playerPosition, bookId, chapterId, originalLevels,
-        originalEntities, chapters, books
+        originalEntities, chapters, books, recursionBusterId,
     };
 }
+
+export function stopGame( world:Object ) {
+
+    tearDownWorld( world );
+    return { type: STOP_GAME, };
+
+}
+
+export function restartChapter(
+    actions:Object,
+    bookId:any,
+    chapterId:any,
+    originalEntities:Object,
+    originalLevels:Object,
+    chapters:Object,
+    books:Object,
+    oldWorld:Object,
+) {
+
+    // duplicated from stopGame and startGame() but cleanest path I can think
+    // of for now for restarting
+    tearDownWorld( oldWorld );
+
+    const world = createWorld( actions );
+
+    const playerPosition = findPlayerPosition(
+        originalLevels, chapters, originalEntities, chapterId
+    );
+
+    return {
+        type: RESTART_CHAPTER,
+        recursionBusterId: Date.now(),
+        world, playerPosition, bookId, chapterId, originalLevels,
+        originalEntities, books, chapters,
+    };
+
+}
+
 
 export function createPhysicsBodies(
     playerPosition:Vector3,
@@ -320,22 +357,6 @@ export function createPhysicsBodies(
     return {
         type: SET_GAME_INITIAL_PHYSICS_STATE,
         initialPhysicsGameState,
-    };
-
-}
-
-export function restartChapter(
-    chapterId:number,
-    originalEntities:Object,
-    originalLevels:Object,
-    chapters:Object,
-    books:Object,
-) {
-
-    return {
-        type: RESTART_CHAPTER,
-        restartBusterId: Date.now(),
-        chapterId, originalLevels, originalEntities, chapters, books
     };
 
 }
@@ -365,13 +386,6 @@ export function scalePlayer(
         type: SCALE_PLAYER,
         levelId, powerupIdToRemove, multiplier
     };
-}
-
-export function stopGame( world ) {
-
-    tearDownWorld( world );
-    return { type: STOP_GAME, };
-
 }
 
 export function queueBeginContactEvent( event:Object ) {

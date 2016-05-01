@@ -14,12 +14,12 @@ export default function gameKeyPressReducer(
 
     } else if( keysDown.isFirstPress( 'R' ) ) {
 
-        actions.showConfirmMenuScreen();
+        actions.showConfirmRestartScreen();
         return currentState;
 
     } else if( keysDown.isFirstPress( 'M' ) ) {
 
-        actions.showConfirmRestartScreen();
+        actions.showConfirmMenuScreen();
         return currentState;
 
     }
