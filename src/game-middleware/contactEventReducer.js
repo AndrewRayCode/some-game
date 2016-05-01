@@ -1,9 +1,9 @@
 import { Vector3, } from 'three';
 import p2 from 'p2';
-import {
-    without, getCardinalityOfVector,
-} from 'helpers/Utils';
+import { without, getCardinalityOfVector, } from 'helpers/Utils';
 
+// Process any events that were placed on the queue during the last
+// world.step() call
 export default function contactEventReducer(
     keysDown:Object,
     actions:Object,

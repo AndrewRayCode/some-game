@@ -1,5 +1,5 @@
 import { Vector3, } from 'three';
-import { lerp, getCameraDistanceToPlayer } from '../helpers/Utils';
+import { lerp, getCameraDistanceToPlayer } from 'helpers/Utils';
 
 export default function defaultCameraReducer(
     keysDown:Object,

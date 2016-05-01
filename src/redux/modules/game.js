@@ -1,5 +1,7 @@
 import { Vector3, } from 'three';
 
+import { getCameraDistanceToPlayer } from 'helpers/Utils';
+
 import {
     setUpPhysics, createWorld, tearDownWorld,
 } from 'physics-utils';
@@ -85,11 +87,6 @@ const initialGameReducerState = {
     levels: {}
 };
 
-// Because we're mutating this at runtime, for now, on a new game, recreate it
-const initialGameState = () => ({
-    cameraPosition: new Vector3( 0, 0, 0 ),
-});
-
 export function game( state = initialGameReducerState, action = {} ) {
 
     const {
@@ -113,7 +110,11 @@ export function game( state = initialGameReducerState, action = {} ) {
                 entities: convertOriginalEntitiesToGameEntities( originalEntities ),
 
                 gameState: {
-                    ...initialGameState(),
+                    cameraPosition: new Vector3(
+                        playerPosition.x,
+                        getCameraDistanceToPlayer( playerPosition.y, cameraFov, 1 ),
+                        playerPosition.z,
+                    ),
                     world: action.world,
                     beginContactEventQueue: [],
                     endContactEventQueue: [],
