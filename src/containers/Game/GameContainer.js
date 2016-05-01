@@ -29,7 +29,7 @@ import {
     playerPositionReducer, gameKeyPressReducer, tourReducer, zoomReducer,
     entityInteractionReducer, playerScaleReducer, debugReducer,
     advanceLevelReducer, defaultCameraReducer, playerAnimationReducer,
-    speechReducer, contactEventReducer, physicsReducer,
+    speechReducer, contactEventReducer, physicsReducer, gameScreenReducer,
 } from 'game-middleware';
 
 import GameGUI from './GameGUI';
@@ -257,6 +257,9 @@ const gameDataSelector = createSelector(
         gameState: state.game.gameState,
         cameraFov: state.game.cameraFov,
         physicsInitted: state.game.physicsInitted,
+        paused: state.gameScreen.paused,
+        confirmingRestart: state.gameScreen.confirmRestart,
+        confirmingMenu: state.gameScreen.confirmMenu,
         ...gameDataSelector( state ),
     }),
     dispatch => bindActionCreators({
@@ -373,11 +376,11 @@ export default class GameContainer extends Component {
                 // Note: KeyHandler is updated in UpdateAllObjects for now.
                 // `this.props` twice for "actions" and "gameData"
                 KeyHandler, this.props, this.props, gameState, currentState,
-                playerPositionReducer, contactEventReducer, physicsReducer,
-                gameKeyPressReducer, tourReducer, advanceLevelReducer,
-                zoomReducer, debugReducer, entityInteractionReducer,
-                playerScaleReducer, defaultCameraReducer,
-                playerAnimationReducer, speechReducer,
+                gameScreenReducer, playerPositionReducer, contactEventReducer,
+                physicsReducer, gameKeyPressReducer, tourReducer,
+                advanceLevelReducer, zoomReducer, debugReducer,
+                entityInteractionReducer, playerScaleReducer,
+                defaultCameraReducer, playerAnimationReducer, speechReducer,
             )
         );
 

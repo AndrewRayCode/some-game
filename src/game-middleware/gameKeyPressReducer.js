@@ -9,17 +9,17 @@ export default function gameKeyPressReducer(
 
     if( keysDown.isFirstPress( 'P' ) || keysDown.isFirstPress( 'ESC' ) ) {
 
-        actions.onPause();
+        actions.pauseGame();
         return currentState;
 
     } else if( keysDown.isFirstPress( 'R' ) ) {
 
-        actions.onShowConfirmRestartScreen();
+        actions.showConfirmMenuScreen();
         return currentState;
 
     } else if( keysDown.isFirstPress( 'M' ) ) {
 
-        actions.onShowConfirmMenuScreen();
+        actions.showConfirmRestartScreen();
         return currentState;
 
     }

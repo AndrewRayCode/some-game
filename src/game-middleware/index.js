@@ -11,3 +11,4 @@ export gameKeyPressReducer from './gameKeyPressReducer';
 export playerAnimationReducer from './playerAnimationReducer';
 export playerScaleReducer from './playerScaleReducer';
 export speechReducer from './speechReducer';
+export gameScreenReducer from './gameScreenReducer';

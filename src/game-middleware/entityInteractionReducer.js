@@ -1,8 +1,9 @@
 import Cardinality from '../helpers/Cardinality';
 import { scalePlayer, } from 'physics-utils';
 import {
-    getCardinalityOfVector, getCameraDistanceToPlayer, lerp
-} from '../helpers/Utils';
+    getCardinalityOfVector, getCameraDistanceToPlayer, lerp,
+    playerV3ToFinishEntityV3Collision, playerToCircleCollision3dTo2d,
+} from 'helpers/Utils';
 import THREE from 'three';
 
 // Warning: duplicated in playerScaleReducer
@@ -34,12 +35,20 @@ export default function entityInteractionReducer(
     for( let i = 0; i < currentLevelTouchyArray.length; i++ ) {
 
         const entity = currentLevelTouchyArray[ i ];
-        const distance = entity.position.distanceTo( playerPositionV3 );
+
+        if( entity.scale.x !== playerScale ) {
+            continue;
+        }
 
         if( entity.type === 'finish' ) {
 
             // Dumb sphere to cube collision
-            if( distance < playerRadius + ( entity.scale.x / 2 ) - playerScale * 0.1 ) {
+            if( playerV3ToFinishEntityV3Collision(
+                playerPositionV3,
+                playerRadius,
+                entity.position,
+                entity.scale,
+            ) ) {
 
                 newState.isAdvancing = true;
 
@@ -95,19 +104,25 @@ export default function entityInteractionReducer(
 
             }
 
-        } else if( ( entity.scale.x === playerScale ) &&
-                ( distance < playerRadius * 1.8 ) &&
-                !oldState.scaleStartTime
-            ) {
+        } else if( !oldState.scaleStartTime &&
+            playerToCircleCollision3dTo2d(
+                playerPositionV3,
+                playerRadius,
+                entity.position,
+                entity.scale.x * 0.5,
+            )
+        ) {
 
             const isShrinking = entity.type === 'shrink';
 
+            // Perform the physics scale
             const scaleResult = scalePlayer(
                 world, playerBody, playerRadius, playerPositionV3,
                 playerDensity, isShrinking
             );
 
-            actions.scalePlayer( currentLevelId, null, scaleResult.multiplier, );
+            // Perform the store update
+            actions.scalePlayer( currentLevelId, entity.id, scaleResult.multiplier, );
 
             newState = {
                 ...newState,

@@ -9,8 +9,8 @@ const DENY_RESTART = 'game/DENY_RESTART';
 
 const defaultScreenState = {
     paused: false,
-    confirmRestart: false,
-    confirmMenu: false,
+    confirmingRestart: false,
+    confirmingMenu: false,
 };
 export function gameScreenReducer( state = defaultScreenState, action = {} ) {
 
@@ -29,28 +29,28 @@ export function gameScreenReducer( state = defaultScreenState, action = {} ) {
         case SHOW_CONFIRM_MENU_SCREEN:
             return {
                 paused: true,
-                confirmRestart: false,
-                confirmMenu: true,
+                confirmingRestart: false,
+                confirmingMenu: true,
             };
 
         case SHOW_CONFIRM_RESTART_SCREEN:
             return {
                 paused: true,
-                confirmRestart: true,
+                confirmingRestart: true,
             };
 
         case EXIT_TO_MENU_CONFIRM:
             return {
                 paused: false,
-                confirmRestart: false,
-                confirmMenu: false,
+                confirmingRestart: false,
+                confirmingMenu: false,
             };
 
         case CONFIRM_RESTART:
             return {
                 paused: false,
-                confirmRestart: false,
-                confirmMenu: false,
+                confirmingRestart: false,
+                confirmingMenu: false,
             };
 
         default:
@@ -84,7 +84,7 @@ export function exitToMenuConfirm() {
     return { type: EXIT_TO_MENU_CONFIRM, };
 }
 
-export function confirmRestart() {
+export function confirmingRestart() {
     return { type: CONFIRM_RESTART, };
     // todo probably get these from passing?
     //const {

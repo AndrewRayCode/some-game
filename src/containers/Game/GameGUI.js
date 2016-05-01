@@ -87,10 +87,12 @@ export default class GameGUI extends Component {
     }
 
     onWindowBlur() {
+        
+        const { gameStarted, paused, } = this.props;
 
         // This is dumb
         if( window.location.href.indexOf( '3000' ) === -1 &&
-                this.props.gameStarted && !this.state.paused
+                gameStarted && !paused
             ) {
 
             this.onPause();
@@ -148,7 +150,7 @@ export default class GameGUI extends Component {
         this.setState({
             clickable: false,
         });
-        this.props.unPauseGame();
+        this.props.unpauseGame();
 
     }
 
@@ -343,12 +345,12 @@ export default class GameGUI extends Component {
     render() {
 
         const {
-            fps, mouseInput, clickable, paused, confirmRestart, confirmMenu,
+            fps, mouseInput, clickable,
         } = this.state;
 
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
-            assets, gameState,
+            assets, gameState, paused, confirmingRestart, confirmingMenu,
         } = this.props;
 
         // Game might not be started yet?
@@ -393,7 +395,7 @@ export default class GameGUI extends Component {
                 cameraName="mainCamera"
             />
 
-            { confirmRestart ? <viewport
+            { confirmingRestart ? <viewport
                 x={ 0 }
                 y={ 0 }
                 width={ gameWidth }
@@ -402,7 +404,7 @@ export default class GameGUI extends Component {
                 onBeforeRender={ this.onBeforeRender }
             /> : null }
 
-            { confirmMenu ? <viewport
+            { confirmingMenu ? <viewport
                 x={ 0 }
                 y={ 0 }
                 width={ gameWidth }
@@ -420,7 +422,7 @@ export default class GameGUI extends Component {
                 onBeforeRender={ this.onBeforeRender }
             /> : null }
 
-            { !confirmRestart && !confirmMenu && paused ? <viewport
+            { !confirmingRestart && !confirmingMenu && paused ? <viewport
                 x={ 0 }
                 y={ 0 }
                 width={ gameWidth }
@@ -498,7 +500,7 @@ export default class GameGUI extends Component {
                     letters={ letters }
                 /> }
 
-                { gameStarted && !confirmRestart && !confirmMenu && paused ? <PausedScreen
+                { gameStarted && !confirmingRestart && !confirmingMenu && paused ? <PausedScreen
                     ref="pausedScreen"
                     mouseInput={ mouseInput }
                     onClickRegionLeave={ this.onClickRegionLeave }
@@ -514,7 +516,7 @@ export default class GameGUI extends Component {
                     letters={ letters }
                 /> : null }
 
-                { gameStarted && confirmRestart ? <ConfirmRestartScreen
+                { gameStarted && confirmingRestart ? <ConfirmRestartScreen
                     ref="confirmRestartScreen"
                     mouseInput={ mouseInput }
                     onClickRegionLeave={ this.onClickRegionLeave }
@@ -529,7 +531,7 @@ export default class GameGUI extends Component {
                     letters={ letters }
                 /> : null }
 
-                { gameStarted && confirmMenu ? <ConfirmMenuScreen
+                { gameStarted && confirmingMenu ? <ConfirmMenuScreen
                     ref="confirmMenuScreen"
                     mouseInput={ mouseInput }
                     onClickRegionLeave={ this.onClickRegionLeave }

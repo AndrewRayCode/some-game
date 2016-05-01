@@ -11,23 +11,53 @@ import ColladaLoader from 'three-collada-loader';
 import mutateThreeWithObjLoader from 'three-obj-loader';
 mutateThreeWithObjLoader( THREE );
 
-export function cubeToPlayerCollision( entityA, player, radius ):boolean {
+// Given the player position and entiy position in 3d space, do a 2d collision
+// check. Assumes entity is square shaped.
+export function playerToBoxCollision3dTo2d(
+    positionA:Vector3,
+    radiusA:number,
+    positionB:Vector3,
+    scaleB:Object,
+):boolean {
 
-    const positionA = entityA.position;
-    const scaleA = entityA.scale;
+    const sizeA = radiusA * 2;
 
-    const positionB = player.position;
-    const sizeB = radius * 2;
-
-    if( Math.abs( positionA.x - positionB.x ) < scaleA.x + sizeB ) {
-        if( Math.abs( positionA.y - positionB.y ) < scaleA.y + sizeB ) {
-            if( Math.abs( positionA.z - positionB.z ) < scaleA.z + sizeB ) {
-                return true;
-            }
+    if( Math.abs( positionA.x - positionB.x ) < scaleB.x + sizeA ) {
+        if( Math.abs( positionA.z - positionB.z ) < scaleB.z + sizeA ) {
+            return true;
         }
     }
 
     return false;
+
+}
+
+// Given vector3 world positions, calculate if intersection with circle
+export function playerToCircleCollision3dTo2d(
+    positionA:Vector3,
+    radiusA:number,
+    positionB:Vector3,
+    radiusB:number,
+):boolean {
+
+    return new Vector2( positionA.x, positionA.z ).distanceTo(
+        new Vector2( positionB.x, positionB.z )
+    ) < ( radiusA + radiusB );
+
+}
+
+// Finish line hit detection. We scale down the radius as a cheap way to guess
+// if we're hitting the finish line "flag" plane of the finish line
+export function playerV3ToFinishEntityV3Collision(
+    playerPosition:Vector3,
+    radiusA:number,
+    positionB:Vector3,
+    scaleB:Object,
+):boolean {
+
+    return playerToBoxCollision3dTo2d(
+        playerPosition, radiusA * 0.5, positionB, scaleB,
+    );
 
 }
 
