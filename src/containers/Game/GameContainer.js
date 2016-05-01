@@ -308,6 +308,13 @@ export default class GameContainer extends Component {
 
     }
 
+    // This is a lazy shortcut that probably should be refactored later. This
+    // flow is start game dispatch > store populates > mapStateToProps runs
+    // (now we have data we need to create physics) > create physics. It'd be
+    // ideal to build the physics when we start the game, but right now that
+    // relies on the derived data in mapStateToProps. So we do it in this
+    // lifecycle method where derived data is computed. Just annoying to manage
+    // state here.
     componentWillReceiveProps( nextProps ) {
 
         const {
@@ -322,13 +329,6 @@ export default class GameContainer extends Component {
             this.initting = false;
         }
 
-        // This is a lazy shortcut that probably should be refactored later.
-        // This flow is start game dispatch > store populates > mapStateToProps
-        // runs (now we have data we need to create physics) > create physics.
-        // It'd be ideal to build the physics when we start the game, but right
-        // now that relies on the derived data in mapStateToProps. So we do it
-        // in this lifecycle method where derived data is computed. Just
-        // annoying to manage state here.
         if( ( physicsInitted === false && !this.initting ) ||
             // If the game is stopped, reset the initting state
             ( nextProps.gameStarted && ( this.props.recursionBusterId !== nextProps.recursionBusterId ) )
