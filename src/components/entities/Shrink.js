@@ -1,8 +1,12 @@
 import React, { Component } from 'react';
-import THREE from 'three';
+import THREE, { Euler, Vector3, } from 'three';
+import { easeInOutCubic } from 'easing-utils';
 
-const rotationOffset = new THREE.Euler( Math.PI / 2, 0, 0 );
-const billboardScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
+const rotationOffset = new Euler( Math.PI / 2, 0, 0 );
+const billboardScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
+const rotationSpeed = 0.08;
+const bounceSpeed = 0.005;
+const bounceLimit = 0.1;
 
 export default class Shrink extends Component {
 
@@ -17,41 +21,54 @@ export default class Shrink extends Component {
         } = this.props;
 
         return <group
-            rotation={ new THREE.Euler(
-                0,
-                THREE.Math.degToRad( time * 50 ),
-                0
-            ) }
             position={ position }
             scale={ scale }
         >
-            <mesh
-                scale={ billboardScale }
-                rotation={ rotationOffset }
-                ref="mesh2"
+            <group
+                position={
+                    new Vector3(
+                        0,
+                        0,
+                        bounceLimit * Math.sin( bounceSpeed * time )
+                    )
+                }
             >
-                <geometryResource
-                    resourceId="1x1plane"
-                />
-                <materialResource
-                    resourceId="shrinkMaterial"
-                />
-            </mesh>
-            <mesh
-                rotation={ new THREE.Euler(
-                    THREE.Math.degToRad( time * 50 ),
-                    0,
-                    0
-                ) }
-                ref="mesh"
-            >
-                <geometryResource
-                    resourceId="radius1sphere"
-                />
-                <materialResource
-                    resourceId={ wrapMaterialId || 'shrinkWrapMaterial' }
-                />
-            </mesh>
+                <group
+                    rotation={ new Euler(
+                        0,
+                        THREE.Math.degToRad( time * rotationSpeed ),
+                        0
+                    ) }
+                >
+                    <mesh
+                        scale={ billboardScale }
+                        rotation={ rotationOffset }
+                        ref="mesh2"
+                    >
+                        <geometryResource
+                            resourceId="1x1plane"
+                        />
+                        <materialResource
+                            resourceId="shrinkMaterial"
+                        />
+                    </mesh>
+                    <mesh
+                        rotation={ new Euler(
+                            THREE.Math.degToRad( time * rotationSpeed ),
+                            0,
+                            0
+                        ) }
+                        ref="mesh"
+                    >
+                        <geometryResource
+                            resourceId="radius1sphere"
+                        />
+                        <materialResource
+                            resourceId={ wrapMaterialId || 'shrinkWrapMaterial' }
+                        />
+                    </mesh>
+                </group>
+            </group>
         </group>;
 
     }
