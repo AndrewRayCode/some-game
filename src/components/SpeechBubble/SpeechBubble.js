@@ -1,21 +1,22 @@
 import React, { Component, PropTypes } from 'react';
 import styles from './SpeechBubble.scss';
-import { easeInBounce, easeOutBounce, } from 'easing-utils';
+import { easeInBounce, easeOutBounce, easeInElastic, } from 'easing-utils';
 
 const percentOpacityTween = 0.4;
+const minPercentOpen = 0.3;
 
-const SpeechBubble = ({ isClosing, openPercent, gameWidth, gameHeight, text, position, offset }) => {
+const SpeechBubble = ({ isClosing, openPercent = 0, gameWidth, gameHeight, text, position, offset }) => {
 
-    const percent = ( openPercent || 0 ) * 0.9 + 0.1;
+    const widthPercent = openPercent * ( 1 - minPercentOpen ) + minPercentOpen;
     const width = 100 * ( isClosing ?
-        easeInBounce( percent ) :
-        easeOutBounce( percent )
+        widthPercent :
+        easeOutBounce( widthPercent )
     );
 
     return <div
         className={ styles.bubble }
         style={{
-            opacity: Math.min( ( openPercent || 0 ) / percentOpacityTween, 1 ),
+            opacity: Math.min( openPercent / percentOpacityTween, 1 ),
             top: `${ Math.round( position.y ) + offset }px`,
         }}
     >

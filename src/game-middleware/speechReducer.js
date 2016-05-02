@@ -1,4 +1,5 @@
-const textExpandTime = 1500;
+const textExpandTime = 1100;
+const textCloseTime = 500;
 const msPerLetter = 50;
 
 function generateText( text, index ) {
@@ -81,7 +82,7 @@ export default function speechReducer(
             if( !isFullyShown ) {
 
                 if( keysDown.isFirstPress( 'SPACE' ) || keysDown.isFirstPress( 'ENTER' ) ) {
-                    activeTextStartTime = 0;
+                    activeTextStartTime = 1; // A truty value a long time in the past
                     newState.visibleText = generateText( currentText, Infinity );
                 }
 
@@ -111,7 +112,7 @@ export default function speechReducer(
     if( textCloseStartTime ) {
 
         const timeSinceTextClosing = time - textCloseStartTime;
-        newState.textOpenPercent = 1 - ( timeSinceTextClosing / textExpandTime );
+        newState.textOpenPercent = 1 - ( timeSinceTextClosing / textCloseTime );
 
         // Reset everything
         if( newState.textOpenPercent <= 0 ) {
@@ -120,6 +121,9 @@ export default function speechReducer(
             textCloseStartTime = null;
             textIsVisible = false;
             textIsClosing = false;
+            newState.textOpenPercent = 0;
+            activeTextStartTime = null;
+            textVisibleStartTime = null;
 
         }
 
