@@ -12,7 +12,7 @@ import mutateThreeWithObjLoader from 'three-obj-loader';
 mutateThreeWithObjLoader( THREE );
 
 // Given the player position and entiy position in 3d space, do a 2d collision
-// check. Assumes entity is square shaped.
+// check
 export function playerToBoxCollision3dTo2d(
     positionA:Vector3,
     radiusA:number,
@@ -20,8 +20,8 @@ export function playerToBoxCollision3dTo2d(
     scaleB:Object,
 ):boolean {
 
-    if( Math.abs( positionA.x - positionB.x ) < scaleB.x + radiusA ) {
-        if( Math.abs( positionA.z - positionB.z ) < scaleB.z + radiusA ) {
+    if( Math.abs( positionA.x - positionB.x ) < scaleB.x * 0.5 + radiusA ) {
+        if( Math.abs( positionA.z - positionB.z ) < scaleB.z * 0.5 + radiusA ) {
             return true;
         }
     }

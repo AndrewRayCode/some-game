@@ -16,8 +16,8 @@ export default function advanceLevelReducer(
         currentTransitionStartTime, startTransitionPosition,
         currentTransitionTarget, advanceToNextChapter,
         transitionCameraPositionStart, currentTransitionCameraTarget,
-        isAdvancing, sideEffectQueue, isNextChapterBigger,
-        transitionPercent: lastTransitionPercent,
+        isAdvancing, sideEffectQueue, transitionPercent: lastTransitionPercent,
+        advanceAction,
     } = oldState;
 
     const { advanceChapter } = actions;
@@ -33,11 +33,11 @@ export default function advanceLevelReducer(
                 playerContact: {},
                 sideEffectQueue: [
                     ...sideEffectQueue,
-                    () => advanceChapter( advanceToNextChapter, isNextChapterBigger, ),
+                    advanceAction,
                 ],
                 isAdvancing: false,
-                isNextChapterBigger: null,
                 transitionPercent: null,
+                advanceAction: null,
             };
 
         }

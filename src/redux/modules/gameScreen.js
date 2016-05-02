@@ -82,14 +82,6 @@ export function exitToMenuConfirm() {
 
 export function confirmingRestart() {
     return { type: CONFIRM_RESTART, };
-    // todo probably get these from passing?
-    //const {
-        //currentChapterId, originalEntities, originalLevels, chapters, books
-    //} = this.props;
-
-    //this.props.restartChapter(
-        //currentChapterId, originalEntities, originalLevels, chapters, books
-    //);
 }
 
 export function denyRestart() {

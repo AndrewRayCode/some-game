@@ -4,7 +4,7 @@ import {
     getCardinalityOfVector, getCameraDistanceToPlayer, lerp,
     playerV3ToFinishEntityV3Collision, playerToCircleCollision3dTo2d,
 } from 'helpers/Utils';
-import THREE from 'three';
+import { Vector3, } from 'three';
 
 // Warning: duplicated in playerScaleReducer
 const scaleStartDelayMs = 250;
@@ -22,7 +22,7 @@ export default function entityInteractionReducer(
         currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
         currentLevelId, nextChapters, previousChapterFinishEntity,
         previousChapterEntity, previousChapter, cameraFov, sideEffectQueue,
-        currentGameChapterId, currentChapterId,
+        currentGameChapterId, currentChapterId, allChaptersArray,
     } = gameData;
 
     const { cameraPosition, world, playerBody, } = oldState;
@@ -41,7 +41,7 @@ export default function entityInteractionReducer(
 
         if( entity.type === 'finish' ) {
 
-            // Dumb sphere to cube collision
+            // This would make a good abstracted out function, probably
             if( playerV3ToFinishEntityV3Collision(
                 playerPositionV3,
                 playerRadius,
@@ -63,10 +63,30 @@ export default function entityInteractionReducer(
                 // Go to parent chapter of this one
                 if( entity === previousChapterFinishEntity ) {
 
-                    newState.advanceToNextChapter = previousChapter;
-                    isNextChapterBigger = previousChapter.nextChapters.find(
+                    const previousChapterNextChapterData = previousChapter.nextChapters.find(
                         data => data.chapterId === currentChapterId
-                    ).scale.x < 1;
+                    );
+                    
+                    isNextChapterBigger = previousChapterNextChapterData.scale.x < 1;
+                    const multiplier = isNextChapterBigger ? 8 : 0.125;
+
+                    // Data needed to correclty re-position the player
+                    const nextChapter = {
+                        position: previousChapterNextChapterData.position
+                            .clone()
+                            .multiplyScalar( -multiplier ),
+                        scale: new Vector3( multiplier, multiplier, multiplier, ),
+                    };
+
+                    // Find who, if anyone, linked to the previous chapter
+                    const previousPreviousChapter = allChaptersArray.find( chapter =>
+                        chapter.nextChapters.find( data => data.chapterId === previousChapter.id )
+                    );
+
+                    newState.advanceAction = () =>
+                        actions.advanceToPreviousChapter(
+                            nextChapter, previousChapter.id, previousPreviousChapter ? previousPreviousChapter.id : null, isNextChapterBigger,
+                        );
 
                 // Go to child chapter of this one
                 } else {
@@ -76,31 +96,33 @@ export default function entityInteractionReducer(
                         b.position.distanceTo( entity.position )
                     )[ 0 ];
 
-                    newState.advanceToNextChapter = nextChapter;
-
                     // If we're going forward then the nextChapter data will
                     // have the scale of the next level
                     isNextChapterBigger = nextChapter.scale.x > 1;
+
+                    newState.advanceAction = () =>
+                        actions.advanceChapter( nextChapter );
                 
                 }
-
-                newState.isNextChapterBigger = isNextChapterBigger;
 
                 // Calculate where to tween the player to. *>2 to move
                 // past the hit box for the level exit/entrance
                 newState.startTransitionPosition = playerPositionV3;
                 newState.currentTransitionPosition = playerPositionV3;
-                const currentTransitionTarget = new THREE.Vector3(
+                const currentTransitionTarget = new Vector3(
                     lerp( playerPositionV3.x, entity.position.x, isUp ? 0 : 2.5 ),
                     playerPositionV3.y,
                     lerp( playerPositionV3.z, entity.position.z, isUp ? 2.5 : 0 ),
                 );
                 newState.currentTransitionTarget = currentTransitionTarget;
                 newState.currentTransitionStartTime = time;
-                newState.currentTransitionCameraTarget = new THREE.Vector3(
+                newState.currentTransitionCameraTarget = new Vector3(
                     currentTransitionTarget.x,
                     getCameraDistanceToPlayer(
-                        playerPositionV3.y, cameraFov, playerScale * ( isNextChapterBigger ? 8 : 0.125 )
+                        // todo: when going from small to big (like going
+                        // backwards), the camera needs to zoom *out*, but we
+                        // don't support scales bigger than 1, set to 1 for now
+                        playerPositionV3.y, cameraFov, playerScale * ( isNextChapterBigger ? 1 : 0.125 )
                     ),
                     currentTransitionTarget.z,
                 );

@@ -17,6 +17,7 @@ const cameraFov = 75;
 //const QUEUE_TEXT = 'game/QUEUE_TEXT';
 const SET_GAME_INITIAL_PHYSICS_STATE = 'game/SET_GAME_INITIAL_PHYSICS_STATE';
 const GAME_SELECT_CHAPTER = 'game/GAME_SELECT_CHAPTER';
+const GAME_SELECT_PREVIOUS_CHAPTER = 'game/GAME_SELECT_PREVIOUS_CHAPTER';
 const START_GAME = 'game/START_GAME';
 const SET_RUNNING_GAME_STATE = 'game/SET_RUNNING_GAME_STATE';
 const UPDATE_RUNNING_GAME_STATE = 'game/UPDATE_RUNNING_GAME_STATE';
@@ -192,6 +193,7 @@ export function game( state = initialGameReducerState, action = {} ) {
                 }
             };
 
+        case GAME_SELECT_PREVIOUS_CHAPTER:
         case GAME_SELECT_CHAPTER:
             return {
                 ...state,
@@ -236,6 +238,17 @@ export function gameChapterReducer( state = defaultChapterState, action = {} ) {
         case START_GAME:
             return {
                 currentChapterId: action.chapterId,
+            };
+
+        case GAME_SELECT_PREVIOUS_CHAPTER:
+            return {
+                ...state,
+                currentChapterId: action.chapterId,
+                // We're going backwards, so we can't use
+                // state.currentChapterId, because GameContainer uses that to
+                // calculate the previous level to show
+                previousChapterId: action.previousChapterId,
+                previousChapterNextChapter: action.nextChapter,
             };
 
         case GAME_SELECT_CHAPTER:
@@ -375,17 +388,28 @@ export function createPhysicsBodies(
 
 }
 
-export function advanceChapter( nextChapter:Object, isNextChapterBigger:boolean ) {
+export function advanceChapter( nextChapter:Object ) {
     return {
         type: GAME_SELECT_CHAPTER,
-        // If a chapter recurses into itself, for now, the chapterId will stay
-        // the same, so the game won't know to update. If we change levels set
-        // some unique timestamp to force the change. Another solution could be
-        // to generate two chapters that reference each other, so the chapter
-        // id would change even though they both contain the same level
         recursionBusterId: Date.now(),
         chapterId: nextChapter.chapterId,
-        nextChapter, isNextChapterBigger,
+        isNextChapterBigger: nextChapter.scale.x > 1,
+        nextChapter,
+    };
+}
+
+// Going back to the first chapter, there won't be previousChapterNextChapter
+// data
+export function advanceToPreviousChapter(
+    nextChapter:Object,
+    chapterId:any,
+    previousChapterId:any,
+    isNextChapterBigger:boolean
+) {
+    return {
+        type: GAME_SELECT_PREVIOUS_CHAPTER,
+        recursionBusterId: Date.now(),
+        chapterId, isNextChapterBigger, previousChapterId, nextChapter,
     };
 }
 
