@@ -26,9 +26,7 @@ export default function entityInteractionReducer(
 
     const { cameraPosition, world, playerBody, } = oldState;
 
-    const {
-        playerPositionV3, time,
-    } = currentState;
+    const { playerPositionV3, time, } = currentState;
 
     let newState = {};
 

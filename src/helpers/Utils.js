@@ -61,7 +61,7 @@ export function playerV3ToFinishEntityV3Collision(
 
 }
 
-export function getEntrancesForTube( tube, scaleFactor ) {
+export function getEntrancesForTube( tube:Object, scaleFactor:number ) {
 
     const { position, rotation, type } = tube;
 
@@ -151,7 +151,7 @@ export function getEntrancesForTube( tube, scaleFactor ) {
 
 }
 
-export function without( obj, ...keys ) {
+export function without( obj:Object, ...keys ) {
 
     const stringKeys = keys.map( key => key.toString() );
 
@@ -164,7 +164,7 @@ export function without( obj, ...keys ) {
 
 }
 
-export function lerp( start, target, percent ) {
+export function lerp( start:number, target:number, percent:number ) {
 
     return start + percent * ( target - start );
 
@@ -186,7 +186,7 @@ function getLoader( url:string ) {
 
 }
 
-export function loadModel( modelPath, loader ) {
+export function loadModel( modelPath:string, loader:any ) {
 
     return new Promise( ( resolve, reject ) => {
 
@@ -205,7 +205,7 @@ export function loadModel( modelPath, loader ) {
 
 }
 
-export function loadFont( fontPath ) {
+export function loadFont( fontPath:string ) {
 
     return new Promise( ( resolve, reject ) => {
 
@@ -228,7 +228,7 @@ export function uid() {
 
 }
 
-export function assignUvs( geometry ) {
+export function assignUvs( geometry:Object ) {
 
     geometry.computeBoundingBox();
 
@@ -259,13 +259,13 @@ export function assignUvs( geometry ) {
 
 }
 
-export function getSphereMass( density, radius ) {
+export function getSphereMass( density:number, radius:number ) {
 
     return density * ( 4 / 3 ) * Math.PI * Math.pow( radius, 3 );
 
 }
 
-export function getCubeMass( density, side ) {
+export function getCubeMass( density:number, side:number ) {
 
     return density * Math.pow( side, 3 );
 
@@ -288,7 +288,7 @@ export function getCameraDistanceToPlayer( playerY:number, fov:number, playerSca
 
 }
 
-export function getCardinalityOfVector( v3 ) {
+export function getCardinalityOfVector( v3:Vector3 ) {
 
     // Not rotated
     if( v3.length() === 0 ) {
@@ -313,7 +313,7 @@ export function getCardinalityOfVector( v3 ) {
 
 }
 
-export function snapVectorAngleTo( v3, snapAngle ) {
+export function snapVectorAngleTo( v3:Vector3, snapAngle:number ) {
 
     const angle = v3.angleTo( Cardinality.UP );
 
@@ -345,7 +345,7 @@ export function vec3Equals( a:Vector3, b:Vector3 ) {
     return a.clone().sub( b ).length() < 0.0001;
 }
 
-export function findNextTube( tube, entrance, entities, scale ) {
+export function findNextTube( tube:Object, entrance:Vector3, entities:Array, scale:number ) {
 
     const { entrance1, entrance2 } = getEntrancesForTube( tube, scale );
 
@@ -371,7 +371,7 @@ export function findNextTube( tube, entrance, entities, scale ) {
 
 }
 
-export function snapTo( number, interval ) {
+export function snapTo( number:number, interval:number ) {
 
     return interval * Math.ceil( number / interval );
 
@@ -413,32 +413,32 @@ export function getFrustrumAt( distanceFromCamera:number, fov:number, aspect:num
 
 }
 
-export function clampVector3( v3, min, max ) {
+export function clampVector3( v3:Vector3, min:number, max:number ) {
 
     const length = v3.length();
     return v3.clone().setLength( Math.max( Math.min( max, length ) ) );
 
 }
 
-export function p2AngleToEuler( angle ) {
+export function p2AngleToEuler( angle:number ) {
 
     return new Euler( 0, -angle, 0 );
 
 }
 
-export function v3toP2( v3 ) {
+export function v3toP2( v3:Vector3 ) {
 
     return [ v3.x, v3.z ];
 
 }
 
-export function p2ToV3( p2, y ) {
+export function p2ToV3( p2:Array|Float32Array, y:number ) {
 
     return new Vector3( p2[ 0 ], y || 0, p2[ 1 ] );
 
 }
 
-export function str2Hex( str ) {
+export function str2Hex( str:string ) {
 
     return parseInt( str, 16 );
 
@@ -483,7 +483,7 @@ export function applyMiddleware(
 
 }
 
-export function deepArrayClone( arr ) {
+export function deepArrayClone( arr:Array ) {
 
     if( Array.isArray( arr ) ) {
         const copy = arr.slice( 0 );
@@ -499,7 +499,7 @@ export function deepArrayClone( arr ) {
 
 }
 
-export function wrapNumber( newNumber, upper, lower = 0 ) {
+export function wrapNumber( newNumber:number, upper:number, lower = 0 ) {
 
     if( newNumber < lower ) {
         return upper - 1;
@@ -509,7 +509,7 @@ export function wrapNumber( newNumber, upper, lower = 0 ) {
 
 }
 
-export function getTextWidth( text, fontName ) {
+export function getTextWidth( text:string, fontName:string ) {
 
     // i'm lazy and will make this a passed arg later
     const font = window.fonts[ fontName ];
@@ -549,4 +549,10 @@ export function toScreenPosition( width:number, height:number, matrix:Object, ca
 
     return new Vector2( vector.x, vector.y );
 
+}
+
+// Return how far the player is set from the back of the screen. This may look
+// simple, but seeing "1 + playerRadius" across the codebase is confusing
+export function getPlayerYFromRadius( radius:number ) {
+    return radius + 1;
 }

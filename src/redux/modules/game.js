@@ -182,7 +182,6 @@ export function game( state = initialGameReducerState, action = {} ) {
             };
 
         case GAME_SELECT_CHAPTER:
-
             return {
                 ...state,
                 recursionBusterId: action.recursionBusterId,
@@ -223,7 +222,6 @@ export function gameChapterReducer( state = defaultChapterState, action = {} ) {
 
     switch( action.type ) {
 
-        case RESTART_CHAPTER:
         case START_GAME:
             return {
                 currentChapterId: action.chapterId,
@@ -252,7 +250,6 @@ export function gameBookReducer( state = defaultBookState, action = {} ) {
 
     switch( action.type ) {
 
-        case RESTART_CHAPTER:
         case START_GAME:
             return action.bookId;
 
@@ -327,7 +324,6 @@ export function restartChapter(
 
     return {
         type: RESTART_CHAPTER,
-        recursionBusterId: Date.now(),
         world, playerPosition, bookId, chapterId, originalLevels,
         originalEntities, books, chapters,
     };
@@ -336,7 +332,7 @@ export function restartChapter(
 
 
 export function createPhysicsBodies(
-    playerPosition:Vector3,
+    playerPosition2D:Array,
     world:Object,
     books:Object,
     chapters:Object,
@@ -349,9 +345,9 @@ export function createPhysicsBodies(
 ) {
 
     const initialPhysicsGameState = setUpPhysics(
-        world, null, playerPosition, playerRadius, playerDensity, pushyDensity,
-        currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray,
-        currentLevelBridgesArray,
+        world, playerPosition2D, playerRadius, playerDensity,
+        pushyDensity, currentLevelStaticEntitiesArray,
+        currentLevelMovableEntitiesArray, currentLevelBridgesArray,
     );
 
     return {
@@ -361,7 +357,7 @@ export function createPhysicsBodies(
 
 }
 
-export function advanceChapter( nextChapter ) {
+export function advanceChapter( nextChapter:Object ) {
     return {
         type: GAME_SELECT_CHAPTER,
         // If a chapter recurses into itself, for now, the chapterId will stay
@@ -371,7 +367,7 @@ export function advanceChapter( nextChapter ) {
         // id would change even though they both contain the same level
         recursionBusterId: Date.now(),
         chapterId: nextChapter.chapterId,
-        nextChapter
+        nextChapter,
     };
 }
 

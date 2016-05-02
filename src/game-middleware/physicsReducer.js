@@ -25,7 +25,7 @@ export default function physicsReducer(
         touring, isAdvancing, tubeFlow, debug, playerBody, world,
     } = oldState;
 
-    const { time, delta, playerContact, } = currentState;
+    const { time, delta, playerContact, playerPositionV3, } = currentState;
 
     const {
         playerScale, playerRadius, currentLevelStaticEntitiesArray
@@ -62,12 +62,10 @@ export default function physicsReducer(
     newState.isUp = isUp;
     newState.isDown = isDown;
 
-    const playerPosition = p2ToV3( playerPosition2D, 1 + playerRadius );
-
     const playerSnapped = new Vector3(
-        snapTo( playerPosition.x, playerScale ),
-        snapTo( playerPosition.y, playerScale ),
-        snapTo( playerPosition.z, playerScale )
+        snapTo( playerPositionV3.x, playerScale ),
+        snapTo( playerPositionV3.y, playerScale ),
+        snapTo( playerPositionV3.z, playerScale )
     ).addScalar( -playerScale / 2 );
 
     const contactKeys = Object.keys( playerContact );
@@ -148,7 +146,7 @@ export default function physicsReducer(
                 debuggingReplay = [];
 
                 newTubeFlow = [{
-                    start: playerPosition,
+                    start: playerPositionV3,
                     end: thresholdPlayerStartsAt
                 }, {
                     start: thresholdPlayerStartsAt,

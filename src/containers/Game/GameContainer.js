@@ -7,6 +7,8 @@ import { bindActionCreators } from 'redux';
 import { createSelector } from 'reselect';
 import KeyHandler from 'helpers/KeyHandler';
 
+import { emptyWorld, resetBodyPhysics, } from 'physics-utils';
+
 import { loadAllAssets, } from 'redux/modules/assets';
 import {
     scalePlayer, advanceChapter, startGame, stopGame, restartChapter,
@@ -16,7 +18,9 @@ import {
     areBooksLoaded, loadAllBooks, deserializeLevels
 } from 'redux/modules/editor';
 
-import { getSphereMass, applyMiddleware, } from 'helpers/Utils';
+import {
+    getSphereMass, applyMiddleware, getCameraDistanceToPlayer, v3toP2,
+} from 'helpers/Utils';
 
 import { updateGameState, } from 'redux/modules/game';
 
@@ -158,7 +162,7 @@ const gameDataSelector = createSelector(
                 id => allEntities[ id ]
             );
 
-            const { position, scale } = previousChapterNextChapter;
+            const { position, scale, } = previousChapterNextChapter;
             const isPreviousChapterBigger = scale.x > 1;
             const multiplier = isPreviousChapterBigger ? 0.125 : 8;
 
@@ -321,18 +325,23 @@ export default class GameContainer extends Component {
             physicsInitted, gameState, books, chapters, playerRadius,
             playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
             currentLevelMovableEntitiesArray, currentLevelBridgesArray,
-            playerPosition,
+            playerPosition, gameStarted, recursionBusterId, previousChapter,
         } = nextProps;
 
-        // If the game is stopped, reset the initted state
-        if( this.props.gameStarted === true && !nextProps.gameStarted ) {
-            this.initting = false;
+        // todo document re-mounting and above flow
+        if( !this.transitioning && previousChapter && gameStarted && ( this.props.recursionBusterId !== recursionBusterId ) ) {
+
+            this.transitioning = true;
+            this.transitionFromLastChapterToNextChapter( nextProps );
+
+        } else if( this.transitioning ) {
+
+            this.transitioning = false;
+
         }
 
-        if( ( physicsInitted === false && !this.initting ) ||
-            // If the game is stopped, reset the initting state
-            ( nextProps.gameStarted && ( this.props.recursionBusterId !== nextProps.recursionBusterId ) )
-        ) {
+        // If the game is stopped, reset the initted state
+        if( !this.initting && physicsInitted === false && !this.initting ) {
 
             // Multiple event dispatches means multiple will recieve props,
             // or maybe devtools? Either way guard against it.
@@ -341,19 +350,68 @@ export default class GameContainer extends Component {
             const { world, } = gameState;
 
             this.props.createPhysicsBodies(
-                playerPosition, world, books, chapters, playerRadius,
+                v3toP2( playerPosition ), world, books, chapters, playerRadius,
                 playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
                 currentLevelMovableEntitiesArray, currentLevelBridgesArray,
             );
 
+        } else if( this.initting ) {
+
+            this.initting = false;
+
         }
+
+    }
+
+    transitionFromLastChapterToNextChapter( nextProps ) {
+
+        const { gameState, } = this.props;
+        const {
+            cameraPosition, currentTransitionPosition, world, playerBody,
+        } = gameState;
+
+        const {
+            previousChapterNextChapter, playerPosition, books, chapters,
+            playerRadius, playerDensity, pushyDensity,
+            currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray,
+            currentLevelBridgesArray, playerScale, playerPositionV3, cameraFov,
+        } = nextProps;
+
+        const {
+            position: chapterPosition,
+            scale,
+        } = previousChapterNextChapter;
+
+        const multiplier = scale.x < 1 ? 8 : 0.125;
+
+        this.props.updateGameState({
+            cameraPosition: new THREE.Vector3(
+                ( cameraPosition.x - chapterPosition.x ) * multiplier,
+                getCameraDistanceToPlayer( playerRadius, cameraFov, playerScale ),
+                ( cameraPosition.z - chapterPosition.z ) * multiplier
+            )
+        });
+
+        emptyWorld( world );
+
+        const newPosition2D = [
+            ( currentTransitionPosition.x - chapterPosition.x ) * multiplier,
+            ( currentTransitionPosition.z - chapterPosition.z ) * multiplier,
+        ];
+
+        resetBodyPhysics( playerBody, newPosition2D );
+
+        this.props.createPhysicsBodies(
+            newPosition2D, world, books, chapters, playerRadius,
+            playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
+            currentLevelMovableEntitiesArray, currentLevelBridgesArray,
+        );
 
     }
 
     componentWillUnmount() {
 
         this.mounted = false;
-        this.initting = false;
         window.cancelAnimationFrame( this.reqAnimId );
 
     }

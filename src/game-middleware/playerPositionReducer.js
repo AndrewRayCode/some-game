@@ -1,4 +1,4 @@
-import { p2ToV3 } from 'helpers/Utils';
+import { p2ToV3, getPlayerYFromRadius, } from 'helpers/Utils';
 
 export default function playerPositionReducer(
     keysDown:Object,
@@ -10,10 +10,10 @@ export default function playerPositionReducer(
 ) {
 
     const {
-        playerBody, playerRadius, currentFlowPosition,
+        playerBody, currentFlowPosition,
     } = oldState;
 
-    const { physicsInitted, } = gameData;
+    const { physicsInitted, playerRadius, } = gameData;
 
     // Short circuit the flow if the phyics haven't been initted yet
     if( !physicsInitted ) {
@@ -21,7 +21,7 @@ export default function playerPositionReducer(
     }
 
     const playerPositionV3 = currentFlowPosition ||
-        p2ToV3( playerBody.position, 1 + playerRadius );
+        p2ToV3( playerBody.position, getPlayerYFromRadius( playerRadius ) );
 
     return next({
         ...currentState,

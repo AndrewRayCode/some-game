@@ -115,8 +115,7 @@ export function createWorld( actions:Object ) {
 
 export function setUpPhysics(
     world:Object,
-    playerPositionOverride2D:any,
-    playerPositionV3FromProps:Vector3,
+    playerPosition:Array,
     playerRadius:number,
     playerDensity:number,
     pushyDensity:number,
@@ -124,10 +123,6 @@ export function setUpPhysics(
     currentLevelMovableEntitiesArray:Array,
     currentLevelBridgesArray:Array,
 ) {
-
-    const playerPosition = playerPositionOverride2D || v3toP2(
-        playerPositionV3FromProps
-    );
 
     const playerBody = createPlayerBody(
         playerMaterial,
@@ -461,7 +456,6 @@ export function resetBodyPhysics( body:Object, position:Array ) {
     body.position = position;
     body.previousPosition = position;
     body.interpolatedPosition = position;
-
 
     // Velocity
     body.velocity = [ 0, 0 ];

@@ -26,15 +26,19 @@ export default function advanceLevelReducer(
 
     if( isAdvancing ) {
 
-        // This starts a chain of events that ends in
-        // transitionFromLastChapterToNextChapter() called by the game. This
-        // will only happen on the frame *after* the percent hits 1, because
-        // we need to ensure the state is set before changing levels. I don't
-        // remember why
         if( lastTransitionPercent === 1 ) {
 
             advanceChapter( advanceToNextChapter );
-            return currentState;
+
+            // Note if we don't unset isAdvancing here, this function could
+            // get called twice because rAF keeps going during async(?) advance
+            return {
+                ...currentState,
+                playerContact: {},
+                isAdvancing: false,
+                transitionPercent: null,
+                currentTransitionPosition: null,
+            };
 
         }
 

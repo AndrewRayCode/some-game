@@ -1,9 +1,10 @@
 import React, { Component, PropTypes } from 'react';
-import THREE from 'three';
+import { Vector3, } from 'three';
 import p2 from 'p2';
 import { Player, EntityGroup } from 'components';
 import {
     getCameraDistanceToPlayer, lookAtVector, p2ToV3, p2AngleToEuler,
+    getPlayerYFromRadius,
 } from 'helpers/Utils';
 
 const gameWidth = 400;
@@ -41,7 +42,7 @@ export default class GameRenderer extends Component {
             const entity = allEntities[ physicsBody.entityId ];
             return {
                 ...entity,
-                scale: new THREE.Vector3().copy( scale ),
+                scale: new Vector3().copy( scale ),
                 position: p2ToV3( position, physicsBody.depth ),
                 entityId
             };
@@ -145,7 +146,7 @@ export default class GameRenderer extends Component {
             playerScaleEffectsEnabled, playerScaleEffectsVisible,
             rightEyeRotation, leftEyeRotation, rightLidRotation,
             leftLidRotation, headAnimations, legAnimations, tailAnimations,
-            eyeMorphTargets, tailRotation, tailPosition,
+            eyeMorphTargets, tailRotation, tailPosition, playerPositionV3,
         } = gameState;
 
         const {
@@ -160,12 +161,11 @@ export default class GameRenderer extends Component {
             playerTextureLegs, playerTextureTail,
         } = this.props;
 
-        const playerPosition = new THREE.Vector3()
+        const playerPosition = new Vector3()
             .copy(
-                currentTransitionPosition || currentFlowPosition || p2ToV3(
-                    playerBody.position, 1 + playerRadius,
-                )
-            ).sub({ x: 0, y: 0, z: scalingOffsetZ || 0 });
+                currentTransitionPosition || currentFlowPosition || playerPositionV3 || new Vector3( 0, 0, 0 )
+            )
+            .sub({ x: 0, y: 0, z: scalingOffsetZ || 0 });
 
         const lookAt = lookAtVector(
             cameraPosition,
@@ -267,7 +267,7 @@ export default class GameRenderer extends Component {
 
             { debug && previousChapterFinishEntity && <mesh
                 position={ previousChapterFinishEntity.position }
-                scale={ previousChapterFinishEntity.scale.clone().multiply( new THREE.Vector3( 1, 2, 1 ) ) }
+                scale={ previousChapterFinishEntity.scale.clone().multiply( new Vector3( 1, 2, 1 ) ) }
             >
                 <geometryResource
                     resourceId="1x1box"
@@ -279,7 +279,7 @@ export default class GameRenderer extends Component {
 
             { debug && currentTransitionTarget && <mesh
                 position={ currentTransitionTarget }
-                scale={ new THREE.Vector3( 0.2, 2, 0.2 ).multiplyScalar( playerScale ) }
+                scale={ new Vector3( 0.2, 2, 0.2 ).multiplyScalar( playerScale ) }
             >
                 <geometryResource
                     resourceId="1x1box"
@@ -291,7 +291,7 @@ export default class GameRenderer extends Component {
 
             { debug && tubeFlow && tubeFlow[ tubeIndex ].middle && <mesh
                 position={ tubeFlow[ tubeIndex ].middle }
-                scale={ new THREE.Vector3( 0.25, 2, 0.25 ).multiplyScalar( playerScale ) }
+                scale={ new Vector3( 0.25, 2, 0.25 ).multiplyScalar( playerScale ) }
             >
                 <geometryResource
                     resourceId="playerGeometry"
@@ -305,7 +305,7 @@ export default class GameRenderer extends Component {
                     tubeFlow[ tubeIndex ].exit :
                     tubeFlow[ tubeIndex ].end
                 ) }
-                scale={ new THREE.Vector3( 0.15, 2, 0.15 ).multiplyScalar( playerScale ) }
+                scale={ new Vector3( 0.15, 2, 0.15 ).multiplyScalar( playerScale ) }
             >
                 <geometryResource
                     resourceId="playerGeometry"
@@ -316,7 +316,7 @@ export default class GameRenderer extends Component {
             </mesh> }
             { debug && tubeFlow && <mesh
                 position={ tubeFlow[ tubeIndex ].start }
-                scale={ new THREE.Vector3( 0.15, 2, 0.15 ).multiplyScalar( playerScale ) }
+                scale={ new Vector3( 0.15, 2, 0.15 ).multiplyScalar( playerScale ) }
             >
                 <geometryResource
                     resourceId="playerGeometry"
@@ -328,7 +328,7 @@ export default class GameRenderer extends Component {
 
             { debug && entrance1 && <mesh
                 position={ entrance1 }
-                scale={ new THREE.Vector3( 0.5, 2, 0.5 ).multiplyScalar( playerScale )}
+                scale={ new Vector3( 0.5, 2, 0.5 ).multiplyScalar( playerScale )}
             >
                 <geometryResource
                     resourceId="playerGeometry"
@@ -339,7 +339,7 @@ export default class GameRenderer extends Component {
             </mesh> }
             { debug && entrance2 && <mesh
                 position={ entrance2 }
-                scale={ new THREE.Vector3( 0.5, 2, 0.5 ).multiplyScalar( playerScale )}
+                scale={ new Vector3( 0.5, 2, 0.5 ).multiplyScalar( playerScale )}
             >
                 <geometryResource
                     resourceId="playerGeometry"
@@ -350,7 +350,7 @@ export default class GameRenderer extends Component {
             </mesh> }
             { debug && gameState.playerSnapped && <mesh
                 position={gameState.playerSnapped }
-                scale={ new THREE.Vector3( 0.1, 3.5, 0.1 ).multiplyScalar( playerScale ) }
+                scale={ new Vector3( 0.1, 3.5, 0.1 ).multiplyScalar( playerScale ) }
             >
                 <geometryResource
                     resourceId="playerGeometry"
@@ -361,7 +361,7 @@ export default class GameRenderer extends Component {
             </mesh> }
             { debug && gameState.playerTowardTube && <mesh
                 position={gameState.playerTowardTube }
-                scale={ new THREE.Vector3( 0.1, 3.5, 0.1 ).multiplyScalar( playerScale ) }
+                scale={ new Vector3( 0.1, 3.5, 0.1 ).multiplyScalar( playerScale ) }
             >
                 <geometryResource
                     resourceId="playerGeometry"
@@ -375,7 +375,7 @@ export default class GameRenderer extends Component {
 
                 return <mesh
                     position={ playerPosition.clone().add( playerContact[ key ].clone().multiplyScalar( playerScale ) ) }
-                    scale={ new THREE.Vector3( 0.1, 3, 0.15 ).multiplyScalar( playerScale ) }
+                    scale={ new Vector3( 0.1, 3, 0.15 ).multiplyScalar( playerScale ) }
                     key={ key }
                 >
                     <geometryResource
@@ -391,7 +391,7 @@ export default class GameRenderer extends Component {
             { debug && world.narrowphase.contactEquations.map( ( contact, index ) => {
                 const { contactPointA, bodyA } = contact;
                 return <mesh
-                    scale={ new THREE.Vector3( playerScale * 0.1, playerScale * 3, playerScale * 0.1 ) }
+                    scale={ new Vector3( playerScale * 0.1, playerScale * 3, playerScale * 0.1 ) }
                     key={ `contact_${ index }_a` }
                     position={ p2ToV3( p2.vec2.add( [ 0, 0 ], contactPointA, bodyA.position ), 1 ) }
                 >

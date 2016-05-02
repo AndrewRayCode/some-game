@@ -411,7 +411,7 @@ export default function playerAnimationReducer(
         newState.eyeMorphTargets = [ upperCloseHalfMorph, upperCloseFullMorph, upperCloseHalfMorph, upperCloseFullMorph ];
 
         newState.rightLidRotation = lerpEulers(
-            oldState.rightLidRotation,
+            oldState.rightLidRotation || new Euler( 0, 0, 0 ),
             new Euler( 0, 0, 0 ),
             blinkPercent,
         );
