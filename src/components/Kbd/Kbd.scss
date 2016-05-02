@@ -9,3 +9,18 @@
     margin: 2px 3px;
     padding: 1px 5px;
 }
+
+$bubbleBg:#229900;
+$bubbleBg2:#112200;
+.green {
+    display: inline-block;
+    border: 1px solid #b9b9b9;
+    color:#fff;
+    background:linear-gradient( $bubbleBg, $bubbleBg2 );
+    box-shadow: 1px 0 1px 0 #eee,
+        0 2px 0 1px #ccc,
+        0 2px 0 2px #b9b9b9;
+    border-radius: 3px;
+    margin: 2px 3px;
+    padding: 1px 5px;
+}

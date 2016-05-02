@@ -1,9 +1,15 @@
+import { Kbd } from 'components';
+import React from 'react';
+
 const textExpandTime = 1100;
 const textCloseTime = 500;
 const msPerLetter = 50;
 
-function generateText( text, index ) {
-    return text.substr( 0, index, ) + ( index >= text.length ? ' [Enter]' : '' );
+function generateText( text:string, index:number ) {
+    return <span>
+        { text.substr( 0, index, ) }
+        { index >= text.length ? <Kbd green>Enter</Kbd> : null }
+    </span>;
 }
 
 export default function speechReducer(

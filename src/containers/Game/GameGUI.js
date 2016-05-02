@@ -421,7 +421,7 @@ export default class GameGUI extends Component {
                 onBeforeRender={ this.onBeforeRender }
             /> : null }
 
-            { textIsVisible ? <viewport
+            { !paused && textIsVisible ? <viewport
                 x={ 0 }
                 y={ 0 }
                 width={ gameWidth }
@@ -569,7 +569,7 @@ export default class GameGUI extends Component {
                     height: gameHeight,
                 }}
             >
-                { textIsVisible && bubblePosition ? <SpeechBubble
+                { !paused && textIsVisible && bubblePosition ? <SpeechBubble
                     isClosing={ textIsClosing }
                     openPercent={ textOpenPercent }
                     position={ bubblePosition }
