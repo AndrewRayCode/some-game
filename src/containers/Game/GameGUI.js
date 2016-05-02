@@ -360,7 +360,9 @@ export default class GameGUI extends Component {
         } = this.props;
 
         // Game might not be started yet?
-        const { textIsVisible, } = gameState || {};
+        const {
+            textIsVisible, visibleText, textOpenPercent, textIsClosing,
+        } = gameState || {};
 
         const { gameRenderer, } = this.refs;
 
@@ -568,11 +570,13 @@ export default class GameGUI extends Component {
                 }}
             >
                 { textIsVisible && bubblePosition ? <SpeechBubble
+                    isClosing={ textIsClosing }
+                    openPercent={ textOpenPercent }
                     position={ bubblePosition }
                     offset={ bubbleOffset }
                     gameWidth={ gameWidth }
                     gameHeight={ gameHeight }
-                    text="Hello! Let's explore."
+                    text={ visibleText }
                 /> : null }
                 { react3 }
             </div>

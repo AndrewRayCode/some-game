@@ -1,5 +1,9 @@
-const textExpandTime = 1000;
-const msPerLetter = 500;
+const textExpandTime = 1500;
+const msPerLetter = 50;
+
+function generateText( text, index ) {
+    return text.substr( 0, index, ) + ( index >= text.length ? ' [Enter]' : '' );
+}
 
 export default function speechReducer(
     keysDown:Object,
@@ -16,6 +20,7 @@ export default function speechReducer(
         textIsVisible: oldTextIsVisible,
         activeTextStartTime: oldActiveTextStartTime,
         textCloseStartTime: oldTextCloseStartTime,
+        textIsClosing: oldTextIsClosing,
     } = oldState;
 
     const { time, } = currentState;
@@ -27,6 +32,7 @@ export default function speechReducer(
     let activeTextStartTime = oldActiveTextStartTime;
     let textQueue = oldTextQueue || [];
     let textCloseStartTime = oldTextCloseStartTime;
+    let textIsClosing = oldTextIsClosing;
 
     if( keysDown.isFirstPress( 'V' ) ) {
         textQueue = [
@@ -36,7 +42,7 @@ export default function speechReducer(
     }
 
     // Is there text to display?
-    if( textQueue.length ) {
+    if( !textCloseStartTime && textQueue.length ) {
 
         textIsVisible = true;
 
@@ -51,17 +57,13 @@ export default function speechReducer(
 
         // If the text box isn't fully open yet, finish animating it
         const timeSinceTextVisible = time - textVisibleStartTime;
-        if( timeSinceTextVisible < textExpandTime ) {
+        newState.textOpenPercent = Math.min( timeSinceTextVisible / textExpandTime, 1 );
 
-            newState.textOpenPercent = timeSinceTextVisible / textVisibleStartTime;
+        // When the box finishes opening, note the current time
+        if( !activeTextStartTime && newState.textOpenPercent === 1 ) {
 
-            // When the box finishes opening, note the current time
-            if( newState.textOpenPercent >= 1 ) {
-
-                newState.textOpenPercent = null;
-                activeTextStartTime = time;
-
-            }
+            newState.textOpenPercent = 1;
+            activeTextStartTime = time;
 
         }
 
@@ -72,14 +74,32 @@ export default function speechReducer(
                 Math.round( ( ( time - activeTextStartTime ) / msPerLetter ) ),
                 currentText.length
             );
+            newState.visibleText = generateText( currentText, currentTextIndex );
             const isFullyShown = currentTextIndex >= currentText.length;
-            newState.visibleText = currentText.substr( 0, currentTextIndex, ) + ( isFullyShown ? ' [Enter]' : '' );
 
-            // Next text condition! Remove the first (active) queue
-            if( isFullyShown && keysDown.isFirstPressed( 'ENTER' ) ) {
+            // If not fully shown, it's skippable
+            if( !isFullyShown ) {
+
+                if( keysDown.isFirstPress( 'SPACE' ) || keysDown.isFirstPress( 'ENTER' ) ) {
+                    activeTextStartTime = 0;
+                    newState.visibleText = generateText( currentText, Infinity );
+                }
+
+            // Else do next text condition
+            } else if( isFullyShown && keysDown.isFirstPress( 'ENTER' ) ) {
 
                 textQueue = textQueue.slice( 1 );
-                textCloseStartTime = time;
+
+                // No more text? close
+                if( !textQueue.length ) {
+                    newState.visibleText = '';
+                    textCloseStartTime = time;
+                    textIsClosing = true;
+
+                // More text? set new active time
+                } else {
+                    activeTextStartTime = time;
+                }
 
             }
 
@@ -91,13 +111,15 @@ export default function speechReducer(
     if( textCloseStartTime ) {
 
         const timeSinceTextClosing = time - textCloseStartTime;
-        newState.textOpenPercent = timeSinceTextClosing / textVisibleStartTime;
+        newState.textOpenPercent = 1 - ( timeSinceTextClosing / textExpandTime );
 
         // Reset everything
         if( newState.textOpenPercent <= 0 ) {
 
-            newState.textCloseStartTime = null;
-            newState.textIsVisible = false;
+            textQueue = textQueue.slice( 1 );
+            textCloseStartTime = null;
+            textIsVisible = false;
+            textIsClosing = false;
 
         }
 
@@ -106,7 +128,7 @@ export default function speechReducer(
     newState = {
         ...newState,
         textVisibleStartTime, textIsVisible, activeTextStartTime, textQueue,
-        textCloseStartTime,
+        textCloseStartTime, textIsClosing,
     };
 
     return next({
