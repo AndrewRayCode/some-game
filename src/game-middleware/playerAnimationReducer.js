@@ -37,7 +37,7 @@ const jumpTweenTimeMs = 40;
 const jumpReturnTweenTimeMs = 500;
 
 const minBlinkIntervalMs = 1000;
-const blinkDurationMs = 300;
+const blinkDurationMs = 200;
 const timeAfterBlinkToResetMs = 1500;
 
 const tailIdleTimeMs = 2000;

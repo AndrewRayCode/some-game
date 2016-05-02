@@ -14,13 +14,14 @@ $bubbleBg:#229900;
 $bubbleBg2:#112200;
 .green {
     display: inline-block;
-    border: 1px solid #b9b9b9;
-    color:#fff;
-    background:linear-gradient( $bubbleBg, $bubbleBg2 );
-    box-shadow: 1px 0 1px 0 #eee,
-        0 2px 0 1px #ccc,
-        0 2px 0 2px #b9b9b9;
+    border: 1px solid lighten( $bubbleBg2, 10% );
+    color:mix( #fff, $bubbleBg, 90% );
+    background:linear-gradient( desaturate( $bubbleBg, 30% ), lighten( $bubbleBg2, 10% ) );
+    box-shadow: 1px 0 1px 0 $bubbleBg,
+        0 2px 0 1px darken( $bubbleBg, 5% ),
+        0 2px 0 2px $bubbleBg2;
     border-radius: 3px;
-    margin: 2px 3px;
-    padding: 1px 5px;
+    font-size:15px;
+    margin:0 0 0 6px;
+    padding: 1px 8px;
 }

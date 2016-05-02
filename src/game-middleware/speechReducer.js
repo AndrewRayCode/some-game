@@ -3,7 +3,7 @@ import React from 'react';
 
 const textExpandTime = 1100;
 const textCloseTime = 500;
-const msPerLetter = 50;
+const msPerLetter = 20;
 
 function generateText( text:string, index:number ) {
     return <span>
