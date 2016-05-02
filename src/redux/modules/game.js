@@ -117,6 +117,11 @@ export function game( state = initialGameReducerState, action = {} ) {
                 playerPosition, chapters, books,
                 playerMaterialId: 'glowTextureFace',
 
+                // Reset scale and radius because if level is restarted while
+                // small, scale will be wrong
+                playerScale: initialGameReducerState.playerScale,
+                playerRadius: initialGameReducerState.playerRadius,
+
                 recursionBusterId: recursionBusterId || state.recursionBusterId,
 
                 // TODO: Create these in the action creators instead?
