@@ -20,10 +20,8 @@ export function playerToBoxCollision3dTo2d(
     scaleB:Object,
 ):boolean {
 
-    const sizeA = radiusA * 2;
-
-    if( Math.abs( positionA.x - positionB.x ) < scaleB.x + sizeA ) {
-        if( Math.abs( positionA.z - positionB.z ) < scaleB.z + sizeA ) {
+    if( Math.abs( positionA.x - positionB.x ) < scaleB.x + radiusA ) {
+        if( Math.abs( positionA.z - positionB.z ) < scaleB.z + radiusA ) {
             return true;
         }
     }

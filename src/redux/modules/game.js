@@ -196,8 +196,8 @@ export function game( state = initialGameReducerState, action = {} ) {
             return {
                 ...state,
                 recursionBusterId: action.recursionBusterId,
-                playerRadius: state.playerRadius * ( action.nextChapter.scale.x < 1 ? 8 : 0.125 ),
-                playerScale: state.playerScale * ( action.nextChapter.scale.x < 1 ? 8 : 0.125 ),
+                playerRadius: state.playerRadius * ( action.isNextChapterBigger ? 0.125 : 8 ),
+                playerScale: state.playerScale * ( action.isNextChapterBigger ? 0.125 : 8 ),
             };
 
         case SCALE_PLAYER:
@@ -375,7 +375,7 @@ export function createPhysicsBodies(
 
 }
 
-export function advanceChapter( nextChapter:Object ) {
+export function advanceChapter( nextChapter:Object, isNextChapterBigger:boolean ) {
     return {
         type: GAME_SELECT_CHAPTER,
         // If a chapter recurses into itself, for now, the chapterId will stay
@@ -385,7 +385,7 @@ export function advanceChapter( nextChapter:Object ) {
         // id would change even though they both contain the same level
         recursionBusterId: Date.now(),
         chapterId: nextChapter.chapterId,
-        nextChapter,
+        nextChapter, isNextChapterBigger,
     };
 }
 

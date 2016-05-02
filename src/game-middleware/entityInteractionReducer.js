@@ -22,6 +22,7 @@ export default function entityInteractionReducer(
         currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
         currentLevelId, nextChapters, previousChapterFinishEntity,
         previousChapterEntity, previousChapter, cameraFov, sideEffectQueue,
+        currentGameChapterId, currentChapterId,
     } = gameData;
 
     const { cameraPosition, world, playerBody, } = oldState;
@@ -57,22 +58,33 @@ export default function entityInteractionReducer(
                 );
                 const isUp = cardinality === Cardinality.DOWN || cardinality === Cardinality.UP;
 
+                let isNextChapterBigger;
+
+                // Go to parent chapter of this one
                 if( entity === previousChapterFinishEntity ) {
 
                     newState.advanceToNextChapter = previousChapter;
+                    isNextChapterBigger = previousChapter.nextChapters.find(
+                        data => data.chapterId === currentChapterId
+                    ).scale.x < 1;
 
+                // Go to child chapter of this one
                 } else {
 
                     const nextChapter = [ ...nextChapters ].sort( ( a, b ) =>
                         a.position.distanceTo( entity.position ) -
                         b.position.distanceTo( entity.position )
-                    )[ 0 ] || previousChapterEntity;
+                    )[ 0 ];
 
                     newState.advanceToNextChapter = nextChapter;
+
+                    // If we're going forward then the nextChapter data will
+                    // have the scale of the next level
+                    isNextChapterBigger = nextChapter.scale.x > 1;
                 
                 }
 
-                const isNextChapterBigger = newState.advanceToNextChapter.scale.x > 1;
+                newState.isNextChapterBigger = isNextChapterBigger;
 
                 // Calculate where to tween the player to. *>2 to move
                 // past the hit box for the level exit/entrance

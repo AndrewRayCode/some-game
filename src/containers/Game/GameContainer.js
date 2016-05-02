@@ -163,8 +163,8 @@ const gameDataSelector = createSelector(
             );
 
             const { position, scale, } = previousChapterNextChapter;
-            const isCurrentChapterBiggerThanPreviousChapter = scale.x > 1;
-            const multiplier = isCurrentChapterBiggerThanPreviousChapter ? 0.125 : 8;
+            const isCurrentChapterBiggerThanPreviousChapter = scale.x > 1; // false
+            const multiplier = isCurrentChapterBiggerThanPreviousChapter ? 0.125 : 8; // 8 multiply all previous chatper by 8
 
             previousChapterEntity = {
                 scale: new Vector3(
@@ -187,11 +187,10 @@ const gameDataSelector = createSelector(
                 scale: previousChapterFinishData.scale
                     .clone()
                     .multiplyScalar( multiplier ),
-                position: previousChapterFinishData.position.clone().add(
-                    previousChapterFinishData.position
-                        .clone()
-                        .multiplyScalar( multiplier )
-                )
+                position: previousChapterFinishData.position
+                    .clone()
+                    .sub( position )
+                    .multiplyScalar( multiplier )
             };
 
             currentLevelTouchyArray.push( previousChapterFinishEntity );
