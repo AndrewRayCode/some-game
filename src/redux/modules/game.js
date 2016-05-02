@@ -18,6 +18,7 @@ const cameraFov = 75;
 const SET_GAME_INITIAL_PHYSICS_STATE = 'game/SET_GAME_INITIAL_PHYSICS_STATE';
 const GAME_SELECT_CHAPTER = 'game/GAME_SELECT_CHAPTER';
 const START_GAME = 'game/START_GAME';
+const SET_RUNNING_GAME_STATE = 'game/SET_RUNNING_GAME_STATE';
 const UPDATE_RUNNING_GAME_STATE = 'game/UPDATE_RUNNING_GAME_STATE';
 const STOP_GAME = 'game/STOP_GAME';
 const RESTART_CHAPTER = 'game/RESTART_CHAPTER';
@@ -122,6 +123,7 @@ export function game( state = initialGameReducerState, action = {} ) {
                 entities: convertOriginalEntitiesToGameEntities( originalEntities ),
 
                 gameState: {
+                    sideEffectQueue: [],
                     cameraPosition: new Vector3(
                         playerPosition.x,
                         getCameraDistanceToPlayer( playerPosition.y, cameraFov, 1 ),
@@ -175,10 +177,19 @@ export function game( state = initialGameReducerState, action = {} ) {
                 }
             };
 
-        case UPDATE_RUNNING_GAME_STATE:
+        case SET_RUNNING_GAME_STATE:
             return {
                 ...state,
                 gameState: action.newGameState,
+            };
+
+        case UPDATE_RUNNING_GAME_STATE:
+            return {
+                ...state,
+                gameState: {
+                    ...state.gameState,
+                    ...action.newGameState,
+                }
             };
 
         case GAME_SELECT_CHAPTER:
@@ -261,6 +272,13 @@ export function gameBookReducer( state = defaultBookState, action = {} ) {
 
     }
 
+}
+
+export function setGameState( newGameState:Object ) {
+    return {
+        type: SET_RUNNING_GAME_STATE,
+        newGameState,
+    };
 }
 
 export function updateGameState( newGameState:Object ) {

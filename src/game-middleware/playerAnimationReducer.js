@@ -417,7 +417,7 @@ export default function playerAnimationReducer(
         );
 
         newState.leftLidRotation = lerpEulers(
-            oldState.leftLidRotation,
+            oldState.leftLidRotation || new Euler( 0, 0, 0 ),
             new Euler( 0, 0, 0 ),
             blinkPercent,
         );

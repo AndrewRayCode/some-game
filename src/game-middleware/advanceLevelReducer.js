@@ -16,7 +16,7 @@ export default function advanceLevelReducer(
         currentTransitionStartTime, startTransitionPosition,
         currentTransitionTarget, advanceToNextChapter,
         transitionCameraPositionStart, currentTransitionCameraTarget,
-        isAdvancing,
+        isAdvancing, sideEffectQueue,
         transitionPercent: lastTransitionPercent,
     } = oldState;
 
@@ -28,16 +28,18 @@ export default function advanceLevelReducer(
 
         if( lastTransitionPercent === 1 ) {
 
-            advanceChapter( advanceToNextChapter );
 
             // Note if we don't unset isAdvancing here, this function could
             // get called twice because rAF keeps going during async(?) advance
             return {
                 ...currentState,
                 playerContact: {},
+                sideEffectQueue: [
+                    ...sideEffectQueue,
+                    () => advanceChapter( advanceToNextChapter ),
+                ],
                 isAdvancing: false,
                 transitionPercent: null,
-                currentTransitionPosition: null,
             };
 
         }

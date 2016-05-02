@@ -9,7 +9,7 @@ export default function debugReducer(
     next:Function
 ) {
 
-    const { debug, world, playerBody, } = oldState;
+    const { debug, world, playerBody, sideEffectQueue, } = oldState;
 
     const { playerRadius, playerDensity, currentLevelId, } = gameData;
 
@@ -31,12 +31,14 @@ export default function debugReducer(
             minusPressed
         );
 
-        actions.scalePlayer( currentLevelId, null, scaleResult.multiplier, );
-
         newState = {
             ...newState,
             playerContact: {},
             isShrinking: minusPressed,
+            sideEffectQueue: [
+                ...sideEffectQueue,
+                () => actions.scalePlayer( currentLevelId, null, scaleResult.multiplier, ),
+            ],
             radiusDiff: scaleResult.radiusDiff,
             playerBody: scaleResult.playerBody,
             scaleStartTime: time + 250,

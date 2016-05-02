@@ -1,7 +1,6 @@
 import { Vector3, } from 'three';
 import {
-    getEntrancesForTube, lerp, findNextTube, snapTo, lerpVectors, p2ToV3,
-    vec3Equals,
+    getEntrancesForTube, lerp, findNextTube, snapTo, lerpVectors, vec3Equals,
 } from 'helpers/Utils';
 import { canJump, resetBodyPhysics, } from 'physics-utils';
 
@@ -39,9 +38,7 @@ export default function physicsReducer(
         entrances: [],
     };
 
-    const {
-        velocity: playerVelocity, position: playerPosition2D
-    } = playerBody;
+    const { velocity: playerVelocity, } = playerBody;
 
     let directionX = 0;
     let directionZ = 0;

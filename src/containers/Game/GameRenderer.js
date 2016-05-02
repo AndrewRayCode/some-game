@@ -2,10 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { Vector3, } from 'three';
 import p2 from 'p2';
 import { Player, EntityGroup } from 'components';
-import {
-    getCameraDistanceToPlayer, lookAtVector, p2ToV3, p2AngleToEuler,
-    getPlayerYFromRadius,
-} from 'helpers/Utils';
+import { lookAtVector, p2ToV3, p2AngleToEuler, } from 'helpers/Utils';
 
 const gameWidth = 400;
 const gameHeight = 400;
@@ -273,7 +270,7 @@ export default class GameRenderer extends Component {
                     resourceId="1x1box"
                 />
                 <materialResource
-                    resourceId="middleMaterial"
+                    resourceId="purpleDebugMaterial"
                 />
             </mesh> }
 

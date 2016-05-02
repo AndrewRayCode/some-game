@@ -7,20 +7,32 @@ export default function gameKeyPressReducer(
     next:Function
 ) {
 
+    const { sideEffectQueue, } = oldState;
+    let action;
+
     if( keysDown.isFirstPress( 'P' ) || keysDown.isFirstPress( 'ESC' ) ) {
 
-        actions.pauseGame();
-        return currentState;
+        action = () => actions.pauseGame();
 
     } else if( keysDown.isFirstPress( 'R' ) ) {
 
-        actions.showConfirmRestartScreen();
-        return currentState;
+        action = () => actions.showConfirmRestartScreen();
 
     } else if( keysDown.isFirstPress( 'M' ) ) {
 
-        actions.showConfirmMenuScreen();
-        return currentState;
+        action = () => actions.showConfirmMenuScreen();
+
+    }
+
+    if( action ) {
+
+        return {
+            ...currentState,
+            sideEffectQueue: [
+                ...sideEffectQueue,
+                action
+            ],
+        };
 
     }
 

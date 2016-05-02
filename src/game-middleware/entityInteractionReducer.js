@@ -21,7 +21,7 @@ export default function entityInteractionReducer(
     const {
         currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
         currentLevelId, nextChapters, previousChapterFinishEntity,
-        previousChapterEntity, previousChapter, cameraFov,
+        previousChapterEntity, previousChapter, cameraFov, sideEffectQueue,
     } = gameData;
 
     const { cameraPosition, world, playerBody, } = oldState;
@@ -120,10 +120,12 @@ export default function entityInteractionReducer(
             );
 
             // Perform the store update
-            actions.scalePlayer( currentLevelId, entity.id, scaleResult.multiplier, );
-
             newState = {
                 ...newState,
+                sideEffectQueue: [
+                    ...sideEffectQueue,
+                    () => actions.scalePlayer( currentLevelId, entity.id, scaleResult.multiplier, ),
+                ],
                 playerContact: {},
                 isShrinking,
                 radiusDiff: scaleResult.radiusDiff,

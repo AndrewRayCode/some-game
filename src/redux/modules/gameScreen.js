@@ -57,48 +57,30 @@ export function gameScreenReducer( state = defaultScreenState, action = {} ) {
 }
 
 export function pauseGame() {
-    // There's a tricky flow we need to be aware of.
-    // 1. request animation frame callback
-    // 2. is pause key pressed?
-    // 3. dispatch pause action
-    // 4. pause screen component mounts
-    // 5. onAnimate is registered during the same rAF(!)
-    // 6. onAnimate checks "is unpause key pressed?"
-    // 7. Unpause is fired
-    // All before the rAF finishes, which is where the global keyhandler unsets
-    // which keys are first pressed and which are repeated. re-set it manually
-    // for now?
-    KeyHandler.updateFirstPressed();
     return { type: PAUSE_GAME, };
 }
 
 export function unpauseGame() {
-    KeyHandler.updateFirstPressed();
     return { type: UNPAUSE_GAME, };
 }
 
 export function showConfirmMenuScreen() {
-    KeyHandler.updateFirstPressed();
     return { type: SHOW_CONFIRM_MENU_SCREEN, };
 }
 
 export function exitToMenuDeny() {
-    KeyHandler.updateFirstPressed();
     return { type: EXIT_MENU_DENY, };
 }
 
 export function showConfirmRestartScreen() {
-    KeyHandler.updateFirstPressed();
     return { type: SHOW_CONFIRM_RESTART_SCREEN, };
 }
 
 export function exitToMenuConfirm() {
-    KeyHandler.updateFirstPressed();
     return { type: EXIT_TO_MENU_CONFIRM, };
 }
 
 export function confirmingRestart() {
-    KeyHandler.updateFirstPressed();
     return { type: CONFIRM_RESTART, };
     // todo probably get these from passing?
     //const {

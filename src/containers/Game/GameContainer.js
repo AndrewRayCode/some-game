@@ -1,5 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import THREE from 'three';
+import THREE, { Vector3, } from 'three';
 import p2 from 'p2';
 import { connect } from 'react-redux';
 import { asyncConnect } from 'redux-async-connect';
@@ -7,7 +7,7 @@ import { bindActionCreators } from 'redux';
 import { createSelector } from 'reselect';
 import KeyHandler from 'helpers/KeyHandler';
 
-import { emptyWorld, resetBodyPhysics, } from 'physics-utils';
+import { emptyWorld, } from 'physics-utils';
 
 import { loadAllAssets, } from 'redux/modules/assets';
 import {
@@ -22,7 +22,7 @@ import {
     getSphereMass, applyMiddleware, getCameraDistanceToPlayer, v3toP2,
 } from 'helpers/Utils';
 
-import { updateGameState, } from 'redux/modules/game';
+import { setGameState, updateGameState, } from 'redux/modules/game';
 
 import {
     pauseGame, unpauseGame, showConfirmMenuScreen, exitToMenuDeny,
@@ -163,19 +163,19 @@ const gameDataSelector = createSelector(
             );
 
             const { position, scale, } = previousChapterNextChapter;
-            const isPreviousChapterBigger = scale.x > 1;
-            const multiplier = isPreviousChapterBigger ? 0.125 : 8;
+            const isCurrentChapterBiggerThanPreviousChapter = scale.x > 1;
+            const multiplier = isCurrentChapterBiggerThanPreviousChapter ? 0.125 : 8;
 
             previousChapterEntity = {
-                scale: new THREE.Vector3(
+                scale: new Vector3(
                     multiplier, multiplier, multiplier
                 ),
                 position: position
                     .clone()
                     .multiply(
-                        new THREE.Vector3( -multiplier, multiplier, -multiplier )
+                        new Vector3( -multiplier, multiplier, -multiplier )
                     )
-                    .setY( isPreviousChapterBigger ? 0.875 : -7 )
+                    .setY( isCurrentChapterBiggerThanPreviousChapter ? 0.875 : -7 )
             };
 
             previousChapterFinishData = previousLevel.entityIds
@@ -271,8 +271,9 @@ const gameDataSelector = createSelector(
         loadAllAssets, deserializeLevels, scalePlayer, advanceChapter,
         startGame, stopGame, restartChapter, pauseGame, unpauseGame,
         showConfirmMenuScreen, exitToMenuDeny, showConfirmRestartScreen,
-        exitToMenuConfirm, confirmRestart, denyRestart, updateGameState,
-        queueBeginContactEvent, queueEndContactEvent, createPhysicsBodies,
+        exitToMenuConfirm, confirmRestart, denyRestart, setGameState,
+        updateGameState, queueBeginContactEvent, queueEndContactEvent,
+        createPhysicsBodies,
     }, dispatch )
 )
 export default class GameContainer extends Component {
@@ -285,6 +286,8 @@ export default class GameContainer extends Component {
 
         super();
         this.gameLoop = this.gameLoop.bind( this );
+        this.startGameLoop = this.startGameLoop.bind( this );
+        this.stopGameLoop = this.stopGameLoop.bind( this );
 
     }
 
@@ -306,34 +309,33 @@ export default class GameContainer extends Component {
             loadAll();
         }
 
-        this.reqAnimId = window.requestAnimationFrame( this.gameLoop );
+        this.startGameLoop();
 
         this.lastTime = 0;
 
     }
 
-    // This is a lazy shortcut that probably should be refactored later. This
-    // flow is start game dispatch > store populates > mapStateToProps runs
-    // (now we have data we need to create physics) > create physics. It'd be
-    // ideal to build the physics when we start the game, but right now that
-    // relies on the derived data in mapStateToProps. So we do it in this
-    // lifecycle method where derived data is computed. Just annoying to manage
-    // state here.
+    // We process some game data here because the dispatches need derived data
+    // (coming from mapStateToProps), and access to oldProps, and access to the
+    // populated store data. In that way I've accidentally coupled this
+    // component to the game logic. In another life, refactor this to keep
+    // derived data out of selector above.
     componentWillReceiveProps( nextProps ) {
 
         const {
             physicsInitted, gameState, books, chapters, playerRadius,
             playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
             currentLevelMovableEntitiesArray, currentLevelBridgesArray,
-            playerPosition, gameStarted, recursionBusterId, previousChapter,
+            playerPosition, gameStarted, recursionBusterId,
         } = nextProps;
 
-        // todo document re-mounting and above flow
-        if( !this.transitioning && previousChapter && gameStarted && ( this.props.recursionBusterId !== recursionBusterId ) ) {
+        if( !this.transitioning && gameStarted && ( this.props.recursionBusterId !== recursionBusterId ) ) {
 
             this.transitioning = true;
             this.transitionFromLastChapterToNextChapter( nextProps );
 
+        // Guard against re-mounts of this component during above fn call,
+        // which issues multiple dispatches
         } else if( this.transitioning ) {
 
             this.transitioning = false;
@@ -363,18 +365,20 @@ export default class GameContainer extends Component {
 
     }
 
+    // See note in componentWillReceiveProps
     transitionFromLastChapterToNextChapter( nextProps ) {
 
         const { gameState, } = this.props;
         const {
-            cameraPosition, currentTransitionPosition, world, playerBody,
+            cameraPosition: oldCameraPosition, currentTransitionPosition,
+            world,
         } = gameState;
 
         const {
-            previousChapterNextChapter, playerPosition, books, chapters,
-            playerRadius, playerDensity, pushyDensity,
-            currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray,
-            currentLevelBridgesArray, playerScale, playerPositionV3, cameraFov,
+            previousChapterNextChapter, books, chapters, playerRadius,
+            playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
+            currentLevelMovableEntitiesArray, currentLevelBridgesArray,
+            playerScale, cameraFov,
         } = nextProps;
 
         const {
@@ -384,13 +388,13 @@ export default class GameContainer extends Component {
 
         const multiplier = scale.x < 1 ? 8 : 0.125;
 
-        this.props.updateGameState({
-            cameraPosition: new THREE.Vector3(
-                ( cameraPosition.x - chapterPosition.x ) * multiplier,
-                getCameraDistanceToPlayer( playerRadius, cameraFov, playerScale ),
-                ( cameraPosition.z - chapterPosition.z ) * multiplier
-            )
-        });
+        const cameraPosition = new Vector3(
+            ( oldCameraPosition.x - chapterPosition.x ) * multiplier,
+            getCameraDistanceToPlayer( playerRadius, cameraFov, playerScale ),
+            ( oldCameraPosition.z - chapterPosition.z ) * multiplier
+        );
+
+        gameState.cameraPosition = cameraPosition;
 
         emptyWorld( world );
 
@@ -399,34 +403,35 @@ export default class GameContainer extends Component {
             ( currentTransitionPosition.z - chapterPosition.z ) * multiplier,
         ];
 
-        resetBodyPhysics( playerBody, newPosition2D );
-
         this.props.createPhysicsBodies(
             newPosition2D, world, books, chapters, playerRadius,
             playerDensity, pushyDensity, currentLevelStaticEntitiesArray,
             currentLevelMovableEntitiesArray, currentLevelBridgesArray,
         );
 
+        this.props.updateGameState({
+            cameraPosition,
+            currentTransitionPosition: null,
+        });
+
     }
 
     componentWillUnmount() {
 
         this.mounted = false;
-        window.cancelAnimationFrame( this.reqAnimId );
+        this.stopGameLoop();
 
     }
 
     gameLoop( time ) {
 
-        if( !this.mounted ) {
+        if( !this.mounted || !this.loopStarted ) {
             return;
         }
 
-        this.reqAnimId = window.requestAnimationFrame( this.gameLoop );
+        this.startGameLoop();
 
-        const {
-            updateGameState: updateState, gameState, gameStarted,
-        } = this.props;
+        const { gameState, gameStarted, } = this.props;
 
         if( !gameStarted ) {
             return;
@@ -438,18 +443,52 @@ export default class GameContainer extends Component {
         // In any state, (paused, etc), child components need the updaed time
         const currentState = { time, delta, };
 
-        updateState(
-            applyMiddleware(
-                // Note: KeyHandler is updated in UpdateAllObjects for now.
-                // `this.props` twice for "actions" and "gameData"
-                KeyHandler, this.props, this.props, gameState, currentState,
-                gameScreenReducer, playerPositionReducer, contactEventReducer,
-                physicsReducer, gameKeyPressReducer, tourReducer,
-                advanceLevelReducer, zoomReducer, debugReducer,
-                entityInteractionReducer, playerScaleReducer,
-                defaultCameraReducer, playerAnimationReducer, speechReducer,
-            )
+        const newState = applyMiddleware(
+            // Note: KeyHandler is updated in UpdateAllObjects for now.
+            // `this.props` twice for "actions" and "gameData"
+            KeyHandler, this.props, this.props, gameState, currentState,
+            gameScreenReducer, playerPositionReducer, contactEventReducer,
+            physicsReducer, gameKeyPressReducer, tourReducer,
+            advanceLevelReducer, zoomReducer, debugReducer,
+            entityInteractionReducer, playerScaleReducer,
+            defaultCameraReducer, playerAnimationReducer, speechReducer,
         );
+
+        const { sideEffectQueue, } = newState;
+
+        this.props.setGameState({
+            ...newState,
+            sideEffectQueue: [],
+        });
+
+        // Reducers shouldn't have side effects because it complicates the
+        // flow. Process anything after the game loop.
+        if( sideEffectQueue.length ) {
+
+            this.stopGameLoop();
+
+            // If we transition to pause screen, for example, the 'P' key needs
+            // to already be in repeat mode so we don't get instant unapuse
+            KeyHandler.updateFirstPressed();
+            sideEffectQueue.forEach( effect => effect() );
+
+            this.startGameLoop();
+
+        }
+
+    }
+
+    startGameLoop() {
+
+        this.loopStarted = true;
+        this.reqAnimId = window.requestAnimationFrame( this.gameLoop );
+
+    }
+
+    stopGameLoop() {
+
+        this.loopStarted = false;
+        window.cancelAnimationFrame( this.reqAnimId );
 
     }
 

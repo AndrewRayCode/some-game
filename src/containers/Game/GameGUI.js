@@ -27,6 +27,7 @@ import {
 const gameWidth = 400;
 const gameHeight = 400;
 const transitionFadeMs = 1000;
+const transitionMaxOpacity = 0.6;
 const bubbleOffset = 40;
 
 export default class GameGUI extends Component {
@@ -265,7 +266,7 @@ export default class GameGUI extends Component {
         if( transitionFadeStartTime ) {
 
             newState.transitionFadeAlpha = Math.max(
-                0.6 - ( ( ( elapsedTime - transitionFadeStartTime ) * 1000 ) / transitionFadeMs ),
+                transitionMaxOpacity - ( ( ( elapsedTime - transitionFadeStartTime ) * 1000 ) / transitionFadeMs ),
                 0
             );
 
