@@ -3,9 +3,9 @@ import React, { Component } from 'react';
 import React3 from 'react-three-renderer';
 import THREE from 'three';
 
-import { toScreenPosition } from 'helpers/Utils';
+import { toScreenPosition, } from 'helpers/Utils';
 
-import { GameRenderer } from 'containers';
+import { GameRenderer, } from 'containers';
 import {
     TitleScreen, GameResources, PausedScreen, ConfirmRestartScreen, Kbd,
     TransitionScreen, ConfirmMenuScreen, SpeechBubble, SpeechScreen,

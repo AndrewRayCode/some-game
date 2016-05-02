@@ -186,6 +186,7 @@ export default class GameRenderer extends Component {
 
             <Player
                 ref="player"
+                exposeMatrix
                 assets={ assets }
                 scaleEffectsEnabled={ playerScaleEffectsEnabled }
                 scaleEffectsVisible={ playerScaleEffectsVisible }

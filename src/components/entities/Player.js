@@ -81,6 +81,7 @@ export default class Player extends Component {
         assets: PropTypes.object.isRequired,
         radius: PropTypes.number.isRequired,
         time: PropTypes.number,
+        exposeMatrix: PropTypes.bool,
     };
 
     constructor( props, context ) {
@@ -126,7 +127,11 @@ export default class Player extends Component {
 
     componentDidUpdate() {
 
-        Mediator.playerMatrix = this.refs.body.refs.meshGroup.matrixWorld;
+        if( this.props.exposeMatrix ) {
+
+            Mediator.playerMatrix = this.refs.body.refs.meshGroup.matrixWorld;
+
+        }
 
     }
 
