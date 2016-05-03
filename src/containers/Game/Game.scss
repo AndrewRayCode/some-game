@@ -13,11 +13,11 @@
 .viewPort {
     min-height:400px;
     min-width:400px;
-    background:lighten( $background, 10% );
+    background:darken( $background, 10% );
     padding:30px;
     border-radius:20px;
     box-shadow:0 0 20px mix( #000, #313640, 90% );
-    border-top:1px solid lighten( $background, 25% );
+    border-top:1px solid lighten( $background, 35% );
     border-left:1px solid lighten( $background, 15% );
     border-right:1px solid lighten( $background, 15% );
     border-bottom:1px solid darken( $background, 2% );
