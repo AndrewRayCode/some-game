@@ -1,7 +1,9 @@
+@import "../../theme/variables.scss";
+
 html, body {
     margin:0;
     padding:0;
-    background:#313640;
+    background:$background;
     color:#fff;
     font-family:sans-serif;
     font-size:14px;

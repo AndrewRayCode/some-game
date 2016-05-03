@@ -9,6 +9,8 @@ import { Kbd } from 'components';
 import KeyHandler from 'helpers/KeyHandler';
 
 import styles from './Game.scss';
+import classNames from 'classnames/bind';
+const cx = classNames.bind( styles );
 
 import { emptyWorld, } from 'physics-utils';
 
@@ -510,15 +512,19 @@ export default class GameContainer extends Component {
         let content;
 
         if( !__CLIENT__ ||
-                !books ||
-                !( 'Sniglet Regular' in fonts ) ||
-                !( 'charisma' in assets ) ||
-                !( 'charismaLegs' in assets ) ||
-                !( 'charismaTail' in assets ) ||
-                !( 'eye' in assets ) ||
-                !( 'eyeLid' in assets )
-            ) {
-            content = <div>Loading&hellip;</div>;
+            !books ||
+            !( 'Sniglet Regular' in fonts ) ||
+            !( 'charisma' in assets ) ||
+            !( 'charismaLegs' in assets ) ||
+            !( 'charismaTail' in assets ) ||
+            !( 'eye' in assets ) ||
+            !( 'eyexLid' in assets )
+        ) {
+            content = <div className={ styles.loading }>
+                <div className={ styles.loadingContent }>
+                    Loading&hellip;
+                </div>
+            </div>;
         } else {
             content = <GameGUI
                 { ...this.props }
@@ -533,41 +539,14 @@ export default class GameContainer extends Component {
                         { content }
                     </div>
                     <div className={ styles.extras }>
+                        Created by Andrew Ray
                         <br />
-                        <b>Keys:</b>
+                        <i className={ cx({ fa: true, 'fa-twitter': true, tweet: true }) } />
+                        <a href="https://twitter.com/andrewray" target="_blank">
+                            @<u>andrewray</u>
+                        </a>
                         <br />
-                        <ul>
-                            <li>
-                                <b>Select</b> <Kbd>Enter</Kbd>
-                            </li>
-                            <li>
-                                <b>Move</b>
-                                <Kbd>←</Kbd>
-                                <Kbd>↑</Kbd>
-                                <Kbd>→</Kbd>
-                                <Kbd>↓</Kbd>
-                                &nbsp;or&nbsp;
-                                <Kbd>W</Kbd>
-                                <Kbd>A</Kbd>
-                                <Kbd>S</Kbd>
-                                <Kbd>D</Kbd>
-                            </li>
-                            <li>
-                                <b>Jump</b> <Kbd>Space</Kbd>
-                            </li>
-                            <li>
-                                <b>Pause Game</b> <Kbd>P</Kbd> or <Kbd>Esc</Kbd>
-                            </li>
-                            <li>
-                                <b>Zoom in on Charisma</b> <Kbd>K</Kbd>
-                            </li>
-                            <li>
-                                <b>See Whole Level</b> <Kbd>L</Kbd>
-                            </li>
-                        </ul>
-                        <br />
-                        <br />
-                        <b>Shaders</b> by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
+                        Shaders by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
                     </div>
                 </div>
             </div>
