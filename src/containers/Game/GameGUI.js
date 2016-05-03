@@ -362,6 +362,7 @@ export default class GameGUI extends Component {
         // Game might not be started yet?
         const {
             textIsVisible, visibleText, textOpenPercent, textIsClosing,
+            currentTextPercent,
         } = gameState || {};
 
         const { gameRenderer, } = this.refs;
@@ -498,6 +499,7 @@ export default class GameGUI extends Component {
                     ref="speechScreen"
                     assets={ assets }
                     fonts={ fonts }
+                    currentTextPercent={ currentTextPercent }
                     time={ this.state.elapsedTime }
                     isClosing={ textIsClosing }
                     openPercent={ textOpenPercent }

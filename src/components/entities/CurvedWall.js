@@ -13,7 +13,7 @@ export default class CurvedWall extends Component {
 
         return <group
             position={ position }
-            quaternion={ rotation }
+            rotation={ rotation }
             quaternion={ quaternion }
             scale={ scale }
         >

@@ -86,16 +86,17 @@ class UpdateAllObjects extends Module {
 
     onKeyDown( event ) {
 
-        const { which: key } = event;
+        const { which: key, target } = event;
 
         const keyData = {
             [ key ]: KeyHandler.keys[ key ] || { firstPress: true }
         };
 
-        if( key === KeyCodes.SPACE ||
+        if( ( key === KeyCodes.SPACE ||
                 key === KeyCodes.UP ||
                 key === KeyCodes.DOWN
-            ) {
+            ) && target === document.body
+        ) {
             event.preventDefault();
         }
 

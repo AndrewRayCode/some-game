@@ -8,7 +8,7 @@ const msPerLetter = 20;
 function generateText( text:string, index:number ) {
     return <span>
         { text.substr( 0, index, ) }
-        { index >= text.length ? <Kbd green>Enter</Kbd> : null }
+        { index >= text.length ? <span>&nbsp;<Kbd green>Enter</Kbd></span> : null }
     </span>;
 }
 
@@ -37,16 +37,9 @@ export default function speechReducer(
     let textVisibleStartTime = oldTextVisibleStartTime;
     let textIsVisible = oldTextIsVisible;
     let activeTextStartTime = oldActiveTextStartTime;
-    let textQueue = oldTextQueue || [];
+    let textQueue = currentState.textQueue || oldTextQueue || [];
     let textCloseStartTime = oldTextCloseStartTime;
     let textIsClosing = oldTextIsClosing;
-
-    if( keysDown.isFirstPress( 'V' ) ) {
-        textQueue = [
-            ...textQueue,
-            "Hi! My name's Charisma. Nice to meet you! I'm a chameleon. From space. Let's explore."
-        ];
-    }
 
     // Is there text to display?
     if( !textCloseStartTime && textQueue.length ) {
@@ -81,6 +74,7 @@ export default function speechReducer(
                 Math.round( ( ( time - activeTextStartTime ) / msPerLetter ) ),
                 currentText.length
             );
+            newState.currentTextPercent = currentTextIndex / currentText.length;
             newState.visibleText = generateText( currentText, currentTextIndex );
             const isFullyShown = currentTextIndex >= currentText.length;
 

@@ -19,6 +19,7 @@ const SET_GAME_INITIAL_PHYSICS_STATE = 'game/SET_GAME_INITIAL_PHYSICS_STATE';
 const GAME_SELECT_CHAPTER = 'game/GAME_SELECT_CHAPTER';
 const GAME_SELECT_PREVIOUS_CHAPTER = 'game/GAME_SELECT_PREVIOUS_CHAPTER';
 const START_GAME = 'game/START_GAME';
+const REMOVE_ENTITY = 'game/REMOVE_ENTITY';
 const SET_RUNNING_GAME_STATE = 'game/SET_RUNNING_GAME_STATE';
 const UPDATE_RUNNING_GAME_STATE = 'game/UPDATE_RUNNING_GAME_STATE';
 const STOP_GAME = 'game/STOP_GAME';
@@ -129,6 +130,7 @@ export function game( state = initialGameReducerState, action = {} ) {
                 entities: convertOriginalEntitiesToGameEntities( originalEntities ),
 
                 gameState: {
+                    textQueue: [],
                     sideEffectQueue: [],
                     cameraPosition: new Vector3(
                         playerPosition.x,
@@ -221,6 +223,21 @@ export function game( state = initialGameReducerState, action = {} ) {
                     [ level.id ]: {
                         ...level,
                         entityIds: level.entityIds.filter( id => id !== action.powerupIdToRemove )
+                    }
+                }
+            };
+
+        case REMOVE_ENTITY:
+
+            const removeLevel = state.levels[ action.levelId ];
+
+            return {
+                ...state,
+                levels: {
+                    ...state.levels,
+                    [ removeLevel.id ]: {
+                        ...level,
+                        entityIds: removeLevel.entityIds.filter( id => id !== action.entityId )
                     }
                 }
             };
@@ -430,6 +447,14 @@ export function scalePlayer(
         levelId, powerupIdToRemove, multiplier
     };
 }
+
+export function removeEntity( levelId:string, entityId:any, ) {
+    return {
+        type: REMOVE_ENTITY,
+        levelId, entityId
+    };
+}
+
 
 export function queueBeginContactEvent( event:Object ) {
     return {

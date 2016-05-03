@@ -1,8 +1,9 @@
 import Cardinality from '../helpers/Cardinality';
-import { scalePlayer, } from 'physics-utils';
+import { scalePlayer, canJump } from 'physics-utils';
 import {
     getCardinalityOfVector, getCameraDistanceToPlayer, lerp,
     playerV3ToFinishEntityV3Collision, playerToCircleCollision3dTo2d,
+    playerToBoxCollision3dTo2d,
 } from 'helpers/Utils';
 import { Vector3, } from 'three';
 
@@ -21,11 +22,13 @@ export default function entityInteractionReducer(
     const {
         currentLevelTouchyArray, playerRadius, playerDensity, playerScale,
         currentLevelId, nextChapters, previousChapterFinishEntity,
-        previousChapterEntity, previousChapter, cameraFov, sideEffectQueue,
+        previousChapterEntity, previousChapter, cameraFov,
         currentGameChapterId, currentChapterId, allChaptersArray,
     } = gameData;
 
-    const { cameraPosition, world, playerBody, } = oldState;
+    const {
+        cameraPosition, world, playerBody, textQueue, sideEffectQueue,
+    } = oldState;
 
     const { playerPositionV3, time, } = currentState;
 
@@ -136,7 +139,9 @@ export default function entityInteractionReducer(
 
             }
 
-        } else if( !oldState.scaleStartTime &&
+        } else if(
+            ( entity.type === 'grow' || entity.type === 'shrink' ) &&
+            !oldState.scaleStartTime &&
             playerToCircleCollision3dTo2d(
                 playerPositionV3,
                 playerRadius,
@@ -168,6 +173,26 @@ export default function entityInteractionReducer(
             };
 
             break;
+
+        } else if(
+            entity.type === 'textTrigger' &&
+            canJump( world, playerBody ) &&
+            playerToBoxCollision3dTo2d(
+                playerPositionV3,
+                playerRadius,
+                entity.position,
+                entity.scale,
+            )
+        ) {
+
+            newState.textQueue = [
+                ...textQueue,
+                ...entity.texts,
+            ];
+            newState.sideEffectQueue = [
+                ...sideEffectQueue,
+                () => actions.removeEntity( currentLevelId, entity.id, ),
+            ];
 
         }
 

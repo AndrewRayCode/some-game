@@ -953,7 +953,15 @@ export default class Editor extends Component {
 
                 let entityData = {};
 
-                if( createType === 'bridge' ) {
+                if( createType === 'textTrigger' ) {
+
+                    entityData = {
+                        visible: false,
+                        touchable: false,
+                        texts: [ 'Default text' ]
+                    };
+
+                } else if( createType === 'bridge' ) {
 
                     entityData = {
                         segments: 4,
@@ -1591,6 +1599,20 @@ export default class Editor extends Component {
 
                     <br />
                     <label>
+                        Visible?
+
+                        <input
+                            type="checkbox"
+                            checked={ ( 'visible' in selectedObject ) ?
+                                selectedObject.visible :
+                                true
+                            }
+                            onChange={ this.onPropertyChange.bind( this, selectedObjectId, 'visible' ) }
+                        />
+                    </label>
+
+                    <br />
+                    <label>
                         Collision?
 
                         <input
@@ -1613,6 +1635,14 @@ export default class Editor extends Component {
                             onChange={ this.onPropertyChange.bind( this, selectedObjectId, 'movable' ) }
                         />
                     </label>
+
+                    { ( selectedObject.type === 'textTrigger' ) ? <div>
+                        <b>Texts:</b>
+                        <ArrayEditor
+                            value={ selectedObject.texts || [] }
+                            onChange={ this.onPropertyChange.bind( null, selectedObjectId, 'texts' ) }
+                        />
+                    </div> : null }
 
                     { ( selectedObject.type === 'puffer' ||
                             selectedObject.type === 'waterfall' ) ? <div>
@@ -1846,6 +1876,10 @@ export default class Editor extends Component {
                     <button onClick={ this.selectType( 'bridge' ) }>
                         { createType === 'bridge' && '✓' }
                         Bridge
+                    </button>
+                    <button onClick={ this.selectType( 'textTrigger' ) }>
+                        { createType === 'textTrigger' && '✓' }
+                        Text Trigger
                     </button>
                     <select
                         onChange={ this.onChapterCreateChange }

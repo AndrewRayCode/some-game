@@ -13,7 +13,7 @@ import { loadAllAssets, } from 'redux/modules/assets';
 import {
     scalePlayer, advanceToPreviousChapter, advanceChapter, startGame, stopGame,
     restartChapter, queueBeginContactEvent, queueEndContactEvent,
-    createPhysicsBodies,
+    createPhysicsBodies, removeEntity,
 } from 'redux/modules/game';
 import {
     areBooksLoaded, loadAllBooks, deserializeLevels
@@ -109,7 +109,11 @@ const gameDataSelector = createSelector(
             const entity = allEntities[ id ];
             memo.currentLevelAllEntities[ id ] = entity;
 
-            if( entity.type === 'shrink' || entity.type === 'grow' || entity.type === 'finish' ) {
+            if( entity.type === 'textTrigger' ) {
+                memo.currentLevelTouchyArray = [
+                    ...memo.currentLevelTouchyArray, entity
+                ];
+            } else if( entity.type === 'shrink' || entity.type === 'grow' || entity.type === 'finish' ) {
                 memo.currentLevelTouchyArray = [
                     ...memo.currentLevelTouchyArray, entity
                 ];
@@ -131,7 +135,9 @@ const gameDataSelector = createSelector(
                     memo.currentLevelStaticEntities[ id ] = entity;
                 }
 
-                memo.currentLevelRenderableEntities[ id ] = entity;
+                if( entity.visible !== false ) {
+                    memo.currentLevelRenderableEntities[ id ] = entity;
+                }
             }
 
             return memo;
@@ -275,6 +281,7 @@ const gameDataSelector = createSelector(
         exitToMenuDeny, showConfirmRestartScreen, exitToMenuConfirm,
         confirmRestart, denyRestart, setGameState, updateGameState,
         queueBeginContactEvent, queueEndContactEvent, createPhysicsBodies,
+        removeEntity,
     }, dispatch )
 )
 export default class GameContainer extends Component {
@@ -449,10 +456,10 @@ export default class GameContainer extends Component {
             // `this.props` twice for "actions" and "gameData"
             KeyHandler, this.props, this.props, gameState, currentState,
             gameScreenReducer, playerPositionReducer, contactEventReducer,
-            physicsReducer, gameKeyPressReducer, tourReducer,
+            speechReducer, physicsReducer, gameKeyPressReducer, tourReducer,
             advanceLevelReducer, zoomReducer, debugReducer,
             entityInteractionReducer, playerScaleReducer,
-            defaultCameraReducer, playerAnimationReducer, speechReducer,
+            defaultCameraReducer, playerAnimationReducer,
         );
 
         const { sideEffectQueue, } = newState;

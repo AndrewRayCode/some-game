@@ -40,6 +40,7 @@ export default class SpeechScreen extends Component {
         assets: PropTypes.object.isRequired,
         avatarPosition: PropTypes.object.isRequired,
         openPercent: PropTypes.number,
+        currentTextPercent: PropTypes.number,
         isClosing: PropTypes.bool,
         playerTexture: PropTypes.string.isRequired,
         playerTextureLegs: PropTypes.string.isRequired,
@@ -52,7 +53,7 @@ export default class SpeechScreen extends Component {
             fonts, letters, onConfirm, onDeny, onClickRegionLeave,
             onClickRegionEnter, assets, playerTexture, playerTextureLegs,
             playerTextureTail, time, avatarPosition, gameWidth, gameHeight,
-            cameraAspect, openPercent, isClosing,
+            cameraAspect, openPercent, isClosing, currentTextPercent,
         } = this.props;
 
         const { camera, } = this.refs;
@@ -87,7 +88,7 @@ export default class SpeechScreen extends Component {
 
         const headAnimations = {
             'Open Mouth': {
-                weight: 1,
+                weight: 1 - THREE.Math.clamp( ( currentTextPercent - 0.5 ) * 2, 0, 1 ),
                 percent: mouthOpenPercent * Math.abs( 0.5 - frac( 2 * ( time % mouthOpenCloseSpeedMs ) ) )
             },
         };

@@ -445,7 +445,7 @@ export default function playerAnimationReducer(
 
     } else {
 
-        const { playerVelocity } = currentState;
+        const playerVelocity = currentState.playerVelocity || oldState.playerVelocity;
         const percentFromVelocity = THREE.Math.clamp(
             playerVelocity[ 1 ] * 2,
             0,

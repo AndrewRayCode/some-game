@@ -2,7 +2,8 @@ import React, { PropTypes, Component } from 'react';
 import React3 from 'react-three-renderer';
 import {
     Wall, MultiWall, ChamferBox, TubeBend, TubeStraight, Player, EntityGroup,
-    Shrink, House, Grow, FinishLine, Waterfall, Puffer, DiamondBox, CurvedWall
+    Shrink, House, Grow, FinishLine, Waterfall, Puffer, DiamondBox, CurvedWall,
+    Placeholder,
 } from '../';
 import THREE from 'three';
 
@@ -33,6 +34,16 @@ export default class CreatePreviewObject extends Component {
         } = this.props;
 
         switch( createType ) {
+
+            case 'textTrigger':
+
+                return <Placeholder
+                    scale={ scale }
+                    quaternion={ createPreviewQuaternion }
+                    position={ createPreviewPosition }
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                />;
 
             case 'diamondbox':
 

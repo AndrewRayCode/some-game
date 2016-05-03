@@ -49,10 +49,13 @@ export default function physicsReducer(
     newState.playerBody = playerBody;
     newState.playerVelocity = playerVelocity;
 
-    const isLeft = keysDown.isPressed( 'A' ) || keysDown.isPressed( 'LEFT' );
-    const isRight = keysDown.isPressed( 'D' ) || keysDown.isPressed( 'RIGHT' );
-    const isUp = keysDown.isPressed( 'W' ) || keysDown.isPressed( 'UP' );
-    const isDown = keysDown.isPressed( 'S' ) || keysDown.isPressed( 'DOWN' );
+    // Hogwash coupling to speech reducer to pause movement
+    const isSpeaking = oldState.textQueue.length || ( currentState.textQueue && currentState.textQueue.length );
+
+    const isLeft = !isSpeaking && ( keysDown.isPressed( 'A' ) || keysDown.isPressed( 'LEFT' ) );
+    const isRight = !isSpeaking && ( keysDown.isPressed( 'D' ) || keysDown.isPressed( 'RIGHT' ) );
+    const isUp = !isSpeaking && ( keysDown.isPressed( 'W' ) || keysDown.isPressed( 'UP' ) );
+    const isDown = !isSpeaking && ( keysDown.isPressed( 'S' ) || keysDown.isPressed( 'DOWN' ) );
 
     newState.isLeft = isLeft;
     newState.isRight = isRight;
@@ -295,7 +298,7 @@ export default function physicsReducer(
 
         }
 
-        if( keysDown.isPressed( 'SPACE' ) && canJump( world, playerBody ) ) {
+        if( !isSpeaking && keysDown.isPressed( 'SPACE' ) && canJump( world, playerBody ) ) {
 
             newState.jumpedOnThisFrame = true;
             playerVelocity[ 1 ] = -Math.sqrt( 1.5 * 4 * 9.8 * playerRadius );
