@@ -518,7 +518,7 @@ export default class GameContainer extends Component {
             !( 'charismaLegs' in assets ) ||
             !( 'charismaTail' in assets ) ||
             !( 'eye' in assets ) ||
-            !( 'eyexLid' in assets )
+            !( 'eyeLid' in assets )
         ) {
             content = <div className={ styles.loading }>
                 <div className={ styles.loadingContent }>
@@ -539,14 +539,16 @@ export default class GameContainer extends Component {
                         { content }
                     </div>
                     <div className={ styles.extras }>
-                        Created by Andrew Ray
-                        <br />
+                        <h5>
+                            created by <b>Andrew Ray</b>
+                        </h5>
                         <i className={ cx({ fa: true, 'fa-twitter': true, tweet: true }) } />
                         <a href="https://twitter.com/andrewray" target="_blank">
                             @<u>andrewray</u>
                         </a>
                         <br />
-                        Shaders by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
+                        <br />
+                        shaders by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
                     </div>
                 </div>
             </div>
