@@ -10,14 +10,15 @@ export default function debugReducer(
     next:Function
 ) {
 
-    const { debug, world, playerBody, sideEffectQueue, } = oldState;
+    const {
+        debug, world, playerBody, sideEffectQueue, playerPositionV3,
+    } = oldState;
 
     const { playerRadius, playerDensity, currentLevelId, } = gameData;
 
-    const { playerPositionV3, } = oldState;
     const { time, delta, } = currentState;
 
-    let newState = {};
+    const newState = {};
 
     if( keysDown.isFirstPress( BACKTICK ) ) {
 
@@ -39,7 +40,8 @@ export default function debugReducer(
             minusPressed
         );
 
-        newState = {
+        return ({
+            ...currentState,
             ...newState,
             playerContact: {},
             isShrinking: minusPressed,
@@ -50,7 +52,7 @@ export default function debugReducer(
             radiusDiff: scaleResult.radiusDiff,
             playerBody: scaleResult.playerBody,
             scaleStartTime: time + 250,
-        };
+        });
 
     }
 
@@ -58,8 +60,8 @@ export default function debugReducer(
 
         newState.startSlow = oldState.startSlow || time;
 
-        newState.time = newState.startSlow + ( time - newState.startSlow ) * 0.5;
-        newState.delta = delta * 0.5;
+        newState.time = newState.startSlow + ( time - newState.startSlow ) * 0.25;
+        newState.delta = delta * 0.25;
 
     } else {
 
