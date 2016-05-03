@@ -44,7 +44,7 @@ export default function speechReducer(
     if( keysDown.isFirstPress( 'V' ) ) {
         textQueue = [
             ...textQueue,
-            'Some new text that is rather long, you see. Yell at my son.'
+            "Hi! My name's Charisma. Nice to meet you! I'm a chameleon. From space. Let's explore."
         ];
     }
 

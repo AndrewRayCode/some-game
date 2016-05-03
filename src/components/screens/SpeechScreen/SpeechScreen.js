@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import THREE, { Euler, Vector3, } from 'three';
 import { Mesh, Text, SelectableMenu, Player } from 'components';
 import { frac } from 'helpers/Utils';
+import { easeOutCubic, easeInBounce, easeOutBounce, easeInElastic, } from 'easing-utils';
 
 const tailRotation = new Euler( 0, 0, THREE.Math.degToRad( -60 ) );
 const avatarRotation = new Euler( 0, Math.PI / 2, -1.0 );
@@ -38,6 +39,8 @@ export default class SpeechScreen extends Component {
         fonts: PropTypes.object.isRequired,
         assets: PropTypes.object.isRequired,
         avatarPosition: PropTypes.object.isRequired,
+        openPercent: PropTypes.number,
+        isClosing: PropTypes.bool,
         playerTexture: PropTypes.string.isRequired,
         playerTextureLegs: PropTypes.string.isRequired,
         playerTextureTail: PropTypes.string.isRequired,
@@ -49,7 +52,7 @@ export default class SpeechScreen extends Component {
             fonts, letters, onConfirm, onDeny, onClickRegionLeave,
             onClickRegionEnter, assets, playerTexture, playerTextureLegs,
             playerTextureTail, time, avatarPosition, gameWidth, gameHeight,
-            cameraAspect,
+            cameraAspect, openPercent, isClosing,
         } = this.props;
 
         const { camera, } = this.refs;
@@ -72,6 +75,15 @@ export default class SpeechScreen extends Component {
             );
 
         }
+
+        const avatarPercent = ( isClosing ?
+            openPercent :
+            easeOutCubic( openPercent )
+        );
+        const circlePercent = ( isClosing ?
+            openPercent :
+            easeOutBounce( openPercent )
+        );
 
         const headAnimations = {
             'Open Mouth': {
@@ -101,7 +113,7 @@ export default class SpeechScreen extends Component {
             >
                 <group
                     rotation={ circleRotation }
-                    scale={ circleScale }
+                    scale={ circleScale.clone().multiplyScalar( circlePercent ) }
                 >
                     <mesh
                         ref="mesh"
@@ -127,7 +139,7 @@ export default class SpeechScreen extends Component {
                     assets={ assets }
                     position={ localPlayerOffset }
                     rotation={ avatarRotation }
-                    radius={ avatarRadius }
+                    radius={ avatarRadius * avatarPercent }
                     time={ time }
                     tailRotation={ tailRotation }
                     playerTexture={ playerTexture }

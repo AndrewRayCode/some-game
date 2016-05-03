@@ -499,6 +499,8 @@ export default class GameGUI extends Component {
                     assets={ assets }
                     fonts={ fonts }
                     time={ this.state.elapsedTime }
+                    isClosing={ textIsClosing }
+                    openPercent={ textOpenPercent }
                     avatarPosition={ bubblePosition }
                     gameWidth={ gameWidth }
                     gameHeight={ gameHeight }
