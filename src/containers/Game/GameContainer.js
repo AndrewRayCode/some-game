@@ -35,6 +35,7 @@ import {
     entityInteractionReducer, playerScaleReducer, debugReducer,
     advanceLevelReducer, defaultCameraReducer, playerAnimationReducer,
     speechReducer, contactEventReducer, physicsReducer, gameScreenReducer,
+    outOfBoundsReducer,
 } from 'game-middleware';
 
 import GameGUI from './GameGUI';
@@ -459,7 +460,7 @@ export default class GameContainer extends Component {
             contactEventReducer, speechReducer, physicsReducer,
             gameKeyPressReducer, tourReducer, advanceLevelReducer, zoomReducer,
             entityInteractionReducer, playerScaleReducer, defaultCameraReducer,
-            playerAnimationReducer,
+            playerAnimationReducer, outOfBoundsReducer,
         );
 
         const { sideEffectQueue, } = newState;
