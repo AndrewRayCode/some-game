@@ -1,9 +1,40 @@
+// http://www.colourlovers.com/palette/1478701/s_t_o_p_* ?
 .clickable {
     cursor:pointer;
 }
 
+.viewportContainer {
+    width:460px;
+    margin:30px auto 0;
+}
+
+$bgColor: #313640;
+.viewPort {
+    background:lighten( $bgColor, 10% );
+    padding:30px;
+    border-radius:20px;
+    box-shadow:0 0 20px mix( #000, #313640, 90% );
+    border-top:1px solid lighten( $bgColor, 25% );
+    border-left:1px solid lighten( $bgColor, 15% );
+    border-right:1px solid lighten( $bgColor, 15% );
+    border-bottom:1px solid darken( $bgColor, 10% );
+}
+
+.extras {
+    padding:30px;
+}
+
 .gameContainer {
+    border-radius:6px;
+    overflow:hidden;
     position:relative;
+}
+
+.debug {
+    position:absolute;
+    z-index:2;
+    bottom:10px;
+    right:10px;
 }
 
 .gameOverlay {

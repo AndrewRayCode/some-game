@@ -5,7 +5,10 @@ import { connect } from 'react-redux';
 import { asyncConnect } from 'redux-async-connect';
 import { bindActionCreators } from 'redux';
 import { createSelector } from 'reselect';
+import { Kbd } from 'components';
 import KeyHandler from 'helpers/KeyHandler';
+
+import styles from './Game.scss';
 
 import { emptyWorld, } from 'physics-utils';
 
@@ -504,6 +507,7 @@ export default class GameContainer extends Component {
     render() {
 
         const { fonts, assets, books, } = this.props;
+        let content;
 
         if( !__CLIENT__ ||
                 !books ||
@@ -514,13 +518,60 @@ export default class GameContainer extends Component {
                 !( 'eye' in assets ) ||
                 !( 'eyeLid' in assets )
             ) {
-            return <div>Loading&hellip;</div>;
+            content = <div>Loading&hellip;</div>;
+        } else {
+            content = <GameGUI
+                { ...this.props }
+                store={ this.context.store }
+            />;
         }
 
-        return <GameGUI
-            { ...this.props }
-            store={ this.context.store }
-        />;
+        return <div>
+            <div className={ styles.wrap }>
+                <div className={ styles.viewportContainer }>
+                    <div className={ styles.viewPort }>
+                        { content }
+                    </div>
+                    <div className={ styles.extras }>
+                        <br />
+                        <b>Keys:</b>
+                        <br />
+                        <ul>
+                            <li>
+                                <b>Select</b> <Kbd>Enter</Kbd>
+                            </li>
+                            <li>
+                                <b>Move</b>
+                                <Kbd>←</Kbd>
+                                <Kbd>↑</Kbd>
+                                <Kbd>→</Kbd>
+                                <Kbd>↓</Kbd>
+                                &nbsp;or&nbsp;
+                                <Kbd>W</Kbd>
+                                <Kbd>A</Kbd>
+                                <Kbd>S</Kbd>
+                                <Kbd>D</Kbd>
+                            </li>
+                            <li>
+                                <b>Jump</b> <Kbd>Space</Kbd>
+                            </li>
+                            <li>
+                                <b>Pause Game</b> <Kbd>P</Kbd> or <Kbd>Esc</Kbd>
+                            </li>
+                            <li>
+                                <b>Zoom in on Charisma</b> <Kbd>K</Kbd>
+                            </li>
+                            <li>
+                                <b>See Whole Level</b> <Kbd>L</Kbd>
+                            </li>
+                        </ul>
+                        <br />
+                        <br />
+                        <b>Shaders</b> by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
+                    </div>
+                </div>
+            </div>
+        </div>;
 
     }
 

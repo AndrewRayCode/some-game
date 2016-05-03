@@ -17,13 +17,15 @@ export default class EntityGroup extends Component {
         playerBody: PropTypes.object,
         plankEntities: PropTypes.object,
         anchorEntities: PropTypes.object,
+        showInvisible: PropTypes.bool,
     }
 
     render() {
 
         const {
             entities, time, position, scale, shaders, assets, world, paused,
-            playerRadius, playerBody, debug, plankEntities, anchorEntities
+            playerRadius, playerBody, debug, plankEntities, anchorEntities,
+            showInvisible,
         } = this.props;
 
         return <group
@@ -43,7 +45,11 @@ export default class EntityGroup extends Component {
                         position={ entity.position }
                         quaternion={ entity.rotation }
                         scale={ entity.scale }
-                        materialId="placeholder"
+                        materialId={
+                            showInvisible ?
+                                'placeholder' :
+                                'transparent'
+                        }
                     />;
 
                 } else if( entity.type === 'curvedwall' ) {

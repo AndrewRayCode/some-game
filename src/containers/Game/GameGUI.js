@@ -7,7 +7,7 @@ import { toScreenPosition, } from 'helpers/Utils';
 
 import { GameRenderer, } from 'containers';
 import {
-    TitleScreen, GameResources, PausedScreen, ConfirmRestartScreen, Kbd,
+    TitleScreen, GameResources, PausedScreen, ConfirmRestartScreen,
     TransitionScreen, ConfirmMenuScreen, SpeechBubble, SpeechScreen,
 } from 'components';
 
@@ -362,7 +362,7 @@ export default class GameGUI extends Component {
         // Game might not be started yet?
         const {
             textIsVisible, visibleText, textOpenPercent, textIsClosing,
-            currentTextPercent,
+            currentTextPercent, debug,
         } = gameState || {};
 
         const { gameRenderer, } = this.refs;
@@ -583,50 +583,10 @@ export default class GameGUI extends Component {
                     text={ visibleText }
                 /> : null }
                 { react3 }
+                { debug ? <div className={ styles.debug }>
+                    FPS: { fps }
+                </div> : null }
             </div>
-
-            <br />
-            <b>Keys:</b>
-            <br />
-            <ul>
-                <li>
-                    <b>Select</b> <Kbd>Enter</Kbd>
-                </li>
-                <li>
-                    <b>Move</b>
-                    <Kbd>←</Kbd>
-                    <Kbd>↑</Kbd>
-                    <Kbd>→</Kbd>
-                    <Kbd>↓</Kbd>
-                    &nbsp;or&nbsp;
-                    <Kbd>W</Kbd>
-                    <Kbd>A</Kbd>
-                    <Kbd>S</Kbd>
-                    <Kbd>D</Kbd>
-                </li>
-                <li>
-                    <b>Jump</b> <Kbd>Space</Kbd>
-                </li>
-                <li>
-                    <b>Pause Game</b> <Kbd>P</Kbd> or <Kbd>Esc</Kbd>
-                </li>
-                <li>
-                    <b>Zoom in on Charisma</b> <Kbd>K</Kbd>
-                </li>
-                <li>
-                    <b>See Whole Level</b> <Kbd>L</Kbd>
-                </li>
-            </ul>
-            <br />
-            <br />
-            <b>Shaders</b> by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
-
-            <br />
-            FPS: { fps }
-            <br />
-            Player Scale: <input readOnly value={ playerScale } type="text" />
-            <br />
-            Player Mass: <input readOnly value={ playerMass } type="text" />
         </div>;
 
     }

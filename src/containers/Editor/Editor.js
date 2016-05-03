@@ -1345,6 +1345,7 @@ export default class Editor extends Component {
 
                             <EntityGroup
                                 ref="staticEntities"
+                                showInvisible
                                 shaders={ shaders }
                                 assets={ assets }
                                 entities={ currentLevelStaticEntitiesArray }
@@ -1354,6 +1355,7 @@ export default class Editor extends Component {
                             { nextChapters.map( nextChapter => <EntityGroup
                                 key={ nextChapter.id }
                                 ref={ `nextChapter${ nextChapter.id }` }
+                                showInvisible
                                 shaders={ shaders }
                                 assets={ assets }
                                 position={ nextChapter.position }
@@ -1364,6 +1366,7 @@ export default class Editor extends Component {
 
                             { previousChapter && <EntityGroup
                                 ref="previousLevel"
+                                showInvisible
                                 position={ previousChapterEntity.position }
                                 shaders={ shaders }
                                 assets={ assets }
