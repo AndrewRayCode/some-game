@@ -1,4 +1,5 @@
 import { scalePlayer, } from 'physics-utils';
+import { SHIFT, MINUS, EQUALS, BACKTICK, } from 'helpers/KeyCodes';
 
 export default function debugReducer(
     keysDown:Object,
@@ -13,18 +14,25 @@ export default function debugReducer(
 
     const { playerRadius, playerDensity, currentLevelId, } = gameData;
 
-    const { playerPositionV3, time, } = currentState;
+    const { playerPositionV3, } = oldState;
+    const { time, delta, } = currentState;
 
     let newState = {};
 
-    if( keysDown.isFirstPress( '`' ) ) {
+    if( keysDown.isFirstPress( BACKTICK ) ) {
 
         newState.debug = !debug;
 
     }
 
-    const minusPressed = keysDown.isFirstPress( '-' );
-    if( minusPressed || keysDown.isFirstPress( '=' ) ) {
+    if( !newState.debug && !oldState.debug ) {
+
+        return next( currentState );
+
+    }
+
+    const minusPressed = keysDown.isFirstPress( MINUS );
+    if( minusPressed || keysDown.isFirstPress( EQUALS ) ) {
 
         const scaleResult = scalePlayer(
             world, playerBody, playerRadius, playerPositionV3, playerDensity,
@@ -43,6 +51,19 @@ export default function debugReducer(
             playerBody: scaleResult.playerBody,
             scaleStartTime: time + 250,
         };
+
+    }
+
+    if( keysDown.isPressed( SHIFT ) ) {
+
+        newState.startSlow = oldState.startSlow || time;
+
+        newState.time = newState.startSlow + ( time - newState.startSlow ) * 0.5;
+        newState.delta = delta * 0.5;
+
+    } else {
+
+        newState.startSlow = null;
 
     }
 

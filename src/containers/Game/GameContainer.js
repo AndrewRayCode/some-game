@@ -455,11 +455,11 @@ export default class GameContainer extends Component {
             // Note: KeyHandler is updated in UpdateAllObjects for now.
             // `this.props` twice for "actions" and "gameData"
             KeyHandler, this.props, this.props, gameState, currentState,
-            gameScreenReducer, playerPositionReducer, contactEventReducer,
-            speechReducer, physicsReducer, gameKeyPressReducer, tourReducer,
-            advanceLevelReducer, zoomReducer, debugReducer,
-            entityInteractionReducer, playerScaleReducer,
-            defaultCameraReducer, playerAnimationReducer,
+            debugReducer, gameScreenReducer, playerPositionReducer,
+            contactEventReducer, speechReducer, physicsReducer,
+            gameKeyPressReducer, tourReducer, advanceLevelReducer, zoomReducer,
+            entityInteractionReducer, playerScaleReducer, defaultCameraReducer,
+            playerAnimationReducer,
         );
 
         const { sideEffectQueue, } = newState;

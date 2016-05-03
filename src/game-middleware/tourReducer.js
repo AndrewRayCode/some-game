@@ -1,4 +1,5 @@
 import THREE from 'three';
+import { T, } from 'helpers/KeyCodes';
 
 export default function tourReducer(
     keysDown:Object,
@@ -22,7 +23,7 @@ export default function tourReducer(
 
     const newState = {};
 
-    if( keysDown.isPressed( 'T' ) ) {
+    if( keysDown.isPressed( T ) ) {
 
         if( !touringSwitch ) {
             newState.currentTourPercent = 0;

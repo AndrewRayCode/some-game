@@ -1,7 +1,8 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import { Text, Logo, SelectableMenu } from 'components';
-import { getFrustrumAt } from '../../../helpers/Utils';
+import { getFrustrumAt } from 'helpers/Utils';
+import { P, ESC, SPACE, R, M, } from 'helpers/KeyCodes';
 
 const gameWidth = 400;
 const gameHeight = 400;
@@ -54,18 +55,18 @@ export default class PausedScreen extends Component {
             onUnpause, onRestart, onShowConfirmMenuScreen,
         } = this.props;
 
-        if( keysDown.isFirstPress( 'P' ) ||
-            keysDown.isFirstPress( 'ESC' ) ||
-            keysDown.isFirstPress( 'SPACE' )
+        if( keysDown.isFirstPress( P ) ||
+            keysDown.isFirstPress( ESC ) ||
+            keysDown.isFirstPress( SPACE )
         ) {
 
             onUnpause();
 
-        } else if( keysDown.isFirstPress( 'R' ) ) {
+        } else if( keysDown.isFirstPress( R ) ) {
 
             onRestart();
 
-        } else if( keysDown.isFirstPress( 'M' ) ) {
+        } else if( keysDown.isFirstPress( M ) ) {
 
             onShowConfirmMenuScreen();
 

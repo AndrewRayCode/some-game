@@ -10,6 +10,7 @@ const KeyCodes = {
     DEL: 8,
     SPACE: 32,
     ENTER: 13,
+    SHIFT: 16,
 
     '\'': 222,
     ';': 186,
@@ -27,6 +28,12 @@ const KeyCodes = {
     2: 50,
     3: 51,
     4: 52,
+    5: 53,
+    6: 54,
+    7: 55,
+    8: 56,
+    9: 57,
+    0: 48,
 
     A: 65,
     B: 66,
@@ -55,5 +62,26 @@ const KeyCodes = {
     Y: 89,
     Z: 90
 };
+
+KeyCodes.MINUS = KeyCodes[ '-' ];
+KeyCodes.EQUALS = KeyCodes[ '=' ];
+KeyCodes.BACKSLASH = KeyCodes[ '\'' ];
+KeyCodes.SEMICOLON = KeyCodes[ ';' ];
+KeyCodes.OPEN_SQUARE_BRACKET = KeyCodes[ '[' ];
+KeyCodes.CLOSED_SQUARE_BRACKET = KeyCodes[ ']' ];
+KeyCodes.COMMA = KeyCodes[ ',' ];
+KeyCodes.PERIOD = KeyCodes[ '.' ];
+KeyCodes.FORWARD_SLASH = KeyCodes[ '/' ];
+KeyCodes.BACKTICK = KeyCodes[ '`' ];
+KeyCodes.ZERO = KeyCodes[ 0 ];
+KeyCodes.ONE = KeyCodes[ 1 ];
+KeyCodes.TWO = KeyCodes[ 2 ];
+KeyCodes.THREE = KeyCodes[ 3 ];
+KeyCodes.FOUR = KeyCodes[ 4 ];
+KeyCodes.FIVE = KeyCodes[ 5 ];
+KeyCodes.SIX = KeyCodes[ 6 ];
+KeyCodes.SEVEN = KeyCodes[ 7 ];
+KeyCodes.EIGHT = KeyCodes[ 8 ];
+KeyCodes.NINE = KeyCodes[ 9 ];
 
 export default KeyCodes;

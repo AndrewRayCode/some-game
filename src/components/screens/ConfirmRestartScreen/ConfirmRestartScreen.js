@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import THREE from 'three';
 import { Text, SelectableMenu } from 'components';
+import { ESC, R, } from 'helpers/KeyCodes';
 
 const gameWidth = 400;
 const gameHeight = 400;
@@ -50,11 +51,11 @@ export default class ConfirmMenuScreen extends Component {
 
         const { onConfirm, onDeny, } = this.props;
 
-        if( keysDown.isFirstPress( 'ESC' ) ) {
+        if( keysDown.isFirstPress( ESC ) ) {
 
             onDeny();
 
-        } else if( keysDown.isFirstPress( 'R' ) ) {
+        } else if( keysDown.isFirstPress( R ) ) {
 
             onConfirm();
 

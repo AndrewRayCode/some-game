@@ -1,5 +1,5 @@
 import Module from 'react-three-renderer/lib/Module';
-import KeyCodes from './KeyCodes';
+import { SPACE, UP, DOWN, } from './KeyCodes';
 import KeyHandler from 'helpers/KeyHandler';
 
 import PropTypes from 'react/lib/ReactPropTypes';
@@ -92,9 +92,9 @@ class UpdateAllObjects extends Module {
             [ key ]: KeyHandler.keys[ key ] || { firstPress: true }
         };
 
-        if( ( key === KeyCodes.SPACE ||
-                key === KeyCodes.UP ||
-                key === KeyCodes.DOWN
+        if( ( key === SPACE ||
+                key === UP ||
+                key === DOWN
             ) && target === document.body
         ) {
             event.preventDefault();

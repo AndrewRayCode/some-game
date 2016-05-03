@@ -5,18 +5,18 @@ export default {
     reset() {
         this.keys = {};
     },
-    getKey( code ) {
-        return this.keys[ KeyCodes[ code ] ];
+    getKey( code:number ):any {
+        return this.keys[ code ];
     },
-    isRepeated( keyCode ) {
+    isRepeated( keyCode:number ):bool {
         const keyTest = this.getKey( keyCode );
-        return keyTest && keyTest.repeat;
+        return !!( keyTest && keyTest.repeat );
     },
-    isFirstPress( keyCode ) {
+    isFirstPress( keyCode:number ):bool {
         const keyTest = this.getKey( keyCode );
-        return keyTest && keyTest.firstPress;
+        return !!( keyTest && keyTest.firstPress );
     },
-    isPressed( keyCode ) {
+    isPressed( keyCode:number ):bool {
         return !!this.getKey( keyCode );
     },
     updateFirstPressed() {

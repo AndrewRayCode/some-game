@@ -1,6 +1,7 @@
 import THREE from 'three';
 import { getCameraDistanceToPlayer, lerpVectors, } from '../helpers/Utils';
 import { easeOutQuint, easeOutQuad } from 'easing-utils';
+import { K, } from 'helpers/KeyCodes';
 
 const zoomInDurationMs = 750;
 const zoomOutDurationMs = 500;
@@ -39,7 +40,7 @@ export default function zoomInReducer(
     const newState = {};
 
     // Should we zoom in?
-    if( keysDown.isPressed( 'K' ) && !zoomBackOutDuration ) {
+    if( keysDown.isPressed( K ) && !zoomBackOutDuration ) {
 
         newState.zoomInStartTime = zoomInStartTime || time;
 

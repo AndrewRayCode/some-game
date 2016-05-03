@@ -3,6 +3,7 @@ import {
     getEntrancesForTube, lerp, findNextTube, snapTo, lerpVectors, vec3Equals,
 } from 'helpers/Utils';
 import { canJump, resetBodyPhysics, } from 'physics-utils';
+import { W, A, S, D, UP, DOWN, LEFT, RIGHT, SPACE, } from 'helpers/KeyCodes';
 
 // TODO: If we need debugging again, fix this
 let debuggingReplay = [];
@@ -52,10 +53,10 @@ export default function physicsReducer(
     // Hogwash coupling to speech reducer to pause movement
     const isSpeaking = oldState.textQueue.length || ( currentState.textQueue && currentState.textQueue.length );
 
-    const isLeft = !isSpeaking && ( keysDown.isPressed( 'A' ) || keysDown.isPressed( 'LEFT' ) );
-    const isRight = !isSpeaking && ( keysDown.isPressed( 'D' ) || keysDown.isPressed( 'RIGHT' ) );
-    const isUp = !isSpeaking && ( keysDown.isPressed( 'W' ) || keysDown.isPressed( 'UP' ) );
-    const isDown = !isSpeaking && ( keysDown.isPressed( 'S' ) || keysDown.isPressed( 'DOWN' ) );
+    const isLeft = !isSpeaking && ( keysDown.isPressed( A ) || keysDown.isPressed( LEFT ) );
+    const isRight = !isSpeaking && ( keysDown.isPressed( D ) || keysDown.isPressed( RIGHT ) );
+    const isUp = !isSpeaking && ( keysDown.isPressed( W ) || keysDown.isPressed( UP ) );
+    const isDown = !isSpeaking && ( keysDown.isPressed( S ) || keysDown.isPressed( DOWN ) );
 
     newState.isLeft = isLeft;
     newState.isRight = isRight;
@@ -298,7 +299,7 @@ export default function physicsReducer(
 
         }
 
-        if( !isSpeaking && keysDown.isPressed( 'SPACE' ) && canJump( world, playerBody ) ) {
+        if( !isSpeaking && keysDown.isPressed( SPACE ) && canJump( world, playerBody ) ) {
 
             newState.jumpedOnThisFrame = true;
             playerVelocity[ 1 ] = -Math.sqrt( 1.5 * 4 * 9.8 * playerRadius );

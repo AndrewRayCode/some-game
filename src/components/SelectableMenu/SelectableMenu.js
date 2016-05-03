@@ -4,6 +4,7 @@ import { Text, Player } from '../';
 import { wrapNumber, getTextWidth } from '../../helpers/Utils';
 import shaderFrog from '../../helpers/shaderFrog';
 import { glowTextureMaterial } from 'Textures';
+import { ENTER, DOWN, UP, J, K, W, S, } from 'helpers/KeyCodes';
 
 const textScale = new THREE.Vector3( 1, 1, 0.5 );
 const textSpacing = 1.8;
@@ -82,17 +83,17 @@ export default class SelectableMenu extends Component {
             time: elapsedTime
         };
 
-        if( keysDown.isFirstPress( 'DOWN' ) || keysDown.isFirstPress( 'J' ) || keysDown.isFirstPress( 'S' ) ) {
+        if( keysDown.isFirstPress( DOWN ) || keysDown.isFirstPress( J ) || keysDown.isFirstPress( S ) ) {
 
             this.props.onClickRegionLeave();
             newState.selectedIndex = wrapNumber( selectedIndex + 1, length );
 
-        } else if( keysDown.isFirstPress( 'UP' ) || keysDown.isFirstPress( 'K' ) || keysDown.isFirstPress( 'W' ) ) {
+        } else if( keysDown.isFirstPress( UP ) || keysDown.isFirstPress( K ) || keysDown.isFirstPress( W ) ) {
 
             this.props.onClickRegionLeave();
             newState.selectedIndex = wrapNumber( selectedIndex - 1, length );
 
-        } else if( keysDown.isFirstPress( 'ENTER' ) ) {
+        } else if( keysDown.isFirstPress( ENTER ) ) {
 
             menuOptions[ selectedIndex ].onSelect();
             return;

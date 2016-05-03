@@ -1,5 +1,6 @@
 import { Kbd } from 'components';
 import React from 'react';
+import { ENTER, SPACE, } from 'helpers/KeyCodes';
 
 const textExpandTime = 1100;
 const textCloseTime = 500;
@@ -81,13 +82,13 @@ export default function speechReducer(
             // If not fully shown, it's skippable
             if( !isFullyShown ) {
 
-                if( keysDown.isFirstPress( 'SPACE' ) || keysDown.isFirstPress( 'ENTER' ) ) {
+                if( keysDown.isFirstPress( SPACE ) || keysDown.isFirstPress( ENTER ) ) {
                     activeTextStartTime = 1; // A truty value a long time in the past
                     newState.visibleText = generateText( currentText, Infinity );
                 }
 
             // Else do next text condition
-            } else if( isFullyShown && keysDown.isFirstPress( 'ENTER' ) ) {
+            } else if( isFullyShown && keysDown.isFirstPress( ENTER ) ) {
 
                 textQueue = textQueue.slice( 1 );
 

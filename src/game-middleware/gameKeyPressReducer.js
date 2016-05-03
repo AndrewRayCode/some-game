@@ -1,3 +1,5 @@
+import { P, ESC, R, M, } from 'helpers/KeyCodes';
+
 export default function gameKeyPressReducer(
     keysDown:Object,
     actions:Object,
@@ -10,15 +12,15 @@ export default function gameKeyPressReducer(
     const { sideEffectQueue, } = oldState;
     let action;
 
-    if( keysDown.isFirstPress( 'P' ) || keysDown.isFirstPress( 'ESC' ) ) {
+    if( keysDown.isFirstPress( P ) || keysDown.isFirstPress( ESC ) ) {
 
         action = () => actions.pauseGame();
 
-    } else if( keysDown.isFirstPress( 'R' ) ) {
+    } else if( keysDown.isFirstPress( R ) ) {
 
         action = () => actions.showConfirmRestartScreen();
 
-    } else if( keysDown.isFirstPress( 'M' ) ) {
+    } else if( keysDown.isFirstPress( M ) ) {
 
         action = () => actions.showConfirmMenuScreen();
 
