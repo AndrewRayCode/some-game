@@ -532,24 +532,22 @@ export default class GameContainer extends Component {
             />;
         }
 
-        return <div>
-            <div className={ styles.wrap }>
-                <div className={ styles.viewportContainer }>
-                    <div className={ styles.viewPort }>
-                        { content }
-                    </div>
-                    <div className={ styles.extras }>
-                        <h5>
-                            created by <b>Andrew Ray</b>
-                        </h5>
-                        <i className={ cx({ fa: true, 'fa-twitter': true, tweet: true }) } />
-                        <a href="https://twitter.com/andrewray" target="_blank">
-                            @<u>andrewray</u>
-                        </a>
-                        <br />
-                        <br />
-                        shaders by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
-                    </div>
+        return <div className={ styles.wrap }>
+            <div className={ styles.viewportContainer }>
+                <div className={ styles.viewPort }>
+                    { content }
+                </div>
+                <div className={ styles.extras }>
+                    <h5>
+                        created by <b>Andrew Ray</b>
+                    </h5>
+                    <i className={ cx({ fa: true, 'fa-twitter': true, tweet: true }) } />
+                    <a href="https://twitter.com/andrewray" target="_blank">
+                        @<u>andrewray</u>
+                    </a>
+                    <br />
+                    <br />
+                    shaders by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
                 </div>
             </div>
         </div>;
