@@ -143,6 +143,8 @@ export default class Home extends Component {
                     <br />
                     <br />
                     <br />
+                    <br />
+                    <br />
                     <p
                         >
                         "Charisma The Chameleon" is a browser game where Charisma shrinks infinitely to solve smaller and smaller mazes. Inspired by the quality of Nintendo 64 games, I aim to achieve a well crafted, complete browser game experience.
@@ -156,8 +158,7 @@ export default class Home extends Component {
                     <br />
                     <p>
                         created by <a href="https://twitter.com/andrewray" target="_blank" className={ styles.not }>Andrew Ray</a>
-                    </p>
-                    <p>
+                        <br />
                         shaders by <a href="http://shaderfrog.com/app" target="_blank" className={ styles.not }>ShaderFrog</a>
                     </p>
                 </div>
