@@ -61,6 +61,22 @@ export default class Home extends Component {
                             title="Charisma The (Space) Chameleon Logo"
                             alt="Charisma The (Space) Chameleon Logo"
                             src={ require( '../../../assets/images/splash-logo.jpg' ) }
+                            height={ 400 }
+                            width={ 400 }
+                        />
+                    </div>
+
+                    <h2>
+                        Gameplay Video
+                    </h2>
+
+                    <div
+                        className={ styles.splashImage }
+                    >
+                        <img
+                            src={ require( '../../../assets/images/charismas-world.gif' ) }
+                            width={ 313 }
+                            height={ 261 }
                         />
                     </div>
 
@@ -74,12 +90,12 @@ export default class Home extends Component {
                             onSubmit={ this.onSubmit }
                             className={ styles.form }
                         >
-                            <h4>
+                            <h2>
                                 Be the first to know!
-                            </h4>
+                            </h2>
 
                             <p>
-                                Sign up to receive a <b>one-time only email when the game ready to play.</b> After the announcement email is sent you will not be emailed again. Your email will not be shared with any third parties, ever.
+                                Sign up to receive a <b>one-time only email when the game is ready to play!</b> After the announcement email is sent you won't be emailed again. Your email won't be shared with any third parties, ever.
                             </p>
                             <label htmlFor="email">
                                 <b>

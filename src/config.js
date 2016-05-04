@@ -22,7 +22,7 @@ module.exports = Object.assign({
         {name: 'description', content: 'A browser based game where you play Charisma The (Space) Chameleon, who shrinks forever to solve a maze.'},
         {charset: 'utf-8'},
         {property: 'og:site_name', content: 'Charisma The Chameleon'},
-        {property: 'og:image', content: 'https://react-redux.herokuapp.com/logo.jpg'},
+        {property: 'og:image', content: 'https://some-game.s3-us-west-2.amazonaws.com/10864cd9e1b191b0b83b33dcde70ddae.jpg'},
         {property: 'og:locale', content: 'en_US'},
         {property: 'og:title', content: 'Charisma The Chameleon'},
         {property: 'og:description', content: 'A browser based game where you play Charisma The (Space) Chameleon, who shrinks forever to solve a maze.'},
