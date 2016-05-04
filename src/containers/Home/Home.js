@@ -83,7 +83,7 @@ export default class Home extends Component {
                     <div className={ gameStyles.extras }>
 
                         <p>
-                            "Charisma The Chameleon" is a browser game where Charisma shrinks infinitely to solve smaller and smaller mazes.
+                            "Charisma The Chameleon" is a browser game where Charisma shrinks infinitely to solve smaller and smaller mazes. Inspired by the quality of Nintendo 64 games, I aim to achieve a well crafted, complete browser game experience.
                         </p>
                                 
                         { !success ? <form
@@ -131,16 +131,19 @@ export default class Home extends Component {
                         <br />
                         <br />
                         <br />
-                        <h5>
-                            created by <b>Andrew Ray</b>
-                        </h5>
-                        <i className={ cx({ fa: true, 'fa-twitter': true, tweet: true }) } />
-                        Follow <a href="https://twitter.com/andrewray" target="_blank">
-                            @<u>andrewray</u>
-                        </a> for updates
-                        <br />
-                        <br />
-                        shaders by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
+                        <h2>
+                            Created by <b>Andrew Ray</b>
+                        </h2>
+                        <div style={{ fontSize: '16px' }}>
+                            Follow&nbsp;
+                            <i className={ cx({ fa: true, 'fa-twitter': true, tweet: true }) } />
+                            <a href="https://twitter.com/andrewray" target="_blank">
+                                @<u>andrewray</u>
+                            </a> for updates
+                            <br />
+                            <br />
+                            shaders by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
+                        </div>
 
                     </div>
                 </div>
