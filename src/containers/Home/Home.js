@@ -53,6 +53,9 @@ export default class Home extends Component {
             <Helmet title="Home" />
             <div className={ gameStyles.wrap }>
                 <div className={ gameStyles.viewportContainer }>
+                    <h1>
+                        Coming Soon!
+                    </h1>
                     <div className={ gameStyles.viewPort }>
                         <img
                             title="Charisma The (Space) Chameleon Logo"
@@ -63,14 +66,27 @@ export default class Home extends Component {
 
                     <div className={ gameStyles.extras }>
 
-                        <h4>
-                            Get Notified When the Demo is Live:
-                        </h4>
+                        <p>
+                            "Charisma The Chameleon" is a browser game where Charisma shrinks infinitely to solve smaller and smaller mazes.
+                        </p>
+                                
+                        { !success ? <form
+                            onSubmit={ this.onSubmit }
+                            className={ styles.form }
+                        >
+                            <h4>
+                                Be the first to know!
+                            </h4>
 
-                        { success ? <div>
-                            YOU DID IT
-                        </div> : <form onSubmit={ this.onSubmit }>
-                            <label htmlFor="email">Email address:</label>
+                            <p>
+                                Sign up to receive a <b>one-time only email when the game ready to play.</b> After the announcement email is sent you will not be emailed again. Your email will not be shared with any third parties, ever.
+                            </p>
+                            <label htmlFor="email">
+                                <b>
+                                    email address
+                                </b>
+                            </label>
+                            <br />
                             <input
                                 disabled={ loading }
                                 type="email"
@@ -83,19 +99,33 @@ export default class Home extends Component {
                                 type="submit"
                                 value="submit"
                             />
-                            { failure }
-                        </form> }
+                            { !success && failure ? <div className={ styles.failure }>
+                                { failure}
+                            </div> : null }
+                        </form> : null }
 
+                        { success ? <div
+                            className={ styles.success }
+                        >
+
+                            <i className={ cx({ fa: true, 'fa-heart': true, red: true }) } />&nbsp;
+                            YOU DID IT!
+                        </div> : null }
+
+                        <br />
+                        <br />
+                        <br />
                         <h5>
                             created by <b>Andrew Ray</b>
                         </h5>
                         <i className={ cx({ fa: true, 'fa-twitter': true, tweet: true }) } />
-                        <a href="https://twitter.com/andrewray" target="_blank">
+                        Follow <a href="https://twitter.com/andrewray" target="_blank">
                             @<u>andrewray</u>
-                        </a>
+                        </a> for updates
                         <br />
                         <br />
                         shaders by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
+
                     </div>
                 </div>
             </div>
