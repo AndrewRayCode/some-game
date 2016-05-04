@@ -6,35 +6,12 @@
 }
 
 .viewportContainer {
-    width:460px;
+    max-width:460px;
     margin:30px auto 0;
     text-shadow:0 0 3px #000;
-
-    h1 {
-        text-shadow:0 -1px 0 #fff, 0 1px 0 darken( #EBE4B0, 80% );
-        font-size:46px;
-        margin:15px 0 30px;
-        color:#EBE4B0;
-        padding:0;
-        font-weight:bold;
-        text-align:center;
-    }
-
-    h2 {
-        text-shadow:0 -1px 0 #fff, 0 1px 0 darken( #EBE4B0, 80% );
-        padding:0;
-        margin:25px 0 15px;
-        font-size:28px;
-        font-weight:normal;
-        color:#B8A381;
-        text-align:center;
-    }
-
 }
 
 .viewPort {
-    min-height:400px;
-    min-width:400px;
     background:darken( $background, 10% );
     padding:30px;
     border-radius:20px;
@@ -59,29 +36,6 @@
         width:200px;
         height:200px;
         text-align:center;
-    }
-}
-
-.extras {
-    padding:30px;
-    color:#EBE4B0;
-    
-    p {
-        font-size:16px;
-        color: desaturate( lighten( $background, 80% ), 10% );
-    }
-
-    .tweet {
-        color:#00A9D4;
-    }
-
-    b {
-        color:#B8A381;
-    }
-    
-    a {
-        color:#40FFDC;
-        text-decoration:none;
     }
 }
 

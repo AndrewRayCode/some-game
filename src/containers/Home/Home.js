@@ -49,25 +49,21 @@ export default class Home extends Component {
 
         const { loading, failure, success, } = this.props;
 
-        return <div>
-            <Helmet title="Home" />
-            <div className={ gameStyles.wrap }>
+        return <div className={ styles.colWrap }>
+            <Helmet title="Charisma The Chameleon" />
+            <div className={ styles.col }>
                 <div className={ gameStyles.viewportContainer }>
-                    <h1>
-                        Coming Soon!
-                    </h1>
                     <div className={ gameStyles.viewPort }>
                         <img
                             title="Charisma The (Space) Chameleon Logo"
                             alt="Charisma The (Space) Chameleon Logo"
                             src={ require( '../../../assets/images/splash-logo.jpg' ) }
-                            height={ 400 }
-                            width={ 400 }
+                            className={ styles.imgAuto }
                         />
                     </div>
 
                     <h2>
-                        Gameplay Video
+                        <center>Gameplay Video</center>
                     </h2>
 
                     <div
@@ -75,77 +71,85 @@ export default class Home extends Component {
                     >
                         <img
                             src={ require( '../../../assets/images/charismas-world.gif' ) }
-                            width={ 313 }
-                            height={ 261 }
                         />
                     </div>
+                </div>
+            </div><div className={ styles.col }>
+                <div className={ styles.colContentWrap }>
+                    <h1>
+                        Coming Soon!
+                    </h1>
 
-                    <div className={ gameStyles.extras }>
+                    <h2>
+                        Created by <b>Andrew Ray</b>
+                    </h2>
+                    <div className={ styles.cols }>
+                        <div className={ styles.col }>
+                            <div style={{ fontSize: '16px' }}>
+                                Follow&nbsp;
+                                <i className={ cx({ fa: true, 'fa-twitter': true, tweet: true }) } />
+                                <a href="https://twitter.com/andrewray" target="_blank">
+                                    @<u>andrewray</u>
+                                </a> for game updates!
+                            </div>
+                        </div><div className={ styles.col }>
+                            <i className={ cx({ fa: true, 'fa-facebook': true, tweet: true }) } />
+                                <a href="https://www.facebook.com/charismachameleon" target="_blank">
+                                Like us on Facebook!
+                            </a>
+                        </div>
+                    </div>
+
+                    <p>
+                        "Charisma The Chameleon" is a browser game where Charisma shrinks infinitely to solve smaller and smaller mazes. Inspired by the quality of Nintendo 64 games, I aim to achieve a well crafted, complete browser game experience.
+                    </p>
+                            
+                    { !success ? <form
+                        onSubmit={ this.onSubmit }
+                        className={ styles.form }
+                    >
+                        <h2>
+                            Be the first to know!
+                        </h2>
 
                         <p>
-                            "Charisma The Chameleon" is a browser game where Charisma shrinks infinitely to solve smaller and smaller mazes. Inspired by the quality of Nintendo 64 games, I aim to achieve a well crafted, complete browser game experience.
+                            Sign up to receive a <b>one-time only email when the game is ready to play!</b> After the announcement email is sent you won't be emailed again. Your email won't be shared with any third parties, ever.
                         </p>
-                                
-                        { !success ? <form
-                            onSubmit={ this.onSubmit }
-                            className={ styles.form }
-                        >
-                            <h2>
-                                Be the first to know!
-                            </h2>
-
-                            <p>
-                                Sign up to receive a <b>one-time only email when the game is ready to play!</b> After the announcement email is sent you won't be emailed again. Your email won't be shared with any third parties, ever.
-                            </p>
-                            <label htmlFor="email">
-                                <b>
-                                    email address
-                                </b>
-                            </label>
-                            <br />
-                            <input
-                                disabled={ loading }
-                                type="email"
-                                placeholder="Your email address"
-                                onChange={ this.onChangeEmail }
-                                value={ this.state.email }
-                            />
-                            <input
-                                disabled={ loading }
-                                type="submit"
-                                value="submit"
-                            />
-                            { !success && failure ? <div className={ styles.failure }>
-                                { failure}
-                            </div> : null }
-                        </form> : null }
-
-                        { success ? <div
-                            className={ styles.success }
-                        >
-
-                            <i className={ cx({ fa: true, 'fa-heart': true, red: true }) } />&nbsp;
-                            YOU DID IT!
+                        <label htmlFor="email">
+                            <b>
+                                email address
+                            </b>
+                        </label>
+                        <br />
+                        <input
+                            disabled={ loading }
+                            type="email"
+                            placeholder="Your email address"
+                            onChange={ this.onChangeEmail }
+                            value={ this.state.email }
+                        />
+                        <input
+                            disabled={ loading }
+                            type="submit"
+                            value="submit"
+                        />
+                        { !success && failure ? <div className={ styles.failure }>
+                            { failure}
                         </div> : null }
+                    </form> : null }
 
-                        <br />
-                        <br />
-                        <br />
-                        <h2>
-                            Created by <b>Andrew Ray</b>
-                        </h2>
-                        <div style={{ fontSize: '16px' }}>
-                            Follow&nbsp;
-                            <i className={ cx({ fa: true, 'fa-twitter': true, tweet: true }) } />
-                            <a href="https://twitter.com/andrewray" target="_blank">
-                                @<u>andrewray</u>
-                            </a> for game updates!
-                            <br />
-                            <br />
-                            shaders by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
-                        </div>
+                    { success ? <div
+                        className={ styles.success }
+                    >
 
-                    </div>
+                        <i className={ cx({ fa: true, 'fa-heart': true, red: true }) } />&nbsp;
+                        YOU DID IT!
+                    </div> : null }
+
+                    <br />
+                    <br />
+                    shaders by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
+
                 </div>
             </div>
         </div>;
