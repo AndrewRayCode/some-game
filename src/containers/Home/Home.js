@@ -14,17 +14,17 @@ const cx = classNames.bind( styles );
 
 @connect(
     state => ({
-        loading: state.splashLoading.loading,
-        success: state.splashLoading.success,
-        failure: state.splashLoading.failure,
+        loading: state.splashSubmit.loading,
+        success: state.splashSubmit.success,
+        failure: state.splashSubmit.failure,
     }),
     dispatch => bindActionCreators({ submitSplashEmail }, dispatch )
 )
 export default class Home extends Component {
 
-    constructor() {
+    constructor( props, context ) {
 
-        super();
+        super( props, context );
 
         this.state = {};
         this.onSubmit = this.onSubmit.bind( this );
@@ -38,13 +38,16 @@ export default class Home extends Component {
 
     }
 
-    onSubmit() {
+    onSubmit( event ) {
 
+        event.preventDefault();
         this.props.submitSplashEmail( this.state.email );
 
     }
 
     render() {
+
+        const { loading, failure, success, } = this.props;
 
         return <div>
             <Helmet title="Home" />
@@ -56,16 +59,24 @@ export default class Home extends Component {
                             Get Notified When the Demo is Live:
                         </h4>
 
-                        <form onSubmit={ this.onSubmit }>
+                        { success ? <div>
+                            YOU DID IT
+                        </div> : <form onSubmit={ this.onSubmit }>
                             <label htmlFor="email">Email address:</label>
                             <input
+                                disabled={ loading }
                                 type="email"
                                 placeholder="Your email address"
                                 onChange={ this.onChangeEmail }
                                 value={ this.state.email }
                             />
-                            <input type="submit" value="submit" />
-                        </form>
+                            <input
+                                disabled={ loading }
+                                type="submit"
+                                value="submit"
+                            />
+                            { failure }
+                        </form> }
 
                         <h5>
                             created by <b>Andrew Ray</b>

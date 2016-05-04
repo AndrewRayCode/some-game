@@ -2,7 +2,7 @@ const SPLASH_LOADING = 'assets/SPLASH_LOADING';
 const SPLASH_SUCCESS = 'assets/SPLASH_SUCCESS';
 const SPLASH_FAIL = 'assets/SPLASH_FAIL';
 
-export function splashSubmit( state = {}, action = {} ) {
+export function splashSubmitReducer( state = {}, action = {} ) {
 
     switch( action.type ) {
 
@@ -13,8 +13,10 @@ export function splashSubmit( state = {}, action = {} ) {
             return { success: true };
 
         case SPLASH_FAIL:
-            console.log(action);
-            return { failure: action };
+            return { failure: action.error ?
+                action.error.error :
+                'Unknown error!'
+            };
 
         default:
             return state;
@@ -33,7 +35,7 @@ export function submitSplashEmail( email ) {
 
     return {
         types: [ SPLASH_LOADING, SPLASH_SUCCESS, SPLASH_FAIL ],
-        promise: client => client.post( '/submitSplashEmail', { email } )
+        promise: client => client.post( '/submitSplashEmail', { data: { email } } )
     };
 
 }

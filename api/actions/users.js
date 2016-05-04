@@ -6,6 +6,13 @@ export function submitSplashEmail( request ) {
 
         const { email } = request.body;
 
+        if( !email ) {
+            console.error( 'No eamil found in ', request.body );
+            return reject({
+                error: 'No email provided',
+            });
+        }
+
         return db( 'users' )
             .select( 'id' )
             .where({ email })
@@ -13,12 +20,16 @@ export function submitSplashEmail( request ) {
 
                 if( existingUsers.length > 0 ) {
                     return reject({
-                        error: 'This email already registered!'
+                        error: 'This email already registered!',
                     });
                 }
 
                 return db
-                    .insert({ email, created_at: new Date() })
+                    .insert({
+                        email,
+                        current_sign_in_ip: request.connection.remoteAddress,
+                        created_at: new Date(),
+                    })
                     .into( 'users' )
                     .then( insertedLevelIds => resolve({
                         success: true,

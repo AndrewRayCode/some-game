@@ -15,14 +15,16 @@ import {
     editorSelectedBookReducer, editorSelectedChapterReducer
 } from './editor';
 import { gameScreenReducer } from './gameScreen';
-import { splashSubmit, } from './users';
+import { splashSubmitReducer, } from './users';
 
 export default combineReducers({
     routing: routeReducer,
     reduxAsyncConnect,
     auth,
     form,
-    splashSubmit,
+
+    // home
+    splashSubmit: splashSubmitReducer,
 
     // editor
     levelsLoaded: loadLevelsReducer,
