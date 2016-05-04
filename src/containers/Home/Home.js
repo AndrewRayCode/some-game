@@ -53,6 +53,14 @@ export default class Home extends Component {
             <Helmet title="Home" />
             <div className={ gameStyles.wrap }>
                 <div className={ gameStyles.viewportContainer }>
+                    <div className={ gameStyles.viewPort }>
+                        <img
+                            title="Charisma The (Space) Chameleon Logo"
+                            alt="Charisma The (Space) Chameleon Logo"
+                            src={ require( '../../../assets/images/splash-logo.jpg' ) }
+                        />
+                    </div>
+
                     <div className={ gameStyles.extras }>
 
                         <h4>
