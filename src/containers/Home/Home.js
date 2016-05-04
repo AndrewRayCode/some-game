@@ -71,39 +71,31 @@ export default class Home extends Component {
                     >
                         <img
                             src={ require( '../../../assets/images/charismas-world.gif' ) }
+                            alt="Charisma The Chameleon Gameplay Video"
+                            title="Charisma The Chameleon Gameplay Video"
+                            className={ styles.imgAuto }
                         />
                     </div>
                 </div>
             </div><div className={ styles.col }>
                 <div className={ styles.colContentWrap }>
-                    <h1>
-                        Coming Soon!
-                    </h1>
-
-                    <h2>
-                        Created by <b>Andrew Ray</b>
-                    </h2>
-                    <div className={ styles.cols }>
-                        <div className={ styles.col }>
-                            <div style={{ fontSize: '16px' }}>
-                                Follow&nbsp;
-                                <i className={ cx({ fa: true, 'fa-twitter': true, tweet: true }) } />
-                                <a href="https://twitter.com/andrewray" target="_blank">
-                                    @<u>andrewray</u>
-                                </a> for game updates!
-                            </div>
-                        </div><div className={ styles.col }>
-                            <i className={ cx({ fa: true, 'fa-facebook': true, tweet: true }) } />
-                                <a href="https://www.facebook.com/charismachameleon" target="_blank">
-                                Like us on Facebook!
-                            </a>
+                    <div
+                        className={ styles.cols }
+                    >
+                        <div className={ styles.coll }>
+                            <i className={ cx({ fa: true, 'fa-facebook': true, icon: true }) } />
+                            <a href="https://www.facebook.com/charismachameleon" target="_blank">
+                                <u>Like Charisma</u>
+                            </a> on Facebook!
+                        </div><div className={ styles.coll }>
+                            Follow{' '}
+                            <i className={ cx({ fa: true, 'fa-twitter': true, icon: true, tweet: true }) } />
+                            <a href="https://twitter.com/andrewray" target="_blank">
+                                @<u>andrewray</u>
+                            </a> for updates!
                         </div>
                     </div>
 
-                    <p>
-                        "Charisma The Chameleon" is a browser game where Charisma shrinks infinitely to solve smaller and smaller mazes. Inspired by the quality of Nintendo 64 games, I aim to achieve a well crafted, complete browser game experience.
-                    </p>
-                            
                     { !success ? <form
                         onSubmit={ this.onSubmit }
                         className={ styles.form }
@@ -113,14 +105,8 @@ export default class Home extends Component {
                         </h2>
 
                         <p>
-                            Sign up to receive a <b>one-time only email when the game is ready to play!</b> After the announcement email is sent you won't be emailed again. Your email won't be shared with any third parties, ever.
+                            Sign up to receive a <b>one-time only email when the game is ready to play!</b>
                         </p>
-                        <label htmlFor="email">
-                            <b>
-                                email address
-                            </b>
-                        </label>
-                        <br />
                         <input
                             disabled={ loading }
                             type="email"
@@ -136,6 +122,9 @@ export default class Home extends Component {
                         { !success && failure ? <div className={ styles.failure }>
                             { failure}
                         </div> : null }
+                        <p style={{ fontStyle: 'italic', fontSize: '12px', opacity: 0.6 }}>
+                            After the announcement email is sent you won't be emailed again. Your email won't be shared with any third parties, ever.
+                        </p>
                     </form> : null }
 
                     { success ? <div
@@ -145,11 +134,32 @@ export default class Home extends Component {
                         <i className={ cx({ fa: true, 'fa-heart': true, red: true }) } />&nbsp;
                         YOU DID IT!
                     </div> : null }
-
                     <br />
                     <br />
-                    shaders by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
-
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <p
+                        >
+                        "Charisma The Chameleon" is a browser game where Charisma shrinks infinitely to solve smaller and smaller mazes. Inspired by the quality of Nintendo 64 games, I aim to achieve a well crafted, complete browser game experience.
+                    </p>
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <p>
+                        created by <a href="https://twitter.com/andrewray" target="_blank" className={ styles.not }>Andrew Ray</a>
+                    </p>
+                    <p>
+                        shaders by <a href="http://shaderfrog.com/app" target="_blank" className={ styles.not }>ShaderFrog</a>
+                    </p>
                 </div>
             </div>
         </div>;

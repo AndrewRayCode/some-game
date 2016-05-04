@@ -1,7 +1,8 @@
 @import "../../theme/variables.scss";
 
+$pink:#ff69b4;
 form {
-    margin:20px 0 0;
+    margin:60px 0 0;
 
     label {
         color:#EBE4B0;
@@ -13,7 +14,7 @@ form {
         background:darken( $background, 8% );
         box-shadow:inset 2px 2px 4px #000,
             0 0 4px #000;
-        border:1px solid lighten( $background, 3% );
+        border:1px solid lighten( $pink, 10% );
         padding:8px 16px;
         font-size:14px;
         border-radius:4px;
@@ -22,12 +23,13 @@ form {
     }
     input[ type="submit" ] {
         color:#fff;
-        background:darken( $background, 8% );
+        background:$pink;
         box-shadow:0 0 4px #000;
-        border:1px solid lighten( $background, 3% );
+        border:1px solid lighten( $pink, 10% );
         padding:6px 19px;
         font-size:14px;
         border-radius:4px;
+        text-shadow:0 0 2px darken( $pink, 30% );
         display:inline-block;
         width:100px;
         margin:0 0 0 0.5em;
@@ -83,6 +85,8 @@ form {
     width:100%;
 
     .coll {
+        vertical-align:top;
+        display:inline-block;
         width:49%;
         margin-right:1%;
     }
@@ -108,11 +112,11 @@ h2 {
     margin:25px 0 15px;
     font-size:28px;
     font-weight:normal;
-    color:#B8A381;
+    color:#EBE4B0;
 }
 
 .colContentWrap {
-    padding:10px 0 30px 30px;
+    padding:62px 0 30px 30px;
     color:#EBE4B0;
     
     p {
@@ -120,17 +124,28 @@ h2 {
         color: desaturate( lighten( $background, 80% ), 10% );
     }
 
-    .tweet {
-        color:#00A9D4;
-    }
-
     b {
         color:#B8A381;
     }
-    
-    a {
-        color:#40FFDC;
-        text-decoration:none;
-    }
 }
 
+.icon {
+    float:left;
+    font-size:28px;
+    margin:0 15px 0 0;
+    color:#3b5998;
+    text-shadow:0 0 4px #000;
+}
+
+.tweet {
+    color:#00A9D4;
+}
+
+a {
+    color:#ff69b4;
+    text-decoration:none;
+}
+
+.not {
+    color:#B8A381;
+}
