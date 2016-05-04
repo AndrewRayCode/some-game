@@ -139,7 +139,7 @@ export default class Home extends Component {
                             <i className={ cx({ fa: true, 'fa-twitter': true, tweet: true }) } />
                             <a href="https://twitter.com/andrewray" target="_blank">
                                 @<u>andrewray</u>
-                            </a> for updates
+                            </a> for game updates!
                             <br />
                             <br />
                             shaders by <a href="http://shaderfrog.com/app" target="_blank">ShaderFrog</a>
