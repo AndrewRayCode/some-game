@@ -179,11 +179,13 @@ export function setUpPhysics(
 
         // This is duplicated in the bridge component which isn't ideal,
         // but there are more comments there
-        const { x: unscaledWidth, y: size } = scale;
+        const { x: width, y: size } = scale;
 
-        const width = unscaledWidth * size;
+        // x is correct world width
+        //const width = unscaledWidth / size;
 
-        const plankWidth = size * ( width / segments );
+        // needs to be real world
+        const plankWidth = ( width / segments );
         const plankStartX = -( width / 2 ) + ( plankWidth / 2 );
         const plankBodyWidth = plankWidth - ( paddingPercent * plankWidth );
 
@@ -197,7 +199,7 @@ export function setUpPhysics(
                 mass: getCubeMass( pushyDensity, plankWidth * 1 ),
                 position: [
                     position.x + ( plankWidth * index + plankStartX ),
-                    position.z + ( 0.5 ),
+                    position.z - ( 0.5 * size ), // z up is negative!
                 ],
             });
 
@@ -245,7 +247,9 @@ export function setUpPhysics(
                 const emptyAnchorBefore = new p2.Body({
                     mass: 0,
                     position: [
-                        position.x - ( width * size * 0.5 ) - ( plankBodyWidth * anchorInsetPercent * 2 /* little more cause no padding */ ),
+                        // little more cause no padding
+                        position.x - ( width * 0.5 ) - ( plankBodyWidth * anchorInsetPercent * 2 ),
+                        // (z up is negative) Use 0.4 to avoid top of rope clipping through walls
                         position.z - ( 0.4 * size ),
                     ],
                 });
@@ -297,7 +301,7 @@ export function setUpPhysics(
                 const emptyAnchorAfter = new p2.Body({
                     mass: 0,
                     position: [
-                        position.x + ( width * size * 0.5 ) + ( plankBodyWidth * anchorInsetPercent * 2 ),
+                        position.x + ( width * 0.5 ) + ( plankBodyWidth * anchorInsetPercent * 2 ),
                         position.z - ( 0.4 * size ),
                     ],
                 });

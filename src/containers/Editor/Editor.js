@@ -1036,7 +1036,7 @@ export default class Editor extends Component {
 
     selectType( createType ) {
 
-        return ( event ) => {
+        return event => {
             event.preventDefault();
             this.setState({ createType });
         };
@@ -1045,7 +1045,7 @@ export default class Editor extends Component {
 
     selectMaterialId( createMaterialId ) {
 
-        return ( event ) => {
+        return event => {
             event.preventDefault();
             this.setState({ createMaterialId });
         };
@@ -1054,7 +1054,7 @@ export default class Editor extends Component {
 
     changeMaterialId( newMaterialId ) {
 
-        return ( event ) => {
+        return event => {
             event.preventDefault();
             this.props.changeEntityMaterial(
                 this.state.selectedObjectId,
@@ -1066,7 +1066,7 @@ export default class Editor extends Component {
 
     changeWrapMaterialId( newWrapMaterialId ) {
 
-        return ( event ) => {
+        return event => {
             event.preventDefault();
             this.props.changeEntityWrapMaterial(
                 this.state.selectedObjectId,
@@ -1078,7 +1078,7 @@ export default class Editor extends Component {
     
     changeTopMaterialId( newTopMaterialId ) {
 
-        return ( event ) => {
+        return event => {
             event.preventDefault();
             this.props.changeEntityTopMaterial(
                 this.state.selectedObjectId,
@@ -1090,7 +1090,7 @@ export default class Editor extends Component {
 
     changeFoamMaterialId( newFoamMaterialId ) {
 
-        return ( event ) => {
+        return event => {
             event.preventDefault();
             this.props.changeEntityFoamMaterial(
                 this.state.selectedObjectId,

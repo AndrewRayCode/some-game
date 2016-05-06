@@ -34,7 +34,7 @@ export default class EntityGroup extends Component {
             scale={ scale }
         >
 
-            { entities.map( ( entity ) => {
+            { entities.map( entity => {
 
                 if( entity.type === 'textTrigger' ) {
 

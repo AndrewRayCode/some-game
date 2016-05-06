@@ -357,7 +357,7 @@ export function findNextTube( tube:Object, entrance:Vector3, entities:Array, sca
 
     const exit = isEntrance1 ? entrance2 : entrance1;
 
-    const nextTube = entities.find( ( entity ) => {
+    const nextTube = entities.find( entity => {
         return vec3Equals( entity.position, exit );
     });
 

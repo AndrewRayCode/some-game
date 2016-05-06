@@ -47,6 +47,9 @@ export default class GameRenderer extends Component {
 
     }
 
+    // 1. Build plank bodies in *world* space in physics setup
+    // 2. Convert planks to *local object* space here
+    // 3. Draw them in plankbridge in local space (adjusting for scale)
     _getPlankStates( plankData ) {
 
         const { allEntities } = this.props;
@@ -63,7 +66,10 @@ export default class GameRenderer extends Component {
                 [ entityId ]: [
                     ...planks, {
                         position: p2ToV3( position, plankBody.depth )
-                            .sub( entity.position ),
+                            // Convert to local position...
+                            .sub( entity.position )
+                            // and scale
+                            .divideScalar( entity.scale.y ),
                         rotation: p2AngleToEuler( angle )
                     }
                 ]
@@ -95,9 +101,11 @@ export default class GameRenderer extends Component {
                 [ entityId ]: [
                     ...planks, {
                         positionA: p2ToV3( worldPositionA, constraint.depth )
-                            .sub( entity.position ),
+                            .sub( entity.position )
+                            .divideScalar( entity.scale.y ),
                         positionB: p2ToV3( worldPositionB, constraint.depth )
-                            .sub( entity.position ),
+                            .sub( entity.position )
+                            .divideScalar( entity.scale.y ),
                     }
                 ]
             };

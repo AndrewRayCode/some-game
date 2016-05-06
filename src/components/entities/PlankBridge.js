@@ -71,20 +71,18 @@ export default class PlankBridge extends Component {
 
         // The x scale of the bridge object is used to determine the width of
         // the bridge, while the y (or z) scale represent normal world scaling
-        const { x: unscaledWidth, y: size } = scale;
+        const { x: width, y: size } = scale;
 
-        // We scale the whole thing down by the scale (size.y or z). So if we
-        // calculate for a world space of 2 units wide, it will be scaled down
-        // by half. We have to undo that.
-        const width = unscaledWidth / size;
+        // Undo the scale to get the world size of this bridge
+        const worldWidth = width / size;
 
         // Calculate the width of a plank. Note because we scale the whole
         // thing we don't need to incorporate overall size scale
-        const plankWidth = width / segments;
+        const plankWidth = worldWidth / segments;
 
         // Calculate how far from center the leftmost plank should be. Objects
         // are centered so include plankwidth
-        const plankStartX = -( width / 2 ) + ( plankWidth / 2 );
+        const plankStartX = -( worldWidth / 2 ) + ( plankWidth / 2 );
 
         const planks = plankEntities && plankEntities[ entityId ];
         const constraints = anchorEntities && anchorEntities[ entityId ];
