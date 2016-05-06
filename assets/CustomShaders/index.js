@@ -16,6 +16,7 @@ const CustomShaders = {
     glowTextureTail: require( '../shaders/Rimlit_Rigged_UVs.json' ),
     glowTextureSkin: require( '../shaders/Rimlit_UVs.json' ),
     glowTextureLid: require( '../shaders/Rimlit_Morphs.json' ),
+    nebula: require( '../shaders/Nebula_Background.json' ),
 };
 
 export default CustomShaders;

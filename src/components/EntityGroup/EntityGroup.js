@@ -41,6 +41,7 @@ export default class EntityGroup extends Component {
                     return <Pyramid
                         ref={ entity.id }
                         key={ entity.id }
+                        assets={ assets }
                         scale={ entity.scale }
                         position={ entity.position }
                         quaternion={ entity.rotation }

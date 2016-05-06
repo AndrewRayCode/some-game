@@ -32,6 +32,7 @@ const DESERIALIZE = 'editor/DESERIALIZE';
 const EDITOR_SELECT_LEVEL_AND_CHAPTER = 'editor/EDITOR_SELECT_LEVEL_AND_CHAPTER';
 const MODIFY_LEVEL = 'editor/MODIFY_LEVEL';
 const MOVE_ENTITY = 'editor/MOVE_ENTITY';
+const SCALE_ENTITY = 'editor/SCALE_ENTITY';
 const REMOVE_ENTITY = 'editor/REMOVE_ENTITY';
 const REMOVE_NEXT_CHAPTER = 'editor/REMOVE_NEXT_CHAPTER';
 const ROTATE_ENTITY = 'editor/ROTATE_ENTITY';
@@ -107,6 +108,21 @@ function entityPropertyReducer( entity, action ) {
                 )
             };
 
+        case SCALE_ENTITY:
+
+            const { field: f, value: v } = action;
+            const { scale } = entity;
+
+            return {
+                ...entity,
+                scale: new THREE.Vector3(
+                    f === 'x' ? v : scale.x,
+                    f === 'y' ? v : scale.y,
+                    f === 'z' ? v : scale.z
+                )
+            };
+
+
         case ROTATE_ENTITY:
 
             const { rotation } = entity;
@@ -165,6 +181,7 @@ export function entitiesReducer( entities = {}, action = {} ) {
 
         case ROTATE_ENTITY:
         case MOVE_ENTITY:
+        case SCALE_ENTITY:
         case CHANGE_ENTITY_TYPE:
         case CHANGE_ENTITY_PROPERTY:
         case CHANGE_ENTITY_MATERIAL_ID:
@@ -670,6 +687,13 @@ export function removeEntity( levelId, id, entityType ) {
     return {
         type: REMOVE_ENTITY,
         levelId, id, entityType
+    };
+}
+
+export function scaleEntity( id, field, value ) {
+    return {
+        type: SCALE_ENTITY,
+        id, field, value
     };
 }
 

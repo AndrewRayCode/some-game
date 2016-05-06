@@ -39,6 +39,7 @@ export default class CreatePreviewObject extends Component {
 
                 return <Pyramid
                     scale={ scale }
+                    assets={ assets }
                     quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
                     ref="previewPosition"

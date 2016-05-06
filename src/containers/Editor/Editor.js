@@ -5,12 +5,13 @@ import { connect } from 'react-redux';
 import { asyncConnect } from 'redux-async-connect';
 import { browserHistory } from 'react-router';
 import {
-    rotateEntity, moveEntity, addEntity, removeEntity, changeEntityMaterial,
-    createLevel, selectLevelAndChapter, deserializeLevels, renameLevel,
-    addNextChapter, removeNextChapter, insetChapter, changeEntityType,
-    createBook, selectBook, renameChapter, renameBook, createChapterFromLevel,
-    saveAll, changeEntityWrapMaterial, changeEntityFoamMaterial,
-    changeEntityTopMaterial, changeEntityProperty, areBooksLoaded, loadAllBooks,
+    rotateEntity, moveEntity, scaleEntity, addEntity, removeEntity,
+    changeEntityMaterial, createLevel, selectLevelAndChapter,
+    deserializeLevels, renameLevel, addNextChapter, removeNextChapter,
+    insetChapter, changeEntityType, createBook, selectBook, renameChapter,
+    renameBook, createChapterFromLevel, saveAll, changeEntityWrapMaterial,
+    changeEntityFoamMaterial, changeEntityTopMaterial, changeEntityProperty,
+    areBooksLoaded, loadAllBooks,
 } from '../../redux/modules/editor';
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
@@ -217,7 +218,7 @@ function snapTo( number, interval ) {
 
     },
     dispatch => bindActionCreators({
-        addEntity, removeEntity, moveEntity, rotateEntity,
+        addEntity, removeEntity, moveEntity, scaleEntity, rotateEntity,
         changeEntityMaterial, addNextChapter, renameLevel, createLevel,
         renameChapter, renameBook, removeNextChapter, insetChapter,
         changeEntityType, createBook, selectBook, selectLevelAndChapter,
@@ -1100,6 +1101,15 @@ export default class Editor extends Component {
 
     }
 
+    onScaleSelectedObject( field, event ) {
+
+        const { selectedObjectId } = this.state;
+        const value = parseFloat( event.target.value );
+
+        this.props.scaleEntity( selectedObjectId, field, value );
+
+    }
+
     onMoveSelectedObject( field, event ) {
 
         const { selectedObjectId } = this.state;
@@ -1521,7 +1531,41 @@ export default class Editor extends Component {
                     <br />
                     <b>id:</b> { selectedObjectId }
                     <br />
-                    <b>scale:</b> { selectedObject.scale.x } { selectedObject.scale.y } { selectedObject.scale.z }
+                    <b>scale:</b>
+                    <br />
+
+                    x <input
+                        type="number"
+                        style={{ width: '40px' }}
+                        value={ selectedObject.scale.x }
+                        onChange={ this.onScaleSelectedObject.bind( this, 'x' ) }
+                        min={-Infinity}
+                        max={Infinity}
+                        step={ gridSnap }
+                    />
+
+                    y <input
+                        type="number"
+                        style={{ width: '40px' }}
+                        value={ selectedObject.scale.y }
+                        onChange={ this.onScaleSelectedObject.bind( this, 'y' ) }
+                        min={-Infinity}
+                        max={Infinity}
+                        step={ gridSnap }
+                    />
+
+                    z <input
+                        type="number"
+                        style={{ width: '40px' }}
+                        value={ selectedObject.scale.z }
+                        onChange={ this.onScaleSelectedObject.bind( this, 'z' ) }
+                        min={-Infinity}
+                        max={Infinity}
+                        step={ gridSnap }
+                    />
+
+
+
                     <br />
                     <b>position:</b>
                     <br />
@@ -1715,6 +1759,7 @@ export default class Editor extends Component {
                             selectedObject.type === 'chamferbox' ||
                             selectedObject.type === 'puffer' ||
                             selectedObject.type === 'bridge' ||
+                            selectedObject.type === 'pyramid' ||
                             selectedObject.type === 'waterfall' ) ? <div>
                         <br />
                         <br />

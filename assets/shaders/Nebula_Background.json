@@ -1,0 +1,181 @@
+{
+  "id": 773,
+  "name": "Nebula Background",
+  "fragment": "#define F4 0.309016994374947451\n#define PI 3.14159\n\nprecision highp float;\nprecision highp int;\nuniform float time;\nuniform float permutations;\nuniform float iterations;\nuniform vec2 uvScale;\nuniform vec3 Molten_Noise1462568137864_213_color1;\nuniform vec3 Molten_Noise1462568137864_213_color2;\nuniform vec3 color3;\nuniform float brightness;\nuniform float Molten_Noise1462568137864_213_speed;\nuniform vec3 Circular_Gradient1462568150439_226_color1;\nuniform vec3 Circular_Gradient1462568150439_226_color2;\nuniform float scale;\nuniform float Follow_the_Spiral_Rabbit1462568364455_332_speed;\nuniform float blur;\nuniform vec3 color;\nuniform float arms;\nuniform vec2 Follow_the_Spiral_Rabbit1462568364455_332_resolution;\nuniform float starRadius;\nuniform vec3 starColor;\nuniform float starDensity;\nuniform float Parallax_Starfield1462568538439_87_speed;\nuniform vec2 Parallax_Starfield1462568538439_87_resolution;\nuniform vec3 Vertical_2_Color_Graident1462568589945_110_color1;\nuniform vec3 Vertical_2_Color_Graident1462568589945_110_color2;\nvarying vec2 Molten_Noise1462568137864_213_vUv;\nvec4 mod289(vec4 x) \n{\n    return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\nfloat mod289(float x) \n{\n    return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\nvec4 permute(vec4 x) \n{\n    return mod289(((x * 34.0) + 1.0) * x);\n}\nfloat permute(float x) \n{\n    return mod289(((x * 34.0) + 1.0) * x);\n}\nvec4 taylorInvSqrt(vec4 r) \n{\n    return 1.79284291400159 - 0.85373472095314 * r;\n}\nfloat taylorInvSqrt(float r) \n{\n    return 1.79284291400159 - 0.85373472095314 * r;\n}\nvec4 grad4(float j, vec4 ip) \n{\n    const vec4 ones = vec4(1.0, 1.0, 1.0, -1.0);\n    vec4 p, s;\n    p.xyz = floor(fract(vec3(j) * ip.xyz) * 7.0) * ip.z - 1.0;\n    p.w = 1.5 - dot(abs(p.xyz), ones.xyz);\n    s = vec4(lessThan(p, vec4(0.0)));\n    p.xyz = p.xyz + (s.xyz * 2.0 - 1.0) * s.www;\n    return p;\n}\nfloat snoise(vec4 v) \n{\n    const vec4 C = vec4(0.138196601125011, 0.276393202250021, 0.414589803375032, -0.447213595499958);\n    vec4 i = floor(v + dot(v, vec4(F4)));\n    vec4 x0 = v - i + dot(i, C.xxxx);\n    vec4 i0;\n    vec3 isX = step(x0.yzw, x0.xxx);\n    vec3 isYZ = step(x0.zww, x0.yyz);\n    i0.x = isX.x + isX.y + isX.z;\n    i0.yzw = 1.0 - isX;\n    i0.y += isYZ.x + isYZ.y;\n    i0.zw += 1.0 - isYZ.xy;\n    i0.z += isYZ.z;\n    i0.w += 1.0 - isYZ.z;\n    vec4 i3 = clamp(i0, 0.0, 1.0);\n    vec4 i2 = clamp(i0 - 1.0, 0.0, 1.0);\n    vec4 i1 = clamp(i0 - 2.0, 0.0, 1.0);\n    vec4 x1 = x0 - i1 + C.xxxx;\n    vec4 x2 = x0 - i2 + C.yyyy;\n    vec4 x3 = x0 - i3 + C.zzzz;\n    vec4 x4 = x0 + C.wwww;\n    i = mod289(i);\n    float j0 = permute(permute(permute(permute(i.w) + i.z) + i.y) + i.x);\n    vec4 j1 = permute(permute(permute(permute(i.w + vec4(i1.w, i2.w, i3.w, 1.0)) + i.z + vec4(i1.z, i2.z, i3.z, 1.0)) + i.y + vec4(i1.y, i2.y, i3.y, 1.0)) + i.x + vec4(i1.x, i2.x, i3.x, 1.0));\n    vec4 ip = vec4(1.0 / 294.0, 1.0 / 49.0, 1.0 / 7.0, 0.0);\n    vec4 p0 = grad4(j0, ip);\n    vec4 p1 = grad4(j1.x, ip);\n    vec4 p2 = grad4(j1.y, ip);\n    vec4 p3 = grad4(j1.z, ip);\n    vec4 p4 = grad4(j1.w, ip);\n    vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));\n    p0 *= norm.x;\n    p1 *= norm.y;\n    p2 *= norm.z;\n    p3 *= norm.w;\n    p4 *= taylorInvSqrt(dot(p4, p4));\n    vec3 m0 = max(0.6 - vec3(dot(x0, x0), dot(x1, x1), dot(x2, x2)), 0.0);\n    vec2 m1 = max(0.6 - vec2(dot(x3, x3), dot(x4, x4)), 0.0);\n    m0 = m0 * m0;\n    m1 = m1 * m1;\n    return (49.0 * (dot(m0 * m0, vec3(dot(p0, x0), dot(p1, x1), dot(p2, x2))) + dot(m1 * m1, vec2(dot(p3, x3), dot(p4, x4)))));\n}\nfloat hash(float n) \n{\n    return fract(sin(n) * 93942.234);\n}\nmat2 m = mat2(0.6, 0.8, -0.8, 0.6);\nfloat fbm(vec4 p) \n{\n    float f = 0.0;\n    f += 0.5 * snoise(vec4(p.xy * m, p.zw * m));\n    p *= 2.02;\n    f += 0.25 * snoise(vec4(p.xy * m, p.zw * m));\n    p *= 2.01;\n    f += 0.125 * snoise(vec4(p.xy * m, p.zw * m));\n    p *= 2.03;\n    f += 0.0625 * snoise(vec4(p.xy * m, p.zw * m));\n    f /= 0.9375;\n    return f;\n}\nvarying vec2 Circular_Gradient1462568150439_226_vUv;\nvarying vec2 Follow_the_Spiral_Rabbit1462568364455_332_vUv;\nvarying vec2 Parallax_Starfield1462568538439_87_vUv;\nfloat starrand(float seedx, float seedy, int seedp) \n{\n    return 0.05 + 0.9 * fract(sin(float(seedp) * 437.234) * 374.2542 - cos(seedx * 432.252) * 23.643 + sin(seedy * 73.2454) * 372.23455);\n}\nvarying vec2 Vertical_2_Color_Graident1462568589945_110_vUv;\nvec4 Molten_Noise1462568137864_213_main() \n{\n    vec4 Molten_Noise1462568137864_213_gl_FragColor = vec4(0.0);\n    vec2 p = Molten_Noise1462568137864_213_vUv * uvScale;\n    float elapsed = time * Molten_Noise1462568137864_213_speed * 0.01;\n    float s = Molten_Noise1462568137864_213_vUv.x * uvScale.x;\n    float t = Molten_Noise1462568137864_213_vUv.y * uvScale.y;\n    float multiplier = iterations / (2.0 * PI);\n    float nx = cos(s * 2.0 * PI) * multiplier;\n    float ny = cos(t * 2.0 * PI) * multiplier;\n    float nz = sin(s * 2.0 * PI) * multiplier;\n    float nw = sin(t * 2.0 * PI) * multiplier;\n    vec4 tile4d = vec4(nx, ny, nz, nw);\n    vec2 a = vec2(fbm(tile4d + elapsed * 1.1), fbm(tile4d - elapsed * 1.3));\n    vec2 b = vec2(fbm(tile4d + elapsed * 1.2 + a.x * 2.0), fbm(tile4d - elapsed * 1.2 + a.x * 3.0));\n    float surf = fbm(tile4d + elapsed + length(b) * permutations);\n    vec3 colorOutput = brightness * (((b.x + surf) * Molten_Noise1462568137864_213_color1) + ((b.y + surf) * Molten_Noise1462568137864_213_color2) + ((surf + b.x) * color3));\n    Molten_Noise1462568137864_213_gl_FragColor = vec4(colorOutput, 1.);\n    return Molten_Noise1462568137864_213_gl_FragColor *= 1.0;\n}\nvec4 Circular_Gradient1462568150439_226_main() \n{\n    vec4 Circular_Gradient1462568150439_226_gl_FragColor = vec4(0.0);\n    vec2 t = Circular_Gradient1462568150439_226_vUv - vec2(0.5, 0.5);\n    Circular_Gradient1462568150439_226_gl_FragColor = vec4(vec3(mix(Circular_Gradient1462568150439_226_color1, Circular_Gradient1462568150439_226_color2, length(t) * scale)), 1.0);\n    return Circular_Gradient1462568150439_226_gl_FragColor *= 1.0;\n}\nvec4 Follow_the_Spiral_Rabbit1462568364455_332_main(void) \n{\n    vec4 Follow_the_Spiral_Rabbit1462568364455_332_gl_FragColor = vec4(0.0);\n    vec2 position = (Follow_the_Spiral_Rabbit1462568364455_332_vUv - 0.5) * Follow_the_Spiral_Rabbit1462568364455_332_resolution;\n    float th = atan(position.y, position.x) / 3.1415926;\n    float d = length(position) - time * Follow_the_Spiral_Rabbit1462568364455_332_speed;\n    vec3 uv = vec3(th + d, th - d, th + sin(d));\n    float a = 0.5 + cos(uv.x * 3.1415926 * arms) * .5;\n    vec3 color = mix(color, vec3(0.0), pow(a, blur));\n    Follow_the_Spiral_Rabbit1462568364455_332_gl_FragColor = vec4(color * length(position), 1.0);\n    return Follow_the_Spiral_Rabbit1462568364455_332_gl_FragColor *= -0.5;\n}\nvec4 Parallax_Starfield1462568538439_87_main(void) \n{\n    vec4 Parallax_Starfield1462568538439_87_gl_FragColor = vec4(0.0);\n    vec2 position = Parallax_Starfield1462568538439_87_vUv.xy * Parallax_Starfield1462568538439_87_resolution.xy;\n    Parallax_Starfield1462568538439_87_gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n    for (int p = 0;\n p < 20; p++) \n    {\n        float scale = (1.0 / starRadius) + float(p);\n        vec2 vpos = position * scale;\n        vpos.x += (time * Parallax_Starfield1462568538439_87_speed) / scale;\n        vpos.y += Parallax_Starfield1462568538439_87_speed * time / scale;\n        vec2 spos = vec2(starrand(floor(vpos.x), floor(vpos.y), p), starrand(10.5 + floor(vpos.x), 10.5 + floor(vpos.y), p));\n        float px = scale / 80.0 / 3.0;\n        float size = 1.0 / (scale * (500.0 / starDensity));\n        float brite = 1.0;\n        if (size < px) \n        {\n            brite = size / px;\n            size = px;\n        }\n         Parallax_Starfield1462568538439_87_gl_FragColor.rgb += starColor * min(1.0, max(0.0, starDensity - length(spos - fract(vpos)) / size)) * brite;\n    }\n    return Parallax_Starfield1462568538439_87_gl_FragColor *= 1.0;\n}\nvec4 Vertical_2_Color_Graident1462568589945_110_main(void) \n{\n    vec4 Vertical_2_Color_Graident1462568589945_110_gl_FragColor = vec4(0.0);\n    vec3 mixCol = mix(Vertical_2_Color_Graident1462568589945_110_color2, Vertical_2_Color_Graident1462568589945_110_color1, Vertical_2_Color_Graident1462568589945_110_vUv.y);\n    Vertical_2_Color_Graident1462568589945_110_gl_FragColor = vec4(mixCol, 1.);\n    return Vertical_2_Color_Graident1462568589945_110_gl_FragColor *= 0.2;\n}\nvoid main() \n{\n    gl_FragColor = ((Molten_Noise1462568137864_213_main() * Circular_Gradient1462568150439_226_main()) + Follow_the_Spiral_Rabbit1462568364455_332_main() + Parallax_Starfield1462568538439_87_main() + Vertical_2_Color_Graident1462568589945_110_main());}\n",
+  "vertex": "precision highp float;\nprecision highp int;\nuniform mat4 modelMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat3 normalMatrix;\nuniform vec3 cameraPosition;\nuniform float time;\nattribute vec3 position;\nattribute vec3 normal;\nattribute vec2 uv;\nattribute vec2 uv2;\nvarying vec3 Molten_Noise1462568137864_213_vPosition;\nvarying vec3 Molten_Noise1462568137864_213_vNormal;\nvarying vec2 Molten_Noise1462568137864_213_vUv;\nvarying vec2 Molten_Noise1462568137864_213_vUv2;\nvarying vec2 Circular_Gradient1462568150439_226_vUv;\nvarying vec3 Follow_the_Spiral_Rabbit1462568364455_332_vPosition;\nvarying vec3 Follow_the_Spiral_Rabbit1462568364455_332_vNormal;\nvarying vec2 Follow_the_Spiral_Rabbit1462568364455_332_vUv;\nvarying vec2 Follow_the_Spiral_Rabbit1462568364455_332_vUv2;\nvarying vec3 Parallax_Starfield1462568538439_87_vPosition;\nvarying vec3 Parallax_Starfield1462568538439_87_vNormal;\nvarying vec2 Parallax_Starfield1462568538439_87_vUv;\nvarying vec2 Parallax_Starfield1462568538439_87_vUv2;\nvarying vec2 Vertical_2_Color_Graident1462568589945_110_vUv;\nvec4 Molten_Noise1462568137864_213_main() \n{\n    vec4 Molten_Noise1462568137864_213_gl_Position = vec4(0.0);\n    Molten_Noise1462568137864_213_vNormal = normal;\n    Molten_Noise1462568137864_213_vUv = uv;\n    Molten_Noise1462568137864_213_vUv2 = uv2;\n    Molten_Noise1462568137864_213_vPosition = position;\n    Molten_Noise1462568137864_213_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Molten_Noise1462568137864_213_gl_Position *= 1.0;\n}\nvec4 Circular_Gradient1462568150439_226_main() \n{\n    vec4 Circular_Gradient1462568150439_226_gl_Position = vec4(0.0);\n    Circular_Gradient1462568150439_226_vUv = uv;\n    Circular_Gradient1462568150439_226_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Circular_Gradient1462568150439_226_gl_Position *= 1.0;\n}\nvec4 Follow_the_Spiral_Rabbit1462568364455_332_main() \n{\n    vec4 Follow_the_Spiral_Rabbit1462568364455_332_gl_Position = vec4(0.0);\n    Follow_the_Spiral_Rabbit1462568364455_332_vNormal = normal;\n    Follow_the_Spiral_Rabbit1462568364455_332_vUv = uv;\n    Follow_the_Spiral_Rabbit1462568364455_332_vUv2 = uv2;\n    Follow_the_Spiral_Rabbit1462568364455_332_vPosition = position;\n    Follow_the_Spiral_Rabbit1462568364455_332_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Follow_the_Spiral_Rabbit1462568364455_332_gl_Position *= -0.5;\n}\nvec4 Parallax_Starfield1462568538439_87_main() \n{\n    vec4 Parallax_Starfield1462568538439_87_gl_Position = vec4(0.0);\n    Parallax_Starfield1462568538439_87_vNormal = normal;\n    Parallax_Starfield1462568538439_87_vUv = uv;\n    Parallax_Starfield1462568538439_87_vUv2 = uv2;\n    Parallax_Starfield1462568538439_87_vPosition = position;\n    Parallax_Starfield1462568538439_87_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Parallax_Starfield1462568538439_87_gl_Position *= 1.0;\n}\nvec4 Vertical_2_Color_Graident1462568589945_110_main() \n{\n    vec4 Vertical_2_Color_Graident1462568589945_110_gl_Position = vec4(0.0);\n    Vertical_2_Color_Graident1462568589945_110_vUv = uv;\n    Vertical_2_Color_Graident1462568589945_110_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Vertical_2_Color_Graident1462568589945_110_gl_Position *= 0.2;\n}\nvoid main() \n{\n    gl_Position = Molten_Noise1462568137864_213_main() + Circular_Gradient1462568150439_226_main() + Follow_the_Spiral_Rabbit1462568364455_332_main() + Parallax_Starfield1462568538439_87_main() + Vertical_2_Color_Graident1462568589945_110_main();}\n",
+  "uniforms": {
+    "cameraPosition": {
+      "type": "v3",
+      "glslType": "vec3"
+    },
+    "time": {
+      "type": "f",
+      "glslType": "float"
+    },
+    "color3": {
+      "value": {
+        "r": 0.00784313725490196,
+        "g": 0.796078431372549,
+        "b": 0.8901960784313725
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "permutations": {
+      "value": "1",
+      "type": "f",
+      "glslType": "float"
+    },
+    "iterations": {
+      "value": "2",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Molten_Noise1462568137864_213_color1": {
+      "value": {
+        "r": 0.7098039215686275,
+        "g": 0.3137254901960784,
+        "b": 0.8117647058823529
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "Molten_Noise1462568137864_213_color2": {
+      "value": {
+        "r": 0.9333333333333333,
+        "g": 0.23921568627450981,
+        "b": 0.9764705882352941
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "uvScale": {
+      "value": {
+        "x": "2",
+        "y": "1"
+      },
+      "type": "v2",
+      "glslType": "vec2"
+    },
+    "brightness": {
+      "value": "0.5",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Molten_Noise1462568137864_213_speed": {
+      "value": "0.4",
+      "type": "f",
+      "glslType": "float"
+    },
+    "scale": {
+      "value": "1.5",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Circular_Gradient1462568150439_226_color1": {
+      "value": {
+        "r": 1,
+        "g": 1,
+        "b": 1
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "Circular_Gradient1462568150439_226_color2": {
+      "value": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "arms": {
+      "value": "1",
+      "type": "f",
+      "glslType": "float"
+    },
+    "color": {
+      "value": {
+        "r": 0.996078431372549,
+        "g": 0.14901960784313725,
+        "b": 0
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "blur": {
+      "value": "0.2",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Follow_the_Spiral_Rabbit1462568364455_332_speed": {
+      "value": "0.2",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Follow_the_Spiral_Rabbit1462568364455_332_resolution": {
+      "value": {
+        "x": "10",
+        "y": "10"
+      },
+      "type": "v2",
+      "glslType": "vec2"
+    },
+    "starRadius": {
+      "value": "0.75",
+      "type": "f",
+      "glslType": "float"
+    },
+    "starDensity": {
+      "value": "5",
+      "type": "f",
+      "glslType": "float"
+    },
+    "starColor": {
+      "value": {
+        "r": 0.796078431372549,
+        "g": 0.9254901960784314,
+        "b": 0.9411764705882353
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "Parallax_Starfield1462568538439_87_speed": {
+      "value": "0.05",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Parallax_Starfield1462568538439_87_resolution": {
+      "value": {
+        "x": "10",
+        "y": "10"
+      },
+      "type": "v2",
+      "glslType": "vec2"
+    },
+    "Vertical_2_Color_Graident1462568589945_110_color1": {
+      "value": {
+        "r": 0.7568627450980392,
+        "g": 0.22745098039215686,
+        "b": 1
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "Vertical_2_Color_Graident1462568589945_110_color2": {
+      "value": {
+        "r": 0.03137254901960784,
+        "g": 0.2627450980392157,
+        "b": 0.6980392156862745
+      },
+      "type": "c",
+      "glslType": "vec3"
+    }
+  },
+  "url": "http://shaderfrog.com/app/view/773",
+  "user": {
+    "username": "andrewray",
+    "url": "http://shaderfrog.com/app/profile/andrewray"
+  }
+}
