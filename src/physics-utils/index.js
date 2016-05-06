@@ -134,6 +134,7 @@ export function setUpPhysics(
     world.addBody( playerBody );
 
     const physicsBodies = currentLevelMovableEntitiesArray.map( entity => {
+
         const { position, scale } = entity;
 
         const pushyBody = new p2.Body({
@@ -178,7 +179,10 @@ export function setUpPhysics(
 
         // This is duplicated in the bridge component which isn't ideal,
         // but there are more comments there
-        const { x: width, y: size } = scale;
+        const { x: unscaledWidth, y: size } = scale;
+
+        const width = unscaledWidth * size;
+
         const plankWidth = size * ( width / segments );
         const plankStartX = -( width / 2 ) + ( plankWidth / 2 );
         const plankBodyWidth = plankWidth - ( paddingPercent * plankWidth );
@@ -193,7 +197,7 @@ export function setUpPhysics(
                 mass: getCubeMass( pushyDensity, plankWidth * 1 ),
                 position: [
                     position.x + ( plankWidth * index + plankStartX ),
-                    position.z + ( 0.5 * size ),
+                    position.z + ( 0.5 ),
                 ],
             });
 

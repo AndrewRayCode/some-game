@@ -1,13 +1,13 @@
 import React, { Component, PropTypes } from 'react';
-import THREE from 'three';
+import { Euler, Vector3, } from 'three';
 
 const ropeWidth = 0.05;
 const ropeSeparation = 0.45;
-const defaultRopeRotation = new THREE.Euler( 0, 0, Math.PI / 2 );
-const defaultRopePosition1 = new THREE.Vector3( 0.5, -ropeSeparation / ropeWidth, 0 );
-const defaultRopePosition2 = new THREE.Vector3( 0.5, ropeSeparation / ropeWidth, 0 );
+const defaultRopeRotation = new Euler( 0, 0, Math.PI / 2 );
+const defaultRopePosition1 = new Vector3( 0.5, -ropeSeparation / ropeWidth, 0 );
+const defaultRopePosition2 = new Vector3( 0.5, ropeSeparation / ropeWidth, 0 );
 const anchorInsetPercent = 0.1;
-const ropeVector = new THREE.Vector3( 1, 0, 0 );
+const ropeVector = new Vector3( 1, 0, 0 );
 
 export default class PlankBridge extends Component {
 
@@ -71,7 +71,12 @@ export default class PlankBridge extends Component {
 
         // The x scale of the bridge object is used to determine the width of
         // the bridge, while the y (or z) scale represent normal world scaling
-        const { x: width, y: size } = scale;
+        const { x: unscaledWidth, y: size } = scale;
+
+        // We scale the whole thing down by the scale (size.y or z). So if we
+        // calculate for a world space of 2 units wide, it will be scaled down
+        // by half. We have to undo that.
+        const width = unscaledWidth / size;
 
         // Calculate the width of a plank. Note because we scale the whole
         // thing we don't need to incorporate overall size scale
@@ -108,12 +113,12 @@ export default class PlankBridge extends Component {
                 ropeMeshes.push(<group
                     key={ index }
                     position={ positionA }
-                    rotation={ new THREE.Euler(
+                    rotation={ new Euler(
                         0,
                         ropeVector.angleTo( subbed ) * ( positionB.z > positionA.z ? -1 : 1 ),
                         0,
                     ) }
-                    scale={ new THREE.Vector3(
+                    scale={ new Vector3(
                         positionA.distanceTo( positionB ), 0.05, 0.05
                     ) }
                 >
@@ -147,7 +152,7 @@ export default class PlankBridge extends Component {
                         <mesh
                             ref={ `mesh${ index }` }
                             key={ index }
-                            scale={ new THREE.Vector3( plankWidth - ( paddingPercent * plankWidth ), 1, 0.1 ) }
+                            scale={ new Vector3( plankWidth - ( paddingPercent * plankWidth ), 1, 0.1 ) }
                             position={ plankPosition }
                             rotation={ plankRotation }
                         >
@@ -174,8 +179,8 @@ export default class PlankBridge extends Component {
             bridge = segmentArray.map( ( zero, index ) => <mesh
                 key={ index }
                 ref={ `mesh${ index }` }
-                scale={ new THREE.Vector3( plankWidth - ( paddingPercent * plankWidth ), 1, 0.1 ) }
-                position={ new THREE.Vector3( plankWidth * index + plankStartX, 0, -0.4 ) }
+                scale={ new Vector3( plankWidth - ( paddingPercent * plankWidth ), 1, 0.1 ) }
+                position={ new Vector3( plankWidth * index + plankStartX, 0, -0.4 ) }
             >
                 <geometryResource
                     resourceId="1x1box"
@@ -191,7 +196,7 @@ export default class PlankBridge extends Component {
             position={ position }
             quaternion={ quaternion }
             rotation={ rotation }
-            scale={ new THREE.Vector3( size, size, size ) }
+            scale={ new Vector3( size, size, size ) }
         >
             {/* for selectability */}
             <mesh

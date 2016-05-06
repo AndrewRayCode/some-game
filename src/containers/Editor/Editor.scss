@@ -3,7 +3,8 @@
 @import "../../theme/variables.scss";
 
 .sidebar {
-    background:#eee;
+    background:#333;
+    color:#fff;
     padding:8px;
     float:left;
     width:300px;
@@ -19,13 +20,14 @@
 
 .editor {
     width:400px;
-    margin:0 20px 0 0;
+    margin:20px 20px 0 60px;
     float:left;
 }
 
 .canvasData {
     clear:left;
-    background:#ddd;
+    background:#333;
+    color:#fff;
     padding:10px;
     margin:20px 0 0;
 
