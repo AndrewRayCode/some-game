@@ -6,12 +6,13 @@
 }
 
 .viewportContainer {
-    max-width:460px;
-    margin:30px auto 0;
     text-shadow:0 0 3px #000;
+    text-align:center;
 }
 
 .viewPort {
+    display:inline-block;
+    margin:30px auto 0;
     background:darken( $background, 10% );
     padding:30px;
     border-radius:20px;

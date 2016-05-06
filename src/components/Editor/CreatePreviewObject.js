@@ -3,7 +3,7 @@ import React3 from 'react-three-renderer';
 import {
     Wall, MultiWall, ChamferBox, TubeBend, TubeStraight, Player, EntityGroup,
     Shrink, House, Grow, FinishLine, Waterfall, Puffer, DiamondBox, CurvedWall,
-    Placeholder,
+    Placeholder, Pyramid,
 } from '../';
 import THREE from 'three';
 
@@ -34,6 +34,16 @@ export default class CreatePreviewObject extends Component {
         } = this.props;
 
         switch( createType ) {
+
+            case 'pyramid':
+
+                return <Pyramid
+                    scale={ scale }
+                    quaternion={ createPreviewQuaternion }
+                    position={ createPreviewPosition }
+                    ref="previewPosition"
+                    materialId="ghostMaterial"
+                />;
 
             case 'textTrigger':
 

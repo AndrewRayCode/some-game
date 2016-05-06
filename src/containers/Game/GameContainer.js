@@ -303,6 +303,11 @@ export default class GameContainer extends Component {
         this.startGameLoop = this.startGameLoop.bind( this );
         this.stopGameLoop = this.stopGameLoop.bind( this );
 
+        this.state = {
+            gameWidth: 600,
+            gameHeight: 600,
+        };
+
     }
 
     componentDidMount() {
@@ -509,6 +514,7 @@ export default class GameContainer extends Component {
     render() {
 
         const { fonts, assets, books, } = this.props;
+        const { gameWidth, gameHeight, } = this.state;
         let content;
 
         if( !__CLIENT__ ||
@@ -528,6 +534,8 @@ export default class GameContainer extends Component {
         } else {
             content = <GameGUI
                 { ...this.props }
+                gameWidth={ gameWidth }
+                gameHeight={ gameHeight }
                 store={ this.context.store }
             />;
         }

@@ -2,10 +2,13 @@ import React, { Component } from 'react';
 import THREE from 'three';
 import { Text } from '../';
 
-const topScale = new THREE.Vector3( 1, 1, 0.5 ).multiplyScalar( 1.8 );
+const topScale = new THREE.Vector3( 1, 1, 0.5 ).multiplyScalar( 1.6 );
 
-const bottomPosition = new THREE.Vector3( 1.8, 0, 0 );
-const bottomScale = new THREE.Vector3( 1, 1, 0.5 ).multiplyScalar( 0.8 );
+const middlePosition = new THREE.Vector3( 1.6, 0, 0 );
+const middleScale = new THREE.Vector3( 1, 1, 0.5 ).multiplyScalar( 0.6 );
+
+const bottomPosition = new THREE.Vector3( 2.4, 0, 0 );
+const bottomScale = new THREE.Vector3( 1, 1, 0.5 ).multiplyScalar( 1 );
 
 export default class Logo extends Component {
     
@@ -30,8 +33,17 @@ export default class Logo extends Component {
                 fonts={ fonts }
                 letters={ letters }
                 fontName="Sniglet Regular"
-                text="Today,"
-                materialId="universeInALetter"
+                text="Charisma"
+                materialId="charismaSkin"
+            />
+            <Text
+                position={ middlePosition }
+                scale={ middleScale }
+                fonts={ fonts }
+                letters={ letters }
+                fontName="Sniglet Regular"
+                text="the"
+                materialId="charismaSkin"
             />
             <Text
                 position={ bottomPosition }
@@ -39,8 +51,8 @@ export default class Logo extends Component {
                 fonts={ fonts }
                 letters={ letters }
                 fontName="Sniglet Regular"
-                text="I'm A Galaxy"
-                materialId="universeInALetter"
+                text="Chameleon"
+                materialId="charismaSkin"
             />
 
         </object3D>;

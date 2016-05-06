@@ -1,29 +1,26 @@
 import React, { Component, PropTypes } from 'react';
-import THREE from 'three';
+import { Vector3, Euler, } from 'three';
 import { Text, SelectableMenu } from 'components';
 import { ESC, M, } from 'helpers/KeyCodes';
 
-const gameWidth = 400;
-const gameHeight = 400;
-const cameraAspect = gameWidth / gameHeight;
 const cameraFov = 75;
-const cameraPosition = new THREE.Vector3( 0, 8, 0 );
-const lookAt = new THREE.Vector3( 0, 0, 0 );
+const cameraPosition = new Vector3( 0, 8, 0 );
+const lookAt = new Vector3( 0, 0, 0 );
 
-const sceneOffset = new THREE.Vector3( 100, 100, 100 );
+const sceneOffset = new Vector3( 100, 100, 100 );
 
-const bgRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
-const bgPosition = new THREE.Vector3( 0, -2, 0 );
-const bgScale = new THREE.Vector3( 18, 18, 18 );
+const bgRotation = new Euler( -Math.PI / 2, 0, Math.PI / 2 );
+const bgPosition = new Vector3( 0, -2, 0 );
+const bgScale = new Vector3( 18, 18, 18 );
 
-const topTextPosition = new THREE.Vector3( -4.5, 0, 0 );
-const topTextScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.9 );
+const topTextPosition = new Vector3( -4.5, 0, 0 );
+const topTextScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.9 );
 
-const bottomTextPosition =  new THREE.Vector3( -3, 0, 0 );
-const bottomTextScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.9 );
+const bottomTextPosition =  new Vector3( -3, 0, 0 );
+const bottomTextScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.9 );
 
-const menuPosition = new THREE.Vector3( 2, 0, 0 );
-const menuScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
+const menuPosition = new Vector3( 2, 0, 0 );
+const menuScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
 
 export default class ConfirmRestartScreen extends Component {
     
@@ -68,7 +65,7 @@ export default class ConfirmRestartScreen extends Component {
         const {
             fonts, letters, onConfirm, onDeny, onClickRegionLeave,
             onClickRegionEnter, assets, playerTexture, playerTextureLegs,
-            playerTextureTail,
+            playerTextureTail, cameraAspect,
         } = this.props;
 
         return <object3D

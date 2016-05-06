@@ -269,7 +269,7 @@ export function getCubeMass( density:number, side:number ) {
 
 }
 
-const playerScreenSpaceMultiplier = 4.9;
+const playerScreenSpaceMultiplier = 4.1;
 export function getCameraDistanceToPlayer( playerY:number, fov:number, playerScale:number ) {
 
     const cameraAdjustedDistance = Math.abs(

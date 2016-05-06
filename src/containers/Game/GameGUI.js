@@ -24,11 +24,10 @@ import {
     playerTextureTail, playerTextureLegs, playerTexture,
 } from 'ThreeMaterials';
 
-const gameWidth = 400;
-const gameHeight = 400;
 const transitionFadeMs = 1000;
 const transitionMaxOpacity = 0.6;
 const bubbleOffset = 40;
+const cameraFov = 75;
 
 export default class GameGUI extends Component {
 
@@ -357,6 +356,7 @@ export default class GameGUI extends Component {
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
             assets, gameState, paused, confirmingRestart, confirmingMenu,
+            gameWidth, gameHeight,
         } = this.props;
 
         // Game might not be started yet?
@@ -372,6 +372,8 @@ export default class GameGUI extends Component {
             toScreenPosition(
                 gameWidth, gameHeight, playerMatrix, gameRenderer.refs.camera
             ) : null;
+
+        const cameraAspect = gameWidth / gameHeight;
 
         // The mainCamera stuff is confusing. I don't fully understand it. All
         // screens have a *ref* named camera. That's what this points to I
@@ -472,6 +474,8 @@ export default class GameGUI extends Component {
                         onShowConfirmRestartScreen={ this.onShowConfirmRestartScreen }
                         onShowConfirmMenuScreen={ this.onShowConfirmMenuScreen }
                         ref="gameRenderer"
+                        cameraFov={ cameraFov }
+                        cameraAspect={ cameraAspect }
                         fonts={ fonts }
                         assets={ assets }
                         letters={ letters }
@@ -484,6 +488,8 @@ export default class GameGUI extends Component {
                         onClickRegionLeave={ this.onClickRegionLeave }
                         onClickRegionEnter={ this.onClickRegionEnter }
                         mouseInput={ mouseInput }
+                        cameraFov={ cameraFov }
+                        cameraAspect={ cameraAspect }
                         fonts={ fonts }
                         assets={ assets }
                         letters={ letters }
@@ -499,6 +505,8 @@ export default class GameGUI extends Component {
                     ref="speechScreen"
                     assets={ assets }
                     fonts={ fonts }
+                    cameraFov={ cameraFov }
+                    cameraAspect={ cameraAspect }
                     currentTextPercent={ currentTextPercent }
                     time={ this.state.elapsedTime }
                     isClosing={ textIsClosing }
@@ -515,6 +523,8 @@ export default class GameGUI extends Component {
                 { gameStarted && !confirmingRestart && !confirmingMenu && paused ? <PausedScreen
                     ref="pausedScreen"
                     mouseInput={ mouseInput }
+                    cameraFov={ cameraFov }
+                    cameraAspect={ cameraAspect }
                     onClickRegionLeave={ this.onClickRegionLeave }
                     onClickRegionEnter={ this.onClickRegionEnter }
                     onUnpause={ this.onUnpause }
@@ -531,6 +541,8 @@ export default class GameGUI extends Component {
                 { gameStarted && confirmingRestart ? <ConfirmRestartScreen
                     ref="confirmRestartScreen"
                     mouseInput={ mouseInput }
+                    cameraFov={ cameraFov }
+                    cameraAspect={ cameraAspect }
                     onClickRegionLeave={ this.onClickRegionLeave }
                     onClickRegionEnter={ this.onClickRegionEnter }
                     onConfirm={ this.onConfirmRestart }
@@ -546,6 +558,8 @@ export default class GameGUI extends Component {
                 { gameStarted && confirmingMenu ? <ConfirmMenuScreen
                     ref="confirmMenuScreen"
                     mouseInput={ mouseInput }
+                    cameraFov={ cameraFov }
+                    cameraAspect={ cameraAspect }
                     onClickRegionLeave={ this.onClickRegionLeave }
                     onClickRegionEnter={ this.onClickRegionEnter }
                     onConfirm={ this.onExitToMenuConfirm }
@@ -558,7 +572,10 @@ export default class GameGUI extends Component {
                     letters={ letters }
                 /> : null }
 
-            <TransitionScreen />
+            <TransitionScreen
+                cameraFov={ cameraFov }
+                cameraAspect={ cameraAspect }
+            />
 
             </scene>
 

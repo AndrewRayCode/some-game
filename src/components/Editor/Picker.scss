@@ -1,0 +1,16 @@
+.pickerWrap {
+    position:relative;
+}
+
+.picker {
+    position:absolute;
+    top:20px;
+    left:0;
+    width:400px;
+    background:#123;
+    color:#fff;
+    padding:10px;
+    border-radius:6px;
+    box-shadow:0 0 4px #000;
+    z-index:2;
+}

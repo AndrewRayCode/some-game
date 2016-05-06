@@ -40,7 +40,7 @@ export default function zoomInReducer(
     const newState = {};
 
     // Should we zoom in?
-    if( 1 || keysDown.isPressed( K ) && !zoomBackOutDuration ) {
+    if( keysDown.isPressed( K ) && !zoomBackOutDuration ) {
 
         newState.zoomInStartTime = zoomInStartTime || time;
 

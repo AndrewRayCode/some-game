@@ -4,11 +4,6 @@ import p2 from 'p2';
 import { Player, EntityGroup } from 'components';
 import { lookAtVector, p2ToV3, p2AngleToEuler, } from 'helpers/Utils';
 
-const gameWidth = 400;
-const gameHeight = 400;
-const cameraAspect = gameWidth / gameHeight;
-const cameraFov = 75;
-
 export default class GameRenderer extends Component {
 
     static propTypes = {
@@ -163,7 +158,8 @@ export default class GameRenderer extends Component {
             previousChapterEntities, previousChapterEntity,
             currentLevelRenderableEntitiesArray, previousChapterFinishEntity,
             assets, shaders, paused, playerMaterialId, playerTexture,
-            playerTextureLegs, playerTextureTail,
+            playerTextureLegs, playerTextureTail, gameWidth, gameHeight,
+            cameraFov, cameraAspect,
         } = this.props;
 
         const playerPosition = new Vector3()

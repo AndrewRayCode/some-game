@@ -1,32 +1,25 @@
 import React, { Component, PropTypes } from 'react';
-import THREE from 'three';
+import { Vector3, Euler, } from 'three';
 import { Text, Logo, SelectableMenu } from 'components';
 import { getFrustrumAt } from 'helpers/Utils';
 import { P, ESC, SPACE, R, M, } from 'helpers/KeyCodes';
 
-const gameWidth = 400;
-const gameHeight = 400;
-const cameraAspect = gameWidth / gameHeight;
-const cameraFov = 75;
-const cameraPosition = new THREE.Vector3( 0, 8, 0 );
-const lookAt = new THREE.Vector3( 0, 0, 0 );
+const cameraPosition = new Vector3( 0, 8, 0 );
+const lookAt = new Vector3( 0, 0, 0 );
 
-const sceneOffset = new THREE.Vector3( 100, 100, 100 );
+const sceneOffset = new Vector3( 100, 100, 100 );
 
-const bgRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
-const bgPosition = new THREE.Vector3( 0, -2, 0 );
+const bgRotation = new Euler( -Math.PI / 2, 0, Math.PI / 2 );
+const bgPosition = new Vector3( 0, -2, 0 );
 
-const logoPosition = new THREE.Vector3( -5, 0, 0 );
-const logoScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.7 );
+const logoPosition = new Vector3( -5, 0, 0 );
+const logoScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.7 );
 
-const titlePosition = new THREE.Vector3( -1.9, 0, 0 );
-const titleScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 1.5 );
+const titlePosition = new Vector3( -1.2, 0, 0 );
+const titleScale = new Vector3( 1, 1, 1 ).multiplyScalar( 1.2 );
 
-const menuPosition = new THREE.Vector3( 2.6, 0, 0 );
-const menuScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
-
-const frustum = getFrustrumAt( cameraPosition.y + Math.abs( bgPosition.y ), cameraFov, cameraAspect );
-const bgScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( frustum.size().x );
+const menuPosition = new Vector3( 2.6, 0, 0 );
+const menuScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
 
 export default class PausedScreen extends Component {
     
@@ -79,8 +72,11 @@ export default class PausedScreen extends Component {
         const {
             fonts, letters, onUnpause, onRestart, onShowConfirmMenuScreen,
             onClickRegionEnter, onClickRegionLeave, assets, playerTexture,
-            playerTextureLegs, playerTextureTail,
+            playerTextureLegs, playerTextureTail, cameraAspect, cameraFov,
         } = this.props;
+
+        const frustum = getFrustrumAt( cameraPosition.y + Math.abs( bgPosition.y ), cameraFov, cameraAspect );
+        const bgScale = new Vector3( 1, 1, 1 ).multiplyScalar( frustum.size().x );
 
         return <object3D
             onUpdate={ this._onAnimate }

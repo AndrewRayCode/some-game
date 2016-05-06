@@ -3,7 +3,7 @@ import React, { Component, PropTypes } from 'react';
 import {
     Shrink, Grow, Wall, MultiWall, ChamferBox, TubeBend, TubeStraight, Player,
     FinishLine, House, Waterfall, Puffer, PlankBridge, DiamondBox, CurvedWall,
-    Placeholder,
+    Placeholder, Pyramid,
 } from '../';
 
 export default class EntityGroup extends Component {
@@ -36,7 +36,19 @@ export default class EntityGroup extends Component {
 
             { entities.map( entity => {
 
-                if( entity.type === 'textTrigger' ) {
+                if( entity.type === 'pyramid' ) {
+
+                    return <Pyramid
+                        ref={ entity.id }
+                        key={ entity.id }
+                        scale={ entity.scale }
+                        position={ entity.position }
+                        quaternion={ entity.rotation }
+                        scale={ entity.scale }
+                        materialId={ entity.materialId }
+                    />;
+
+                } else if( entity.type === 'textTrigger' ) {
 
                     return <Placeholder
                         ref={ entity.id }

@@ -1,25 +1,22 @@
 import React, { Component } from 'react';
-import THREE from 'three';
-import { getFrustrumAt } from '../../../helpers/Utils';
+import { Vector3, Euler, } from 'three';
+import { getFrustrumAt } from 'helpers/Utils';
 
-const gameWidth = 400;
-const gameHeight = 400;
-const cameraAspect = gameWidth / gameHeight;
-const cameraFov = 75;
-const cameraPosition = new THREE.Vector3( 0, 8, 0 );
-const lookAt = new THREE.Vector3( 0, 0, 0 );
+const cameraPosition = new Vector3( 0, 8, 0 );
+const lookAt = new Vector3( 0, 0, 0 );
 
-const sceneOffset = new THREE.Vector3( -300, -100, -200 );
+const sceneOffset = new Vector3( -300, -100, -200 );
 
-const bgRotation = new THREE.Euler( -Math.PI / 2, 0, Math.PI / 2 );
-const bgPosition = new THREE.Vector3( 0, -2, 0 );
-
-const frustum = getFrustrumAt( cameraPosition.y + Math.abs( bgPosition.y ), cameraFov, cameraAspect );
-const bgScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( frustum.size().x );
+const bgRotation = new Euler( -Math.PI / 2, 0, Math.PI / 2 );
+const bgPosition = new Vector3( 0, -2, 0 );
 
 export default class TransitionScreen extends Component {
 
     render() {
+
+        const { cameraFov, cameraAspect } = this.props;
+        const frustum = getFrustrumAt( cameraPosition.y + Math.abs( bgPosition.y ), cameraFov, cameraAspect );
+        const bgScale = new Vector3( 1, 1, 1 ).multiplyScalar( frustum.size().x );
 
         return <object3D
             position={ sceneOffset }

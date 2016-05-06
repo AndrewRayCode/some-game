@@ -1,17 +1,13 @@
 import React, { Component, PropTypes } from 'react';
-import THREE from 'three';
+import { Vector3, Euler, } from 'three';
 import { SelectableMenu, Logo } from 'components';
 
-const gameWidth = 400;
-const gameHeight = 400;
-const cameraAspect = gameWidth / gameHeight;
-const cameraFov = 75;
-const cameraPosition = new THREE.Vector3( 0, 8, 0 );
-const lookAt = new THREE.Vector3( 0, 0, 0 );
+const cameraPosition = new Vector3( 0, 8, 0 );
+const lookAt = new Vector3( 0, 0, 0 );
 
-const logoPosition = new THREE.Vector3( -4.5, 0, 0 );
-const menuPosition = new THREE.Vector3( 1.5, 0, 0 );
-const menuScale = new THREE.Vector3( 1, 1, 1 ).multiplyScalar( 0.8 );
+const logoPosition = new Vector3( -4.5, 0, 0 );
+const menuPosition = new Vector3( 1.5, 0, 0 );
+const menuScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.8 );
 
 export default class TitleScreen extends Component {
     
@@ -33,6 +29,7 @@ export default class TitleScreen extends Component {
         const {
             books, fonts, letters, onClickRegionLeave, onClickRegionEnter,
             assets, playerTexture, playerTextureLegs, playerTextureTail,
+            cameraAspect, cameraFov,
         } = this.props;
 
         return <object3D>

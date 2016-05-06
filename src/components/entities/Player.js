@@ -10,7 +10,8 @@ import Mediator from 'helpers/Mediator';
 const lidLocalScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.73 );
 const lidLocalRotation = new THREE.Euler( 0, Math.PI / 2, 0 );
 
-const defaultScale = new Vector3( 2, 2, 2 );
+const defaultScale = new Vector3( 1, 1, 1 ).multiplyScalar( 1.7 );
+const defaultPositionOffset = new Vector3( 0, 0, 0.1 );
 const headScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.5 );
 const headPosition = new Vector3( 0, 0, -0.15 );
 const headRotation = new Euler( -Math.PI / 2, 0, 0 );
@@ -104,12 +105,12 @@ export default class Player extends Component {
 
     _getStateFromProps( props, forceUpdate ) {
 
-        const { scale, radius, materialId, playerTexture } = props;
+        const { scale, radius, materialId, playerTexture, position, } = props;
 
         const newState = {
             computedScale: scale ?
                 defaultScale.clone().multiply( scale ) :
-                defaultScale.clone().multiplyScalar( radius )
+                defaultScale.clone().multiplyScalar( radius ),
         };
 
         if( forceUpdate || ( radius !== this.props.radius ) ) {
@@ -146,9 +147,7 @@ export default class Player extends Component {
             tailPosition
         } = this.props;
 
-        const {
-            computedScale, positionSpread, sizeSpread
-        } = this.state;
+        const { computedScale, positionSpread, sizeSpread, } = this.state;
 
         const emitterPosition = position
             .clone()
@@ -190,91 +189,95 @@ export default class Player extends Component {
                 scale={ computedScale }
             >
                 <group
-                    position={ leftEyePosition }
-                    rotation={ leftLidRotation }
-                    scale={ lidLocalScale }
+                    position={ defaultPositionOffset }
                 >
+                    <group
+                        position={ leftEyePosition }
+                        rotation={ leftLidRotation }
+                        scale={ lidLocalScale }
+                    >
+                        <AnimatedMesh
+                            rotation={ lidLocalRotation }
+                            assets={ assets }
+                            texture={ shaderFrog.get( 'glowTextureLid' ) }
+                            morphTargets={ eyeMorphTargets }
+                            meshName="eyeLid"
+                        />
+                    </group>
+                    <group
+                        position={ leftEyePosition }
+                        rotation={ leftEyeRotation }
+                    >
+                        <Eye
+                            scale={ eyeScale }
+                            assets={ assets }
+                            rotation={ localEyeRotation }
+                            mesh="eye"
+                            materialId="greenEye"
+                        />
+                    </group>
+                    <group
+                        position={ rightEyePosition }
+                        rotation={ rightLidRotation }
+                        scale={ lidLocalScale }
+                    >
+                        <AnimatedMesh
+                            rotation={ lidLocalRotation }
+                            assets={ assets }
+                            texture={ shaderFrog.get( 'glowTextureLid' ) }
+                            morphTargets={ eyeMorphTargets }
+                            meshName="eyeLid"
+                        />
+                    </group>
+                    <group
+                        position={ rightEyePosition }
+                        rotation={ rightEyeRotation }
+                    >
+                        <Eye
+                            scale={ eyeScale }
+                            assets={ assets }
+                            rotation={ localEyeRotation }
+                            mesh="eye"
+                            materialId="greenEye"
+                        />
+                    </group>
                     <AnimatedMesh
-                        rotation={ lidLocalRotation }
+                        ref="body"
+                        rotation={ headRotation }
+                        scale={ headScale }
+                        position={ headPosition }
                         assets={ assets }
-                        texture={ shaderFrog.get( 'glowTextureLid' ) }
-                        morphTargets={ eyeMorphTargets }
-                        meshName="eyeLid"
+                        texture={ shaderFrog.get( 'glowTextureFace' ) }
+                        animations={ headAnimations }
+                        meshName="charisma"
                     />
-                </group>
-                <group
-                    position={ leftEyePosition }
-                    rotation={ leftEyeRotation }
-                >
-                    <Eye
-                        scale={ eyeScale }
+                    <Mesh
+                        rotation={ jointRotation }
+                        position={ legPosition }
+                        scale={ legScale }
                         assets={ assets }
-                        rotation={ localEyeRotation }
-                        mesh="eye"
-                        materialId="greenEye"
+                        materialId="glowTextureSkin"
+                        meshName="charismaJoints"
                     />
-                </group>
-                <group
-                    position={ rightEyePosition }
-                    rotation={ rightLidRotation }
-                    scale={ lidLocalScale }
-                >
                     <AnimatedMesh
-                        rotation={ lidLocalRotation }
+                        rotation={ legRotation }
+                        position={ legPosition }
+                        scale={ legScale }
                         assets={ assets }
-                        texture={ shaderFrog.get( 'glowTextureLid' ) }
-                        morphTargets={ eyeMorphTargets }
-                        meshName="eyeLid"
+                        texture={ shaderFrog.get( 'glowTextureLegs' ) }
+                        meshName="charismaLegs"
+                        animations={ legAnimations }
+                    />
+                    <AnimatedMesh
+                        rotation={ tailRotation || defaultTailRotation }
+                        position={ tailPosition || defaultTailPosition }
+                        scale={ tailScale }
+                        assets={ assets }
+                        texture={ shaderFrog.get( 'glowTextureTail' ) }
+                        meshName="charismaTail"
+                        animations={ tailAnimations }
                     />
                 </group>
-                <group
-                    position={ rightEyePosition }
-                    rotation={ rightEyeRotation }
-                >
-                    <Eye
-                        scale={ eyeScale }
-                        assets={ assets }
-                        rotation={ localEyeRotation }
-                        mesh="eye"
-                        materialId="greenEye"
-                    />
-                </group>
-                <AnimatedMesh
-                    ref="body"
-                    rotation={ headRotation }
-                    scale={ headScale }
-                    position={ headPosition }
-                    assets={ assets }
-                    texture={ shaderFrog.get( 'glowTextureFace' ) }
-                    animations={ headAnimations }
-                    meshName="charisma"
-                />
-                <Mesh
-                    rotation={ jointRotation }
-                    position={ legPosition }
-                    scale={ legScale }
-                    assets={ assets }
-                    materialId="glowTextureSkin"
-                    meshName="charismaJoints"
-                />
-                <AnimatedMesh
-                    rotation={ legRotation }
-                    position={ legPosition }
-                    scale={ legScale }
-                    assets={ assets }
-                    texture={ shaderFrog.get( 'glowTextureLegs' ) }
-                    meshName="charismaLegs"
-                    animations={ legAnimations }
-                />
-                <AnimatedMesh
-                    rotation={ tailRotation || defaultTailRotation }
-                    position={ tailPosition || defaultTailPosition }
-                    scale={ tailScale }
-                    assets={ assets }
-                    texture={ shaderFrog.get( 'glowTextureTail' ) }
-                    meshName="charismaTail"
-                    animations={ tailAnimations }
-                />
             </group>
         </group>;
 

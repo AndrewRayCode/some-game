@@ -1,8 +1,8 @@
 import React from 'react';
 import THREE from 'three';
 
-const gameWidth = 400;
-const gameHeight = 400;
+const gameWidth = 600;
+const gameHeight = 600;
 
 export default [
     <meshBasicMaterial

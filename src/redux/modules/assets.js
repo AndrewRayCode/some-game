@@ -329,6 +329,12 @@ export function loadAllAssets() {
             loaders.js,
         ));
 
+        dispatch( loadWithLoader(
+            'pyramid',
+            require( 'models/pyramid.json' ),
+            loaders.js,
+        ));
+
         Object.keys( CustomShaders ).forEach( key => {
 
             const json = JSON.parse(

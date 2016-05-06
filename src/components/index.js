@@ -42,6 +42,7 @@ export Placeholder from './entities/Placeholder';
 export PlankBridge from './entities/PlankBridge';
 export Player from './entities/Player';
 export Puffer from './entities/Puffer';
+export Pyramid from './entities/Pyramid';
 export SegmentedEmitter from './entities/SegmentedEmitter';
 export Shrink from './entities/Shrink';
 export TubeBend from './entities/TubeBend';

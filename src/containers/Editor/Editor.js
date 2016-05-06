@@ -45,8 +45,8 @@ const OrbitControlsThree = OrbitControls( THREE );
 const radius = 20;
 const speed = 0.1;
 
-const gameWidth = 400;
-const gameHeight = 400;
+const gameWidth = 600;
+const gameHeight = 600;
 
 const raycaster = new THREE.Raycaster();
 
@@ -1883,6 +1883,10 @@ export default class Editor extends Component {
                     <button onClick={ this.selectType( 'textTrigger' ) }>
                         { createType === 'textTrigger' && '✓' }
                         Text Trigger
+                    </button>
+                    <button onClick={ this.selectType( 'pyramid' ) }>
+                        { createType === 'pyramid' && '✓' }
+                        Pyramid
                     </button>
                     <select
                         onChange={ this.onChapterCreateChange }
