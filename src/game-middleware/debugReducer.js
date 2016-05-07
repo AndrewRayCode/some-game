@@ -1,5 +1,5 @@
 import { scalePlayer, } from 'physics-utils';
-import { SHIFT, MINUS, EQUALS, BACKTICK, } from 'helpers/KeyCodes';
+import { SHIFT, MINUS, EQUALS, BACKTICK, V } from 'helpers/KeyCodes';
 
 export default function debugReducer(
     keysDown:Object,
@@ -29,6 +29,15 @@ export default function debugReducer(
     if( !newState.debug && !oldState.debug ) {
 
         return next( currentState );
+
+    }
+
+    if( keysDown.isFirstPress( V ) ) {
+
+        newState.textQueue = [
+            ...oldState.textQueue,
+            "This is debug text. Mary had a large lamb. I'm a large teapot. My large pony. The brave large toaster. Stuart large. Large women. The large engine that could."
+        ];
 
     }
 

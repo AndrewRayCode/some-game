@@ -59,3 +59,51 @@
     left:0;
     z-index:2;
 }
+
+.extras {
+    margin:20px 0 0;
+}
+
+.button {
+    background:linear-gradient( lighten( $background, 10% ), lighten( $background, 2% ) );
+    color:lighten( $background, 70% );
+    border-radius:8px;
+    font-size:14px;
+    line-height:14px;
+    text-shadow:0px -1px 1px #000;
+    padding:10px 20px;
+    display:inline-block;
+    border:1px solid darken( $background, 10% );
+    box-shadow:inset 0 1px lighten( $background, 30% );
+    cursor:pointer;
+    transition:0.2s ease all;
+
+    &:hover {
+        background:linear-gradient( lighten( $background, 15% ), lighten( $background, 7% ) );
+        color:#fff;
+    }
+
+    &:active {
+        background:linear-gradient( lighten( $background, 2% ), lighten( $background, 10% ) );
+        text-shadow:0px 1px 1px #000;
+    }
+
+    &:focus {
+        outline: none;
+    }
+
+    &.selected {
+        background:linear-gradient( lighten( $background, 13% ), lighten( $background, 5% ) );
+        color:#fff;
+    }
+
+}
+
+.divide10 {
+    display:inline-block;
+    margin-left:10px;
+
+    &:last-child {
+        margin-left:0;
+    }
+}

@@ -511,6 +511,15 @@ export default class GameContainer extends Component {
 
     }
 
+    setSize( size ) {
+
+        this.setState({
+            gameWidth: size,
+            gameHeight: size,
+        });
+
+    }
+
     render() {
 
         const { fonts, assets, books, } = this.props;
@@ -546,6 +555,30 @@ export default class GameContainer extends Component {
                     { content }
                 </div>
                 <div className={ styles.extras }>
+                    <div className={ styles.divide10 }>
+                        <button
+                            onClick={ this.setSize.bind( this, 800 ) }
+                            className={ cx({ button: true, selected: gameWidth === 800 }) }
+                        >
+                            800 x 800
+                        </button>
+                    </div>
+                    <div className={ styles.divide10 }>
+                        <button
+                            onClick={ this.setSize.bind( this, 600 ) }
+                            className={ cx({ button: true, selected: gameWidth === 600 }) }
+                        >
+                            600 x 600
+                        </button>
+                    </div>
+                    <div className={ styles.divide10 }>
+                        <button
+                            onClick={ this.setSize.bind( this, 400 ) }
+                            className={ cx({ button: true, selected: gameWidth === 400 }) }
+                        >
+                            400 x 400
+                        </button>
+                    </div>
                     <h5>
                         created by <b>Andrew Ray</b>
                     </h5>

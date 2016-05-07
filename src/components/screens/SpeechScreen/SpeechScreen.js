@@ -16,9 +16,9 @@ const circleScale = new Vector3( 1, 1, 1 ).multiplyScalar( 1.1 );
 
 const avatarRadius = 0.65;
 const avatarDistance = 12;
-const avatarOffset = {
-    x: 70,
-    y: 38,
+const avatarOffsetPercent = {
+    x: 0.22,
+    y: 0.06,
 };
 
 const wreathRotation = new Euler( Math.PI / 2, 0, 0 );
@@ -63,8 +63,8 @@ export default class SpeechScreen extends Component {
 
             const { y, } = avatarPosition;
             const vector = new Vector3(
-                ( avatarOffset.x / gameWidth ) * 2 - 1,
-                - ( ( avatarOffset.y + y ) / gameHeight ) * 2 + 1,
+                ( avatarOffsetPercent.x * 2 ) - 1,
+                -( ( y / gameHeight ) + avatarOffsetPercent.y ) * 2 + 1,
                 1,
             );
 

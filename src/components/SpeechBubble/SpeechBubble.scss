@@ -3,6 +3,7 @@ $bubbleBg2:#112200;
 $bubbleOpacity:0.8;
 
 .bubble {
+    text-align:left;
     position:absolute;
     z-index:2;
     width:100%;
@@ -27,17 +28,18 @@ $bubbleOpacity:0.8;
     background:linear-gradient( $bubbleBg, $bubbleBg2 );
     opacity:$bubbleOpacity;
     border-radius:18px;
-    margin:10px 10px 10px 60px;
+    margin:10px 10px 10px 20%;
     z-index:1;
 }
 
 .bubbleContents {
+    line-height:24px;
     font-size:16px;
     letter-spacing:1px;
     position:relative;
     z-index:2;
     color:#fff;
-    padding:20px 25px 20px 80px;
+    padding:23px 25px 23px 23%;
     text-shadow:1px 1px 1px #000;
 }
 
