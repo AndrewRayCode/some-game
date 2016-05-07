@@ -962,6 +962,12 @@ export default class Editor extends Component {
                         texts: [ 'Default text' ]
                     };
 
+                } else if( createType === 'pyramid' ) {
+
+                    entityData = {
+                        touchable: false,
+                    };
+
                 } else if( createType === 'bridge' ) {
 
                     entityData = {

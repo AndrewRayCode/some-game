@@ -112,11 +112,13 @@ export default function entityInteractionReducer(
                 // past the hit box for the level exit/entrance
                 newState.startTransitionPosition = playerPositionV3;
                 newState.currentTransitionPosition = playerPositionV3;
+
                 const currentTransitionTarget = new Vector3(
                     lerp( playerPositionV3.x, entity.position.x, isUp ? 0 : 2.5 ),
                     playerPositionV3.y,
                     lerp( playerPositionV3.z, entity.position.z, isUp ? 2.5 : 0 ),
                 );
+
                 newState.currentTransitionTarget = currentTransitionTarget;
                 newState.currentTransitionStartTime = time;
                 newState.currentTransitionCameraTarget = new Vector3(

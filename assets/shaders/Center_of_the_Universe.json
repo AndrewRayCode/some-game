@@ -1,0 +1,119 @@
+{
+  "id": 776,
+  "name": "Center of the Universe",
+  "fragment": "precision highp float;\nprecision highp int;\nuniform vec2 Glowing_Circle_Configurable_1462577629877_27_resolution;\nuniform float radius;\nuniform vec3 color;\nuniform float glow;\nuniform float distortion;\nuniform float time;\nuniform float Universe_Shader1462577638564_45_speed;\nuniform float swirl;\nuniform vec3 baseColor;\nuniform float red;\nuniform float green;\nuniform float blue;\nuniform float starRadius;\nuniform vec3 starColor;\nuniform float starDensity;\nuniform float Parallax_Starfield1462577904978_83_speed;\nuniform vec2 Parallax_Starfield1462577904978_83_resolution;\nvarying vec2 Glowing_Circle_Configurable_1462577629877_27_vUv;\nconst int iterations = 50;\nconst int swirlIterations = 6;\nvarying vec2 Universe_Shader1462577638564_45_vUv;\nvarying vec2 Parallax_Starfield1462577904978_83_vUv;\nfloat starrand(float seedx, float seedy, int seedp) \n{\n    return 0.05 + 0.9 * fract(sin(float(seedp) * 437.234) * 374.2542 - cos(seedx * 432.252) * 23.643 + sin(seedy * 73.2454) * 372.23455);\n}\nvec4 Glowing_Circle_Configurable_1462577629877_27_main() \n{\n    vec4 Glowing_Circle_Configurable_1462577629877_27_gl_FragColor = vec4(0.0);\n    vec2 uv = (Glowing_Circle_Configurable_1462577629877_27_vUv - 0.5) * Glowing_Circle_Configurable_1462577629877_27_resolution;\n    float gr = dot(uv, uv);\n    vec2 weight = vec2(radius * radius + radius * glow, radius * radius - radius * glow);\n    float clamped = 1.0 - clamp((gr - weight.y) / (weight.x - weight.y), 0.0, 1.0);\n    Glowing_Circle_Configurable_1462577629877_27_gl_FragColor = vec4(color * clamped, 1.0);\n    return Glowing_Circle_Configurable_1462577629877_27_gl_FragColor *= 1.0;\n}\nvec4 Universe_Shader1462577638564_45_main() \n{\n    vec4 Universe_Shader1462577638564_45_gl_FragColor = vec4(0.0);\n    vec2 uv = Universe_Shader1462577638564_45_vUv - 0.5;\n    float t = Universe_Shader1462577638564_45_speed * time * 0.1 + ((0.25 + 0.05 * sin(time * Universe_Shader1462577638564_45_speed * 0.1)) / (length(uv.xy) + (1.0 - swirl))) * 2.2;\n    float sine = sin(t * distortion);\n    float cose = cos(t * 1.0 / distortion);\n    mat2 matrix = mat2(-cose, sine, sine, cose);\n    float c;\n    float v1 = 0.0;\n    float v2 = 0.0;\n    vec3 uv3 = vec3(uv, 0.0);\n    for (int i = 0;\n i < iterations; i++) \n    {\n        float s = float(i) * 0.035;\n        vec3 p = s * uv3;\n        p.xy *= matrix;\n        p += vec3(.22, .3, s - 1.5 - sin(t * 0.13) * 0.1);\n        for (int i = 0;\n i < swirlIterations; i++) \n        {\n            p = abs(p) / dot(p, p) - 0.659;\n        }\n        v1 += dot(p, p) * 0.0015 * green * (1.8 + sin(length(uv.xy * 13.0) + 0.5 - t * 0.2));\n        v2 += dot(p, p) * 0.0015 * blue * (1.5 + sin(length(uv.xy * 13.5) + 2.2 - t * 0.3));\n        c = length(p.xy * 0.5) * 0.35 * red;\n    }\n    float len = length(uv);\n    v1 *= smoothstep(0.7, 0.0, len);\n    v2 *= smoothstep(0.6, 0.0, len);\n    float r = clamp(c, 0.0, 1.0);\n    float g = clamp((v1 + c) * 0.25, 0.0, 1.0);\n    float b = clamp(v2, 0.0, 1.0);\n    vec3 col = baseColor * vec3(r, g, b) + smoothstep(0.15, 0.0, len) * 0.9;\n    Universe_Shader1462577638564_45_gl_FragColor = vec4(col, 1.0);\n    return Universe_Shader1462577638564_45_gl_FragColor *= 1.0;\n}\nvec4 Parallax_Starfield1462577904978_83_main(void) \n{\n    vec4 Parallax_Starfield1462577904978_83_gl_FragColor = vec4(0.0);\n    vec2 position = Parallax_Starfield1462577904978_83_vUv.xy * Parallax_Starfield1462577904978_83_resolution.xy;\n    Parallax_Starfield1462577904978_83_gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n    for (int p = 0;\n p < 20; p++) \n    {\n        float scale = (1.0 / starRadius) + float(p);\n        vec2 vpos = position * scale;\n        vpos.x += (time * Parallax_Starfield1462577904978_83_speed) / scale;\n        vpos.y += Parallax_Starfield1462577904978_83_speed * time / scale;\n        vec2 spos = vec2(starrand(floor(vpos.x), floor(vpos.y), p), starrand(10.5 + floor(vpos.x), 10.5 + floor(vpos.y), p));\n        float px = scale / 80.0 / 3.0;\n        float size = 1.0 / (scale * (500.0 / starDensity));\n        float brite = 1.0;\n        if (size < px) \n        {\n            brite = size / px;\n            size = px;\n        }\n         Parallax_Starfield1462577904978_83_gl_FragColor.rgb += starColor * min(1.0, max(0.0, starDensity - length(spos - fract(vpos)) / size)) * brite;\n    }\n    return Parallax_Starfield1462577904978_83_gl_FragColor *= 1.0;\n}\nvoid main() \n{\n    gl_FragColor = (Glowing_Circle_Configurable_1462577629877_27_main() + Universe_Shader1462577638564_45_main() + Parallax_Starfield1462577904978_83_main());}\n",
+  "vertex": "precision highp float;\nprecision highp int;\nuniform mat4 modelMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat3 normalMatrix;\nuniform vec3 cameraPosition;\nuniform float time;\nattribute vec3 position;\nattribute vec3 normal;\nattribute vec2 uv;\nattribute vec2 uv2;\nvarying vec3 Glowing_Circle_Configurable_1462577629877_27_vPosition;\nvarying vec3 Glowing_Circle_Configurable_1462577629877_27_vNormal;\nvarying vec2 Glowing_Circle_Configurable_1462577629877_27_vUv;\nvarying vec2 Glowing_Circle_Configurable_1462577629877_27_vUv2;\nvarying vec2 Universe_Shader1462577638564_45_vUv;\nvarying vec3 Parallax_Starfield1462577904978_83_vPosition;\nvarying vec3 Parallax_Starfield1462577904978_83_vNormal;\nvarying vec2 Parallax_Starfield1462577904978_83_vUv;\nvarying vec2 Parallax_Starfield1462577904978_83_vUv2;\nvec4 Glowing_Circle_Configurable_1462577629877_27_main() \n{\n    vec4 Glowing_Circle_Configurable_1462577629877_27_gl_Position = vec4(0.0);\n    Glowing_Circle_Configurable_1462577629877_27_vNormal = normal;\n    Glowing_Circle_Configurable_1462577629877_27_vUv = uv;\n    Glowing_Circle_Configurable_1462577629877_27_vUv2 = uv2;\n    Glowing_Circle_Configurable_1462577629877_27_vPosition = position;\n    Glowing_Circle_Configurable_1462577629877_27_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Glowing_Circle_Configurable_1462577629877_27_gl_Position *= 1.0;\n}\nvec4 Universe_Shader1462577638564_45_main() \n{\n    vec4 Universe_Shader1462577638564_45_gl_Position = vec4(0.0);\n    Universe_Shader1462577638564_45_vUv = uv;\n    Universe_Shader1462577638564_45_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Universe_Shader1462577638564_45_gl_Position *= 1.0;\n}\nvec4 Parallax_Starfield1462577904978_83_main() \n{\n    vec4 Parallax_Starfield1462577904978_83_gl_Position = vec4(0.0);\n    Parallax_Starfield1462577904978_83_vNormal = normal;\n    Parallax_Starfield1462577904978_83_vUv = uv;\n    Parallax_Starfield1462577904978_83_vUv2 = uv2;\n    Parallax_Starfield1462577904978_83_vPosition = position;\n    Parallax_Starfield1462577904978_83_gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    return Parallax_Starfield1462577904978_83_gl_Position *= 1.0;\n}\nvoid main() \n{\n    gl_Position = Glowing_Circle_Configurable_1462577629877_27_main() + Universe_Shader1462577638564_45_main() + Parallax_Starfield1462577904978_83_main();}\n",
+  "uniforms": {
+    "cameraPosition": {
+      "type": "v3",
+      "glslType": "vec3"
+    },
+    "time": {
+      "type": "f",
+      "glslType": "float"
+    },
+    "glow": {
+      "value": "0.26571733",
+      "type": "f",
+      "glslType": "float"
+    },
+    "radius": {
+      "value": "0.10185992",
+      "type": "f",
+      "glslType": "float"
+    },
+    "color": {
+      "value": {
+        "r": 1,
+        "g": 0.25098039215686274,
+        "b": 0
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "Glowing_Circle_Configurable_1462577629877_27_resolution": {
+      "value": {
+        "x": "1",
+        "y": "1"
+      },
+      "type": "v2",
+      "glslType": "vec2"
+    },
+    "distortion": {
+      "value": "1",
+      "type": "f",
+      "glslType": "float"
+    },
+    "swirl": {
+      "value": "0.97558849",
+      "type": "f",
+      "glslType": "float"
+    },
+    "baseColor": {
+      "value": {
+        "r": 0.8823529411764706,
+        "g": 0.8823529411764706,
+        "b": 0.9254901960784314
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "green": {
+      "value": "6.43901966",
+      "type": "f",
+      "glslType": "float"
+    },
+    "blue": {
+      "value": "8.20594788",
+      "type": "f",
+      "glslType": "float"
+    },
+    "red": {
+      "value": "0.76625012",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Universe_Shader1462577638564_45_speed": {
+      "value": 0.3,
+      "type": "f",
+      "glslType": "float"
+    },
+    "starRadius": {
+      "value": "0.75",
+      "type": "f",
+      "glslType": "float"
+    },
+    "starDensity": {
+      "value": "5",
+      "type": "f",
+      "glslType": "float"
+    },
+    "starColor": {
+      "value": {
+        "r": 0.796078431372549,
+        "g": 0.9254901960784314,
+        "b": 0.9411764705882353
+      },
+      "type": "c",
+      "glslType": "vec3"
+    },
+    "Parallax_Starfield1462577904978_83_speed": {
+      "value": "0.2",
+      "type": "f",
+      "glslType": "float"
+    },
+    "Parallax_Starfield1462577904978_83_resolution": {
+      "value": {
+        "x": "10",
+        "y": "10"
+      },
+      "type": "v2",
+      "glslType": "vec2"
+    }
+  },
+  "url": "http://shaderfrog.com/app/view/776",
+  "user": {
+    "username": "andrewray",
+    "url": "http://shaderfrog.com/app/profile/andrewray"
+  }
+}

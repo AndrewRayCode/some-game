@@ -386,6 +386,7 @@ export default class GameGUI extends Component {
             width={ gameWidth }
             height={ gameHeight }
             onRendererUpdated={ this._onRenderUpdate }
+            antialias
         >
 
             <module
