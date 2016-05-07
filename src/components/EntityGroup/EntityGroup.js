@@ -137,8 +137,12 @@ export default class EntityGroup extends Component {
                         world={ world }
                         paused={ paused }
                         playerRadius={ playerRadius }
-                        playerBody={ playerBody }
                         materialId={ entity.materialId }
+                        playerBody={ playerBody }
+                        helperMaterialId={ showInvisible ?
+                            'placeholder' :
+                            'transparent'
+                        }
                         velocity={ entity.velocity }
                         velocity={ entity.velocity }
                         angle={ entity.angle }
@@ -163,6 +167,10 @@ export default class EntityGroup extends Component {
                         playerRadius={ playerRadius }
                         playerBody={ playerBody }
                         materialId={ entity.materialId }
+                        helperMaterialId={ showInvisible ?
+                            'placeholder' :
+                            'transparent'
+                        }
                         foamMaterialId={ entity.foamMaterialId }
                         velocity={ entity.velocity }
                         velocity={ entity.velocity }

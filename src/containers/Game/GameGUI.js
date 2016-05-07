@@ -350,7 +350,7 @@ export default class GameGUI extends Component {
     render() {
 
         const {
-            fps, mouseInput, clickable,
+            fps, mouseInput, clickable, transitionFadeAlpha,
         } = this.state;
 
         const {
@@ -573,10 +573,10 @@ export default class GameGUI extends Component {
                     letters={ letters }
                 /> : null }
 
-            <TransitionScreen
+            { transitionFadeAlpha > 0 ? <TransitionScreen
                 cameraFov={ cameraFov }
                 cameraAspect={ cameraAspect }
-            />
+            /> : null }
 
             </scene>
 

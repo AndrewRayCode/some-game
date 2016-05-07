@@ -1,18 +1,20 @@
 import React, { Component, PropTypes } from 'react';
-import THREE from 'three';
+import { Vector3, Euler, Color, Quaternion, } from 'three';
 import SPE from 'shader-particle-engine';
 import { str2Hex } from '../../helpers/Utils';
 
 const arrayOrNumber = PropTypes.oneOfType([
      PropTypes.number
 ]);
-const defaultPosition = new THREE.Vector3( -0.4, 0, 0 );
-const emitterOffset = new THREE.Vector3( 0, -1, 0 );
+const defaultPosition = new Vector3( -0.4, 0, 0 );
+const emitterOffset = new Vector3( 0, -1, 0 );
+const emptyQuaternion = new Quaternion( 0, 0, 0, 1 );
 
 export default class ParticleEmitter extends Component {
 
     static propTypes = {
         type: PropTypes.number,
+        scale: PropTypes.number,
         emitterPosition: PropTypes.object.isRequired,
         emitterRadius: PropTypes.number,
         rotation: PropTypes.object.isRequired,
@@ -57,7 +59,7 @@ export default class ParticleEmitter extends Component {
 
     }
 
-    componentWillReceiveProps( nextProps ) {
+    componentWillReceiveProps( nextProps:Object ) {
 
         const {
             rotation, velocity, velocitySpread, opacity, positionSpread,
@@ -102,27 +104,31 @@ export default class ParticleEmitter extends Component {
 
     }
 
-    createEmitter( props ) {
+    createEmitter( props:Object ) {
 
         const {
-            positionSpread, rotation, texture, maxAge, opacity,
-            opacitySpread, velocity, velocitySpread, colors, colorSpread, angle,
-            angleSpread, size, sizeSpread, wiggle, wiggleSpread,
-            particleCount, type, emitterRadius, velocityV3, rotationAxis,
-            rotationAngle, velocityDistribution,
+            positionSpread, scale, rotation, quaternion, texture, maxAge,
+            opacity, opacitySpread, velocity, velocitySpread, colors,
+            colorSpread, angle, angleSpread, size, sizeSpread, wiggle,
+            wiggleSpread, particleCount, type, emitterRadius, velocityV3,
+            rotationAxis, rotationAngle, velocityDistribution,
         } = props;
 
+        const rotationQuaternion = rotation ?
+            new Quaternion().setFromEuler( rotation ) :
+            ( quaternion || emptyQuaternion );
+
         const particleGroup = new SPE.Group({
-            texture: { value: texture }
+            texture: { value: texture },
+            alphaTest: 0.001
         });
         
         const emitter = new SPE.Emitter({
             type,
-            alphaTest: 0.01,
             maxAge: { value: maxAge },
             position: {
-                value: defaultPosition.clone().applyQuaternion( rotation ),
-                spread: positionSpread.clone().applyQuaternion( rotation ),
+                value: defaultPosition.clone().applyQuaternion( rotationQuaternion ).multiplyScalar( scale ),
+                spread: positionSpread.clone().applyQuaternion( rotationQuaternion ).multiplyScalar( scale ),
                 radius: emitterRadius,
             },
             opacity: {
@@ -130,12 +136,14 @@ export default class ParticleEmitter extends Component {
                 spread: opacitySpread
             },
             velocity: {
-                value: velocityV3 || new THREE.Vector3( velocity, 0, 0 ).clone().applyQuaternion( rotation ),
-                spread: velocitySpread.clone().applyQuaternion( rotation ),
+                value: (
+                    velocityV3 || new Vector3( velocity, 0, 0 ).clone().applyQuaternion( rotationQuaternion )
+                ),
+                spread: velocitySpread.clone().applyQuaternion( rotationQuaternion ),
                 distribution: velocityDistribution,
             },
             color: {
-                value: colors.map( c => new THREE.Color(
+                value: colors.map( c => new Color(
                     typeof c === 'string' ? str2Hex( c ) : c
                 ) ),
                 spread: colorSpread
@@ -149,7 +157,7 @@ export default class ParticleEmitter extends Component {
                 spread: angleSpread
             },
             size: {
-                value: size,
+                value: size * scale,
                 spread: sizeSpread
             },
             wiggle: {

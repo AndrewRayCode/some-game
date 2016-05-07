@@ -430,7 +430,7 @@ export function v3toP2( v3:Vector3 ) {
 
 }
 
-export function p2ToV3( p2:Array|Float32Array, y:number ) {
+export function p2ToV3( p2:Array|Float32Array, y:any ) {
 
     return new Vector3( p2[ 0 ], y || 0, p2[ 1 ] );
 
@@ -481,7 +481,7 @@ export function applyMiddleware(
 
 }
 
-export function deepArrayClone( arr:Array ) {
+export function deepArrayClone( arr:any ) {
 
     if( Array.isArray( arr ) ) {
         const copy = arr.slice( 0 );

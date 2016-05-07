@@ -51,7 +51,7 @@ export default class SegmentedEmitter extends Component {
 
     }
 
-    componentWillReceiveProps( nextProps ) {
+    componentWillReceiveProps( nextProps:Object ) {
 
         if( ( nextProps.playerRadius !== this.props.playerRadius ) ||
            ( nextProps.quaternion !== this.props.quaternion ) ||
@@ -65,14 +65,16 @@ export default class SegmentedEmitter extends Component {
 
     }
 
-    getStateFromProps( props, state ) {
+    getStateFromProps( props:Object, state:Object ) {
 
         const {
             position, quaternion, rotation, playerRadius, scale, maxLength,
             rayCount
         } = props;
 
-        const rotationQuaternion = quaternion || new THREE.Quaternion().setFromEuler( rotation );
+        const rotationQuaternion = rotation ?
+            new THREE.Quaternion().setFromEuler( rotation ) :
+            ( quaternion || new THREE.Quaternion( 0, 0, 0, 1 ) );
 
         // dam son see http://stackoverflow.com/questions/5501581/javascript-new-arrayn-and-array-prototype-map-weirdness
         const rayArray = new Array( rayCount ).fill( 0 );
@@ -94,7 +96,7 @@ export default class SegmentedEmitter extends Component {
             flowDirection2D: new THREE.Vector2( flowDirection.x, flowDirection.z ),
             hitVectors: rayArray.map( ( zero, index ) => {
 
-                const streamHalfWidth = 0.5 / rayCount;
+                const streamHalfWidth = ( 0.5 / rayCount );
 
                 // Construct the *local* unrotated vectors that define this
                 // stream in local space
@@ -105,10 +107,13 @@ export default class SegmentedEmitter extends Component {
                     -0.5 + ( playerRadius || 0.45 ),
                     // move to rectangle offset by index
                     -0.5 + /* center */( ( 1 / rayCount ) * index ) + streamHalfWidth
-                );
+                ).multiply( scale );
 
+                // The scale stuff was added in haste and might need some
+                // tweaking later. Basically we're trying convert all these
+                // world points to the correct scale
                 const toVectorInitial = new THREE.Vector3(
-                    fromVectorInitial.x + maxLength,
+                    fromVectorInitial.x + ( maxLength * scale.y ),
                     fromVectorInitial.y,
                     fromVectorInitial.z,
                 );
@@ -117,14 +122,16 @@ export default class SegmentedEmitter extends Component {
                 // to do box test on. These are world points
                 const a = fromVectorInitial
                     .clone()
-                    .sub( new THREE.Vector3( 0, 0, streamHalfWidth ) )
+                    .sub( new THREE.Vector3( 0, 0, streamHalfWidth * scale.y ) )
                     .applyQuaternion( rotationQuaternion )
+                    .multiply( scale )
                     .add( position );
 
                 const b = fromVectorInitial
                     .clone()
-                    .add( new THREE.Vector3( 0, 0, streamHalfWidth ) )
+                    .add( new THREE.Vector3( 0, 0, streamHalfWidth * scale.y ) )
                     .applyQuaternion( rotationQuaternion )
+                    .multiply( scale )
                     .add( position );
 
                 const startingPoints = {
@@ -157,16 +164,14 @@ export default class SegmentedEmitter extends Component {
     _onUpdate() {
         
         const {
-            world, position, paused, playerBody, playerRadius, maxLength
+            world, position, paused, playerBody, playerRadius, maxLength,
+            scale,
         } = this.props;
 
         const {
-            counter,
-            rayArray,
+            counter, rayArray, hitVectors, flowDirection2D,
             lengths: oldLengths,
             lengthTargets: oldLengthTargets,
-            hitVectors,
-            flowDirection2D
         } = this.state;
 
         if( !world || paused ) {
@@ -216,7 +221,7 @@ export default class SegmentedEmitter extends Component {
 
             } else {
 
-                hitLength = maxLength;
+                hitLength = maxLength * scale.y;
 
             }
 
@@ -237,7 +242,7 @@ export default class SegmentedEmitter extends Component {
                     body === playerBody ?
                         hitLength :
                         p2.vec2.distance( fromVector2D, playerBody.position ),
-                    maxLength
+                    maxLength * scale.y
                 );
 
             }
@@ -262,7 +267,8 @@ export default class SegmentedEmitter extends Component {
 
         const {
             position, rotation, quaternion, scale, time, materialId,
-            playerRadius, foamMaterialId, rayCount, foam, helperMaterial, debug
+            playerRadius, foamMaterialId, rayCount, foam, helperMaterialId,
+            debug
         } = this.props;
         const { lengths, lengthTargets, rayArray, } = this.state;
         const waterfallHeight = -0.5 + ( playerRadius || 0.45 );
@@ -275,8 +281,7 @@ export default class SegmentedEmitter extends Component {
                 scale={ scale }
                 onUpdate={ this._onUpdate }
             >
-                {/* for debugging rotation */}
-                <mesh
+                { helperMaterialId ? <mesh
                     position={ helperPosition }
                     rotation={ helperRotation }
                 >
@@ -284,9 +289,9 @@ export default class SegmentedEmitter extends Component {
                         resourceId="1x1plane"
                     />
                     <materialResource
-                        resourceId={ helperMaterial || 'transparent' }
+                        resourceId={ helperMaterialId }
                     />
-                </mesh>
+                </mesh> : null}
                 {/* for selectability */}
                 <mesh
                     ref="mesh"

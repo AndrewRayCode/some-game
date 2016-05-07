@@ -13,6 +13,7 @@ export default class Waterfall extends Component {
     static propTypes = {
         position: PropTypes.object.isRequired,
         rotation: PropTypes.object,
+        quaternion: PropTypes.object,
         scale: PropTypes.object,
         world: PropTypes.object,
         paused: PropTypes.bool,
@@ -25,20 +26,26 @@ export default class Waterfall extends Component {
         angleSpread: PropTypes.number,
         opacity: PropTypes.array,
         materialId: PropTypes.string.isRequired,
-        helperMaterial: PropTypes.string,
+        helperMaterialId: PropTypes.string,
     }
 
     render() {
 
         const {
-            position, rotation, scale, world, paused, time, playerRadius,
-            playerBody, materialId, maxLength, impulse, helperMaterial,
-            debug, colors, velocity, angle, angleSpread, opacity
+            position, rotation, quaternion, scale, world, paused, time,
+            playerRadius, playerBody, materialId, maxLength, impulse,
+            helperMaterialId, debug, colors, velocity, angle, angleSpread,
+            opacity
         } = this.props;
+
+        if( !scale || !scale.y ) {
+            console.log('wtf scael is',scale);
+        }
 
         return <group>
             <ParticleEmitter
                 rotation={ rotation }
+                quaternion={ quaternion }
                 emitterPosition={ position }
                 texture={ smokeParticle }
                 maxAge={ maxLength / velocity }
@@ -50,6 +57,7 @@ export default class Waterfall extends Component {
                 colors={ colors }
                 angle={ angle }
                 angleSpread={ angleSpread }
+                scale={ scale.y }
                 size={ 0.7 }
                 sizeSpread={ sizeSpread }
                 wiggle={ 0.1 }
@@ -64,8 +72,9 @@ export default class Waterfall extends Component {
                 materialId={ debug ? 'ornateWall1' : 'transparent' }
                 position={ position }
                 rotation={ rotation }
+                quaternion={ quaternion }
                 scale={ scale }
-                helperMaterial={ helperMaterial }
+                helperMaterialId={ helperMaterialId }
                 world={ world }
                 paused={ paused }
                 time={ time }

@@ -159,10 +159,11 @@ export default class Player extends Component {
 
         return <group>
             { scaleEffectsVisible ? <ParticleEmitter
+                scale={ 1 }
                 enabled={ scaleEffectsEnabled }
                 texture={ twinkleMaterial }
                 emitterPosition={ emitterPosition }
-                rotation={ particleRotation }
+                quaternion={ particleRotation }
                 positionSpread={ positionSpread }
                 velocityV3={ particleVelocity }
                 velocitySpread={ particleVelocitySpread }
