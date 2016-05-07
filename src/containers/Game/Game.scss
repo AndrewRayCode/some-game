@@ -93,7 +93,7 @@
     }
 
     &.selected {
-        background:linear-gradient( lighten( $background, 13% ), lighten( $background, 5% ) );
+        background:linear-gradient( saturate( lighten( $background, 13% ), 10% ), lighten( $background, 5% ) );
         color:#fff;
     }
 
