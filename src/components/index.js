@@ -5,6 +5,7 @@
  *
  */
 
+// Editor stuff, mostly
 export ArrayEditor from './ArrayEditor/ArrayEditor';
 export CreatePreviewObject from './Editor/CreatePreviewObject';
 export EditorResources from './EditorResources/EditorResources';
@@ -15,6 +16,7 @@ export SelectableMenu from './SelectableMenu/SelectableMenu';
 export SpeechBubble from './SpeechBubble/SpeechBubble';
 export Text from './Text/Text';
 export TexturePicker from './Editor/TexturePicker';
+export TriggerEditor from './Editor/TriggerEditor';
 
 // Screens
 export ConfirmMenuScreen from './screens/ConfirmMenuScreen/ConfirmMenuScreen';

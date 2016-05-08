@@ -19,7 +19,7 @@ import styles from './Editor.scss';
 
 import {
     EntityGroup, Grid, EditorResources, TexturePicker, CreatePreviewObject,
-    Kbd, ArrayEditor
+    Kbd, ArrayEditor, TriggerEditor,
 } from 'components';
 
 import Textures from 'Textures';
@@ -954,12 +954,13 @@ export default class Editor extends Component {
 
                 let entityData = {};
 
-                if( createType === 'textTrigger' ) {
+                if( createType === 'trigger' ) {
 
                     entityData = {
                         visible: false,
                         touchable: false,
-                        texts: [ 'Default text' ]
+                        actionType: 'text',
+                        texts: [],
                     };
 
                 } else if( createType === 'pyramid' ) {
@@ -1689,13 +1690,11 @@ export default class Editor extends Component {
                         />
                     </label>
 
-                    { ( selectedObject.type === 'textTrigger' ) ? <div>
-                        <b>Texts:</b>
-                        <ArrayEditor
-                            value={ selectedObject.texts || [] }
-                            onChange={ this.onPropertyChange.bind( null, selectedObjectId, 'texts' ) }
-                        />
-                    </div> : null }
+                    { ( selectedObject.type === 'trigger' ) ? <TriggerEditor
+                        triggerId={ selectedObject.id }
+                        trigger={ selectedObject }
+                        onPropertyChange={ this.onPropertyChange }
+                    /> : null }
 
                     { ( selectedObject.type === 'puffer' ||
                             selectedObject.type === 'waterfall' ) ? <div>
@@ -1931,9 +1930,9 @@ export default class Editor extends Component {
                         { createType === 'bridge' && '✓' }
                         Bridge
                     </button>
-                    <button onClick={ this.selectType( 'textTrigger' ) }>
-                        { createType === 'textTrigger' && '✓' }
-                        Text Trigger
+                    <button onClick={ this.selectType( 'trigger' ) }>
+                        { createType === 'trigger' && '✓' }
+                        Trigger
                     </button>
                     <button onClick={ this.selectType( 'pyramid' ) }>
                         { createType === 'pyramid' && '✓' }

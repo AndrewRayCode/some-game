@@ -49,7 +49,7 @@ export default class EntityGroup extends Component {
                         materialId={ entity.materialId }
                     />;
 
-                } else if( entity.type === 'textTrigger' ) {
+                } else if( entity.type === 'trigger' ) {
 
                     return <Placeholder
                         ref={ entity.id }

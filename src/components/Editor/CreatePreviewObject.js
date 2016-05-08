@@ -46,7 +46,7 @@ export default class CreatePreviewObject extends Component {
                     materialId="ghostMaterial"
                 />;
 
-            case 'textTrigger':
+            case 'trigger':
 
                 return <Placeholder
                     scale={ scale }
