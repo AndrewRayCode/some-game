@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <title>Charisma The Chameleon</title>
+        <link rel="stylesheet" href="main-4e09ee998f1889248e82.css" type="text/css" media="all" />
+    </head>
+    <body>
+        <h2>One moment! Our servers are updating...</h2>
+        <p>
+            Our servers are receiving new updates. This page will automatically refresh in <div id="time">10</div> seconds.
+        </p>
+    </body>
+    <script>
+        var timer = 10;
+        var div = document.getElementById('time');
+        var interval = setInterval(function() {
+            div.innerHTML = timer--;
+
+            if( timer <= 0 ) {
+                clearInterval( interval );
+                window.location.reload();
+            }
+        }, 1000);
+    </script>
+</html>
