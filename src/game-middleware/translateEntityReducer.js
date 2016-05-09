@@ -1,11 +1,7 @@
 import * as Cardinality from 'helpers/Cardinality';
 import * as easing from 'easing-utils';
 import { scalePlayer, canJump } from 'physics-utils';
-import {
-    getCardinalityOfVector, getCameraDistanceToPlayer, lerp,
-    playerV3ToFinishEntityV3Collision, playerToCircleCollision3dTo2d,
-    playerToBoxCollision3dTo2d, lerpVectors,
-} from 'helpers/Utils';
+import { lerpVectors, v3toP2, } from 'helpers/Utils';
 import { Vector3, } from 'three';
 
 export default function translateEntityReducer(
@@ -20,7 +16,7 @@ export default function translateEntityReducer(
     const { allEntities, } = gameData;
 
     const {
-        cameraPosition, world, playerBody, textQueue, sideEffectQueue,
+        cameraPosition, world, playerBody, textQueue, physicsBodiesByEntityId,
     } = oldState;
 
     const moveQueue = currentState.moveQueue || oldState.moveQueue;
@@ -54,6 +50,8 @@ export default function translateEntityReducer(
             percent,
             easing[ easingType ]
         );
+
+        physicsBodiesByEntityId[ entityId ].position = v3toP2( entity.position );
         
         if( percent < 1 ) {
 

@@ -133,6 +133,8 @@ export function setUpPhysics(
 
     world.addBody( playerBody );
 
+    const physicsBodiesByEntityId = {};
+
     const physicsBodies = currentLevelMovableEntitiesArray.map( entity => {
 
         const { position, scale } = entity;
@@ -147,6 +149,8 @@ export function setUpPhysics(
         // to three
         pushyBody.scale = scale;
         pushyBody.entityId = entity.id;
+
+        physicsBodiesByEntityId[ entity.id ] = pushyBody;
 
         // Store the y position as "depth" to place this object correctly
         // set back into the screen
@@ -364,6 +368,8 @@ export function setUpPhysics(
 
         }
 
+        physicsBodiesByEntityId[ entity.id ] = entityBody;
+
         entityBody.entity = entity;
         world.addBody( entityBody );
 
@@ -377,6 +383,7 @@ export function setUpPhysics(
         emptyWorldAnchor,
         playerBody,
         physicsBodies,
+        physicsBodiesByEntityId,
     };
 
 }

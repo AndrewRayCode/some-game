@@ -40,19 +40,20 @@ export default function entityInteractionReducer(
 
         const entity = currentLevelTouchyArray[ i ];
 
-        if( entity.scale.x !== playerScale ) {
-            continue;
-        }
+        const isSameScale = entity.scale.x === playerScale;
 
         if( entity.type === 'finish' ) {
 
             // This would make a good abstracted out function, probably
-            if( playerV3ToFinishEntityV3Collision(
-                playerPositionV3,
-                playerRadius,
-                entity.position,
-                entity.scale,
-            ) ) {
+            if(
+                playerV3ToFinishEntityV3Collision(
+                    playerPositionV3,
+                    playerRadius,
+                    entity.position,
+                    entity.scale,
+                ) &&
+                isSameScale
+            ) {
 
                 newState.isAdvancing = true;
 
@@ -145,6 +146,7 @@ export default function entityInteractionReducer(
 
         } else if(
             ( entity.type === 'grow' || entity.type === 'shrink' ) &&
+            isSameScale &&
             !oldState.scaleStartTime &&
             playerToCircleCollision3dTo2d(
                 playerPositionV3,
@@ -176,8 +178,6 @@ export default function entityInteractionReducer(
                 scaleStartTime: time + scaleStartDelayMs,
             };
 
-            break;
-
         } else if(
             entity.type === 'trigger' &&
             playerToBoxCollision3dTo2d(
@@ -202,22 +202,24 @@ export default function entityInteractionReducer(
             } else if( entity.actionType === 'move' ) {
 
                 const {
-                    targetEntityId, direction, id, duration, easing,
+                    targetEntityId, direction, id, duration, easing, moveScale,
                 } = entity;
                 const targetEntity = allEntities[ targetEntityId ];
 
                 const moveTarget = targetEntity.position.clone().add(
-                    Cardinality[ direction ].clone().multiply( targetEntity.scale )
+                    Cardinality[ direction ].clone()
+                        .multiply( targetEntity.scale )
+                        .multiplyScalar( moveScale || 1 )
                 );
 
                 newState.moveQueue = [
                     ...moveQueue,
-                    ...{
+                    {
                         startPosition: targetEntity.position,
                         entityId: targetEntityId,
                         target: moveTarget,
                         startTime: time,
-                        easing, duration,
+                        easing, duration, moveScale,
                     }
                 ];
 

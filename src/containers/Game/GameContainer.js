@@ -115,11 +115,7 @@ const gameDataSelector = createSelector(
             const entity = allEntities[ id ];
             memo.currentLevelAllEntities[ id ] = entity;
 
-            if( entity.type === 'trigger' ) {
-                memo.currentLevelTouchyArray = [
-                    ...memo.currentLevelTouchyArray, entity
-                ];
-            } else if( entity.type === 'shrink' || entity.type === 'grow' || entity.type === 'finish' ) {
+            if( entity.type === 'trigger' || entity.type === 'shrink' || entity.type === 'grow' || entity.type === 'finish' ) {
                 memo.currentLevelTouchyArray = [
                     ...memo.currentLevelTouchyArray, entity
                 ];

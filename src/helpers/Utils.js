@@ -20,13 +20,28 @@ export function playerToBoxCollision3dTo2d(
     scaleB:Object,
 ):boolean {
 
-    if( Math.abs( positionA.x - positionB.x ) < scaleB.x * 0.5 + radiusA ) {
-        if( Math.abs( positionA.z - positionB.z ) < scaleB.z * 0.5 + radiusA ) {
-            return true;
-        }
+    const halfX = scaleB.x * 0.5;
+    const halfZ = scaleB.z * 0.5;
+
+    const distX = Math.abs( positionA.x - positionB.x - halfX );
+    const distZ = Math.abs( positionA.z - positionB.z - halfZ );
+
+    if( ( distX > halfX + radiusA ) ||
+        ( distX > halfZ + radiusA )
+    ) {
+        return false;
     }
 
-    return false;
+    if( ( distX <= halfX ) ||
+        ( distX <= halfZ )
+    ) {
+        return false;
+    }
+
+    const dx = distX - halfX;
+    const dz = distZ - halfZ;
+
+    return ( dx * dx ) + ( dz * dz ) <= radiusA * radiusA;
 
 }
 

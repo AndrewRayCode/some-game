@@ -74,7 +74,7 @@
     padding:10px 20px;
     display:inline-block;
     border:1px solid darken( $background, 10% );
-    box-shadow:inset 0 1px lighten( $background, 30% );
+    box-shadow:inset 0 1px lighten( $background, 30% ), 0 1px 2px rgba( 10, 0, 20, 0.5 );
     cursor:pointer;
     transition:0.2s ease all;
 

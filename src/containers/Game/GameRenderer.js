@@ -216,6 +216,7 @@ export default class GameRenderer extends Component {
             />
 
             { movableEntities ? <EntityGroup
+                showInvisible={ debug }
                 paused={ paused }
                 playerBody={ playerBody }
                 world={ world }
@@ -228,6 +229,7 @@ export default class GameRenderer extends Component {
             /> : null }
 
             <EntityGroup
+                showInvisible={ debug }
                 paused={ paused }
                 playerBody={ playerBody }
                 world={ world }
@@ -242,6 +244,7 @@ export default class GameRenderer extends Component {
             />
 
             { nextChapters.map( nextChapter => <EntityGroup
+                showInvisible={ debug }
                 paused={ paused }
                 key={ nextChapter.id }
                 assets={ assets }
@@ -255,6 +258,7 @@ export default class GameRenderer extends Component {
             /> )}
 
             { previousChapterEntity && <EntityGroup
+                showInvisible={ debug }
                 paused={ paused }
                 assets={ assets }
                 shaders={ shaders }

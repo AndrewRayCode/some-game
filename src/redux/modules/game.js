@@ -237,7 +237,7 @@ export function game( state = initialGameReducerState, action = {} ) {
                 levels: {
                     ...state.levels,
                     [ removeLevel.id ]: {
-                        ...level,
+                        ...removeLevel,
                         entityIds: removeLevel.entityIds.filter( id => id !== action.entityId )
                     }
                 }
