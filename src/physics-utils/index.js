@@ -142,7 +142,7 @@ export function setUpPhysics(
         const pushyBody = new p2.Body({
             mass: getCubeMass( pushyDensity, scale.x * 0.8 ),
             position: v3toP2( position ),
-            fixedRotation: true
+            fixedRotation: true,
         });
 
         // Copy scale to pushyBody so _getMeshStates can access it to pass

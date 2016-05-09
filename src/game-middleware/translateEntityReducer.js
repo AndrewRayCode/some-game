@@ -40,7 +40,7 @@ export default function translateEntityReducer(
             entityId, target, startTime, duration, startPosition,
         } = data;
 
-        const percent = Math.max( ( time - startTime ) / duration );
+        const percent = Math.min( ( time - startTime ) / duration, 1 );
 
         const entity = allEntities[ entityId ];
 
