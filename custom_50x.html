@@ -4,15 +4,22 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width">
         <title>Charisma The Chameleon</title>
-        <link rel="stylesheet" href="main-4e09ee998f1889248e82.css" type="text/css" media="all" />
+        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/some-game/main-4e09ee998f1889248e82.css" type="text/css" media="all" />
     </head>
     <body>
         <h2>One moment! Our servers are updating...</h2>
         <p>
-            Our servers are receiving new updates. This page will automatically refresh in <div id="time">10</div> seconds.
+            Our servers are receiving new updates. This page will automatically refresh in <span id="time">10</span> seconds. Or you can <a href="#" id="a">try refreshing now</a>.
         </p>
     </body>
     <script>
+
+        document.getElementById('a').addEventListener( 'click', function( event ) {
+            event.preventDefault();
+            clearInterval( interval );
+            window.location.reload();
+        });
+        
         var timer = 10;
         var div = document.getElementById('time');
         var interval = setInterval(function() {
