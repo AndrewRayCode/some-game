@@ -130,6 +130,7 @@ export function game( state = initialGameReducerState, action = {} ) {
                 entities: convertOriginalEntitiesToGameEntities( originalEntities ),
 
                 gameState: {
+                    moveQueue: [],
                     textQueue: [],
                     sideEffectQueue: [],
                     cameraPosition: new Vector3(

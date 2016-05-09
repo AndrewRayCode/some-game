@@ -13,3 +13,4 @@ export playerScaleReducer from './playerScaleReducer';
 export speechReducer from './speechReducer';
 export gameScreenReducer from './gameScreenReducer';
 export outOfBoundsReducer from './outOfBoundsReducer';
+export translateEntityReducer from './translateEntityReducer';

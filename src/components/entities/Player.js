@@ -183,12 +183,22 @@ export default class Player extends Component {
                 maxAge={ 1 }
             /> : null }
             <group
-                ref="mesh"
                 position={ position }
                 quaternion={ quaternion }
                 rotation={ rotation }
                 scale={ computedScale }
             >
+                {/* for selectability */}
+                <mesh
+                    ref="mesh"
+                >
+                    <geometryResource
+                        resourceId="1x1box"
+                    />
+                    <materialResource
+                        resourceId="transparent"
+                    />
+                </mesh>
                 <group
                     position={ defaultPositionOffset }
                 >

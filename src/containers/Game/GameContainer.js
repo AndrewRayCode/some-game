@@ -40,7 +40,7 @@ import {
     entityInteractionReducer, playerScaleReducer, debugReducer,
     advanceLevelReducer, defaultCameraReducer, playerAnimationReducer,
     speechReducer, contactEventReducer, physicsReducer, gameScreenReducer,
-    outOfBoundsReducer,
+    outOfBoundsReducer, translateEntityReducer,
 } from 'game-middleware';
 
 import GameGUI from './GameGUI';
@@ -115,7 +115,7 @@ const gameDataSelector = createSelector(
             const entity = allEntities[ id ];
             memo.currentLevelAllEntities[ id ] = entity;
 
-            if( entity.type === 'textTrigger' ) {
+            if( entity.type === 'trigger' ) {
                 memo.currentLevelTouchyArray = [
                     ...memo.currentLevelTouchyArray, entity
                 ];
@@ -469,8 +469,9 @@ export default class GameContainer extends Component {
             debugReducer, gameScreenReducer, playerPositionReducer,
             contactEventReducer, speechReducer, physicsReducer,
             gameKeyPressReducer, tourReducer, advanceLevelReducer, zoomReducer,
-            entityInteractionReducer, playerScaleReducer, defaultCameraReducer,
-            playerAnimationReducer, outOfBoundsReducer,
+            entityInteractionReducer, translateEntityReducer,
+            playerScaleReducer, defaultCameraReducer, playerAnimationReducer,
+            outOfBoundsReducer,
         );
 
         const { sideEffectQueue, } = newState;

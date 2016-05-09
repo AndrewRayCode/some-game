@@ -404,7 +404,7 @@ export default class Editor extends Component {
             id,
             property,
             event.target ?
-                ( 'checked' in event.target ?
+                ( event.target.getAttribute( 'type' ) === 'checkbox' ?
                     event.target.checked :
                     event.target.value
                 ) : event
@@ -412,9 +412,13 @@ export default class Editor extends Component {
 
     }
 
-    onPropertyChangeNumber( id, property, event ) {
+    onPropertyChangeNumber( id:any, property:string, event:Object ) {
 
-        this.props.changeEntityProperty( id, property, parseFloat( event.target ? event.target.value : event ) );
+        this.props.changeEntityProperty(
+            id,
+            property,
+            parseFloat( event.target ? event.target.value : event )
+        );
 
     }
 

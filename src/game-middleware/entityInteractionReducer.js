@@ -1,4 +1,4 @@
-import Cardinality from '../helpers/Cardinality';
+import * as Cardinality from 'helpers/Cardinality';
 import { scalePlayer, canJump } from 'physics-utils';
 import {
     getCardinalityOfVector, getCameraDistanceToPlayer, lerp,
@@ -24,10 +24,12 @@ export default function entityInteractionReducer(
         currentLevelId, nextChapters, previousChapterFinishEntity,
         previousChapterEntity, previousChapter, cameraFov,
         currentGameChapterId, currentChapterId, allChaptersArray,
+        allEntities,
     } = gameData;
 
     const {
         cameraPosition, world, playerBody, textQueue, sideEffectQueue,
+        moveQueue,
     } = oldState;
 
     const { playerPositionV3, time, } = currentState;
@@ -177,8 +179,7 @@ export default function entityInteractionReducer(
             break;
 
         } else if(
-            entity.type === 'textTrigger' &&
-            canJump( world, playerBody ) &&
+            entity.type === 'trigger' &&
             playerToBoxCollision3dTo2d(
                 playerPositionV3,
                 playerRadius,
@@ -187,14 +188,45 @@ export default function entityInteractionReducer(
             )
         ) {
 
-            newState.textQueue = [
-                ...textQueue,
-                ...entity.texts,
-            ];
-            newState.sideEffectQueue = [
-                ...sideEffectQueue,
-                () => actions.removeEntity( currentLevelId, entity.id, ),
-            ];
+            if( entity.actionType === 'text' && canJump( world, playerBody ) ) {
+
+                newState.textQueue = [
+                    ...textQueue,
+                    ...entity.texts,
+                ];
+                newState.sideEffectQueue = [
+                    ...sideEffectQueue,
+                    () => actions.removeEntity( currentLevelId, entity.id, ),
+                ];
+
+            } else if( entity.actionType === 'move' ) {
+
+                const {
+                    targetEntityId, direction, id, duration, easing,
+                } = entity;
+                const targetEntity = allEntities[ targetEntityId ];
+
+                const moveTarget = targetEntity.position.clone().add(
+                    Cardinality[ direction ].clone().multiply( targetEntity.scale )
+                );
+
+                newState.moveQueue = [
+                    ...moveQueue,
+                    ...{
+                        startPosition: targetEntity.position,
+                        entityId: targetEntityId,
+                        target: moveTarget,
+                        startTime: time,
+                        easing, duration,
+                    }
+                ];
+
+                newState.sideEffectQueue = [
+                    ...sideEffectQueue,
+                    () => actions.removeEntity( currentLevelId, id, ),
+                ];
+
+            }
 
         }
 

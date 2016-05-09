@@ -38,10 +38,6 @@ export default class Waterfall extends Component {
             opacity
         } = this.props;
 
-        if( !scale || !scale.y ) {
-            console.log('wtf scael is',scale);
-        }
-
         return <group>
             <ParticleEmitter
                 rotation={ rotation }
