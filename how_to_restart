@@ -1,0 +1,10 @@
+git push origin master && npm run build && scp webpack-assets.json nano:/var/www/charisma/ && osascript -e 'display notification "Build and Push Completed" with title "Idiot"' && say -v Hyst Push Completed
+
+upload dist to s3
+
+shc nano
+cd /var/www/charisma
+git pull
+ctrl-r screen
+ctrl-c
+PORT=8080 NODE_ENV=production npm start
