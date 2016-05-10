@@ -142,11 +142,11 @@ export default class PausedScreen extends Component {
                         onSelect: onUnpause,
                     },
                     {
-                        text: 'Restart this chapter (r)',
+                        text: 'Restart chapter (r)',
                         onSelect: onRestart,
                     },
                     {
-                        text: 'Restart this book (b)',
+                        text: 'Restart book (b)',
                         onSelect: onShowConfirmRestartBookMenuScreen,
                     },
                     {

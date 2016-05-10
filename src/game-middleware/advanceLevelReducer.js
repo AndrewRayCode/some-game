@@ -20,7 +20,7 @@ export default function advanceLevelReducer(
         advanceAction,
     } = oldState;
 
-    const { advanceChapter } = actions;
+    const { advanceChapter, } = actions;
 
     const { time, } = currentState;
 

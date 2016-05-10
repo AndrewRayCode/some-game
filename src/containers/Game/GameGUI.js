@@ -130,9 +130,12 @@ export default class GameGUI extends Component {
 
         const { world, } = gameState;
 
+        const currentBook = books[ currentBookId ];
+        const { chapterIds } = currentBook;
+
         this.props.restartBook(
-            this.props, currentBookId, currentChapterId, originalEntities, originalLevels,
-            chapters, books, world
+            this.props, currentBookId, chapterIds[ 0 ], null, originalLevels,
+            originalEntities, books, chapters, Date.now(), world
         );
 
     }
@@ -155,14 +158,14 @@ export default class GameGUI extends Component {
 
         const {
             currentChapterId, originalEntities, originalLevels, chapters,
-            books, gameState, currentBookId,
+            books, gameState, currentBookId, previousChapterId,
         } = this.props;
 
         const { world, } = gameState;
 
         this.props.restartChapter(
-            this.props, currentBookId, currentChapterId, originalEntities, originalLevels,
-            chapters, books, world
+            this.props, currentBookId, currentChapterId, previousChapterId,
+            originalEntities, originalLevels, chapters, books, world
         );
 
     }
@@ -245,25 +248,40 @@ export default class GameGUI extends Component {
         const bookData = localStorage.get( book.id );
 
         let savedChapterId = null;
+        let savedPreviousChapterId = null;
+        let savedNextChapter = null;
 
         if( bookData && bookData.chapterId ) {
 
-            const { chapterId } = bookData;
+            const { chapterId, previousChapterId, } = bookData;
 
             // Ensure if we have a saved chapter id, it exists
             savedChapterId = Object.keys( books ).some(
                 id => books[ id ].chapterIds.indexOf( chapterId ) > -1
             ) ? chapterId : null;
 
+            savedPreviousChapterId = Object.keys( books ).some(
+                id => books[ id ].chapterIds.indexOf( previousChapterId ) > -1
+            ) ? previousChapterId : null;
+
+            if( savedPreviousChapterId ) {
+
+                savedNextChapter = chapters[ savedPreviousChapterId ].nextChapters.find(
+                    data => data.chapterId === savedChapterId
+                );
+                    
+            }
+
         }
 
         const chapterId = savedChapterId || book.chapterIds[ 0 ];
 
         this.props.startGame(
-            this.props, book.id, chapterId, originalLevels,
-            originalEntities, books, chapters, playerRadius, playerDensity,
-            pushyDensity, currentLevelStaticEntitiesArray,
-            currentLevelMovableEntitiesArray, currentLevelBridgesArray,
+            this.props, book.id, chapterId, savedPreviousChapterId,
+            savedNextChapter, originalLevels, originalEntities, books,
+            chapters, playerRadius, playerDensity, pushyDensity,
+            currentLevelStaticEntitiesArray, currentLevelMovableEntitiesArray,
+            currentLevelBridgesArray,
         );
 
     }
@@ -592,7 +610,7 @@ export default class GameGUI extends Component {
                     letters={ letters }
                 /> }
 
-                { gameStarted && !confirmingRestart && !confirmingMenu && paused ? <PausedScreen
+                { gameStarted && !confirmingRestartBook && !confirmingRestart && !confirmingMenu && paused ? <PausedScreen
                     ref="pausedScreen"
                     mouseInput={ mouseInput }
                     cameraFov={ cameraFov }

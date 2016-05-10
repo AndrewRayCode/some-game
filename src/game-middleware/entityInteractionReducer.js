@@ -93,7 +93,11 @@ export default function entityInteractionReducer(
 
                     newState.advanceAction = () =>
                         actions.advanceToPreviousChapter(
-                            nextChapter, previousChapter.id, previousPreviousChapter ? previousPreviousChapter.id : null, isNextChapterBigger,
+                            nextChapter, currentBookId, previousChapter.id,
+                            // Might be going back to the first level
+                            previousPreviousChapter ?
+                                previousPreviousChapter.id : null,
+                            isNextChapterBigger,
                         );
 
                 // Go to child chapter of this one
@@ -111,7 +115,7 @@ export default function entityInteractionReducer(
                     isNextChapterBigger = nextChapter.scale.x > 1;
 
                     newState.advanceAction = () =>
-                        actions.advanceChapter( currentBookId, nextChapter );
+                        actions.advanceChapter( currentBookId, currentChapterId, nextChapter );
                 
                 }
 

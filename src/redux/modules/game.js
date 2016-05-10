@@ -109,6 +109,7 @@ export function game( state = initialGameReducerState, action = {} ) {
 
     switch( action.type ) {
 
+        case RESTART_BOOK:
         case RESTART_CHAPTER:
         case START_GAME:
 
@@ -257,9 +258,12 @@ export function gameChapterReducer( state = defaultChapterState, action = {} ) {
 
     switch( action.type ) {
 
+        case RESTART_BOOK:
         case START_GAME:
             return {
+                previousChapterId: action.previousChapterId,
                 currentChapterId: action.chapterId,
+                previousChapterNextChapter: action.nextChapter,
             };
 
         case GAME_SELECT_PREVIOUS_CHAPTER:
@@ -276,8 +280,8 @@ export function gameChapterReducer( state = defaultChapterState, action = {} ) {
         case GAME_SELECT_CHAPTER:
             return {
                 ...state,
+                previousChapterId: action.previousChapterId,
                 currentChapterId: action.chapterId,
-                previousChapterId: state.currentChapterId,
                 previousChapterNextChapter: action.nextChapter,
             };
 
@@ -327,6 +331,8 @@ export function startGame(
     actions:Object,
     bookId:any,
     chapterId:any,
+    previousChapterId:any,
+    nextChapter:any,
     originalLevels:Object,
     originalEntities:Object,
     books:Object,
@@ -342,8 +348,9 @@ export function startGame(
 
     return {
         type: START_GAME,
-        world, playerPosition, bookId, chapterId, originalLevels,
-        originalEntities, chapters, books, recursionBusterId,
+        world, playerPosition, bookId, chapterId, previousChapterId,
+        nextChapter, originalLevels, originalEntities, chapters, books,
+        recursionBusterId,
     };
 }
 
@@ -358,6 +365,7 @@ export function restartChapter(
     actions:Object,
     bookId:any,
     chapterId:any,
+    previousChapterId:any,
     originalEntities:Object,
     originalLevels:Object,
     chapters:Object,
@@ -387,28 +395,33 @@ export function restartBook(
     actions:Object,
     bookId:any,
     chapterId:any,
-    originalEntities:Object,
+    previousChapterId:any,
     originalLevels:Object,
-    chapters:Object,
+    originalEntities:Object,
     books:Object,
+    chapters:Object,
+    recursionBusterId:any,
     oldWorld:Object,
 ) {
 
-    // duplicated from stopGame and startGame() but cleanest path I can think
-    // of for now for restarting
-    //tearDownWorld( oldWorld );
+    tearDownWorld( oldWorld );
 
-    //const world = createWorld( actions );
+    const world = createWorld( actions );
 
-    //const playerPosition = findPlayerPosition(
-        //originalLevels, chapters, originalEntities, chapterId
-    //);
+    const playerPosition = findPlayerPosition(
+        originalLevels, chapters, originalEntities, chapterId
+    );
 
-    console.log( 'TODO' );
+    const bookData = localStorage.get( bookId ) || {};
+    bookData.chapterId = chapterId;
+    bookData.previousChapterId = null;
+
+    localStorage.set( bookId, bookData );
+
     return {
         type: RESTART_BOOK,
-        //world, playerPosition, bookId, chapterId, originalLevels,
-        //originalEntities, books, chapters,
+        world, playerPosition, bookId, chapterId, originalLevels,
+        originalEntities, books, chapters,
     };
 
 }
@@ -439,16 +452,22 @@ export function createPhysicsBodies(
 
 }
 
-export function advanceChapter( currentBookId:any, nextChapter:Object ) {
+export function advanceChapter(
+    currentBookId:any,
+    currentChapterId:any,
+    nextChapter:Object
+) {
 
     const bookData = localStorage.get( currentBookId ) || {};
     bookData.chapterId = nextChapter.chapterId;
+    bookData.previousChapterId = currentChapterId;
 
     localStorage.set( currentBookId, bookData );
 
     return {
         type: GAME_SELECT_CHAPTER,
         recursionBusterId: Date.now(),
+        previousChapterId: currentChapterId,
         chapterId: nextChapter.chapterId,
         isNextChapterBigger: nextChapter.scale.x > 1,
         nextChapter,
@@ -459,10 +478,18 @@ export function advanceChapter( currentBookId:any, nextChapter:Object ) {
 // data
 export function advanceToPreviousChapter(
     nextChapter:Object,
+    bookId:any,
     chapterId:any,
     previousChapterId:any,
     isNextChapterBigger:boolean
 ) {
+
+    const bookData = localStorage.get( bookId ) || {};
+    bookData.chapterId = nextChapter.chapterId;
+    bookData.previousChapterId = previousChapterId;
+
+    localStorage.set( bookId, bookData );
+
     return {
         type: GAME_SELECT_PREVIOUS_CHAPTER,
         recursionBusterId: Date.now(),

@@ -109,7 +109,7 @@ export default class ConfirmMenuScreen extends Component {
             <Text
                 position={ bottomTextPosition }
                 scale={ bottomTextScale }
-                text="Chapter?"
+                text="Book?"
                 materialId="universeInALetter"
                 fontName="Sniglet Regular"
                 fonts={ fonts }

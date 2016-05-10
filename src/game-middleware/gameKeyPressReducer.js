@@ -1,4 +1,4 @@
-import { P, ESC, R, M, } from 'helpers/KeyCodes';
+import { P, ESC, R, M, B, } from 'helpers/KeyCodes';
 
 export default function gameKeyPressReducer(
     keysDown:Object,
@@ -23,6 +23,10 @@ export default function gameKeyPressReducer(
     } else if( keysDown.isFirstPress( M ) ) {
 
         action = () => actions.showConfirmMenuScreen();
+
+    } else if( keysDown.isFirstPress( B ) ) {
+
+        action = () => actions.showConfirmRestartBookMenuScreen();
 
     }
 

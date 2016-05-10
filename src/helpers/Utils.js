@@ -589,3 +589,13 @@ export function toScreenPosition( width:number, height:number, matrix:Object, ca
 export function getPlayerYFromRadius( radius:number ) {
     return radius + 1;
 }
+
+export function findNextChapterDataPointingToChapter( chapters:Array, chapterId:any ) {
+
+    return chapters.find( chapter =>
+        chapter.nextChapters.find( nextChapterData =>
+            nextChapterData.chapterId === chapterId
+        )
+    );
+
+}
