@@ -116,10 +116,12 @@ export default function entityInteractionReducer(
                 newState.startTransitionPosition = playerPositionV3;
                 newState.currentTransitionPosition = playerPositionV3;
 
-                const currentTransitionTarget = new Vector3(
-                    lerp( playerPositionV3.x, entity.position.x, isUp ? 0 : 2.5 ),
-                    playerPositionV3.y,
-                    lerp( playerPositionV3.z, entity.position.z, isUp ? 2.5 : 0 ),
+                const directionToFinish = getCardinalityOfVector(
+                    entity.position.clone().sub( playerPositionV3 )
+                );
+
+                const currentTransitionTarget = entity.position.clone().add(
+                    directionToFinish.multiplyScalar( 1.25 * entity.scale.x )
                 );
 
                 newState.currentTransitionTarget = currentTransitionTarget;
