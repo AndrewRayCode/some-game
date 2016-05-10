@@ -12,7 +12,7 @@ import mutateThreeWithObjLoader from 'three-obj-loader';
 mutateThreeWithObjLoader( THREE );
 
 // Given the player position and entiy position in 3d space, do a 2d collision
-// check
+// check. Adapted from http://stackoverflow.com/questions/21089959/detecting-collision-of-rectangle-with-circle
 export function playerToBoxCollision3dTo2d(
     positionA:Vector3,
     radiusA:number,
@@ -33,9 +33,9 @@ export function playerToBoxCollision3dTo2d(
     }
 
     if( ( distX <= halfX ) ||
-        ( distX <= halfZ )
+        ( distZ <= halfZ )
     ) {
-        return false;
+        return true;
     }
 
     const dx = distX - halfX;

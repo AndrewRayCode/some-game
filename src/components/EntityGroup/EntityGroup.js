@@ -294,8 +294,15 @@ export default class EntityGroup extends Component {
 
                 } else {
 
-                    console.warn( 'Unknown entity type!', entity );
-                    return <group />;
+                    return <Placeholder
+                        ref={ entity.id }
+                        key={ entity.id }
+                        scale={ entity.scale }
+                        position={ entity.position }
+                        quaternion={ entity.rotation }
+                        scale={ entity.scale }
+                        materialId="greenDebugMaterial"
+                    />;
 
                 }
 
