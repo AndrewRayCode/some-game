@@ -5,8 +5,8 @@ import { easeInOutCubic } from 'easing-utils';
 const rotationOffset = new Euler( Math.PI / 2, 0, 0 );
 const billboardScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.6 );
 const rotationSpeed = 0.08;
-const bounceSpeed = 0.005;
-const bounceLimit = 0.1;
+const bounceSpeed = 0.0025;
+const bounceLimit = 0.075;
 
 export default class Shrink extends Component {
 
