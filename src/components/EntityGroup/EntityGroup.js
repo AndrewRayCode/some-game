@@ -249,7 +249,7 @@ export default class EntityGroup extends Component {
                         quaternion={ entity.rotation }
                         scale={ entity.scale }
                         materialId="finishFlag"
-                        floorMaterialId="ornateWall1"
+                        floorMaterialId={ entity.materialId || 'ornateWall1' }
                     />;
 
                 } else if( entity.type === 'shrink' ) {
