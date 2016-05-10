@@ -210,7 +210,7 @@ export function setUpPhysics(
             const plankShape = new p2.Box({
                 material: world.wallMaterial,
                 width: plankBodyWidth,
-                height: 0.1 * size
+                height: 0.2 * size
             });
 
             plankBody.entityId = id;
