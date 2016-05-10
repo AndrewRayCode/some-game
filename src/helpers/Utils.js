@@ -27,7 +27,7 @@ export function playerToBoxCollision3dTo2d(
     const distZ = Math.abs( positionA.z - positionB.z - halfZ );
 
     if( ( distX > halfX + radiusA ) ||
-        ( distX > halfZ + radiusA )
+        ( distZ > halfZ + radiusA )
     ) {
         return false;
     }
