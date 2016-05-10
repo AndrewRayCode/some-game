@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import localStorage from 'store';
 
 import React3 from 'react-three-renderer';
 import THREE from 'three';
@@ -8,7 +9,8 @@ import { toScreenPosition, } from 'helpers/Utils';
 import { GameRenderer, } from 'containers';
 import {
     TitleScreen, GameResources, PausedScreen, ConfirmRestartScreen,
-    TransitionScreen, ConfirmMenuScreen, SpeechBubble, SpeechScreen,
+    ConfirmRestartBookScreen, TransitionScreen, ConfirmMenuScreen,
+    SpeechBubble, SpeechScreen,
 } from 'components';
 
 import styles from './Game.scss';
@@ -43,6 +45,9 @@ export default class GameGUI extends Component {
         this.onExitToMenuConfirm = this.onExitToMenuConfirm.bind( this );
         this.onExitToMenuDeny = this.onExitToMenuDeny.bind( this );
         this.onShowConfirmMenuScreen = this.onShowConfirmMenuScreen.bind( this );
+        this.onShowConfirmRestartBookMenuScreen = this.onShowConfirmRestartBookMenuScreen.bind( this );
+        this.onConfirmRestartBook = this.onConfirmRestartBook.bind( this );
+        this.onDenyRestartBook = this.onDenyRestartBook.bind( this );
         this.onConfirmRestart = this.onConfirmRestart.bind( this );
         this.onDenyRestart = this.onDenyRestart.bind( this );
         this._onAnimate = this._onAnimate.bind( this );
@@ -112,6 +117,36 @@ export default class GameGUI extends Component {
 
     }
 
+    onConfirmRestartBook() {
+
+        this.setState({
+            clickable: false,
+        });
+
+        const {
+            currentChapterId, originalEntities, originalLevels, chapters,
+            books, gameState, currentBookId,
+        } = this.props;
+
+        const { world, } = gameState;
+
+        this.props.restartBook(
+            this.props, currentBookId, currentChapterId, originalEntities, originalLevels,
+            chapters, books, world
+        );
+
+    }
+
+    onDenyRestartBook() {
+
+        this.setState({
+            clickable: false,
+        });
+        this.props.denyRestartBook();
+
+    }
+
+
     onConfirmRestart() {
 
         this.setState({
@@ -159,13 +194,21 @@ export default class GameGUI extends Component {
 
     }
 
-    // todo get these workin
     onShowConfirmMenuScreen() {
 
         this.setState({
             clickable: false,
         });
         this.props.showConfirmMenuScreen();
+
+    }
+
+    onShowConfirmRestartBookMenuScreen() {
+
+        this.setState({
+            clickable: false,
+        });
+        this.props.showConfirmRestartBookMenuScreen();
 
     }
 
@@ -199,8 +242,25 @@ export default class GameGUI extends Component {
             currentLevelBridgesArray,
         } = this.props;
 
+        const bookData = localStorage.get( book.id );
+
+        let savedChapterId = null;
+
+        if( bookData && bookData.chapterId ) {
+
+            const { chapterId } = bookData;
+
+            // Ensure if we have a saved chapter id, it exists
+            savedChapterId = Object.keys( books ).some(
+                id => books[ id ].chapterIds.indexOf( chapterId ) > -1
+            ) ? chapterId : null;
+
+        }
+
+        const chapterId = savedChapterId || book.chapterIds[ 0 ];
+
         this.props.startGame(
-            this.props, book.id, book.chapterIds[ 0 ], originalLevels,
+            this.props, book.id, chapterId, originalLevels,
             originalEntities, books, chapters, playerRadius, playerDensity,
             pushyDensity, currentLevelStaticEntitiesArray,
             currentLevelMovableEntitiesArray, currentLevelBridgesArray,
@@ -235,7 +295,7 @@ export default class GameGUI extends Component {
 
         const {
             gameRenderer, titleScreen, pausedScreen, confirmMenuScreen,
-            confirmRestartScreen, speechScreen,
+            confirmRestartBookScreen, confirmRestartScreen, speechScreen,
         } = refs;
 
         if( speechScreen ) {
@@ -246,6 +306,8 @@ export default class GameGUI extends Component {
             return pausedScreen.refs.camera;
         } else if( confirmMenuScreen ) {
             return confirmMenuScreen.refs.camera;
+        } else if( confirmRestartBookScreen ) {
+            return confirmRestartBookScreen.refs.camera;
         } else if( confirmRestartScreen ) {
             return confirmRestartScreen.refs.camera;
         } else if( gameRenderer ) {
@@ -356,7 +418,7 @@ export default class GameGUI extends Component {
         const {
             playerScale, playerMass, gameStarted, books, fonts, letters,
             assets, gameState, paused, confirmingRestart, confirmingMenu,
-            gameWidth, gameHeight,
+            gameWidth, gameHeight, confirmingRestartBook,
         } = this.props;
 
         // Game might not be started yet?
@@ -413,6 +475,15 @@ export default class GameGUI extends Component {
                 width={ gameWidth }
                 height={ gameHeight }
                 cameraName="confirmRestartCamera"
+                onBeforeRender={ this.onBeforeRender }
+            /> : null }
+
+            { confirmingRestartBook ? <viewport
+                x={ 0 }
+                y={ 0 }
+                width={ gameWidth }
+                height={ gameHeight }
+                cameraName="confirmRestartBookCamera"
                 onBeforeRender={ this.onBeforeRender }
             /> : null }
 
@@ -532,6 +603,7 @@ export default class GameGUI extends Component {
                     assets={ assets }
                     onRestart={ this.onShowConfirmRestartScreen }
                     onShowConfirmMenuScreen={ this.onShowConfirmMenuScreen }
+                    onShowConfirmRestartBookMenuScreen={ this.onShowConfirmRestartBookMenuScreen }
                     fonts={ fonts }
                     playerTexture={ playerTexture }
                     playerTextureLegs={ playerTextureLegs }
@@ -549,6 +621,23 @@ export default class GameGUI extends Component {
                     onConfirm={ this.onConfirmRestart }
                     assets={ assets }
                     onDeny={ this.onDenyRestart }
+                    fonts={ fonts }
+                    playerTexture={ playerTexture }
+                    playerTextureLegs={ playerTextureLegs }
+                    playerTextureTail={ playerTextureTail }
+                    letters={ letters }
+                /> : null }
+
+                { gameStarted && confirmingRestartBook ? <ConfirmRestartBookScreen
+                    ref="confirmRestartBookScreen"
+                    mouseInput={ mouseInput }
+                    cameraFov={ cameraFov }
+                    cameraAspect={ cameraAspect }
+                    onClickRegionLeave={ this.onClickRegionLeave }
+                    onClickRegionEnter={ this.onClickRegionEnter }
+                    onConfirm={ this.onConfirmRestartBook }
+                    assets={ assets }
+                    onDeny={ this.onDenyRestartBook }
                     fonts={ fonts }
                     playerTexture={ playerTexture }
                     playerTextureLegs={ playerTextureLegs }

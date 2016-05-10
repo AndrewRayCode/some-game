@@ -2,7 +2,7 @@ import { Kbd } from 'components';
 import React from 'react';
 import { ENTER, SPACE, } from 'helpers/KeyCodes';
 
-const textExpandTime = 1100;
+const textExpandTime = 900;
 const textCloseTime = 500;
 const msPerLetter = 35;
 

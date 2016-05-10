@@ -6,6 +6,8 @@ const SHOW_CONFIRM_RESTART_SCREEN = 'game/SHOW_CONFIRM_RESTART_SCREEN';
 const EXIT_TO_MENU_CONFIRM = 'game/EXIT_TO_MENU_CONFIRM';
 const CONFIRM_RESTART = 'game/CONFIRM_RESTART';
 const DENY_RESTART = 'game/DENY_RESTART';
+const SHOW_CONFIRM_RESTART_BOOK = 'game/SHOW_CONFIRM_RESTART_BOOK';
+const DENY_RESTART_BOOK = 'game/DENY_RESTART_BOOK';
 
 // This is duplicated in game.js and should be abstracted out to constants file
 const START_GAME = 'game/START_GAME';
@@ -17,6 +19,7 @@ const defaultScreenState = {
     paused: false,
     confirmingRestart: false,
     confirmingMenu: false,
+    confirmingRestartBook: false,
 };
 export function gameScreenReducer( state = defaultScreenState, action = {} ) {
 
@@ -26,31 +29,45 @@ export function gameScreenReducer( state = defaultScreenState, action = {} ) {
         case RESTART_CHAPTER:
         case EXIT_TO_MENU_CONFIRM:
         case CONFIRM_RESTART:
-        case UNPAUSE_GAME:
+        case CONFIRM_RESTART_BOOK:
+        case UNPAUSE_GAME: {
             return defaultScreenState;
+        }
 
+        case DENY_RESTART_BOOK:
         case EXIT_MENU_DENY:
         case DENY_RESTART:
-        case PAUSE_GAME:
+        case PAUSE_GAME: {
             return {
                 paused: true
             };
+        }
 
-        case SHOW_CONFIRM_MENU_SCREEN:
+        case SHOW_CONFIRM_MENU_SCREEN: {
             return {
                 paused: true,
                 confirmingRestart: false,
                 confirmingMenu: true,
             };
+        }
 
-        case SHOW_CONFIRM_RESTART_SCREEN:
+        case SHOW_CONFIRM_RESTART_SCREEN: {
             return {
                 paused: true,
                 confirmingRestart: true,
             };
+        }
 
-        default:
+        case SHOW_CONFIRM_RESTART_BOOK: {
+            return {
+                paused: true,
+                confirmingRestartBook: true,
+            };
+        }
+
+        default: {
             return state;
+        }
 
     }
 
@@ -85,7 +102,13 @@ export function confirmingRestart() {
 }
 
 export function denyRestart() {
-    KeyHandler.updateFirstPressed();
     return { type: DENY_RESTART, };
 }
 
+export function showConfirmRestartBookMenuScreen() {
+    return { type: SHOW_CONFIRM_RESTART_BOOK, };
+}
+
+export function denyRestartBook() {
+    return { type: DENY_RESTART_BOOK, };
+}

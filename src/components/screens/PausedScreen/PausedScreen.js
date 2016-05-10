@@ -71,8 +71,9 @@ export default class PausedScreen extends Component {
 
         const {
             fonts, letters, onUnpause, onRestart, onShowConfirmMenuScreen,
-            onClickRegionEnter, onClickRegionLeave, assets, playerTexture,
-            playerTextureLegs, playerTextureTail, cameraAspect, cameraFov,
+            onShowConfirmRestartBookMenuScreen, onClickRegionEnter,
+            onClickRegionLeave, assets, playerTexture, playerTextureLegs,
+            playerTextureTail, cameraAspect, cameraFov,
         } = this.props;
 
         const frustum = getFrustrumAt( cameraPosition.y + Math.abs( bgPosition.y ), cameraFov, cameraAspect );
@@ -138,15 +139,19 @@ export default class PausedScreen extends Component {
                 menuOptions={[
                     {
                         text: 'Unpause (p)',
-                        onSelect: onUnpause
+                        onSelect: onUnpause,
                     },
                     {
-                        text: 'Restart this level (r)',
-                        onSelect: onRestart
+                        text: 'Restart this chapter (r)',
+                        onSelect: onRestart,
+                    },
+                    {
+                        text: 'Restart this book (b)',
+                        onSelect: onShowConfirmRestartBookMenuScreen,
                     },
                     {
                         text: 'Return to menu (m)',
-                        onSelect: onShowConfirmMenuScreen
+                        onSelect: onShowConfirmMenuScreen,
                     },
                 ]}
             />

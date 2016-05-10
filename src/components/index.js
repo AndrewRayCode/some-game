@@ -21,6 +21,7 @@ export TriggerEditor from './Editor/TriggerEditor';
 // Screens
 export ConfirmMenuScreen from './screens/ConfirmMenuScreen/ConfirmMenuScreen';
 export ConfirmRestartScreen from './screens/ConfirmRestartScreen/ConfirmRestartScreen';
+export ConfirmRestartBookScreen from './screens/ConfirmRestartBookScreen/ConfirmRestartBookScreen';
 export PausedScreen from './screens/PausedScreen/PausedScreen';
 export SpeechScreen from './screens/SpeechScreen/SpeechScreen';
 export TitleScreen from './screens/TitleScreen/TitleScreen';

@@ -17,7 +17,7 @@ import { emptyWorld, } from 'physics-utils';
 import { loadAllAssets, } from 'redux/modules/assets';
 import {
     scalePlayer, advanceToPreviousChapter, advanceChapter, startGame, stopGame,
-    restartChapter, queueBeginContactEvent, queueEndContactEvent,
+    restartChapter, restartBook, queueBeginContactEvent, queueEndContactEvent,
     createPhysicsBodies, removeEntity,
 } from 'redux/modules/game';
 import {
@@ -33,6 +33,7 @@ import { setGameState, updateGameState, } from 'redux/modules/game';
 import {
     pauseGame, unpauseGame, showConfirmMenuScreen, exitToMenuDeny,
     showConfirmRestartScreen, exitToMenuConfirm, confirmRestart, denyRestart,
+    showConfirmRestartBookMenuScreen, confirmRestartBook, denyRestartBook,
 } from 'redux/modules/gameScreen';
 
 import {
@@ -279,11 +280,12 @@ const gameDataSelector = createSelector(
     dispatch => bindActionCreators({
         loadAllAssets, deserializeLevels, scalePlayer,
         advanceToPreviousChapter, advanceChapter, startGame, stopGame,
-        restartChapter, pauseGame, unpauseGame, showConfirmMenuScreen,
-        exitToMenuDeny, showConfirmRestartScreen, exitToMenuConfirm,
-        confirmRestart, denyRestart, setGameState, updateGameState,
-        queueBeginContactEvent, queueEndContactEvent, createPhysicsBodies,
-        removeEntity,
+        restartChapter, restartBook, pauseGame, unpauseGame,
+        showConfirmMenuScreen, exitToMenuDeny, showConfirmRestartScreen,
+        exitToMenuConfirm, showConfirmRestartBookMenuScreen,
+        confirmRestartBook, denyRestartBook, confirmRestart, denyRestart,
+        setGameState, updateGameState, queueBeginContactEvent,
+        queueEndContactEvent, createPhysicsBodies, removeEntity,
     }, dispatch )
 )
 export default class GameContainer extends Component {

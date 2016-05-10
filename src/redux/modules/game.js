@@ -1,4 +1,5 @@
 import { Vector3, } from 'three';
+import localStorage from 'store';
 
 import { getCameraDistanceToPlayer } from 'helpers/Utils';
 
@@ -12,9 +13,6 @@ const defaultPlayerDensity = 1000; // kg / m^3
 const defaultPushyDensity = 750; // kg / m^3
 const cameraFov = 75;
 
-// So the impulse you needs drops to 1/(8 * sqrt(2)) of the original.
-
-//const QUEUE_TEXT = 'game/QUEUE_TEXT';
 const SET_GAME_INITIAL_PHYSICS_STATE = 'game/SET_GAME_INITIAL_PHYSICS_STATE';
 const GAME_SELECT_CHAPTER = 'game/GAME_SELECT_CHAPTER';
 const GAME_SELECT_PREVIOUS_CHAPTER = 'game/GAME_SELECT_PREVIOUS_CHAPTER';
@@ -24,6 +22,7 @@ const SET_RUNNING_GAME_STATE = 'game/SET_RUNNING_GAME_STATE';
 const UPDATE_RUNNING_GAME_STATE = 'game/UPDATE_RUNNING_GAME_STATE';
 const STOP_GAME = 'game/STOP_GAME';
 const RESTART_CHAPTER = 'game/RESTART_CHAPTER';
+const RESTART_BOOK = 'game/RESTART_BOOK';
 const SCALE_PLAYER = 'game/SCALE_PLAYER';
 const QUEUE_BEGIN_CONTACT_EVENT = 'game/QUEUE_BEGIN_CONTACT_EVENT';
 const QUEUE_END_CONTACT_EVENT = 'game/QUEUE_END_CONTACT_EVENT';
@@ -384,6 +383,35 @@ export function restartChapter(
 
 }
 
+export function restartBook(
+    actions:Object,
+    bookId:any,
+    chapterId:any,
+    originalEntities:Object,
+    originalLevels:Object,
+    chapters:Object,
+    books:Object,
+    oldWorld:Object,
+) {
+
+    // duplicated from stopGame and startGame() but cleanest path I can think
+    // of for now for restarting
+    //tearDownWorld( oldWorld );
+
+    //const world = createWorld( actions );
+
+    //const playerPosition = findPlayerPosition(
+        //originalLevels, chapters, originalEntities, chapterId
+    //);
+
+    console.log( 'TODO' );
+    return {
+        type: RESTART_BOOK,
+        //world, playerPosition, bookId, chapterId, originalLevels,
+        //originalEntities, books, chapters,
+    };
+
+}
 
 export function createPhysicsBodies(
     playerPosition2D:Array,
@@ -411,7 +439,13 @@ export function createPhysicsBodies(
 
 }
 
-export function advanceChapter( nextChapter:Object ) {
+export function advanceChapter( currentBookId:any, nextChapter:Object ) {
+
+    const bookData = localStorage.get( currentBookId ) || {};
+    bookData.chapterId = nextChapter.chapterId;
+
+    localStorage.set( currentBookId, bookData );
+
     return {
         type: GAME_SELECT_CHAPTER,
         recursionBusterId: Date.now(),

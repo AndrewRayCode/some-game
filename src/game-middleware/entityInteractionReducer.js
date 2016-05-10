@@ -24,7 +24,7 @@ export default function entityInteractionReducer(
         currentLevelId, nextChapters, previousChapterFinishEntity,
         previousChapterEntity, previousChapter, cameraFov,
         currentGameChapterId, currentChapterId, allChaptersArray,
-        allEntities,
+        allEntities, currentBookId,
     } = gameData;
 
     const {
@@ -111,7 +111,7 @@ export default function entityInteractionReducer(
                     isNextChapterBigger = nextChapter.scale.x > 1;
 
                     newState.advanceAction = () =>
-                        actions.advanceChapter( nextChapter );
+                        actions.advanceChapter( currentBookId, nextChapter );
                 
                 }
 
