@@ -128,7 +128,7 @@ export default [
         radiusTop={ 0.5 }
         radiusBottom={ 0.5 }
         height={ 1 }
-        radialSegments={ 5 }
+        radialSegments={ 12 }
         heightSegments={ 1 }
     />,
 ];

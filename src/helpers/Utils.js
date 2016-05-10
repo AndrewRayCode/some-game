@@ -12,36 +12,56 @@ import mutateThreeWithObjLoader from 'three-obj-loader';
 mutateThreeWithObjLoader( THREE );
 
 // Given the player position and entiy position in 3d space, do a 2d collision
-// check. Adapted from http://stackoverflow.com/questions/21089959/detecting-collision-of-rectangle-with-circle
-export function playerToBoxCollision3dTo2d(
-    positionA:Vector3,
-    radiusA:number,
-    positionB:Vector3,
-    scaleB:Object,
+// check. Adapted from http://stackoverflow.com/questions/210899'm59/detecting-collision-of-rectangle-with-circle
+// Note boxPosition should be *centered* position
+export function circleToBoxCollision2d(
+    circlePosition:Vector2,
+    radius:number,
+    boxPosition:Vector2,
+    scaleB:Vector2,
 ):boolean {
 
     const halfX = scaleB.x * 0.5;
-    const halfZ = scaleB.z * 0.5;
+    const halfY = scaleB.y * 0.5;
 
-    const distX = Math.abs( positionA.x - positionB.x - halfX );
-    const distZ = Math.abs( positionA.z - positionB.z - halfZ );
+    const boxX = boxPosition.x - halfX;
+    const boxY = boxPosition.y - halfY;
 
-    if( ( distX > halfX + radiusA ) ||
-        ( distZ > halfZ + radiusA )
+    const distX = Math.abs( circlePosition.x - boxX - halfX );
+    const distY = Math.abs( circlePosition.y - boxY - halfY );
+
+    if( ( distX > halfX + radius ) ||
+        ( distY > halfY + radius )
     ) {
         return false;
     }
 
     if( ( distX <= halfX ) ||
-        ( distZ <= halfZ )
+        ( distY <= halfY )
     ) {
         return true;
     }
 
     const dx = distX - halfX;
-    const dz = distZ - halfZ;
+    const dy = distY - halfY;
 
-    return ( dx * dx ) + ( dz * dz ) <= radiusA * radiusA;
+    return ( dx * dx ) + ( dy * dy ) <= radius * radius;
+
+}
+
+export function playerToBoxCollision3dTo2d(
+    positionA:Vector3,
+    radiusA:number,
+    positionB:Vector3,
+    scaleB:Vector3,
+):boolean {
+
+    return circleToBoxCollision2d(
+        new Vector2( positionA.x, positionA.z ),
+        radiusA,
+        new Vector2( positionB.x, positionB.z ),
+        new Vector2( scaleB.x, scaleB.z ),
+    );
 
 }
 

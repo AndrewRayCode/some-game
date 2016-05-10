@@ -115,8 +115,8 @@ export default function entityInteractionReducer(
                 
                 }
 
-                // Calculate where to tween the player to. *>2 to move
-                // past the hit box for the level exit/entrance
+                // Calculate where to tween the player to. move a little more
+                // for the fun of it
                 newState.startTransitionPosition = playerPositionV3;
                 newState.currentTransitionPosition = playerPositionV3;
 
@@ -124,7 +124,7 @@ export default function entityInteractionReducer(
                     .multiplyScalar( isGoingBack ? -1 : 1 );
 
                 const currentTransitionTarget = entity.position.clone().add(
-                    direction.multiplyScalar( 1.25 * entity.scale.x )
+                    direction.multiplyScalar( 1.1 * entity.scale.x )
                 );
 
                 if( direction === Cardinality.UP || direction === Cardinality.DOWN ) {
@@ -150,7 +150,7 @@ export default function entityInteractionReducer(
 
                 return {
                     ...currentState,
-                    ...newState
+                    ...newState,
                 };
 
             }

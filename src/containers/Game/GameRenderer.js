@@ -271,9 +271,25 @@ export default class GameRenderer extends Component {
                 opacity={ 0.5 }
             /> }
 
+            { debug && <mesh
+                position={ playerPositionV3 }
+                scale={ new Vector3(
+                    playerRadius * 2,
+                    0.2 * playerRadius,
+                    playerRadius * 2,
+                ) }
+            >
+                <geometryResource
+                    resourceId="1x1cylinder"
+                />
+                <materialResource
+                    resourceId="purpleDebugMaterial"
+                />
+            </mesh> }
+
             { debug && previousChapterFinishEntity && <mesh
                 position={ previousChapterFinishEntity.position }
-                scale={ previousChapterFinishEntity.scale.clone().multiply( new Vector3( 1, 2, 1 ) ) }
+                scale={ previousChapterFinishEntity.scale }
             >
                 <geometryResource
                     resourceId="1x1box"
