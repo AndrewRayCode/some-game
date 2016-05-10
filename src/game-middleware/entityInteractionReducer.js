@@ -188,7 +188,9 @@ export default function entityInteractionReducer(
             )
         ) {
 
-            if( entity.actionType === 'text' && canJump( world, playerBody ) ) {
+            const passesJumpTest = !entity.requiresStand || canJump( world, playerBody );
+
+            if( entity.actionType === 'text' && passesJumpTest ) {
 
                 newState.textQueue = [
                     ...textQueue,
@@ -199,7 +201,7 @@ export default function entityInteractionReducer(
                     () => actions.removeEntity( currentLevelId, entity.id, ),
                 ];
 
-            } else if( entity.actionType === 'move' ) {
+            } else if( entity.actionType === 'move' && passesJumpTest ) {
 
                 const {
                     targetEntityId, direction, id, duration, easing, moveScale,

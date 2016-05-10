@@ -964,6 +964,7 @@ export default class Editor extends Component {
                         visible: false,
                         touchable: false,
                         actionType: 'text',
+                        requireStand: true,
                         texts: [],
                     };
 

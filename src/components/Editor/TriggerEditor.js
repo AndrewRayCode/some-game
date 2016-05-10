@@ -23,7 +23,7 @@ export default class TriggerEditor extends Component {
 
         const {
             actionType, texts, targetEntityId, moveScale, direction, easing,
-            duration,
+            duration, requireStand,
         } = trigger;
 
         let editor;
@@ -119,6 +119,14 @@ export default class TriggerEditor extends Component {
                 <option value="move">Move</option>
             </select>
             { editor }
+            <label>
+                <b>Require feet on ground?</b>
+                <input
+                    type="checkbox"
+                    checked={ requireStand }
+                    onChange={ onPropertyChange.bind( null, triggerId, 'requireStand' ) }
+                />
+            </label>
         </div>;
 
     }
