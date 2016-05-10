@@ -32,7 +32,7 @@ import { setGameState, updateGameState, } from 'redux/modules/game';
 
 import {
     pauseGame, unpauseGame, showConfirmMenuScreen, exitToMenuDeny,
-    showConfirmRestartScreen, exitToMenuConfirm, confirmRestart, denyRestart,
+    showConfirmRestartScreen, confirmRestart, denyRestart,
     showConfirmRestartBookMenuScreen, confirmRestartBook, denyRestartBook,
 } from 'redux/modules/gameScreen';
 
@@ -282,7 +282,7 @@ const gameDataSelector = createSelector(
         advanceToPreviousChapter, advanceChapter, startGame, stopGame,
         restartChapter, restartBook, pauseGame, unpauseGame,
         showConfirmMenuScreen, exitToMenuDeny, showConfirmRestartScreen,
-        exitToMenuConfirm, showConfirmRestartBookMenuScreen,
+        showConfirmRestartBookMenuScreen,
         confirmRestartBook, denyRestartBook, confirmRestart, denyRestart,
         setGameState, updateGameState, queueBeginContactEvent,
         queueEndContactEvent, createPhysicsBodies, removeEntity,
