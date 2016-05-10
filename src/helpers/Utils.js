@@ -69,7 +69,7 @@ export function playerV3ToFinishEntityV3Collision(
 ):boolean {
 
     return playerToBoxCollision3dTo2d(
-        playerPosition, radiusA * 0.5, positionB, scaleB,
+        playerPosition, radiusA * 0.75, positionB, scaleB,
     );
 
 }

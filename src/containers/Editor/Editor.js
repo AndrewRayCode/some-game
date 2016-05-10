@@ -1762,6 +1762,7 @@ export default class Editor extends Component {
                     </div> : null }
 
                     { ( selectedObject.type === 'wall' ||
+                            selectedObject.type === 'finish' ||
                             selectedObject.type === 'curvedwall' ||
                             selectedObject.type === 'diamondbox' ||
                             selectedObject.type === 'floor' ||

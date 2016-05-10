@@ -62,12 +62,14 @@ export default function entityInteractionReducer(
                 const cardinality = getCardinalityOfVector(
                     Cardinality.RIGHT.clone().applyQuaternion( entity.rotation )
                 );
-                const isUp = cardinality === Cardinality.DOWN || cardinality === Cardinality.UP;
 
                 let isNextChapterBigger;
+                let isGoingBack;
 
                 // Go to parent chapter of this one
                 if( entity === previousChapterFinishEntity ) {
+
+                    isGoingBack = true;
 
                     const previousChapterNextChapterData = previousChapter.nextChapters.find(
                         data => data.chapterId === currentChapterId
@@ -97,6 +99,8 @@ export default function entityInteractionReducer(
                 // Go to child chapter of this one
                 } else {
 
+                    isGoingBack = false;
+
                     const nextChapter = [ ...nextChapters ].sort( ( a, b ) =>
                         a.position.distanceTo( entity.position ) -
                         b.position.distanceTo( entity.position )
@@ -116,13 +120,18 @@ export default function entityInteractionReducer(
                 newState.startTransitionPosition = playerPositionV3;
                 newState.currentTransitionPosition = playerPositionV3;
 
-                const directionToFinish = getCardinalityOfVector(
-                    entity.position.clone().sub( playerPositionV3 )
-                );
+                const direction = cardinality.clone()
+                    .multiplyScalar( isGoingBack ? -1 : 1 );
 
                 const currentTransitionTarget = entity.position.clone().add(
-                    directionToFinish.multiplyScalar( 1.25 * entity.scale.x )
+                    direction.multiplyScalar( 1.25 * entity.scale.x )
                 );
+
+                if( direction === Cardinality.UP || direction === Cardinality.DOWN ) {
+                    currentTransitionTarget.x = playerPositionV3.x;
+                } else {
+                    currentTransitionTarget.z = playerPositionV3.z;
+                }
 
                 newState.currentTransitionTarget = currentTransitionTarget;
                 newState.currentTransitionStartTime = time;
