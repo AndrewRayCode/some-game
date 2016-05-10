@@ -326,7 +326,7 @@ export default class GameContainer extends Component {
 
         this.startGameLoop();
 
-        this.lastTime = 0;
+        this.lastTime = window.performance.now();
 
     }
 
@@ -440,20 +440,23 @@ export default class GameContainer extends Component {
 
     gameLoop( time ) {
 
+        // Gaurd against cases where someone pulled the rug out from under us
         if( !this.mounted || !this.loopStarted ) {
             return;
         }
 
         this.startGameLoop();
 
+        // The delta always needs to be calculated if the loop is running (ie
+        // before the possible return statement below)
+        const delta = time - this.lastTime;
+        this.lastTime = time;
+
         const { gameState, gameStarted, } = this.props;
 
         if( !gameStarted ) {
             return;
         }
-
-        const delta = time - this.lastTime;
-        this.lastTime = time;
 
         // In any state, (paused, etc), child components need the updaed time
         const currentState = { time, delta, };
@@ -495,6 +498,11 @@ export default class GameContainer extends Component {
     }
 
     startGameLoop() {
+
+        // Reset time so delta is zero if loop was paused
+        if( !this.loopStarted ) {
+            this.lastTime = window.performance.now();
+        }
 
         this.loopStarted = true;
         this.reqAnimId = window.requestAnimationFrame( this.gameLoop );
