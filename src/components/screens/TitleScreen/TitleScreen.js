@@ -6,7 +6,7 @@ const cameraPosition = new Vector3( 0, 8, 0 );
 const lookAt = new Vector3( 0, 0, 0 );
 
 const logoPosition = new Vector3( -4.5, 0, 0 );
-const menuPosition = new Vector3( 1.5, 0, 0 );
+const menuPosition = new Vector3( 2.2, 0, 0 );
 const menuScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.8 );
 
 export default class TitleScreen extends Component {
@@ -62,8 +62,9 @@ export default class TitleScreen extends Component {
                 playerTexture={ playerTexture }
                 playerTextureLegs={ playerTextureLegs }
                 playerTextureTail={ playerTextureTail }
-                menuOptions={ books.map( book => ({
-                    text: book.name,
+                menuOptions={ books.map( ( book, index ) => ({
+                    heading: `Book ${ index + 1 }:`,
+                    text: `"${ book.name }"`,
                     onSelect: this.props.onSelect.bind( null, book ),
                 }) ) }
             />

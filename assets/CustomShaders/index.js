@@ -1,6 +1,7 @@
 const CustomShaders = {
     spaceCubeWall: require( '../shaders/Space_Cube_Wall.json' ),
     universeInALetter: require( '../shaders/Universe_In_A_Letter.json' ),
+    universeInALetterHover: require( '../shaders/Universe_In_A_Letter_Hover.json' ),
     universeInAMenu: require( '../shaders/Universe_In_A_Menu.json' ),
     universeInAMenuHover: require( '../shaders/Universe_In_A_Menu_Hover.json' ),
     matrixWater: require( '../shaders/WaterFalls.json' ),
