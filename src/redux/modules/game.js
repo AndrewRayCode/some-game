@@ -123,6 +123,7 @@ export function game( state = initialGameReducerState, action = {} ) {
                 playerScale: initialGameReducerState.playerScale,
                 playerRadius: initialGameReducerState.playerRadius,
 
+                restartBusterId: restartBusterId || state.restartBusterId,
                 recursionBusterId: recursionBusterId || state.recursionBusterId,
 
                 // TODO: Create these in the action creators instead?
@@ -365,7 +366,6 @@ export function restartChapter(
     actions:Object,
     bookId:any,
     chapterId:any,
-    previousChapterId:any,
     originalEntities:Object,
     originalLevels:Object,
     chapters:Object,
@@ -385,6 +385,7 @@ export function restartChapter(
 
     return {
         type: RESTART_CHAPTER,
+        restartBusterId: Date.now(),
         world, playerPosition, bookId, chapterId, originalLevels,
         originalEntities, books, chapters,
     };
@@ -420,6 +421,7 @@ export function restartBook(
 
     return {
         type: RESTART_BOOK,
+        restartBusterId: Date.now(),
         world, playerPosition, bookId, chapterId, originalLevels,
         originalEntities, books, chapters,
     };

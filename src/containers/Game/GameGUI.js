@@ -158,14 +158,14 @@ export default class GameGUI extends Component {
 
         const {
             currentChapterId, originalEntities, originalLevels, chapters,
-            books, gameState, currentBookId, previousChapterId,
+            books, gameState, currentBookId,
         } = this.props;
 
         const { world, } = gameState;
 
         this.props.restartChapter(
-            this.props, currentBookId, currentChapterId, previousChapterId,
-            originalEntities, originalLevels, chapters, books, world
+            this.props, currentBookId, currentChapterId, originalEntities,
+            originalLevels, chapters, books, world
         );
 
     }

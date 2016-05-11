@@ -39,14 +39,13 @@ export default function outOfBoundsReducer(
 
         const { world, } = gameState;
 
-
         return {
             ...currentState,
             sideEffectQueue: [
                 ...oldState.sideEffectQueue,
                 () => actions.restartChapter(
-                    actions, currentBookId, currentChapterId, originalEntities, originalLevels,
-                    chapters, books, world
+                    actions, currentBookId, currentChapterId, originalEntities,
+                    originalLevels, chapters, books, world
                 )
             ],
         };
