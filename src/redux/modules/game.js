@@ -349,6 +349,7 @@ export function startGame(
 
     return {
         type: START_GAME,
+        restartBuesterId: Date.now(),
         world, playerPosition, bookId, chapterId, previousChapterId,
         nextChapter, originalLevels, originalEntities, chapters, books,
         recursionBusterId,
