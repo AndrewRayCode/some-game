@@ -143,7 +143,7 @@ export default class CreatePreviewObject extends Component {
                     scale={ scale }
                     quaternion={ createPreviewQuaternion }
                     position={ createPreviewPosition }
-                    helperMaterial="ghostMaterial"
+                    helperMaterialId="ghostMaterial"
                     ref="previewPosition"
                     materialId="ghostMaterial"
                 />;
@@ -158,7 +158,7 @@ export default class CreatePreviewObject extends Component {
                     maxLength={ 2 }
                     velocity={ 2 }
                     colors={[ 0xff0000 ]}
-                    helperMaterial="ghostMaterial"
+                    helperMaterialId="ghostMaterial"
                     ref="previewPosition"
                     materialId="ghostMaterial"
                 />;
