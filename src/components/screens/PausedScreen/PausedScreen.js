@@ -15,7 +15,7 @@ const bgPosition = new Vector3( 0, -2, 0 );
 const logoPosition = new Vector3( -5, 0, 0 );
 const logoScale = new Vector3( 1, 1, 1 ).multiplyScalar( 0.7 );
 
-const titlePosition = new Vector3( -1.2, 0, 0 );
+const titlePosition = new Vector3( -1.5, 0, 0 );
 const titleScale = new Vector3( 1, 1, 1 ).multiplyScalar( 1.2 );
 
 const menuPosition = new Vector3( 2.6, 0, 0 );
