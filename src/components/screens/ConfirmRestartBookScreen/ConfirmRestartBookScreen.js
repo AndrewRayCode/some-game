@@ -101,7 +101,7 @@ export default class ConfirmMenuScreen extends Component {
                 position={ topTextPosition }
                 scale={ topTextScale }
                 text="Restart this"
-                materialId="universeInALetter"
+                materialId="universeInAMenu"
                 fontName="Sniglet Regular"
                 fonts={ fonts }
                 letters={ letters }
@@ -110,7 +110,7 @@ export default class ConfirmMenuScreen extends Component {
                 position={ bottomTextPosition }
                 scale={ bottomTextScale }
                 text="Book?"
-                materialId="universeInALetter"
+                materialId="universeInAMenu"
                 fontName="Sniglet Regular"
                 fonts={ fonts }
                 letters={ letters }

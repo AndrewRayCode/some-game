@@ -119,7 +119,7 @@ export default class PausedScreen extends Component {
                 position={ titlePosition }
                 scale={ titleScale }
                 text="Paused"
-                materialId="universeInALetter"
+                materialId="universeInAMenu"
                 fontName="Sniglet Regular"
                 fonts={ fonts }
                 letters={ letters }
