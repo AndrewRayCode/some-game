@@ -986,6 +986,7 @@ export default class Editor extends Component {
                 } else if( createType === 'puffer' ) {
 
                     entityData = {
+                        impulse: 100,
                         maxLength: 2,
                         velocity: 2,
                         angle: [ -Math.PI, Math.PI ],

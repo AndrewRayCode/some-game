@@ -132,7 +132,7 @@ export default class ParticleEmitter extends Component {
                 radius: emitterRadius,
             },
             opacity: {
-                value: opacity,
+                value: Array.isArray( opacity ) ? opacity.map( o => parseFloat( o ) ) : opacity,
                 spread: opacitySpread
             },
             velocity: {
