@@ -16,6 +16,7 @@ import {
 import { bindActionCreators } from 'redux';
 import classNames from 'classnames/bind';
 import styles from './Editor.scss';
+import gameStyles from '../Game/Game.scss';
 
 import {
     EntityGroup, Grid, EditorResources, TexturePicker, CreatePreviewObject,
@@ -1523,6 +1524,7 @@ export default class Editor extends Component {
 
             <div className={ styles.sidebar }>
                 <button
+                    className={ gameStyles.button }
                     onClick={
                         this.props.saveAll.bind(
                             null, currentLevel, currentLevelStaticEntities,
