@@ -400,6 +400,7 @@ export default class GameGUI extends Component {
         if( !this.renderer ) {
 
             this.renderer = renderer;
+            window.renderer = renderer;
 
         }
 
